@@ -1,0 +1,14 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 17" width="12" height="17">
+	<title>scooter</title>
+	<defs>
+		<clipPath clipPathUnits="userSpaceOnUse" id="cp1">
+			<path d="m0.67 0.5h11.33v16h-11.33z"/>
+		</clipPath>
+		<image  width="12" height="10" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAKAQMAAAC64i25AAAAAXNSR0IB2cksfwAAAAZQTFRFAHj/AAAAssAUMAAAAAJ0Uk5T/wDltzBKAAAAJElEQVR4nGNkfM/I8IHR5gujzRVGGxdGmxZGlj+MDAwgdCwLAH9uB5voZeksAAAAAElFTkSuQmCC"/>
+	</defs>
+	<style>
+	</style>
+	<g id="Clip-Path" clip-path="url(#cp1)">
+		<use id="truck" href="#img1" x="0" y="4"/>
+	</g>
+</svg>
