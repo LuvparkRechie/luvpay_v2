@@ -4,7 +4,7 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.luvpay.refresh</string>
+		<string>com.luvpark.refresh</string>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
@@ -23,7 +23,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>luvpay</string>
+	<string>luvpark</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -31,7 +31,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>luvpay</string>
+	<string>luvpark</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -57,9 +57,9 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>Why is my app authenticating using face id?</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>luvpay needs Location access so that you can use the directions and map features in our app</string>
+	<string>luvpark needs Location access so that you can use the directions and map features in our app</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>luvpay needs Location access so that you can use the directions and map features in our app</string>
+	<string>luvpark needs Location access so that you can use the directions and map features in our app</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We request access to your location so that you can use the directions and map features in our app. This enables us to provide you with accurate and real-time navigation, helping you find your way and discover places of interest more conveniently. Your location data is used solely within the app and is not shared with third parties. Granting this permission enhances your user experience and ensures a seamless journey with our app. Thank you for choosing us!</string>
 	<key>NSMicrophoneUsageDescription</key>

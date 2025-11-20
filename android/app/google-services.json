@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "384596927484",
+    "project_id": "luvpark-2c857",
+    "storage_bucket": "luvpark-2c857.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:384596927484:android:8a0e752179fe006c884879",
+        "android_client_info": {
+          "package_name": "com.cmds.luvpark"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyUAmhKJCItUKzoEaEB7N6QxgcKYAzUwQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
