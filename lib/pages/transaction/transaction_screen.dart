@@ -1,526 +1,819 @@
-import 'dart:async';
+// ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages
+
+import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:luvpay/auth/authentication.dart';
-import 'package:luvpay/functions/functions.dart';
+import 'package:luvpay/custom_widgets/alert_dialog.dart';
+import 'package:luvpay/custom_widgets/app_color_v2.dart';
+import 'package:luvpay/custom_widgets/custom_button.dart';
+import 'package:luvpay/custom_widgets/custom_scaffold.dart';
+import 'package:luvpay/custom_widgets/custom_textfield.dart';
+import 'package:luvpay/custom_widgets/custom_text_v2.dart';
+import 'package:luvpay/custom_widgets/loading.dart';
+import 'package:luvpay/custom_widgets/no_data_found.dart';
+import 'package:luvpay/custom_widgets/no_internet.dart';
+import 'package:luvpay/custom_widgets/spacing.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/http/http_request.dart';
-import '../../custom_widgets/app_color_v2.dart';
+import 'package:ntp/ntp.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-class TransactionScreen extends StatefulWidget {
-  const TransactionScreen({super.key});
+import '../../../auth/authentication.dart';
+import '../../functions/functions.dart';
+import 'transaction_details.dart';
 
+class TransactionHistory extends StatefulWidget {
+  const TransactionHistory({super.key});
   @override
-  State<TransactionScreen> createState() => _TransactionScreenState();
+  State<TransactionHistory> createState() => _TransactionHistoryState();
 }
 
-class _TransactionScreenState extends State<TransactionScreen> {
-  List logs = [];
-  Timer? _tmr;
-  bool hasNet = true;
-  String _selectedFilter = 'Today';
-  String transDesc = "No transactions found";
-  bool _isLoading = true;
-
-  static const Map<String, int> _filterDays = {
-    'Today': 0,
-    'Week': 7,
-    'Month': 30,
-  };
+class _TransactionHistoryState extends State<TransactionHistory> {
+  final filterFromDate = TextEditingController();
+  final filterToDate = TextEditingController();
+  bool isLoadingPage = true;
+  bool isNetConn = true;
+  DateTime fromDate = DateTime.now().subtract(Duration(days: 15));
+  DateTime toDate = DateTime.now();
+  String randomNumber = Random().nextInt(100000).toString();
+  List<dynamic> filterLogs = [];
+  Map<String, List<dynamic>> groupedLogs = {};
+  bool isDownloading = false;
+  TextEditingController password = TextEditingController();
+  bool isShowPass = false;
 
   @override
   void initState() {
-    _isLoading = true;
     super.initState();
-    getLogs(true);
+    filterToDate.text = DateFormat('yyyy-MM-dd').format(toDate);
+    filterFromDate.text = DateFormat('yyyy-MM-dd').format(fromDate);
+    fetchLogs(isInitial: true);
   }
 
-  @override
-  void dispose() {
-    _tmr?.cancel();
-    super.dispose();
-  }
-
-  void runTimer() {
-    _tmr?.cancel();
-    _tmr = Timer.periodic(Duration(seconds: 5), (e) {
-      getLogs(false);
-    });
-  }
-
-  String _formatDate(String dateString) {
-    try {
-      DateTime date = DateTime.parse(dateString);
-      return DateFormat('MMM dd, yyyy • HH:mm').format(date);
-    } catch (e) {
-      return dateString;
-    }
-  }
-
-  Future<void> getLogs(bool isLog, {int? days}) async {
-    DateTime timeNow = await Functions.getTimeNow();
-    String toDate = timeNow.toString().split(" ")[0];
-    String fromDate =
-        timeNow.subtract(Duration(days: days ?? 0)).toString().split(" ")[0];
-
-    int userId = await Authentication().getUserId();
-    String subApi =
-        "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=$fromDate&tran_date_to=$toDate";
-
+  Future<void> fetchLogs({bool isInitial = false}) async {
+    setState(() => isLoadingPage = true);
+    final userId = await Authentication().getUserId();
+    final subApi =
+        "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=${filterFromDate.text}&tran_date_to=${filterToDate.text}";
     final response = await HttpRequestApi(api: subApi).get();
-
-    if (response is String) {
+    setState(() => isLoadingPage = false);
+    if (response == "No Internet") {
       setState(() {
-        hasNet = !response.toLowerCase().contains("internet");
+        isNetConn = false;
+        filterLogs = [];
+        groupedLogs = {};
       });
-    } else if (response is Map && response["items"].isNotEmpty) {
-      List items = response["items"];
-      transDesc = "No transactions found";
-      hasNet = true;
-
-      if (_selectedFilter.toLowerCase() == "today") {
-        DateTime timeNow = await Functions.getTimeNow();
-        DateTime today = timeNow.toUtc();
-        String todayString = today.toIso8601String().substring(0, 10);
-
-        List todayItems =
-            items.where((transaction) {
-              String transactionDate =
-                  transaction['tran_date'].toString().split("T")[0];
-              return transactionDate == todayString;
-            }).toList();
-
-        setState(() {
-          logs = todayItems;
-        });
-      } else {
-        setState(() {
-          logs = items;
-        });
-      }
-    } else {
+      CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
+      return;
+    }
+    if (response == null) {
       setState(() {
-        logs = [];
-        transDesc = "No transactions found for $_selectedFilter";
+        isNetConn = true;
+        filterLogs = [];
+        groupedLogs = {};
       });
+      CustomDialogStack.showError(
+        context,
+        "luvpay",
+        "Error while connecting to server, Please contact support.",
+        () => Get.back(),
+      );
+      return;
     }
 
-    _isLoading = false;
-    if (mounted) setState(() {});
+    final items = (response["items"] ?? []) as List<dynamic>;
+    items.sort(
+      (a, b) => DateTime.parse(
+        b['tran_date'],
+      ).compareTo(DateTime.parse(a['tran_date'])),
+    );
 
-    if (isLog && _selectedFilter.toLowerCase() == "today") runTimer();
+    filterLogs = isInitial ? items.take(15).toList() : items;
+
+    groupedLogs.clear();
+    for (var tx in filterLogs) {
+      final dt = DateTime.parse(tx["tran_date"]);
+      final key = _getGroupKey(dt);
+      groupedLogs.putIfAbsent(key, () => []).add(tx);
+    }
+
+    setState(() => isNetConn = true);
   }
 
-  void _handleFilterSelect(String filter) {
-    if (_selectedFilter == filter) return;
+  DateTime _startOfWeekSunday(DateTime date) {
+    int daysToSubtract = date.weekday % 7;
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+    ).subtract(Duration(days: daysToSubtract));
+  }
+
+  String _getGroupKey(DateTime dt) {
+    final today = DateTime.now();
+    final dayStart = DateTime(today.year, today.month, today.day);
+
+    final yesterday = dayStart.subtract(Duration(days: 1));
+
+    final thisWeekStart = _startOfWeekSunday(dayStart);
+
+    final lastWeekStart = thisWeekStart.subtract(Duration(days: 7));
+    final lastWeekEnd = thisWeekStart.subtract(Duration(seconds: 1));
+
+    final previousMonth = DateTime(today.year, today.month - 1);
+
+    if (_isSameDay(dt, dayStart)) return 'Today';
+    if (_isSameDay(dt, yesterday)) return 'Yesterday';
+
+    if (dt.isAfter(thisWeekStart) || _isSameDay(dt, thisWeekStart)) {
+      return 'This Week';
+    }
+
+    if (dt.isAfter(lastWeekStart) && dt.isBefore(lastWeekEnd)) {
+      return 'Last Week';
+    }
+
+    if (dt.month == today.month && dt.year == today.year) {
+      return DateFormat('MMMM').format(dt);
+    }
+
+    if (dt.month == previousMonth.month && dt.year == previousMonth.year) {
+      return 'Last Month';
+    }
+
+    return DateFormat('MMM dd, yyyy').format(dt);
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _safeName(String str) =>
+      str.replaceAll(RegExp(r'[^A-Za-z0-9_\-]'), '_');
+
+  Future<bool> _checkAndRequestStoragePermission() async {
+    if (Platform.isAndroid) {
+      return true;
+    }
+    return true;
+  }
+
+  Future<String?> _getDownloadDirectoryPath() async {
+    if (Platform.isAndroid) {
+      try {
+        final dir = await getExternalStorageDirectory();
+        if (dir != null && !await dir.exists()) {
+          await dir.create(recursive: true);
+        }
+        return dir?.path;
+      } catch (e) {
+        print("Error accessing external storage: $e");
+      }
+    } else if (Platform.isIOS) {
+      final dir = await getApplicationDocumentsDirectory();
+      return dir.path;
+    }
+    return null;
+  }
+
+  Future<void> selectDateRange(BuildContext context) async {
+    setState(() => isDownloading = true);
+
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2023),
+      lastDate: DateTime.now(),
+      initialDateRange: DateTimeRange(start: fromDate, end: toDate),
+      saveText: "Download",
+      helpText: "Select Date Range",
+    );
+
+    if (picked == null) {
+      setState(() => isDownloading = false);
+      return;
+    }
+
+    final exportFrom = picked.start;
+    final exportTo = picked.end;
+
+    final fromStr = DateFormat('yyyy-MM-dd').format(exportFrom);
+    final toStr = DateFormat('yyyy-MM-dd').format(exportTo);
+
+    final userId = await Authentication().getUserId();
+    final subApi =
+        "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=$fromStr&tran_date_to=$toStr";
+    final response = await HttpRequestApi(api: subApi).get();
+    if (response == "No Internet" || response == null) {
+      setState(() {
+        isDownloading = false;
+      });
+      CustomDialogStack.showConnectionLost(context, () {
+        Get.back();
+      });
+      return;
+    }
+
+    final items = (response["items"] ?? []) as List<dynamic>;
+    if (items.isEmpty) {
+      setState(() {
+        isDownloading = false;
+      });
+      CustomDialogStack.showInfo(
+        Get.context!,
+        "No Data",
+        "No transactions found in the selected range.",
+        () => Get.back(),
+      );
+      return;
+    }
+
+    items.sort(
+      (a, b) => DateTime.parse(
+        b['tran_date'],
+      ).compareTo(DateTime.parse(a['tran_date'])),
+    );
+
+    final rows = <List<String>>[
+      [
+        "Date",
+        "Reference #",
+        "Category",
+        "Description",
+        "Balance Before",
+        "Debit",
+        "Credit",
+        "Balance After",
+      ],
+      ...items.map((tx) {
+        final amount = double.tryParse(tx["amount"].toString()) ?? 0.0;
+        final isCredit = amount > 0;
+        return [
+          DateFormat(
+            'EEE, MMM d, yyyy h:mm a',
+          ).format(DateTime.parse(tx["tran_date"].toString())),
+          (tx["ref_no"] ?? '').toString(),
+          (tx["category"] ?? '').toString(),
+          (tx["tran_desc"] ?? '').toString(),
+          (tx["bal_before"] ?? '').toString(),
+          isCredit ? '' : amount.toStringAsFixed(2),
+          isCredit ? amount.toStringAsFixed(2) : '',
+          (tx["bal_after"] ?? '').toString(),
+        ].map((e) => e.toString()).toList();
+      }),
+    ];
+
+    double totalCredit = 0;
+    double totalDebit = 0;
+    for (var tx in items) {
+      final amount = double.tryParse(tx["amount"].toString()) ?? 0.0;
+      if (amount > 0) {
+        totalCredit += amount;
+      } else {
+        totalDebit += amount.abs();
+      }
+    }
+    final totalSpent = totalDebit;
+
+    rows.add([
+      '',
+      '',
+      '',
+      'TOTAL',
+      '',
+      totalDebit.toStringAsFixed(2),
+      totalCredit.toStringAsFixed(2),
+      '',
+    ]);
+
+    rows.add([
+      '',
+      '',
+      '',
+      'TOTAL SPENT',
+      '',
+      totalSpent.toStringAsFixed(2),
+      '',
+      '',
+    ]);
+
+    final baseName =
+        "transaction_history_${_safeName(fromStr)}_to_${_safeName(toStr)}_$randomNumber";
+
+    await downloadTransactionsAsPdf(rows, baseName);
     setState(() {
-      _selectedFilter = filter;
-      _isLoading = true;
-      logs.clear();
+      isDownloading = false;
     });
-    _tmr?.cancel();
-    getLogs(true, days: _filterDays[filter]!);
+  }
+
+  Future<void> downloadTransactionsAsPdf(
+    List<List<String>> rows,
+    String baseFileName,
+  ) async {
+    final hasPermission = await _checkAndRequestStoragePermission();
+    if (!hasPermission) {
+      if (!mounted) return;
+      CustomDialogStack.showError(
+        context,
+        "Permission Denied",
+        "Storage permission is required to save the PDF file.",
+        () => Get.back(),
+      );
+      return;
+    }
+
+    final directoryPath = await _getDownloadDirectoryPath();
+    if (directoryPath == null) {
+      if (!mounted) return;
+      CustomDialogStack.showError(
+        context,
+        "Error",
+        "Could not access download directory",
+        () => Get.back(),
+      );
+      return;
+    }
+    final PdfDocument document = PdfDocument();
+
+    if (password.text.isNotEmpty) {
+      document.security.userPassword = password.text;
+      document.security.ownerPassword = password.text;
+
+      document.security.permissions.addAll([
+        PdfPermissionsFlags.print,
+        PdfPermissionsFlags.copyContent,
+        PdfPermissionsFlags.accessibilityCopyContent,
+        PdfPermissionsFlags.fillFields,
+      ]);
+    }
+
+    final PdfPage page = document.pages.add();
+    final PdfGraphics graphics = page.graphics;
+
+    final PdfFont titleFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      16,
+      style: PdfFontStyle.bold,
+    );
+    final PdfFont subtitleFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
+    final PdfFont headerFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      10,
+      style: PdfFontStyle.bold,
+    );
+    final PdfFont cellFont = PdfStandardFont(PdfFontFamily.helvetica, 8);
+
+    graphics.drawString(
+      'Transaction History',
+      titleFont,
+      bounds: Rect.fromLTWH(0, 0, page.getClientSize().width, 30),
+      format: PdfStringFormat(alignment: PdfTextAlignment.center),
+    );
+
+    graphics.drawString(
+      'Exported on: ${DateTime.now().toLocal().toString().split('.')[0]}',
+      subtitleFont,
+      bounds: Rect.fromLTWH(0, 35, page.getClientSize().width, 15),
+      format: PdfStringFormat(alignment: PdfTextAlignment.center),
+    );
+
+    final PdfGrid grid = PdfGrid();
+    grid.columns.add(count: rows.first.length);
+
+    final PdfGridRow headerRow = grid.headers.add(1)[0];
+    for (int i = 0; i < rows.first.length; i++) {
+      headerRow.cells[i].value = rows.first[i];
+      headerRow.cells[i].style.font = headerFont;
+      headerRow.cells[i].style.backgroundBrush = PdfSolidBrush(
+        PdfColor(211, 211, 211),
+      );
+    }
+
+    for (int i = 1; i < rows.length; i++) {
+      final PdfGridRow row = grid.rows.add();
+      for (int j = 0; j < rows[i].length; j++) {
+        row.cells[j].value = rows[i][j];
+        row.cells[j].style.font = cellFont;
+      }
+    }
+
+    grid.draw(
+      page: page,
+      bounds: Rect.fromLTWH(
+        0,
+        60,
+        page.getClientSize().width,
+        page.getClientSize().height - 60,
+      ),
+    );
+
+    try {
+      final filePath = '$directoryPath/$baseFileName.pdf';
+      final file = File(filePath);
+      await file.writeAsBytes(await document.save());
+
+      document.dispose();
+
+      if (!mounted) return;
+
+      CustomDialogStack.showLoading(Get.context!);
+      await Future.delayed(Duration(seconds: 3));
+      Get.back();
+      CustomDialogStack.showConfirmation(
+        context,
+        "Download Complete",
+        "PDF saved to:\n${_simplifyPathForDisplay(filePath)}\n\nDo you want to open the file now?",
+        leftText: "Back",
+        rightText: "Open File",
+        rightTextColor: AppColorV2.background,
+        rightBtnColor: AppColorV2.lpBlueBrand,
+        () {
+          Get.back();
+        },
+        () {
+          Get.back();
+          OpenFile.open(filePath);
+        },
+      );
+    } catch (e) {
+      document.dispose();
+      if (!mounted) return;
+      CustomDialogStack.showError(
+        context,
+        "Error",
+        "Failed to save PDF: ${e.toString()}",
+        () => Get.back(),
+      );
+    }
+  }
+
+  String _simplifyPathForDisplay(String path) {
+    if (Platform.isAndroid) {
+      return path
+          .replaceFirst('/storage/emulated/0/', 'Internal storage/')
+          .replaceFirst('/Download/', '/Downloads/');
+    }
+    return path;
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF8FAFD),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Header Section
-          SliverAppBar(
-            expandedHeight: 150,
-            floating: false,
-            pinned: true,
-            snap: false,
-            backgroundColor: Colors.white,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.parallax,
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColorV2.primaryVariant,
-                      AppColorV2.primaryVariant.withOpacity(0.8),
-                    ],
-                  ),
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 40, 24, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Transactions',
-                          style: GoogleFonts.poppins(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Track your payment history',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            color: Colors.white.withOpacity(0.9),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+  Widget build(BuildContext ctx) {
+    return CustomScaffoldV2(
+      enableToolBar: false,
 
-          // Filter Section - Using SliverToBoxAdapter instead of SliverPersistentHeader
-          SliverToBoxAdapter(
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children:
-                    ['Today', 'Week', 'Month'].map((filter) {
-                      final isSelected = _selectedFilter == filter;
-                      return GestureDetector(
-                        onTap: () => _handleFilterSelect(filter),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient:
-                                isSelected
-                                    ? LinearGradient(
-                                      colors: [
-                                        AppColorV2.primaryVariant,
-                                        AppColorV2.primaryVariant.withOpacity(
-                                          0.9,
-                                        ),
-                                      ],
-                                    )
-                                    : null,
-                            color:
-                                isSelected
-                                    ? null
-                                    : Colors.grey.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow:
-                                isSelected
-                                    ? [
-                                      BoxShadow(
-                                        color: AppColorV2.primaryVariant
-                                            .withOpacity(0.3),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ]
-                                    : null,
-                          ),
-                          child: Text(
-                            filter,
-                            style: GoogleFonts.inter(
-                              color:
-                                  isSelected
-                                      ? Colors.white
-                                      : AppColorV2.onSurface.withOpacity(0.7),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-              ),
-            ),
-          ),
-
-          // Content Section
-          if (_isLoading)
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return Container(
-                  margin: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+      scaffoldBody:
+          isLoadingPage
+              ? LoadingCard()
+              : !isNetConn
+              ? NoInternetConnected(onTap: () => fetchLogs(isInitial: true))
+              : groupedLogs.isEmpty
+              ? NoDataFound(text: "No transaction found")
+              : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DefaultText(
+                    text: "Transaction History",
+                    style: AppTextStyle.h4,
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(15),
+                  SizedBox(height: 10),
+                  FutureBuilder<DateTime>(
+                    future: Functions.getTimeNow(),
+                    builder:
+                        (context, s) => DefaultText(
+                          text:
+                              "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}",
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
+                  ),
+                  SizedBox(height: 10),
+                  Divider(),
+                  SizedBox(height: 10),
+                  Expanded(
+                    child: ListView.builder(
+                      physics: BouncingScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      itemCount: groupedLogs.length + 1,
+                      itemBuilder: (c, idx) {
+                        if (idx == groupedLogs.length) {
+                          return Column(
+                            children: [
+                              SizedBox(height: 20),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: CustomButton(
+                                  text: "Download Transactions",
+                                  onPressed: () async {
+                                    final result = await showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        bool dialogIsShowPass = isShowPass;
+
+                                        return StatefulBuilder(
+                                          builder: (context, setDialogState) {
+                                            return PopScope(
+                                              canPop: false,
+                                              child: Dialog(
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                        19,
+                                                        30,
+                                                        19,
+                                                        19,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      DefaultText(
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.start,
+                                                        text:
+                                                            "Create File Password",
+                                                      ),
+                                                      SizedBox(height: 10),
+                                                      CustomTextField(
+                                                        hintText:
+                                                            "Enter PDF password",
+                                                        controller: password,
+                                                        isObscure:
+                                                            !dialogIsShowPass,
+                                                        suffixIcon:
+                                                            !dialogIsShowPass
+                                                                ? Icons
+                                                                    .visibility_off
+                                                                : Icons
+                                                                    .visibility,
+                                                        onIconTap: () {
+                                                          setDialogState(() {
+                                                            dialogIsShowPass =
+                                                                !dialogIsShowPass;
+                                                          });
+                                                        },
+                                                      ),
+                                                      SizedBox(height: 10),
+                                                      DefaultText(
+                                                        text:
+                                                            "Note: Password must be 8-15 characters long",
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 20),
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Expanded(
+                                                            child: CustomButton(
+                                                              textColor:
+                                                                  AppColorV2
+                                                                      .lpBlueBrand,
+                                                              bordercolor:
+                                                                  AppColorV2
+                                                                      .lpBlueBrand,
+                                                              btnColor:
+                                                                  AppColorV2
+                                                                      .background,
+                                                              text: "Cancel",
+                                                              onPressed: () {
+                                                                Get.back();
+                                                              },
+                                                            ),
+                                                          ),
+                                                          SizedBox(width: 10),
+                                                          Expanded(
+                                                            child: CustomButton(
+                                                              text: "Confirm",
+                                                              onPressed: () {
+                                                                final enteredPassword =
+                                                                    password
+                                                                        .text;
+
+                                                                if (enteredPassword
+                                                                    .isEmpty) {
+                                                                  CustomDialogStack.showSnackBar(
+                                                                    context,
+                                                                    "Please enter a password",
+                                                                    Colors.red,
+                                                                    () {},
+                                                                  );
+                                                                  return;
+                                                                }
+
+                                                                if (enteredPassword
+                                                                        .length <
+                                                                    8) {
+                                                                  CustomDialogStack.showSnackBar(
+                                                                    context,
+                                                                    "Password must be at least 8 characters long",
+                                                                    Colors.red,
+                                                                    () {},
+                                                                  );
+                                                                  return;
+                                                                }
+
+                                                                if (enteredPassword
+                                                                        .length >
+                                                                    15) {
+                                                                  CustomDialogStack.showSnackBar(
+                                                                    context,
+                                                                    "Password cannot exceed 15 characters",
+                                                                    Colors.red,
+                                                                    () {},
+                                                                  );
+                                                                  return;
+                                                                }
+                                                                setState(() {
+                                                                  isShowPass =
+                                                                      dialogIsShowPass;
+                                                                });
+                                                                Navigator.pop(
+                                                                  context,
+                                                                  true,
+                                                                );
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                    );
+
+                                    setState(() {
+                                      isShowPass = false;
+                                    });
+
+                                    if (result == true) {
+                                      await selectDateRange(ctx);
+
+                                      password.clear();
+                                    } else {
+                                      password.clear();
+                                    }
+                                  },
+                                ),
+                              ),
+                              spacing(height: 10),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: DefaultText(
+                                  maxLines: 3,
+                                  textAlign: TextAlign.center,
+                                  text: 'Select transactions by date range',
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                            ],
+                          );
+                        }
+
+                        final key = groupedLogs.keys.elementAt(idx);
+                        final list = groupedLogs[key]!;
+
+                        return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 120,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(4),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: DefaultText(
+                                text: key,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Container(
-                              width: 200,
-                              height: 14,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
+                            ...list.map((tx) {
+                              final desc = tx['tran_desc'].toString();
+                              final category = tx['category'].toString();
+                              final img =
+                                  desc.toLowerCase().contains("share")
+                                      ? "wallet_sharetoken"
+                                      : (desc.toLowerCase().contains(
+                                            "received",
+                                          ) ||
+                                          desc.toLowerCase().contains("credit"))
+                                      ? "wallet_receivetoken"
+                                      : "wallet_payparking";
+                              return Column(
+                                children: [
+                                  SizedBox(height: 10),
+                                  InkWell(
+                                    onTap: () {
+                                      Get.to(
+                                        TransactionDetails(
+                                          index: 0,
+                                          data: [tx],
+                                          isHistory: true,
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          SvgPicture.asset(
+                                            "assets/images/$img.svg",
+                                            height: 50,
+                                          ),
+                                          spacing(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                DefaultText(
+                                                  text: category,
+                                                  style: AppTextStyle.body1,
+                                                  color: AppColorV2.lpBlueBrand,
+                                                ),
+                                                spacing(height: 4),
+                                                DefaultText(text: desc),
+                                                spacing(height: 4),
+                                                DefaultText(
+                                                  text: DateFormat(
+                                                    'MMM d, yyyy h:mm a',
+                                                  ).format(
+                                                    DateTime.parse(
+                                                      tx['tran_date'],
+                                                    ),
+                                                  ),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          DefaultText(
+                                            text: tx['amount'].replaceAll(
+                                              '-',
+                                              '',
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            color:
+                                                double.parse(tx['amount']) < 0
+                                                    ? Colors.red
+                                                    : AppColorV2.lpBlueBrand,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Divider(),
+                                ],
+                              );
+                            }),
                           ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }, childCount: 6),
-            )
-          else if (logs.isEmpty)
-            SliverFillRemaining(child: _buildEmptyState())
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final transaction = logs[index];
-                return Container(
-                  margin: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-                  child: _TransactionCard(
-                    name: transaction['category'] as String,
-                    category: transaction['tran_desc'] as String,
-                    date: _formatDate(transaction['tran_date']),
-                    amount: transaction['amount'] as String,
-                    isPositive: !transaction['amount'].toString().contains("-"),
-                  ),
-                );
-              }, childCount: logs.length),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 80,
-            color: AppColorV2.primaryVariant.withOpacity(0.3),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            transDesc,
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColorV2.onSurface,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start making payments to see your history',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColorV2.onSurface.withValues(alpha: 0.6),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TransactionCard extends StatelessWidget {
-  final String name;
-  final String category;
-  final String date;
-  final String amount;
-  final bool isPositive;
-
-  const _TransactionCard({
-    required this.name,
-    required this.category,
-    required this.date,
-    required this.amount,
-    required this.isPositive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            // Handle transaction details
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                // Icon with gradient background
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        isPositive
-                            ? Color(0xFF00B894).withOpacity(0.15)
-                            : Color(0xFFE84393).withOpacity(0.15),
-                        isPositive
-                            ? Color(0xFF00B894).withOpacity(0.08)
-                            : Color(0xFFE84393).withOpacity(0.08),
-                      ],
+                        );
+                      },
                     ),
-                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(
-                    isPositive
-                        ? Icons.arrow_downward_rounded
-                        : Icons.arrow_upward_rounded,
-                    color: isPositive ? Color(0xFF00B894) : Color(0xFFE84393),
-                    size: 26,
-                  ),
-                ),
-
-                const SizedBox(width: 16),
-
-                // Transaction details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2D3436),
-                          fontSize: 16,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        category,
-                        style: GoogleFonts.inter(
-                          color: Color(0xFF636E72),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        date,
-                        style: GoogleFonts.inter(
-                          color: Color(0xFFB2BEC3),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // Amount and status
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      amount,
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w800,
-                        color:
-                            isPositive ? Color(0xFF00B894) : Color(0xFFE84393),
-                        fontSize: 18,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isPositive
-                                ? Color(0xFF00B894).withOpacity(0.1)
-                                : Color(0xFFE84393).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        isPositive ? 'CREDIT' : 'DEBIT',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color:
-                              isPositive
-                                  ? Color(0xFF00B894)
-                                  : Color(0xFFE84393),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+                ],
+              ),
     );
   }
 }

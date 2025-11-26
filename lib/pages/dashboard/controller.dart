@@ -1,34 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 class DashboardController extends GetxController {
-  RxBool isLoadingPage = false.obs;
-  RxInt pageIndex = 0.obs;
-  late PageController pageController;
+  final PageController pageController = PageController();
+  var currentIndex = 0.obs;
 
-  @override
-  void onInit() {
-    initialize();
-    super.onInit();
-  }
-
-  @override
-  void onClose() {
-    pageController.dispose();
-    super.onClose();
-  }
-
-  void initialize() {
-    pageController = PageController(initialPage: 0);
-    pageIndex.value = 0;
-  }
-
-  void onPageChanged(int index) async {
-    if (pageIndex.value == index) return;
+  void changePage(int index) {
     pageController.jumpToPage(index);
-
-    pageIndex.value = index;
+    currentIndex.value = index;
   }
-
-  DashboardController();
 }

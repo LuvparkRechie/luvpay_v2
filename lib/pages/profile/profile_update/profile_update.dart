@@ -277,9 +277,9 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
       } else {
         if (res["success"] == "Y") {
           Authentication().setProfilePic(jsonEncode(imageBase64));
-          Get.back(); // Close the screen after successful update
+          Get.back();
         } else {
-          CustomDialogStack.showError(Get.context!, "luvpark", res["msg"], () {
+          CustomDialogStack.showError(Get.context!, "luvpay", res["msg"], () {
             Get.back();
           });
           return;

@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:luvpay/custom_widgets/custom_scaffold.dart';
+import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/smooth_route.dart';
 import 'package:luvpay/http/http_request.dart';
 import 'package:luvpay/pages/profile/profile_update/profile_update.dart';
@@ -9,6 +13,7 @@ import 'package:luvpay/pages/profile/profile_update/profile_update.dart';
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
+import '../../custom_widgets/loading.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 
@@ -49,6 +54,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   Future<void> initialize() async {
     final objData = await Authentication().getUserData2();
     userData = objData;
+    print("userData in profile: $userData");
     userData["complete_add"] =
         objData["province_name"] == null
             ? "No address"
@@ -175,26 +181,20 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final Color primaryBlue = const Color(0xFF2196F3);
+    final bool isVerified = userData["is_verified"] == "N";
     final Color secondaryTeal = const Color(0xFF009688);
 
-    return Scaffold(
-      backgroundColor: AppColorV2.background,
-      appBar: AppBar(
-        elevation: 0,
-        toolbarHeight: 0,
-        backgroundColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: AppColorV2.background,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
-      ),
-      body:
+    return CustomScaffoldV2(
+      enableToolBar: false,
+
+      scaffoldBody:
           isLoading
-              ? const _ModernShimmerLoading()
+              ? LoadingCard()
               : CustomScrollView(
+                physics: const BouncingScrollPhysics(),
                 slivers: [
                   SliverAppBar(
+                    backgroundColor: Colors.transparent,
                     expandedHeight: 200,
                     flexibleSpace: FlexibleSpaceBar(
                       background: Stack(
@@ -202,20 +202,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           Positioned(
                             top: 20,
                             right: 20,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: executeAddressFlow,
-                                icon: Icon(
-                                  Icons.edit,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: executeAddressFlow,
+                              icon: Icon(Icons.edit, size: 20),
                             ),
                           ),
                           Center(
@@ -228,36 +218,53 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: Colors.white,
                                       width: 3,
+                                      color: AppColorV2.lpBlueBrand.withAlpha(
+                                        50,
+                                      ),
                                     ),
-                                    gradient: LinearGradient(
-                                      colors: [primaryBlue, secondaryTeal],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
+                                    gradient:
+                                        userData["image_base64"] == null
+                                            ? LinearGradient(
+                                              colors: [
+                                                primaryBlue,
+                                                secondaryTeal,
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            )
+                                            : null,
                                   ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 40,
-                                  ),
+                                  child: _buildProfileImage(),
                                 ),
                                 const SizedBox(height: 16),
-                                Text(
-                                  Functions().getDisplayName(userData),
+                                DefaultText(
+                                  text: Functions().getDisplayName(userData),
                                   style: TextStyle(
-                                    color: Colors.white,
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  userData["email"] ?? "No email",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
-                                    fontSize: 14,
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isVerified
+                                            ? AppColorV2.inactiveState
+                                            : AppColorV2.lpBlueBrand,
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: DefaultText(
+                                    style: AppTextStyle.body1,
+                                    text:
+                                        isVerified
+                                            ? "Unverified"
+                                            : "Fully Verified",
+                                    color: AppColorV2.background,
                                   ),
                                 ),
                               ],
@@ -268,18 +275,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     ),
                   ),
                   SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          _buildProfileInfoCard(),
-                          const SizedBox(height: 24),
-                          _buildSettingsSection(),
-                          const SizedBox(height: 24),
-                          _buildSupportSection(),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                    child: Column(
+                      children: [
+                        _buildProfileInfoCard(),
+                        const SizedBox(height: 24),
+                        _buildSettingsSection(),
+                        const SizedBox(height: 24),
+                        _buildSupportSection(),
+                        const SizedBox(height: 24),
+                      ],
                     ),
                   ),
                 ],
@@ -287,15 +291,48 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     );
   }
 
+  Widget _buildProfileImage() {
+    final String? base64Image = userData["image_base64"];
+
+    if (base64Image != null && base64Image.isNotEmpty) {
+      try {
+        String imageString = base64Image;
+        if (base64Image.contains(',')) {
+          imageString = base64Image.split(',').last;
+        }
+
+        return ClipOval(
+          child: Image.memory(
+            base64Decode(imageString),
+            width: 80,
+            height: 80,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildDefaultProfileIcon();
+            },
+          ),
+        );
+      } catch (e) {
+        print("Error decoding base64 image: $e");
+        return _buildDefaultProfileIcon();
+      }
+    } else {
+      return _buildDefaultProfileIcon();
+    }
+  }
+
+  Widget _buildDefaultProfileIcon() {
+    return Icon(Icons.person, size: 40, color: AppColorV2.background);
+  }
+
   Widget _buildProfileInfoCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColorV2.background,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: .05),
+            color: AppColorV2.primaryTextColor.withValues(alpha: .05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -343,20 +380,20 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ),
         child: Icon(icon, color: AppColorV2.primary, size: 20),
       ),
-      title: Text(
-        title,
+      title: DefaultText(
+        text: title,
         style: TextStyle(
           fontSize: 14,
-          color: Colors.grey[600],
+          color: AppColorV2.bodyTextColor,
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: Text(
-        value,
-        style: const TextStyle(
+      subtitle: DefaultText(
+        text: value,
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: AppColorV2.primaryTextColor,
         ),
       ),
       trailing: Container(
@@ -374,13 +411,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Widget _buildSettingsSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColorV2.background,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColorV2.primaryTextColor.withOpacity(0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -389,12 +425,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Preferences',
+          DefaultText(
+            text: 'Preferences',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
+              color: AppColorV2.bodyTextColor,
             ),
           ),
           const SizedBox(height: 16),
@@ -433,13 +469,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ),
         child: Icon(icon, color: AppColorV2.primary, size: 20),
       ),
-      title: Text(
-        title,
+      title: DefaultText(
+        text: title,
         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+      subtitle: DefaultText(
+        text: subtitle,
+        style: TextStyle(fontSize: 12, color: AppColorV2.bodyTextColor),
       ),
       trailing:
           title.toString().toLowerCase().contains("change")
@@ -459,13 +495,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Widget _buildSupportSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColorV2.background,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColorV2.primaryTextColor.withOpacity(0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -474,12 +509,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Support & About',
+          DefaultText(
+            text: 'Support & About',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
+              color: AppColorV2.bodyTextColor,
             ),
           ),
           const SizedBox(height: 16),
@@ -513,11 +548,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                side: BorderSide(color: Colors.red[300]!),
-                foregroundColor: Colors.red[600],
+                side: BorderSide(color: AppColorV2.incorrectState!),
+                foregroundColor: AppColorV2.incorrectState.withAlpha(200),
               ),
-              child: const Text(
-                'Logout',
+              child: const DefaultText(
+                text: 'Logout',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
@@ -536,18 +571,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: AppColorV2.bodyTextColor.withAlpha(50),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: Colors.grey[600], size: 20),
+        child: Icon(icon, color: AppColorV2.bodyTextColor, size: 20),
       ),
-      title: Text(
-        title,
+      title: DefaultText(
+        text: title,
         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
       trailing: Icon(
         Icons.arrow_forward_ios,
-        color: Colors.grey[400],
+        color: AppColorV2.bodyTextColor,
         size: 16,
       ),
       onTap: onTap,
@@ -695,11 +730,11 @@ class _ModernMinimalLoadingState extends State<ModernMinimalLoading>
       child: Container(
         padding: const EdgeInsets.all(25),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColorV2.background,
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppColorV2.primaryTextColor.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -726,12 +761,12 @@ class _ModernMinimalLoadingState extends State<ModernMinimalLoading>
               },
             ),
             const SizedBox(width: 15),
-            Text(
-              widget.message,
+            DefaultText(
+              text: widget.message,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: AppColorV2.primaryTextColor,
               ),
             ),
           ],
@@ -754,11 +789,11 @@ class ModernMinimalSuccess extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(25),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColorV2.background,
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppColorV2.primaryTextColor.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -767,93 +802,18 @@ class ModernMinimalSuccess extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 24),
+            Icon(Icons.check_circle, color: AppColorV2.bodyTextColor, size: 24),
             const SizedBox(width: 15),
-            Text(
-              message,
+            DefaultText(
+              text: message,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: AppColorV2.primaryTextColor,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ========== MODERN SHIMMER LOADING ==========
-class _ModernShimmerLoading extends StatelessWidget {
-  const _ModernShimmerLoading();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          expandedHeight: 200,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF2196F3), Color(0xFF009688)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    children: List.generate(3, (index) => _buildShimmerRow()),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildShimmerRow() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(width: 100, height: 16, color: Colors.grey[300]),
-                const SizedBox(height: 4),
-                Container(width: 150, height: 14, color: Colors.grey[200]),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

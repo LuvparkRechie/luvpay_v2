@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:luvpay/otp_field/index.dart';
+import 'package:luvpay/pages/qr/index.dart';
 
 import '../dashboard/index.dart';
 import '../landing/index.dart';
@@ -93,6 +94,14 @@ class AppPages {
       page: () => const OtpFieldScreen(),
       binding: OtpFieldScreenBinding(),
       transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.qr,
+      page: () => const QR(),
+      binding: QRBinding(),
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),

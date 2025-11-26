@@ -84,7 +84,7 @@ class ForgotVerifiedAcctController extends GetxController {
         } else {
           CustomDialogStack.showError(
             Get.context!,
-            "luvpark",
+            "luvpay",
             "Make sure that you've entered the correct phone number.",
             () {
               Get.back();

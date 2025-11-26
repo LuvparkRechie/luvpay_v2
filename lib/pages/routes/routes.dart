@@ -15,7 +15,7 @@ class Routes {
   static const parking = "/parking";
   static const parkingAreas = "/parking_areas";
   static const wallet = "/wallet";
-  static const qrwallet = "/wallet_qr";
+  static const qr = "/qr";
   static const booking = "/booking";
   static const bookingNotice = "/booking_notice";
   static const bookingReceipt = "/booking_receipt";

@@ -112,7 +112,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         Get.back();
         CustomDialogStack.showError(
           Get.context!,
-          "luvpark",
+          "luvpay",
           "Please check your internet connection and try again.",
           () {
             Get.back();
@@ -130,7 +130,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         Get.back();
         CustomDialogStack.showError(
           Get.context!,
-          "luvpark",
+          "luvpay",
           "Error while connecting to server, Please try again.",
           () {
             Get.back();
@@ -182,7 +182,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         Get.back();
         CustomDialogStack.showError(
           Get.context!,
-          "luvpark",
+          "luvpay",
           returnData["msg"],
           () {
             Get.back();
@@ -254,7 +254,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
 
           CustomDialogStack.showError(
             Get.context!,
-            "luvpark",
+            "luvpay",
             'Please check your internet connection and try again.',
             () {
               Get.back();
@@ -267,7 +267,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
           Get.back();
           CustomDialogStack.showError(
             Get.context!,
-            "luvpark",
+            "luvpay",
             "Error while connecting to server, Please try again.",
             () {
               Get.back();

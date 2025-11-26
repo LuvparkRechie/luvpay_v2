@@ -1,41 +1,58 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter_auto_size_text/flutter_auto_size_text.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
+import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/functions/functions.dart';
 import 'package:luvpay/http/http_request.dart';
+import 'package:luvpay/pages/dashboard/index.dart';
 import 'package:luvpay/pages/routes/routes.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 
+import '../../custom_widgets/no_data_found.dart';
 import '../../http/api_keys.dart';
+import 'notifications.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
 
   @override
-  State<WalletScreen> createState() => _WalletScreenState();
+  State<WalletScreen> createState() => WalletScreenState();
 }
 
-class _WalletScreenState extends State<WalletScreen> {
+class WalletScreenState extends State<WalletScreen> {
   bool isLoading = false;
   List userData = [];
   bool hasNet = true;
   List logs = [];
   Timer? _timer;
   Map<String, dynamic> userInfo = {};
-
+  int unreadMsg = 0;
+  int notifCount = 0;
   @override
   void initState() {
     super.initState();
     getUserInfo();
     getUserData();
+    getNotificationCount();
     getLogs();
     _startAutoRefresh();
   }
+
+  // void getNotif() async {
+  //   List<dynamic> msgdata =
+  //       await PaMessageDatabase.instance.getUnreadMessages();
+  //   unreadMsg = msgdata.length;
+  // }
 
   void getUserInfo() async {
     userInfo = await Authentication().getUserData2();
@@ -105,6 +122,24 @@ class _WalletScreenState extends State<WalletScreen> {
     });
   }
 
+  Future<void> getNotificationCount() async {
+    try {
+      final item = await Authentication().getUserData();
+      String userId = jsonDecode(item!)['user_id'].toString();
+
+      String subApi = "${ApiKeys.notificationApi}$userId";
+      HttpRequestApi(api: subApi).get().then((response) async {
+        if (response["items"].isNotEmpty) {
+          notifCount = response["items"].length;
+        } else {
+          notifCount = 0;
+        }
+      });
+    } catch (e) {
+      notifCount = 0;
+    }
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -125,49 +160,36 @@ class _WalletScreenState extends State<WalletScreen> {
           statusBarBrightness: Brightness.light,
         ),
       ),
-      body: RefreshIndicator.adaptive(
-        onRefresh: getUserData,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // Header Section
-            SliverToBoxAdapter(child: _WalletHeaderSection(userInfo: userInfo)),
-
-            // Balance Card Section
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(19, 19, 19, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _WalletHeaderSection(
+              userInfo: userInfo,
+              unreadMsg: unreadMsg,
+              notifCount: notifCount,
+            ),
+            SizedBox(height: 10),
+            _ModernBalanceCardWithBgImage(
+              userInfo: userInfo,
+              userData: userData,
+            ),
+            Expanded(
+              child: RefreshIndicator.adaptive(
+                onRefresh: getUserData,
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(child: SizedBox(height: 20)),
+                    SliverToBoxAdapter(child: _BillsPaymentSection()),
+                    SliverToBoxAdapter(child: SizedBox(height: 30)),
+                    SliverToBoxAdapter(
+                      child: _ModernTransactionHistorySection(logs: logs),
+                    ),
+                    SliverToBoxAdapter(child: SizedBox(height: 30)),
+                  ],
                 ),
-                child: _ModernBalanceCardWithBgImage(
-                  userInfo: userInfo,
-                  userData: userData,
-                ),
-              ),
-            ),
-
-            // Quick Actions Section
-            SliverToBoxAdapter(
-              child: const Padding(
-                padding: EdgeInsets.only(top: 20, bottom: 10),
-                child: _ModernQuickActionsSection(),
-              ),
-            ),
-
-            // Bills Payment Section
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: _BillsPaymentSection(),
-              ),
-            ),
-
-            // Transaction History Section
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 30),
-                child: _ModernTransactionHistorySection(logs: logs),
               ),
             ),
           ],
@@ -178,108 +200,163 @@ class _WalletScreenState extends State<WalletScreen> {
 }
 
 class _WalletHeaderSection extends StatelessWidget {
+  final int unreadMsg;
+  final int notifCount;
   final Map<String, dynamic> userInfo;
-  const _WalletHeaderSection({required this.userInfo});
+  const _WalletHeaderSection({
+    required this.userInfo,
+    required this.unreadMsg,
+    required this.notifCount,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColorV2.primaryVariant.withOpacity(0.1),
-              Colors.transparent,
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-          child: Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColorV2.primaryVariant,
-                      AppColorV2.primaryVariant.withOpacity(0.7),
-                    ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0),
+      child: SafeArea(
+        child: Row(
+          children: [
+            _buildProfileImage(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DefaultText(
+                    text: 'Welcome back,',
+                    style: AppTextStyle.body1,
+                    color: AppColorV2.primaryTextColor,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColorV2.primaryVariant.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.person_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                  DefaultText(
+                    text: Functions().getDisplayName(userInfo),
+                    style: AppTextStyle.h4,
+                    maxLines: 1,
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            Row(
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.topRight,
                   children: [
-                    Text(
-                      'Welcome back,',
-                      style: GoogleFonts.inter(
-                        color: AppColorV2.onSurface.withOpacity(0.7),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                    InkWell(
+                      onTap: () {
+                        Get.to(WalletNotifications());
+                      },
+                      child: SvgPicture.asset(
+                        "assets/images/${notifCount != 0 ? "wallet_active_notification" : "wallet_inactive_notification"}.svg",
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      Functions().getDisplayName(userInfo),
-                      style: GoogleFonts.poppins(
-                        color: AppColorV2.onSurface,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.notifications_outlined,
-                    color: AppColorV2.onSurface,
-                  ),
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildProfileImage() {
+    final String? base64Image = userInfo["image_base64"];
+
+    if (base64Image != null && base64Image.isNotEmpty) {
+      try {
+        String imageString = base64Image;
+        if (base64Image.contains(',')) {
+          imageString = base64Image.split(',').last;
+        }
+
+        // Check if we have a cached image provider
+        ImageProvider? cachedImage = ImageCacheHelper.getCachedImage(
+          base64Image,
+        );
+
+        if (cachedImage == null) {
+          // Create and cache new image provider
+          final bytes = base64Decode(imageString);
+          cachedImage = MemoryImage(bytes);
+          ImageCacheHelper.cacheImage(base64Image, cachedImage);
+        }
+
+        return Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColorV2.primaryVariant.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: Image(
+              image: cachedImage,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print("Error loading profile image: $error");
+                return _buildDefaultProfileIcon();
+              },
+            ),
+          ),
+        );
+      } catch (e) {
+        print("Error decoding base64 image in wallet: $e");
+        return _buildDefaultProfileIcon();
+      }
+    } else {
+      return _buildDefaultProfileIcon();
+    }
+  }
+
+  Widget _buildDefaultProfileIcon() {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            AppColorV2.primaryVariant,
+            AppColorV2.primaryVariant.withOpacity(0.7),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColorV2.primaryVariant.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Icon(Icons.person_rounded, color: Colors.white, size: 24),
+    );
+  }
 }
 
-// Modern Balance Card with Original Background Image
+class ImageCacheHelper {
+  static final Map<String, ImageProvider> _cache = {};
+
+  static ImageProvider? getCachedImage(String base64String) {
+    if (_cache.containsKey(base64String)) {
+      return _cache[base64String];
+    }
+    return null;
+  }
+
+  static void cacheImage(String base64String, ImageProvider imageProvider) {
+    _cache[base64String] = imageProvider;
+  }
+}
+
 class _ModernBalanceCardWithBgImage extends StatelessWidget {
   final Map<String, dynamic> userInfo;
   final List userData;
@@ -302,7 +379,7 @@ class _ModernBalanceCardWithBgImage extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: AppColorV2.primaryVariant.withOpacity(0.3),
-            blurRadius: 15,
+            blurRadius: 50,
             offset: const Offset(0, 6),
           ),
         ],
@@ -314,13 +391,10 @@ class _ModernBalanceCardWithBgImage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total Balance',
-                style: GoogleFonts.inter(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
+              DefaultText(
+                text: 'Total Balance',
+                style: AppTextStyle.h3_semibold,
+                color: AppColorV2.surface,
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -331,22 +405,24 @@ class _ModernBalanceCardWithBgImage extends StatelessWidget {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  "•••••••${userInfo["mobile_no"].toString().substring(userInfo["mobile_no"].toString().length - 4)}",
-                  style: GoogleFonts.inter(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: DefaultText(
+                  text:
+                      userInfo["mobile_no"] != null
+                          ? "•••••••${userInfo["mobile_no"].toString().substring(userInfo["mobile_no"].toString().length - 4)}"
+                          : "•••••••••••",
+
+                  style: AppTextStyle.body1,
+                  color: AppColorV2.background,
                 ),
               ),
             ],
           ),
 
-          Text(
-            userData.isEmpty || userData[0]["items"].isEmpty
-                ? "•••••"
-                : toCurrencyString(userData[0]["items"][0]["amount_bal"]),
+          DefaultText(
+            text:
+                userData.isEmpty || userData[0]["items"].isEmpty
+                    ? "•••••"
+                    : toCurrencyString(userData[0]["items"][0]["amount_bal"]),
             style: GoogleFonts.poppins(
               color: Colors.white,
               fontSize: 32,
@@ -379,13 +455,10 @@ class _ModernBalanceCardWithBgImage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 5),
-                    Text(
-                      'Active',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    DefaultText(
+                      text: 'Active',
+                      style: AppTextStyle.body1,
+                      color: AppColorV2.background,
                     ),
                   ],
                 ),
@@ -398,124 +471,6 @@ class _ModernBalanceCardWithBgImage extends StatelessWidget {
   }
 }
 
-class _ModernQuickActionsSection extends StatelessWidget {
-  const _ModernQuickActionsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            'Top Up Methods',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColorV2.onSurface,
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            'Choose your preferred top-up method',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: AppColorV2.onSurface.withOpacity(0.6),
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        SizedBox(
-          height: 90,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            physics: const BouncingScrollPhysics(),
-            scrollDirection: Axis.horizontal,
-            children: [
-              const SizedBox(width: 4),
-              _buildModernTopUpButton("assets/images/w_unionbank.png", () {
-                Get.toNamed(
-                  Routes.walletrechargeload,
-                  arguments: {
-                    "bank_type": "UnionBank",
-                    "image": "assets/images/wt_unionbank.png",
-                    "bank_code": " UB ONLINE",
-                  },
-                );
-              }),
-              const SizedBox(width: 10),
-              _buildModernTopUpButton("assets/images/w_instapay.png", () {
-                Get.toNamed(
-                  Routes.walletrechargeload,
-                  arguments: {
-                    "bank_type": "UnionBank",
-                    "image": "assets/images/wt_instapay.png",
-                    "bank_code": "instapay",
-                  },
-                );
-              }),
-              const SizedBox(width: 10),
-              _buildModernTopUpButton("assets/images/w_pesonet.png", () {
-                Get.toNamed(
-                  Routes.walletrechargeload,
-                  arguments: {
-                    "bank_type": "UnionBank",
-                    "image": "assets/images/wt_pesonet.png",
-                    "bank_code": "paygate",
-                  },
-                );
-              }),
-              const SizedBox(width: 10),
-              _buildModernTopUpButton("assets/images/w_maya.png", () {
-                Get.toNamed(
-                  Routes.walletrechargeload,
-                  arguments: {
-                    "bank_type": "Maya",
-                    "image": "assets/images/wt_maya.png",
-                    "bank_code": " Maya",
-                  },
-                );
-              }),
-              const SizedBox(width: 4),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildModernTopUpButton(String assetPath, Function onTap) {
-    return InkWell(
-      onTap: () => onTap(),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        width: 70,
-        height: 70,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
-        ),
-        child: Image.asset(assetPath, fit: BoxFit.contain),
-      ),
-    );
-  }
-}
-
-// Enhanced Bills Payment Section with Category Selection
 class _BillsPaymentSection extends StatefulWidget {
   const _BillsPaymentSection();
 
@@ -653,48 +608,30 @@ class _BillsPaymentSectionState extends State<_BillsPaymentSection> {
   Widget build(BuildContext context) {
     final categories = billersByCategory.keys.toList();
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bills Payment',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: AppColorV2.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Select a category to pay bills',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: AppColorV2.onSurface.withOpacity(0.6),
-                    ),
-                  ),
-                ],
-              ),
-              Container(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DefaultText(
+                  text: 'Bills Payment',
+                  color: AppColorV2.onSurface,
+                  style: AppTextStyle.h3,
+                ),
+                const SizedBox(height: 2),
+                DefaultText(
+                  text: 'Select a category to pay bills',
+                  color: AppColorV2.bodyTextColor,
+                ),
+              ],
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
@@ -703,38 +640,35 @@ class _BillsPaymentSectionState extends State<_BillsPaymentSection> {
                   color: AppColorV2.primaryVariant.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  '${categories.length} Categories',
-                  style: GoogleFonts.inter(
-                    color: AppColorV2.primaryVariant,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: DefaultText(
+                  textAlign: TextAlign.center,
+                  text: '${categories.length} Categories',
+                  maxLines: 1,
+                  color: AppColorV2.primaryVariant,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Categories Grid
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.4,
             ),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              final billers = billersByCategory[category]!;
-              return _buildCategoryCard(category, billers);
-            },
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.4,
           ),
-        ],
-      ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            final billers = billersByCategory[category]!;
+            return _buildCategoryCard(category, billers);
+          },
+        ),
+      ],
     );
   }
 
@@ -742,7 +676,6 @@ class _BillsPaymentSectionState extends State<_BillsPaymentSection> {
     String category,
     List<Map<String, dynamic>> billers,
   ) {
-    // Get category icon and color based on category
     final categoryData = _getCategoryData(category);
 
     return Material(
@@ -760,38 +693,38 @@ class _BillsPaymentSectionState extends State<_BillsPaymentSection> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Wrap(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: categoryData['color'].withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    categoryData['icon'],
-                    color: categoryData['color'],
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  category,
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColorV2.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${billers.length} billers',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppColorV2.onSurface.withOpacity(0.6),
-                  ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: categoryData['color'].withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        categoryData['icon'],
+                        color: categoryData['color'],
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DefaultText(
+                      text: category,
+                      color: AppColorV2.onSurface,
+                      style: AppTextStyle.body1,
+                    ),
+                    const SizedBox(height: 4),
+                    DefaultText(
+                      text: '${billers.length} billers',
+                      color: AppColorV2.bodyTextColor,
+                      maxLines: 1,
+                      maxFontSize: 12,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -833,7 +766,6 @@ class _BillsPaymentSectionState extends State<_BillsPaymentSection> {
           ),
           child: Column(
             children: [
-              // Header
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -856,20 +788,11 @@ class _BillsPaymentSectionState extends State<_BillsPaymentSection> {
                       icon: const Icon(Icons.arrow_back_rounded),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      category,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    DefaultText(text: category, style: AppTextStyle.h3),
                     const Spacer(),
-                    Text(
-                      '${billers.length} billers',
-                      style: GoogleFonts.inter(
-                        color: AppColorV2.onSurface.withOpacity(0.6),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    DefaultText(
+                      text: '${billers.length} billers',
+                      style: AppTextStyle.h3_semibold,
                     ),
                   ],
                 ),
@@ -939,13 +862,10 @@ class _BillsPaymentSectionState extends State<_BillsPaymentSection> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    name,
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: AppColorV2.onSurface,
-                    ),
+                  child: DefaultText(
+                    text: name,
+                    color: AppColorV2.onSurface,
+                    style: AppTextStyle.paragraph1,
                   ),
                 ),
                 const Icon(
@@ -968,59 +888,41 @@ class _ModernTransactionHistorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Recent Transactions',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColorV2.onSurface,
+    final DashboardController controller = Get.put(DashboardController());
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            DefaultText(
+              text: 'Recent Transactions',
+              color: AppColorV2.onSurface,
+              style: AppTextStyle.h3,
+            ),
+            if (logs.isNotEmpty)
+              TextButton(
+                onPressed: () {
+                  controller.changePage(1);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColorV2.primaryVariant,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                ),
+                child: DefaultText(
+                  text: 'View All',
+                  color: AppColorV2.primaryVariant,
+                  style: AppTextStyle.body1,
                 ),
               ),
-              if (logs.isNotEmpty)
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColorV2.primaryVariant,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                  ),
-                  child: Text(
-                    'View All',
-                    style: GoogleFonts.inter(
-                      color: AppColorV2.primaryVariant,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildModernTransactionList(),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _buildModernTransactionList(),
+      ],
     );
   }
 
@@ -1034,88 +936,34 @@ class _ModernTransactionHistorySection extends StatelessWidget {
       }
     }
 
-    // Sample logs data
-    List<Map<String, dynamic>> sampleLogs = [
-      {
-        'category': 'Bank Transfer',
-        'tran_desc': 'Funds received from John Doe',
-        'tran_date': '2024-01-15T14:30:00Z',
-        'amount': '+₱1,500.00',
-      },
-      {
-        'category': 'Electricity Bill',
-        'tran_desc': 'Meralco Payment',
-        'tran_date': '2024-01-15T10:15:00Z',
-        'amount': '-₱2,347.50',
-      },
-      {
-        'category': 'Top Up',
-        'tran_desc': 'Bank Deposit - UnionBank',
-        'tran_date': '2024-01-14T16:45:00Z',
-        'amount': '+₱5,000.00',
-      },
-    ];
-
-    final displayLogs = logs.isEmpty ? sampleLogs : logs.take(3).toList();
+    final displayLogs =
+        logs.isEmpty
+            ? []
+            : logs.length <= 5
+            ? logs
+            : logs.sublist(0, 5);
 
     if (displayLogs.isEmpty) {
-      return _buildBeautifulEmptyState();
+      return Center(child: NoDataFound());
     }
 
-    return Column(
-      children: [
-        for (int i = 0; i < displayLogs.length; i++)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: _ModernTransactionTile(
-              name: displayLogs[i]['category'] as String,
-              category: displayLogs[i]['tran_desc'] as String,
-              date: formatDate(displayLogs[i]['tran_date']),
-              amount: displayLogs[i]['amount'] as String,
-              isPositive: !displayLogs[i]['amount'].toString().contains("-"),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildBeautifulEmptyState() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 30),
-      child: Column(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColorV2.primaryVariant.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.receipt_long_rounded,
-              color: AppColorV2.primaryVariant,
-              size: 24,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'No transactions yet',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColorV2.onSurface,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Your transactions will appear here',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: AppColorV2.onSurface.withOpacity(0.6),
-            ),
-          ),
-        ],
-      ),
+    return ListView.separated(
+      separatorBuilder: (context, index) {
+        return const SizedBox(height: 14);
+      },
+      padding: EdgeInsets.zero,
+      itemCount: displayLogs.length,
+      itemBuilder: (context, index) {
+        return _ModernTransactionTile(
+          name: displayLogs[index]['category'] as String,
+          category: displayLogs[index]['tran_desc'] as String,
+          date: formatDate(displayLogs[index]['tran_date']),
+          amount: displayLogs[index]['amount'] as String,
+          isPositive: !displayLogs[index]['amount'].toString().contains("-"),
+        );
+      },
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
     );
   }
 }
@@ -1147,98 +995,84 @@ class _ModernTransactionTile extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () {},
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color:
-                        isPositive
-                            ? AppColorV2.success.withOpacity(0.1)
-                            : AppColorV2.error.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    isPositive
-                        ? Icons.arrow_downward_rounded
-                        : Icons.arrow_upward_rounded,
-                    color: isPositive ? AppColorV2.success : AppColorV2.error,
-                    size: 16,
-                  ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color:
+                      isPositive
+                          ? AppColorV2.success.withOpacity(0.1)
+                          : AppColorV2.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                          color: AppColorV2.onSurface,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        category,
-                        style: GoogleFonts.inter(
-                          color: AppColorV2.onSurface.withOpacity(0.6),
-                          fontSize: 11,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                child: Icon(
+                  isPositive
+                      ? Icons.arrow_downward_rounded
+                      : Icons.arrow_upward_rounded,
+                  color: isPositive ? AppColorV2.success : AppColorV2.error,
+                  size: 16,
                 ),
-                const SizedBox(width: 6),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      amount,
+                    DefaultText(
+                      text: name,
                       style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w700,
-                        color:
-                            isPositive ? AppColorV2.success : AppColorV2.error,
+                        fontWeight: FontWeight.w600,
+                        color: AppColorV2.onSurface,
                         fontSize: 13,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isPositive
-                                ? AppColorV2.success.withOpacity(0.1)
-                                : AppColorV2.error.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        isPositive ? 'CREDIT' : 'DEBIT',
-                        style: GoogleFonts.inter(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w600,
-                          color:
-                              isPositive
-                                  ? AppColorV2.success
-                                  : AppColorV2.error,
-                        ),
-                      ),
+                    DefaultText(
+                      text: category,
+                      style: AppTextStyle.body1,
+                      maxFontSize: 12,
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  DefaultText(
+                    text: amount,
+                    style: AppTextStyle.body1,
+                    color: isPositive ? AppColorV2.success : AppColorV2.error,
+                  ),
+                  const SizedBox(height: 2),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          isPositive
+                              ? AppColorV2.success.withOpacity(0.1)
+                              : AppColorV2.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: DefaultText(
+                      text: isPositive ? 'CREDIT' : 'DEBIT',
+                      style: GoogleFonts.inter(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                        color:
+                            isPositive ? AppColorV2.success : AppColorV2.error,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),

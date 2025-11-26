@@ -13,10 +13,14 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
+import 'package:luvpay/custom_widgets/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/loading.dart';
+import 'package:luvpay/pages/routes/routes.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
+
+import 'brightness_setter.dart';
 
 class ScannerScreen extends StatefulWidget {
   final Function onchanged;
@@ -25,22 +29,42 @@ class ScannerScreen extends StatefulWidget {
   final bool isBack;
 
   @override
-  // ignore: library_private_types_in_public_api
   _ScannerScreenState createState() => _ScannerScreenState();
 }
 
-class _ScannerScreenState extends State<ScannerScreen> {
+class _ScannerScreenState extends State<ScannerScreen>
+    with SingleTickerProviderStateMixin {
   final ImagePicker _picker = ImagePicker();
   bool isLoading = true;
   bool isScanning = false;
   QRViewController? controller;
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  final Color primaryTeal = Color(0xFF008080);
+  final Color primaryBlue = Color(0xFF1E90FF);
+  final Color darkBlue = Color(0xFF0066CC);
+  final Color lightTeal = Color(0xFF40E0D0);
+  final Color backgroundColor = Color(0xFF0A1F35);
 
   @override
   void initState() {
     super.initState();
+
+    _animationController = AnimationController(
+      duration: Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_animationController);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkCameraPermission();
       load();
+      BrightnessSetter.setFullBrightness();
     });
   }
 
@@ -56,6 +80,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   void dispose() {
     controller!.disposed;
+    _animationController.dispose();
+    BrightnessSetter.restoreBrightness();
     super.dispose();
   }
 
@@ -67,36 +93,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 100,
-        elevation: 0,
-        toolbarHeight: 56,
-        backgroundColor: AppColorV2.lpBlueBrand,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: AppColorV2.lpBlueBrand,
-          statusBarBrightness: Brightness.dark,
-          statusBarIconBrightness: Brightness.light,
-        ),
-        title: Text("QR Code"),
-
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Get.back();
-          },
-          icon: Row(
-            children: [
-              Icon(CupertinoIcons.back, color: Colors.white),
-              DefaultText(text: "Back", color: AppColorV2.background),
-            ],
-          ),
-        ),
-      ),
-      body: Container(
+    return CustomScaffoldV2(
+      padding: EdgeInsets.zero,
+      canPop: false,
+      enableToolBar: false,
+      scaffoldBody: Container(
         width: double.infinity,
         height: double.infinity,
-        color: AppColorV2.lpBlueBrand,
+        color: backgroundColor,
         child:
             isLoading
                 ? LoadingCard()
@@ -106,45 +110,316 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       key: GlobalKey(debugLabel: 'QR'),
                       onQRViewCreated: _onQRViewCreated,
                       overlay: QrScannerOverlayShape(
-                        borderColor: AppColorV2.lpBlueBrand,
-                        borderRadius: 10,
-                        borderLength: 30,
-                        borderWidth: 10,
-                        cutOutSize: 300,
+                        borderColor: Colors.transparent,
+                        borderRadius: 30,
+                        borderLength: 35,
+                        borderWidth: 5,
+                        cutOutSize: 200,
+                        cutOutBottomOffset: 40,
                       ),
                     ),
+
                     Positioned(
-                      child: Align(
-                        alignment: Alignment.topCenter,
+                      top: MediaQuery.of(context).size.height / 2 - 180,
+                      left: MediaQuery.of(context).size.width / 2 - 150,
+                      child: Container(
+                        width: 300,
+                        height: 300,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              child: Container(
+                                width: 35,
+                                height: 35,
+                                child: CustomPaint(
+                                  painter: _CornerPainter(
+                                    gradient: LinearGradient(
+                                      colors: [lightTeal, primaryBlue],
+                                    ),
+                                    corner: Corner.topLeft,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Container(
+                                width: 35,
+                                height: 35,
+                                child: CustomPaint(
+                                  painter: _CornerPainter(
+                                    gradient: LinearGradient(
+                                      colors: [lightTeal, primaryBlue],
+                                    ),
+                                    corner: Corner.topRight,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              child: Container(
+                                width: 35,
+                                height: 35,
+                                child: CustomPaint(
+                                  painter: _CornerPainter(
+                                    gradient: LinearGradient(
+                                      colors: [lightTeal, primaryBlue],
+                                    ),
+                                    corner: Corner.bottomLeft,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                width: 35,
+                                height: 35,
+                                child: CustomPaint(
+                                  painter: _CornerPainter(
+                                    gradient: LinearGradient(
+                                      colors: [lightTeal, primaryBlue],
+                                    ),
+                                    corner: Corner.bottomRight,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              child: AnimatedBuilder(
+                                animation: _animation,
+                                builder: (context, child) {
+                                  return Transform.translate(
+                                    offset: Offset(0, _animation.value * 300),
+                                    child: Container(
+                                      height: 3,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.transparent,
+                                            lightTeal,
+                                            primaryBlue,
+                                            lightTeal,
+                                            Colors.transparent,
+                                          ],
+                                          stops: [0.0, 0.3, 0.5, 0.7, 1.0],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: primaryBlue.withOpacity(0.5),
+                                            blurRadius: 8,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              backgroundColor.withOpacity(0.9),
+                              backgroundColor.withOpacity(0.1),
+                            ],
+                          ),
+                        ),
+                        child: SafeArea(
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20),
+                            child: Column(
+                              children: [
+                                DefaultText(
+                                  text: 'Scan QR Code',
+                                  style: GoogleFonts.openSans(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                DefaultText(
+                                  text:
+                                      'Make sure the QR code is within the frame',
+                                  style: GoogleFonts.openSans(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 180,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              backgroundColor.withOpacity(0.9),
+                              backgroundColor.withOpacity(0.1),
+                            ],
+                          ),
+                        ),
                         child: Padding(
-                          padding: EdgeInsets.only(top: 50),
-                          child: DefaultText(
-                            text: 'Make sure the QR code is within the frame.',
-                            style: GoogleFonts.openSans(color: Colors.white),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 20,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Opacity(
+                                opacity: 0.6,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [primaryTeal, primaryBlue],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: primaryBlue.withOpacity(0.1),
+                                        blurRadius: 10,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: CustomButton(
+                                    btnColor: Colors.transparent,
+                                    textColor: Colors.white,
+                                    bordercolor: Colors.transparent,
+                                    leading: Icon(
+                                      LucideIcons.qrCode,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    borderRadius: 12,
+                                    btnHeight: 56,
+                                    text: 'Generate QR',
+                                    onPressed: () {
+                                      Get.toNamed(Routes.qr);
+                                    },
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 12),
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [primaryBlue, primaryTeal],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: primaryTeal.withOpacity(0.3),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: CustomButton(
+                                  btnColor: Colors.transparent,
+                                  textColor: Colors.white,
+                                  bordercolor: Colors.transparent,
+                                  leading: Icon(
+                                    LucideIcons.uploadCloud,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  borderRadius: 12,
+                                  btnHeight: 56,
+                                  text: 'Upload',
+                                  onPressed:
+                                      () => uploadPhoto(ImageSource.gallery),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                    Positioned(
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: CustomButton(
-                          margin: EdgeInsets.only(bottom: 40),
-                          width: 200,
-                          btnColor: AppColorV2.background,
-                          textColor: AppColorV2.lpBlueBrand,
-                          bordercolor: AppColorV2.lpBlueBrand,
-                          leading: Icon(
-                            LucideIcons.uploadCloud,
-                            color: AppColorV2.lpBlueBrand,
+
+                    if (isScanning)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black54,
+                          child: Center(
+                            child: Container(
+                              padding: EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [primaryTeal, primaryBlue],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryBlue.withOpacity(0.4),
+                                    blurRadius: 15,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(height: 12),
+                                  DefaultText(
+                                    text: 'Scanning...',
+                                    style: GoogleFonts.openSans(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          borderRadius: 10,
-                          btnHeight: 50,
-                          text: 'Upload QR Code',
-                          onPressed: () => uploadPhoto(ImageSource.gallery),
                         ),
                       ),
-                    ),
                   ],
                 ),
       ),
@@ -158,6 +433,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
         setState(() {
           isScanning = true;
         });
+
+        HapticFeedback.lightImpact();
 
         Get.back();
         widget.onchanged(scanData.code!);
@@ -173,7 +450,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       } else if (scanData.code == null) {
         CustomDialogStack.showError(
           Get.context!,
-          "luvpay",
+          "Scan Error",
           "No QR code detected. Please try again.",
           () {
             Get.back();
@@ -198,7 +475,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     if (imageFile == null) {
       CustomDialogStack.showError(
         context,
-        "luvpay",
+        "Upload Error",
         "Invalid QR code image, please select valid QR code image.",
         () {
           Get.back();
@@ -216,6 +493,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           setState(() {
             qrCode = barcode.displayValue!;
           });
+          HapticFeedback.selectionClick();
 
           Get.back();
           widget.onchanged(barcode.displayValue!);
@@ -224,13 +502,80 @@ class _ScannerScreenState extends State<ScannerScreen> {
           setState(() {
             qrCode = 'No QR code found';
           });
+          CustomDialogStack.showError(
+            context,
+            "Scan Error",
+            "No QR code found in the selected image.",
+            () {
+              Get.back();
+            },
+          );
           return;
         }
       } catch (e) {
         setState(() {
           qrCode = 'Error scanning image: $e';
         });
+        CustomDialogStack.showError(
+          context,
+          "Scan Error",
+          "Error scanning image. Please try again.",
+          () {
+            Get.back();
+          },
+        );
       }
     }
   }
+}
+
+enum Corner { topLeft, topRight, bottomLeft, bottomRight }
+
+class _CornerPainter extends CustomPainter {
+  final Gradient gradient;
+  final Corner corner;
+
+  _CornerPainter({required this.gradient, required this.corner});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..shader = gradient.createShader(
+            Rect.fromLTWH(0, 0, size.width, size.height),
+          )
+          ..strokeWidth = 4
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
+
+    final path = Path();
+
+    switch (corner) {
+      case Corner.topLeft:
+        path.moveTo(size.width, 0);
+        path.lineTo(0, 0);
+        path.lineTo(0, size.height);
+        break;
+      case Corner.topRight:
+        path.moveTo(0, 0);
+        path.lineTo(size.width, 0);
+        path.lineTo(size.width, size.height);
+        break;
+      case Corner.bottomLeft:
+        path.moveTo(0, 0);
+        path.lineTo(0, size.height);
+        path.lineTo(size.width, size.height);
+        break;
+      case Corner.bottomRight:
+        path.moveTo(0, size.height);
+        path.lineTo(size.width, size.height);
+        path.lineTo(size.width, 0);
+        break;
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

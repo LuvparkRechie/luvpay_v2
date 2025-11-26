@@ -13,7 +13,7 @@ import 'package:root_checker_plus/root_checker_plus.dart';
 import '../http/api_keys.dart';
 
 class AppSecurity {
-  static const platform = MethodChannel('com.cmds.luvpark/root');
+  static const platform = MethodChannel('com.cmds.luvpay/root');
   static String message = '';
   static bool rootedCheck = false;
   static bool devMode = false;
