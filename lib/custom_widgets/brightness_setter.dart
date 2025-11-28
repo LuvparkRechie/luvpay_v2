@@ -13,7 +13,7 @@ class BrightnessSetter {
 
       _previousBrightness = await ScreenBrightness().current;
 
-      await ScreenBrightness().setScreenBrightness(.8);
+      await ScreenBrightness().setScreenBrightness(.5);
       _isFullBrightness = true;
 
       debugPrint('✅ Brightness set to full. Previous: $_previousBrightness');

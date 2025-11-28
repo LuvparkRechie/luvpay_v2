@@ -54,7 +54,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   Future<void> initialize() async {
     final objData = await Authentication().getUserData2();
     userData = objData;
-    print("userData in profile: $userData");
     userData["complete_add"] =
         objData["province_name"] == null
             ? "No address"
@@ -557,6 +556,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               ),
             ),
           ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.1),
         ],
       ),
     );

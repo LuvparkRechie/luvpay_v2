@@ -20,8 +20,6 @@ import 'package:luvpay/pages/routes/routes.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
-import 'brightness_setter.dart';
-
 class ScannerScreen extends StatefulWidget {
   final Function onchanged;
   const ScannerScreen({super.key, required this.onchanged, this.isBack = true});
@@ -64,7 +62,6 @@ class _ScannerScreenState extends State<ScannerScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkCameraPermission();
       load();
-      BrightnessSetter.setFullBrightness();
     });
   }
 
@@ -79,9 +76,9 @@ class _ScannerScreenState extends State<ScannerScreen>
 
   @override
   void dispose() {
-    controller!.disposed;
+    controller?.stopCamera();
+    controller?.dispose();
     _animationController.dispose();
-    BrightnessSetter.restoreBrightness();
     super.dispose();
   }
 
@@ -95,7 +92,6 @@ class _ScannerScreenState extends State<ScannerScreen>
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
       padding: EdgeInsets.zero,
-      canPop: false,
       enableToolBar: false,
       scaffoldBody: Container(
         width: double.infinity,
@@ -302,7 +298,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Opacity(
-                                opacity: 0.6,
+                                opacity: 0.8,
                                 child: Container(
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
@@ -313,7 +309,7 @@ class _ScannerScreenState extends State<ScannerScreen>
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: primaryBlue.withOpacity(0.1),
+                                        color: primaryBlue.withOpacity(0.5),
                                         blurRadius: 10,
                                         offset: Offset(0, 4),
                                       ),

@@ -221,7 +221,7 @@ class QRController extends GetxController
       if (Platform.isAndroid || Platform.isIOS) {
         await Share.shareXFiles([
           XFile(imgFile.path, mimeType: 'image/png'),
-        ], text: "Scan this QR to pay with luvpark!");
+        ], text: "Scan this QR to pay with luvpay!");
       } else {
         CustomDialogStack.showError(
           Get.context!,

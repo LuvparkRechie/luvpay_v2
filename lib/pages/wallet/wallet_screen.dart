@@ -1077,10 +1077,23 @@
 //   }
 // }
 
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
+import '../../auth/authentication.dart';
 import '../../custom_widgets/app_color_v2.dart';
+import '../../custom_widgets/custom_text_v2.dart';
+import '../../functions/functions.dart';
+import '../../http/api_keys.dart';
+import '../../http/http_request.dart';
+import 'notifications.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -1091,8 +1104,127 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   int _selectedTab = 0;
+  bool isLoading = false;
+  List userData = [];
+  bool hasNet = true;
+  List logs = [];
+  Timer? _timer;
+  Map<String, dynamic> userInfo = {};
+  int unreadMsg = 0;
+  int notifCount = 0;
   final PageController _pageController = PageController();
-  final double _balance = 12456.75;
+
+  @override
+  void initState() {
+    super.initState();
+    getUserInfo();
+    getUserData();
+    getNotificationCount();
+    getLogs();
+    _startAutoRefresh();
+  }
+
+  void getUserInfo() async {
+    userInfo = await Authentication().getUserData2();
+  }
+
+  void _startAutoRefresh() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      getUserData();
+      getLogs();
+
+      final hour = DateTime.now().hour;
+      if (hour == 12 || hour == 17 || hour == 21) {
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
+  }
+
+  Future<void> getNotificationCount() async {
+    try {
+      final item = await Authentication().getUserData();
+      String userId = jsonDecode(item!)['user_id'].toString();
+
+      String subApi = "${ApiKeys.notificationApi}$userId";
+      HttpRequestApi(api: subApi).get().then((response) async {
+        if (response["items"].isNotEmpty) {
+          notifCount = response["items"].length;
+        } else {
+          notifCount = 0;
+        }
+      });
+    } catch (e) {
+      notifCount = 0;
+    }
+  }
+
+  Future<void> getUserData() async {
+    if (isLoading) return;
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final data = await Functions.getUserBalance();
+
+      if (mounted) {
+        setState(() {
+          userData = data;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching user data: $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> getLogs() async {
+    DateTime timeNow = await Functions.getTimeNow();
+    String toDate = timeNow.toString().split(" ")[0];
+    String fromDate =
+        timeNow.subtract(const Duration(days: 1)).toString().split(" ")[0];
+    String userId = userInfo["user_id"].toString();
+
+    String subApi =
+        "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=$fromDate&tran_date_to=$toDate";
+    HttpRequestApi(api: subApi).get().then((response) async {
+      if (response is Map && response["items"].isNotEmpty) {
+        DateTime timeNow = await Functions.getTimeNow();
+        DateTime today = timeNow.toUtc();
+
+        String todayString = today.toIso8601String().substring(0, 10);
+
+        if (mounted) {
+          List items = response["items"];
+          setState(() {
+            logs =
+                items
+                    .where((transaction) {
+                      String transactionDate =
+                          transaction['tran_date'].toString().split("T")[0];
+                      return transactionDate == todayString;
+                    })
+                    .toList()
+                    .take(5)
+                    .toList();
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1109,106 +1241,211 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(),
-            SizedBox(height: 20),
-
-            // Balance Card
-            _buildBalanceCard(),
-            SizedBox(height: 30),
-
-            _buildTabBar(),
-            SizedBox(height: 20),
-
-            // Content Area
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() {
-                    _selectedTab = index;
-                  });
-                },
-                children: [_buildTransactionsTab(), _buildTopUpTab()],
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(19, 19, 19, 0),
+          child: Column(
+            children: [
+              _buildHeader(),
+              SizedBox(height: 20),
+              _buildBalanceCard(),
+              SizedBox(height: 30),
+              _buildTabBar(),
+              SizedBox(height: 20),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _selectedTab = index;
+                    });
+                  },
+                  children: [_buildTransactionsTab(), _buildTopUpTab()],
+                ),
               ),
-            ),
-            SizedBox(height: 20),
-          ],
+              SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        children: [
-          // Profile
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              gradient: AppColorV2.primaryGradient,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.person, color: Colors.white, size: 20),
+    String greeting = _getTimeBasedGreeting();
+
+    return Row(
+      children: [
+        _buildProfileImage(),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DefaultText(
+                text: greeting,
+                style: AppTextStyle.body1,
+                color: AppColorV2.primaryTextColor,
+              ),
+              DefaultText(
+                text: Functions().getDisplayName(userInfo),
+                style: AppTextStyle.h4,
+                maxLines: 1,
+              ),
+            ],
           ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.topRight,
               children: [
-                Text(
-                  'Good Morning',
-                  style: TextStyle(
-                    color: AppColorV2.bodyTextColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  'Alex Morgan',
-                  style: TextStyle(
-                    color: AppColorV2.primaryTextColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                InkWell(
+                  onTap: () {
+                    Get.to(WalletNotifications());
+                  },
+                  child: SvgPicture.asset(
+                    "assets/images/${notifCount != 0 ? "wallet_active_notification" : "wallet_inactive_notification"}.svg",
                   ),
                 ),
               ],
             ),
-          ),
+          ],
+        ),
+      ],
+    );
+  }
 
-          // Notifications
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColorV2.pastelBlueAccent,
-              shape: BoxShape.circle,
+  String _getTimeBasedGreeting() {
+    final hour = DateTime.now().hour;
+
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      return 'Good Evening';
+    } else {
+      return 'Good Night';
+    }
+  }
+
+  Widget _buildBalanceCard() {
+    return Container(
+      height: 180,
+      decoration: BoxDecoration(
+        gradient: AppColorV2.primaryGradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColorV2.lpBlueBrand.withOpacity(0.3),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -50,
+            top: -50,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
             ),
-            child: Stack(
+          ),
+          Positioned(
+            right: -30,
+            bottom: -30,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Icon(
-                    Icons.notifications_outlined,
-                    color: AppColorV2.lpBlueBrand,
-                    size: 22,
-                  ),
+                DefaultText(
+                  text: 'Total Balance',
+                  style: AppTextStyle.paragraph1,
+                  color: AppColorV2.background,
                 ),
-                Positioned(
-                  right: 10,
-                  top: 10,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AppColorV2.error,
-                      shape: BoxShape.circle,
+                SizedBox(height: 8),
+                DefaultText(
+                  text:
+                      userData.isEmpty || userData[0]["items"].isEmpty
+                          ? "•••••"
+                          : toCurrencyString(
+                            userData[0]["items"][0]["amount_bal"],
+                          ),
+                  fontSize: 32,
+                  style: AppTextStyle.body1,
+                  color: AppColorV2.background,
+                ),
+                Spacer(),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DefaultText(
+                        text:
+                            userInfo["mobile_no"] != null
+                                ? "•••••••${userInfo["mobile_no"].toString().substring(userInfo["mobile_no"].toString().length - 4)}"
+                                : "•••••••••••",
+                        style: AppTextStyle.body1,
+                        color: AppColorV2.background,
+                      ),
                     ),
-                  ),
+                    Spacer(),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: AppColorV2.success,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          DefaultText(
+                            text: 'Active',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1218,281 +1455,106 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _buildBalanceCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        height: 180,
-        decoration: BoxDecoration(
-          gradient: AppColorV2.primaryGradient,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: AppColorV2.lpBlueBrand.withOpacity(0.3),
-              blurRadius: 20,
-              offset: Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // Background Pattern
-            Positioned(
-              right: -50,
-              top: -50,
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Positioned(
-              right: -30,
-              bottom: -30,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Total Balance',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    '₱${_balance.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                    ),
-                  ),
-                  Spacer(),
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '•••• 4512',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      Spacer(),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: AppColorV2.success,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            SizedBox(width: 6),
-                            Text(
-                              'Active',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTabBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: AppColorV2.pastelBlueAccent.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  _pageController.animateToPage(
-                    0,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.ease,
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color:
-                        _selectedTab == 0 ? Colors.white : Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow:
-                        _selectedTab == 0
-                            ? [
-                              BoxShadow(
-                                color: AppColorV2.boxStroke.withOpacity(0.5),
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ]
-                            : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Transactions',
-                      style: TextStyle(
-                        color:
-                            _selectedTab == 0
-                                ? AppColorV2.lpBlueBrand
-                                : AppColorV2.bodyTextColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColorV2.pastelBlueAccent.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                _pageController.animateToPage(
+                  0,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.ease,
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _selectedTab == 0 ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow:
+                      _selectedTab == 0
+                          ? [
+                            BoxShadow(
+                              color: AppColorV2.boxStroke.withOpacity(0.5),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ]
+                          : null,
+                ),
+                child: Center(
+                  child: DefaultText(
+                    text: 'Transactions',
+                    style: TextStyle(
+                      color:
+                          _selectedTab == 0
+                              ? AppColorV2.lpBlueBrand
+                              : AppColorV2.bodyTextColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
                   ),
                 ),
               ),
             ),
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  _pageController.animateToPage(
-                    1,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.ease,
-                  );
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color:
-                        _selectedTab == 1 ? Colors.white : Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow:
-                        _selectedTab == 1
-                            ? [
-                              BoxShadow(
-                                color: AppColorV2.boxStroke.withOpacity(0.5),
-                                blurRadius: 8,
-                                offset: Offset(0, 2),
-                              ),
-                            ]
-                            : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Top Up',
-                      style: TextStyle(
-                        color:
-                            _selectedTab == 1
-                                ? AppColorV2.lpBlueBrand
-                                : AppColorV2.bodyTextColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                _pageController.animateToPage(
+                  1,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.ease,
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _selectedTab == 1 ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow:
+                      _selectedTab == 1
+                          ? [
+                            BoxShadow(
+                              color: AppColorV2.boxStroke.withOpacity(0.5),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ]
+                          : null,
+                ),
+                child: Center(
+                  child: DefaultText(
+                    text: 'Top Up',
+                    style: TextStyle(
+                      color:
+                          _selectedTab == 1
+                              ? AppColorV2.lpBlueBrand
+                              : AppColorV2.bodyTextColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTransactionsTab() {
-    final transactions = [
-      {
-        'icon': Icons.shopping_bag_rounded,
-        'color': AppColorV2.secondary,
-        'title': 'Grocery Store',
-        'subtitle': 'Food & Drinks',
-        'amount': '-₱1,245.00',
-        'time': '2 hours ago',
-        'isPositive': false,
-      },
-      {
-        'icon': Icons.arrow_downward_rounded,
-        'color': AppColorV2.success,
-        'title': 'Salary',
-        'subtitle': 'Monthly Income',
-        'amount': '+₱25,000.00',
-        'time': '1 day ago',
-        'isPositive': true,
-      },
-      {
-        'icon': Icons.bolt_rounded,
-        'color': AppColorV2.warning,
-        'title': 'Electric Bill',
-        'subtitle': 'Utilities',
-        'amount': '-₱2,345.50',
-        'time': '2 days ago',
-        'isPositive': false,
-      },
-      {
-        'icon': Icons.local_cafe_rounded,
-        'color': AppColorV2.lpBlueBrand,
-        'title': 'Coffee Shop',
-        'subtitle': 'Food & Drinks',
-        'amount': '-₱185.00',
-        'time': '3 days ago',
-        'isPositive': false,
-      },
-    ];
-
-    return ListView(
-      padding: EdgeInsets.symmetric(horizontal: 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Recent Transactions',
+        DefaultText(
+          text: 'Recent Transactions',
           style: TextStyle(
             color: AppColorV2.primaryTextColor,
             fontSize: 18,
@@ -1500,27 +1562,64 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         ),
         SizedBox(height: 16),
-        if (transactions.isEmpty) ...[
-          NoTransactionsWidget(),
-        ] else
-          ...transactions.map(
-            (transaction) => _buildTransactionItem(transaction),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await getLogs();
+            },
+            child: _buildTransactionList(),
           ),
+        ),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.1),
       ],
     );
   }
 
+  Widget _buildTransactionList() {
+    if (logs.isEmpty) {
+      return NoTransactionsWidget();
+    }
+
+    return ListView.builder(
+      physics: BouncingScrollPhysics(),
+      itemCount: logs.length,
+      itemBuilder: (context, index) {
+        final transaction = logs[index];
+        return _buildTransactionItem(transaction);
+      },
+    );
+  }
+
   Widget _buildTransactionItem(Map<String, dynamic> transaction) {
+    String formatDate(String dateString) {
+      try {
+        DateTime date = DateTime.parse(dateString).toLocal();
+        return DateFormat('MMM dd, yyyy • HH:mm').format(date);
+      } catch (e) {
+        return dateString;
+      }
+    }
+
+    final amountString = transaction['amount']?.toString() ?? '0';
+    final isPositive = !amountString.contains("-");
+    final amountValue =
+        double.tryParse(amountString.replaceAll(RegExp(r'[^\d.-]'), '')) ?? 0;
+
+    final transactionData = _getTransactionData(
+      transaction['category']?.toString() ?? 'Transaction',
+      isPositive,
+    );
+
     return Container(
       margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColorV2.boxStroke),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -1532,12 +1631,12 @@ class _WalletScreenState extends State<WalletScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: transaction['color'].withOpacity(0.1),
+              color: transactionData['color'].withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              transaction['icon'] as IconData,
-              color: transaction['color'],
+              transactionData['icon'],
+              color: transactionData['color'],
               size: 20,
             ),
           ),
@@ -1546,74 +1645,71 @@ class _WalletScreenState extends State<WalletScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  transaction['title'],
-                  style: TextStyle(
-                    color: AppColorV2.primaryTextColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                DefaultText(
+                  text: transaction['category']?.toString() ?? 'Transaction',
+                  style: AppTextStyle.body1,
+                  color: AppColorV2.primaryTextColor,
                 ),
                 SizedBox(height: 4),
-                Text(
-                  transaction['subtitle'],
-                  style: TextStyle(
-                    color: AppColorV2.bodyTextColor,
-                    fontSize: 12,
-                  ),
+                DefaultText(
+                  text:
+                      transaction['tran_desc']?.toString() ?? 'No description',
+                  maxLines: 1,
+                  maxFontSize: 12,
                 ),
                 SizedBox(height: 4),
-                Text(
-                  transaction['time'],
-                  style: TextStyle(
-                    color: AppColorV2.onSurfaceVariant,
-                    fontSize: 10,
-                  ),
+                DefaultText(
+                  text: formatDate(transaction['tran_date']?.toString() ?? ''),
+                  style: AppTextStyle.body1,
+                  maxFontSize: 10,
+                  minFontSize: 8,
                 ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                transaction['amount'],
-                style: TextStyle(
-                  color:
-                      transaction['isPositive']
-                          ? AppColorV2.success
-                          : AppColorV2.primaryTextColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
-              SizedBox(height: 4),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color:
-                      transaction['isPositive']
-                          ? AppColorV2.success.withOpacity(0.1)
-                          : AppColorV2.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  transaction['isPositive'] ? 'CREDIT' : 'DEBIT',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color:
-                        transaction['isPositive']
-                            ? AppColorV2.success
-                            : AppColorV2.error,
-                  ),
-                ),
-              ),
-            ],
+          DefaultText(
+            text: toCurrencyString(amountString),
+            style: TextStyle(
+              color: isPositive ? AppColorV2.success : AppColorV2.error,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Map<String, dynamic> _getTransactionData(String category, bool isPositive) {
+    final categoryLower = category.toLowerCase();
+
+    if (isPositive) {
+      return {
+        'icon': Icons.arrow_downward_rounded,
+        'color': AppColorV2.success,
+      };
+    }
+
+    if (categoryLower.contains('electric') ||
+        categoryLower.contains('utility')) {
+      return {'icon': Icons.bolt_rounded, 'color': AppColorV2.warning};
+    } else if (categoryLower.contains('water')) {
+      return {'icon': Icons.water_drop_rounded, 'color': Colors.blue};
+    } else if (categoryLower.contains('internet') ||
+        categoryLower.contains('mobile')) {
+      return {'icon': Icons.wifi_rounded, 'color': Colors.purple};
+    } else if (categoryLower.contains('grocery') ||
+        categoryLower.contains('food')) {
+      return {
+        'icon': Icons.shopping_bag_rounded,
+        'color': AppColorV2.secondary,
+      };
+    } else if (categoryLower.contains('shopping') ||
+        categoryLower.contains('store')) {
+      return {'icon': Icons.shopping_cart_rounded, 'color': Colors.orange};
+    } else {
+      return {'icon': Icons.arrow_upward_rounded, 'color': AppColorV2.error};
+    }
   }
 
   Widget _buildTopUpTab() {
@@ -1643,8 +1739,8 @@ class _WalletScreenState extends State<WalletScreen> {
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 24),
       children: [
-        Text(
-          'Top Up Methods',
+        DefaultText(
+          text: 'Top Up Methods',
           style: TextStyle(
             color: AppColorV2.primaryTextColor,
             fontSize: 18,
@@ -1652,8 +1748,8 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         ),
         SizedBox(height: 16),
-        Text(
-          'Select your preferred bank to top up your wallet',
+        DefaultText(
+          text: 'Select your preferred bank to top up your wallet',
           style: TextStyle(color: AppColorV2.bodyTextColor, fontSize: 14),
         ),
         SizedBox(height: 24),
@@ -1674,6 +1770,7 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
         SizedBox(height: 20),
         _buildQuickTopUpSection(),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.1),
       ],
     );
   }
@@ -1696,15 +1793,12 @@ class _WalletScreenState extends State<WalletScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // _showTopUpDetails(context, bank['name']);
-          },
+          onTap: () {},
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Using custom image instead of icon
                 Container(
                   width: 40,
                   height: 40,
@@ -1717,7 +1811,6 @@ class _WalletScreenState extends State<WalletScreen> {
                     height: 40,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
-                      // Fallback to icon if image fails to load
                       return Container(
                         decoration: BoxDecoration(
                           color: bank['color'].withOpacity(0.1),
@@ -1733,8 +1826,8 @@ class _WalletScreenState extends State<WalletScreen> {
                   ),
                 ),
                 SizedBox(height: 8),
-                Text(
-                  bank['name'],
+                DefaultText(
+                  text: bank['name'],
                   style: TextStyle(
                     color: AppColorV2.primaryTextColor,
                     fontWeight: FontWeight.w600,
@@ -1749,7 +1842,6 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  // Fallback icons in case images don't load
   IconData _getFallbackIcon(String bankName) {
     switch (bankName) {
       case 'Maya':
@@ -1771,8 +1863,8 @@ class _WalletScreenState extends State<WalletScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Top Up',
+        DefaultText(
+          text: 'Quick Top Up',
           style: TextStyle(
             color: AppColorV2.primaryTextColor,
             fontSize: 16,
@@ -1785,20 +1877,33 @@ class _WalletScreenState extends State<WalletScreen> {
           runSpacing: 8,
           children:
               amounts.map((amount) {
-                return ActionChip(
-                  label: Text('₱${amount.toString()}'),
-                  labelStyle: TextStyle(
-                    color: AppColorV2.lpBlueBrand,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  backgroundColor: AppColorV2.pastelBlueAccent,
-                  onPressed: () {
-                    _showTopUpBottomSheet('Quick Top Up', amount: amount);
-                  },
-                );
+                return _buildAmountChip(amount);
               }).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildAmountChip(int amount) {
+    return GestureDetector(
+      onTap: () {
+        _showTopUpBottomSheet('Quick Top Up', amount: amount);
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColorV2.pastelBlueAccent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: DefaultText(
+          text: '₱${amount.toString()}',
+          style: TextStyle(
+            color: AppColorV2.lpBlueBrand,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ),
     );
   }
 
@@ -1830,8 +1935,8 @@ class _WalletScreenState extends State<WalletScreen> {
                   ),
                 ),
                 SizedBox(height: 20),
-                Text(
-                  'Top Up via $method',
+                DefaultText(
+                  text: 'Top Up via $method',
                   style: TextStyle(
                     color: AppColorV2.primaryTextColor,
                     fontSize: 20,
@@ -1839,15 +1944,14 @@ class _WalletScreenState extends State<WalletScreen> {
                   ),
                 ),
                 SizedBox(height: 8),
-                Text(
-                  'Enter the amount you want to add to your wallet',
+                DefaultText(
+                  text: 'Enter the amount you want to add to your wallet',
                   style: TextStyle(
                     color: AppColorV2.bodyTextColor,
                     fontSize: 14,
                   ),
                 ),
                 SizedBox(height: 30),
-                // Add your top up form here
                 Spacer(),
                 SizedBox(
                   width: double.infinity,
@@ -1855,7 +1959,6 @@ class _WalletScreenState extends State<WalletScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      // Handle top up confirmation
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColorV2.lpBlueBrand,
@@ -1864,8 +1967,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: Text(
-                      'Continue to Top Up',
+                    child: DefaultText(
+                      text: 'Continue to Top Up',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -1879,6 +1982,84 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildProfileImage() {
+    final String? base64Image = userInfo["image_base64"];
+
+    if (base64Image != null && base64Image.isNotEmpty) {
+      try {
+        String imageString = base64Image;
+        if (base64Image.contains(',')) {
+          imageString = base64Image.split(',').last;
+        }
+
+        ImageProvider? cachedImage = ImageCacheHelper.getCachedImage(
+          base64Image,
+        );
+
+        if (cachedImage == null) {
+          final bytes = base64Decode(imageString);
+          cachedImage = MemoryImage(bytes);
+          ImageCacheHelper.cacheImage(base64Image, cachedImage);
+        }
+
+        return Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColorV2.primaryVariant.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: Image(
+              image: cachedImage,
+              width: 50,
+              height: 50,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return _buildDefaultProfileIcon();
+              },
+            ),
+          ),
+        );
+      } catch (e) {
+        return _buildDefaultProfileIcon();
+      }
+    } else {
+      return _buildDefaultProfileIcon();
+    }
+  }
+
+  Widget _buildDefaultProfileIcon() {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            AppColorV2.primaryVariant,
+            AppColorV2.primaryVariant.withOpacity(0.7),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColorV2.primaryVariant.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Icon(Icons.person_rounded, color: Colors.white, size: 24),
     );
   }
 }
@@ -1902,7 +2083,6 @@ class NoTransactionsWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated Illustration
           Container(
             width: 60,
             height: 60,
@@ -1917,10 +2097,8 @@ class NoTransactionsWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-
-          // Subtitle
-          Text(
-            subtitle ?? 'Your recent transactions will appear here',
+          DefaultText(
+            text: subtitle ?? 'Your recent transactions will appear here',
             style: TextStyle(
               color: AppColorV2.bodyTextColor,
               fontSize: 14,
@@ -1932,5 +2110,20 @@ class NoTransactionsWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class ImageCacheHelper {
+  static final Map<String, ImageProvider> _cache = {};
+
+  static ImageProvider? getCachedImage(String base64String) {
+    if (_cache.containsKey(base64String)) {
+      return _cache[base64String];
+    }
+    return null;
+  }
+
+  static void cacheImage(String base64String, ImageProvider imageProvider) {
+    _cache[base64String] = imageProvider;
   }
 }
