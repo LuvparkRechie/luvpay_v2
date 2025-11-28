@@ -190,7 +190,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
         throw Exception("Failed to delete notification");
       }
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -302,8 +302,8 @@ class _WalletNotificationsState extends State<WalletNotifications> {
               : IconButton(
                 onPressed: () {
                   Get.back();
-                  WalletScreenState walletController = Get.find();
-                  walletController.getNotificationCount();
+                  // WalletScreenState walletController = Get.find();
+                  // walletController.getNotificationCount();
                 },
                 icon: Row(
                   children: [

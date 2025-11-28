@@ -4,8 +4,9 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/scanner.dart';
 import 'package:luvpay/pages/wallet/wallet_screen.dart';
 
+import '../../custom_widgets/app_color_v2.dart';
 import '../profile/profile_screen.dart';
-import '../qr/qr_return/scanned_qr.dart';
+import '../scanner_screen.dart';
 import '../transaction/transaction_screen.dart';
 import 'controller.dart';
 
@@ -16,26 +17,52 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with SingleTickerProviderStateMixin {
   final DashboardController controller = Get.put(DashboardController());
-
   final List<Widget> _screens = [
     const WalletScreen(),
     const TransactionHistory(),
-    ScannerScreen(
-      onchanged: (args) async {
-        if (args != null && args is String) {
-          await Get.to(() => ScannedQR(args: args));
-        }
-      },
-    ),
     const ProfileSettingsScreen(),
   ];
 
+  late AnimationController _fabAnimationController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _fabAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 350),
+      vsync: this,
+    );
+
+    // Show FAB initially if not on transaction page
+    if (controller.currentIndex.value != 1) {
+      _fabAnimationController.forward();
+    }
+  }
+
   @override
   void dispose() {
-    controller.pageController.dispose();
+    _fabAnimationController.dispose();
     super.dispose();
+  }
+
+  void _handlePageChange(int index) {
+    // Update animation based on page
+    if (index == 1) {
+      _fabAnimationController.reverse();
+    } else {
+      _fabAnimationController.forward();
+    }
+  }
+
+  void _onFabPressed() {
+    showDialog(
+      context: context,
+      builder: (context) => ScannerScreenV2(onchanged: (data) {}),
+    );
   }
 
   @override
@@ -44,23 +71,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: PageView(
         controller: controller.pageController,
         physics: const NeverScrollableScrollPhysics(),
+        onPageChanged: _handlePageChange,
         children: _screens,
-        onPageChanged: (index) {
-          controller.currentIndex.value = index;
+      ),
+      floatingActionButton: AnimatedBuilder(
+        animation: _fabAnimationController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _fabAnimationController.value,
+            child: Opacity(
+              opacity: _fabAnimationController.value,
+              child: FloatingActionButton(
+                onPressed: _onFabPressed,
+                backgroundColor: AppColorV2.lpBlueBrand,
+                elevation: 6,
+                highlightElevation: 12,
+                child: const Icon(
+                  Icons.qr_code_scanner_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          );
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: Obx(
         () => BottomNavigationBar(
           currentIndex: controller.currentIndex.value,
           onTap: (index) {
             controller.changePage(index);
+            _handlePageChange(index);
           },
           type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColorV2.lpBlueBrand,
+          unselectedItemColor: AppColorV2.bodyTextColor,
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
+          ),
           items: const [
-            BottomNavigationBarItem(icon: Icon(LucideIcons.home), label: ''),
-            BottomNavigationBarItem(icon: Icon(LucideIcons.history), label: ''),
-            BottomNavigationBarItem(icon: Icon(LucideIcons.qrCode), label: ''),
-            BottomNavigationBarItem(icon: Icon(LucideIcons.user), label: ''),
+            BottomNavigationBarItem(
+              icon: Icon(LucideIcons.home),
+              activeIcon: Icon(LucideIcons.home, size: 24),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(LucideIcons.history),
+              activeIcon: Icon(LucideIcons.history, size: 24),
+              label: 'Transaction',
+            ),
           ],
         ),
       ),

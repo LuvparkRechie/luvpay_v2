@@ -1,4 +1,4 @@
-library auditor;
+library;
 
 export 'bindings.dart';
 export 'controller.dart';
