@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +20,6 @@ import 'package:luvpay/custom_widgets/no_internet.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/http/http_request.dart';
-import 'package:ntp/ntp.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -463,8 +463,8 @@ class _TransactionHistoryState extends State<TransactionHistory> {
   @override
   Widget build(BuildContext ctx) {
     return CustomScaffoldV2(
-      enableToolBar: false,
-
+      enableToolBar: true,
+      appBarTitle: "Transaction History",
       scaffoldBody:
           isLoadingPage
               ? LoadingCard()
@@ -475,11 +475,6 @@ class _TransactionHistoryState extends State<TransactionHistory> {
               : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DefaultText(
-                    text: "Transaction History",
-                    style: AppTextStyle.h4,
-                  ),
-                  SizedBox(height: 10),
                   FutureBuilder<DateTime>(
                     future: Functions.getTimeNow(),
                     builder:
@@ -707,30 +702,17 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: DefaultText(
-                                text: key,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            DefaultText(
+                              text: key,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             ...list.map((tx) {
                               final desc = tx['tran_desc'].toString();
                               final category = tx['category'].toString();
-                              final img =
-                                  desc.toLowerCase().contains("share")
-                                      ? "wallet_sharetoken"
-                                      : (desc.toLowerCase().contains(
-                                            "received",
-                                          ) ||
-                                          desc.toLowerCase().contains("credit"))
-                                      ? "wallet_receivetoken"
-                                      : "wallet_payparking";
+
                               return Column(
                                 children: [
                                   SizedBox(height: 10),
@@ -744,18 +726,52 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                         ),
                                       );
                                     },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
+                                    child: Container(
+                                      padding: EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: AppColorV2.boxStroke,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.03,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
                                       ),
                                       child: Row(
                                         children: [
-                                          SvgPicture.asset(
-                                            "assets/images/$img.svg",
-                                            height: 50,
+                                          Container(
+                                            width: 44,
+                                            height: 44,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  double.parse(tx['amount']) < 0
+                                                      ? AppColorV2.error
+                                                          .withOpacity(0.1)
+                                                      : AppColorV2.success
+                                                          .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Icon(
+                                              double.parse(tx['amount']) < 0
+                                                  ? Icons.arrow_upward_rounded
+                                                  : Icons
+                                                      .arrow_downward_rounded,
+                                              color:
+                                                  double.parse(tx['amount']) < 0
+                                                      ? AppColorV2.error
+                                                      : AppColorV2.success,
+                                              size: 20,
+                                            ),
                                           ),
-                                          spacing(width: 10),
+                                          SizedBox(width: 12),
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment:
@@ -764,49 +780,53 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                 DefaultText(
                                                   text: category,
                                                   style: AppTextStyle.body1,
-                                                  color: AppColorV2.lpBlueBrand,
+                                                  color:
+                                                      AppColorV2
+                                                          .primaryTextColor,
                                                 ),
-                                                spacing(height: 4),
-                                                DefaultText(text: desc),
-                                                spacing(height: 4),
+                                                SizedBox(height: 4),
+                                                DefaultText(
+                                                  text: desc,
+                                                  maxLines: 1,
+                                                  maxFontSize: 12,
+                                                ),
+                                                SizedBox(height: 4),
                                                 DefaultText(
                                                   text: DateFormat(
-                                                    'MMM d, yyyy h:mm a',
+                                                    'MMM dd, yyyy • HH:mm',
                                                   ).format(
                                                     DateTime.parse(
                                                       tx['tran_date'],
                                                     ),
                                                   ),
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey,
-                                                  ),
+                                                  style: AppTextStyle.body1,
+                                                  maxFontSize: 10,
+                                                  minFontSize: 8,
                                                 ),
                                               ],
                                             ),
                                           ),
                                           DefaultText(
-                                            text: tx['amount'].replaceAll(
-                                              '-',
-                                              '',
+                                            text: toCurrencyString(
+                                              tx['amount'],
                                             ),
                                             style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
+                                              color:
+                                                  double.parse(tx['amount']) < 0
+                                                      ? AppColorV2.error
+                                                      : AppColorV2.success,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 14,
                                             ),
-                                            color:
-                                                double.parse(tx['amount']) < 0
-                                                    ? Colors.red
-                                                    : AppColorV2.lpBlueBrand,
                                           ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                  Divider(),
                                 ],
                               );
                             }),
+                            SizedBox(height: 10),
                           ],
                         );
                       },

@@ -166,7 +166,7 @@ class QRController extends GetxController
         } else {
           CustomDialogStack.showError(
             Get.context!,
-            "luvpark",
+            "luvpay",
             objKey['msg'],
             () {},
           );
@@ -176,12 +176,12 @@ class QRController extends GetxController
     });
   }
 
-  Future<void> saveQr() async {
+  Future<void> saveQr(String? myQR) async {
     CustomDialogStack.showLoading(Get.context!);
     String randomNumber = Random().nextInt(100000).toString();
-    String fname = "luvpark$randomNumber.png";
+    String fname = "luvpay$randomNumber.png";
     ScreenshotController()
-        .captureFromWidget(myWidget(), delay: const Duration(seconds: 2))
+        .captureFromWidget(myWidget(myQR), delay: const Duration(seconds: 2))
         .then((image) async {
           final dir = await getApplicationDocumentsDirectory();
           final imagePath = await File('${dir.path}/$fname').create();
@@ -200,10 +200,10 @@ class QRController extends GetxController
         });
   }
 
-  Future<void> shareQr() async {
+  Future<void> shareQr(String? myQR) async {
     try {
       String randomNumber = Random().nextInt(100000).toString();
-      String fname = "shared_luvpark$randomNumber.png";
+      String fname = "shared_luvpay$randomNumber.png";
 
       CustomDialogStack.showLoading(Get.context!);
 
@@ -211,7 +211,7 @@ class QRController extends GetxController
       final filePath = '$directory/$fname';
 
       Uint8List bytes = await ScreenshotController().captureFromWidget(
-        myWidget(),
+        myWidget(myQR),
       );
       final imgFile = File(filePath);
       await imgFile.writeAsBytes(bytes.buffer.asUint8List());
@@ -242,7 +242,7 @@ class QRController extends GetxController
     }
   }
 
-  Widget myWidget() => Container(
+  Widget myWidget(String? myQR) => Container(
     color: Colors.grey.shade300,
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -254,7 +254,7 @@ class QRController extends GetxController
           Center(
             child: DefaultText(
               text:
-                  "Align the QR code within the frame to proceed with payment.",
+                  "Align the QR code within the frame to proceed ${myQR != null ? "" : "with payment"}",
               textAlign: TextAlign.center,
             ),
           ),
@@ -275,7 +275,7 @@ class QRController extends GetxController
               ),
               qrImage: QrImage(
                 QrCode.fromData(
-                  data: payKey.value,
+                  data: myQR ?? payKey.value,
                   errorCorrectLevel: QrErrorCorrectLevel.H,
                 ),
               ),

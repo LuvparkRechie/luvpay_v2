@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
+import 'package:luvpay/custom_widgets/scanner.dart';
 import 'package:luvpay/custom_widgets/smooth_route.dart';
 import 'package:luvpay/http/http_request.dart';
 import 'package:luvpay/pages/profile/profile_update/profile_update.dart';
+import 'package:luvpay/pages/qr/view.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -35,7 +38,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   List cityData = [];
   List brgyData = [];
 
-  // Enhanced address execution state
   final AddressExecutionController _addressController =
       AddressExecutionController();
 
@@ -54,6 +56,20 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   Future<void> initialize() async {
     final objData = await Authentication().getUserData2();
     userData = objData;
+    if (objData["created_on"] != null) {
+      try {
+        if (objData["created_on"] is String) {
+          objData["created_on"] = DateTime.parse(objData["created_on"]);
+        } else if (objData["created_on"] is int) {
+          objData["created_on"] = DateTime.fromMillisecondsSinceEpoch(
+            objData["created_on"],
+          );
+        }
+      } catch (e) {
+        print("Invalid date format for created_on: $e");
+      }
+    }
+
     userData["complete_add"] =
         objData["province_name"] == null
             ? "No address"
@@ -182,7 +198,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final Color primaryBlue = const Color(0xFF2196F3);
     final bool isVerified = userData["is_verified"] == "N";
     final Color secondaryTeal = const Color(0xFF009688);
-
     return CustomScaffoldV2(
       enableToolBar: false,
 
@@ -266,6 +281,26 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                     color: AppColorV2.background,
                                   ),
                                 ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isVerified
+                                            ? AppColorV2.inactiveState
+                                            : AppColorV2.lpBlueBrand,
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: DefaultText(
+                                    style: AppTextStyle.body1,
+                                    text: "Member since 2025",
+
+                                    color: AppColorV2.background,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -340,19 +375,34 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       child: Column(
         children: [
           _buildInfoRow(
+            showIcon: false,
+            icon: Icons.qr_code_rounded,
+            title: 'Personal QR Code ',
+            value: "This QR Code contains your unique identifier.",
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return QR(qrCode: userData["mobile_no"]);
+                },
+              );
+            },
+          ),
+          const Divider(height: 1),
+          _buildInfoRow(
             icon: Icons.phone,
             title: 'Mobile Number',
             value: userData["mobile_no"],
             onTap: () {},
           ),
-          const Divider(),
+          const Divider(height: 1),
           _buildInfoRow(
             icon: Icons.email,
             title: 'Email',
             value: userData["email"] ?? "No email",
             onTap: () {},
           ),
-          const Divider(),
+          const Divider(height: 1),
           _buildInfoRow(
             icon: Icons.location_on,
             title: 'Address',
@@ -369,8 +419,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     required String title,
     required String value,
     required VoidCallback onTap,
+    bool showIcon = true,
   }) {
     return ListTile(
+      minVerticalPadding: 0,
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -381,28 +433,30 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       ),
       title: DefaultText(
         text: title,
-        style: TextStyle(
-          fontSize: 14,
-          color: AppColorV2.bodyTextColor,
-          fontWeight: FontWeight.w500,
-        ),
+        color: AppColorV2.primaryTextColor,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
       subtitle: DefaultText(
         text: value,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: AppColorV2.primaryTextColor,
-        ),
+        color: AppColorV2.bodyTextColor,
+        style: AppTextStyle.body1,
+        maxFontSize: 12,
       ),
-      trailing: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: AppColorV2.lpTealBrand.withValues(alpha: .1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(Icons.edit, color: AppColorV2.lpTealBrand, size: 16),
-      ),
+      trailing:
+          showIcon
+              ? Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColorV2.lpTealBrand.withValues(alpha: .1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.edit,
+                  color: AppColorV2.lpTealBrand,
+                  size: 16,
+                ),
+              )
+              : null,
       onTap: onTap,
       contentPadding: EdgeInsets.zero,
     );
@@ -547,7 +601,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                side: BorderSide(color: AppColorV2.incorrectState!),
+                side: BorderSide(color: AppColorV2.incorrectState),
                 foregroundColor: AppColorV2.incorrectState.withAlpha(200),
               ),
               child: const DefaultText(
