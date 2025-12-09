@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 
 import '../../custom_widgets/custom_button.dart';
-import '../../custom_widgets/custom_scaffold.dart';
+import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/custom_textfield.dart';
 import '../../custom_widgets/spacing.dart';

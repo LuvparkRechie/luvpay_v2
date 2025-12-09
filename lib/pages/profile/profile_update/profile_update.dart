@@ -573,7 +573,6 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
       padding: EdgeInsets.all(25),
       child: Column(
         children: [
-          // Personal Information Section
           _buildEnhancedSectionHeader(
             'Personal Information',
             Icons.person_outline_rounded,
@@ -1167,7 +1166,6 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
               ),
             ),
 
-          // Add some bottom spacing
           SizedBox(height: 20),
         ],
       ),

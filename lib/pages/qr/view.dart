@@ -1,15 +1,15 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/brightness_setter.dart';
 import '../../custom_widgets/custom_button.dart';
-import '../../custom_widgets/custom_scaffold.dart';
+import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/loading.dart';
 import 'controller.dart';
@@ -40,62 +40,42 @@ class _QRState extends State<QR> {
   @override
   Widget build(BuildContext context) {
     final bool myQR = widget.qrCode != null;
+
     return CustomScaffoldV2(
-      bodyColor: AppColorV2.background,
-      enableToolBar: false,
-      padding: EdgeInsets.zero,
-      appBar: AppBar(toolbarHeight: 0, elevation: 0),
-      extendBodyBehindAppbar: true,
+      centerTitle: true,
+      appBarTitle: myQR ? "My QR" : "Scan to Pay",
+
       scaffoldBody: Obx(
-        () => Stack(
-          children: [
-            Image.asset("assets/images/receipt_background.png"),
-            myQR
-                ? Container()
-                : Align(
-                  alignment: Alignment.topLeft,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          Get.back();
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 60.0, left: 19),
+        () => CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 120,
+              pinned: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              flexibleSpace: FlexibleSpaceBar(
+                background:
+                    myQR
+                        ? SizedBox.shrink()
+                        : Padding(
+                          padding: const EdgeInsets.only(
+                            top: 60.0,
+                            left: 19,
+                            right: 19,
+                          ),
                           child: Row(
-                            children: [
-                              Icon(
-                                CupertinoIcons.back,
-                                color: AppColorV2.background,
-                              ),
-                              DefaultText(
-                                color: AppColorV2.background,
-                                text: "Back",
-                                style: AppTextStyle.h3_semibold,
-                                height: 20 / 16,
-                              ),
-                            ],
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [SizedBox(width: 40)],
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 60.0),
-                        child: DefaultText(
-                          text: "Scan to Pay",
-                          style: AppTextStyle.h3,
-                          color: AppColorV2.background,
-                          maxLines: 1,
-                        ),
-                      ),
-                      SizedBox(width: 80),
-                    ],
-                  ),
-                ),
-            Center(
+              ),
+            ),
+
+            SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-
                 child: FittedBox(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,68 +145,59 @@ class _QRState extends State<QR> {
                               style: AppTextStyle.paragraph1,
                             ),
                             SizedBox(height: 40),
-                            myQR
-                                ? SizedBox.shrink()
-                                : Obx(() {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 19,
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        CustomButton(
-                                          isInactive:
-                                              controller
-                                                  .isButtonDisabled
-                                                  .value ||
-                                              !controller.isInternetConn.value,
-
-                                          leading: Icon(
-                                            color: AppColorV2.lpBlueBrand,
-                                            LucideIcons.refreshCw,
-                                          ),
-                                          bordercolor:
-                                              controller.isButtonDisabled.value
-                                                  ? AppColorV2.inactiveButton
-                                                  : AppColorV2.lpBlueBrand,
-                                          btnColor: AppColorV2.background,
-                                          textColor: AppColorV2.lpBlueBrand,
-                                          text:
-                                              controller
-                                                          .isButtonDisabled
-                                                          .value ||
-                                                      ((controller.remainingTime.value %
-                                                                      60000) /
-                                                                  1000)
-                                                              .floor() !=
-                                                          0
-                                                  ? "New QR in (${((controller.remainingTime.value % 60000) / 1000).floor()} seconds)"
-                                                  : "Generate QR",
-                                          onPressed:
-                                              controller
-                                                          .isButtonDisabled
-                                                          .value ||
-                                                      !controller
-                                                          .isInternetConn
-                                                          .value
-                                                  ? () {
-                                                    CustomDialogStack.showConnectionLost(
-                                                      context,
-                                                      () {
-                                                        Get.back();
-                                                      },
-                                                    );
-                                                  }
-                                                  : () {
-                                                    controller.generateQr();
-                                                  },
+                            if (!myQR)
+                              Obx(
+                                () => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 19,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      CustomButton(
+                                        isInactive:
+                                            controller.isButtonDisabled.value ||
+                                            !controller.isInternetConn.value,
+                                        leading: Icon(
+                                          color: AppColorV2.lpBlueBrand,
+                                          LucideIcons.refreshCw,
                                         ),
-                                      ],
-                                    ),
-                                  );
-                                }),
+                                        bordercolor:
+                                            controller.isButtonDisabled.value
+                                                ? AppColorV2.inactiveButton
+                                                : AppColorV2.lpBlueBrand,
+                                        btnColor: AppColorV2.background,
+                                        textColor: AppColorV2.lpBlueBrand,
+                                        text:
+                                            controller.isButtonDisabled.value ||
+                                                    ((controller.remainingTime.value %
+                                                                    60000) /
+                                                                1000)
+                                                            .floor() !=
+                                                        0
+                                                ? "New QR in (${((controller.remainingTime.value % 60000) / 1000).floor()} seconds)"
+                                                : "Generate QR",
+                                        onPressed:
+                                            controller.isButtonDisabled.value ||
+                                                    !controller
+                                                        .isInternetConn
+                                                        .value
+                                                ? () {
+                                                  CustomDialogStack.showConnectionLost(
+                                                    context,
+                                                    () {
+                                                      Get.back();
+                                                    },
+                                                  );
+                                                }
+                                                : () {
+                                                  controller.generateQr();
+                                                },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             SizedBox(height: 10),
-
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 19.0,
@@ -248,7 +219,7 @@ class _QRState extends State<QR> {
                                       },
                                     ),
                                   ),
-                                  Container(width: 10),
+                                  SizedBox(width: 10),
                                   Expanded(
                                     child: CustomButton(
                                       leading: Icon(
@@ -267,7 +238,6 @@ class _QRState extends State<QR> {
                                 ],
                               ),
                             ),
-
                             SizedBox(height: 30),
                           ],
                         ),

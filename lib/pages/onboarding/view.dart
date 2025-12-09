@@ -1,464 +1,12 @@
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// import 'package:luvpay/custom_widgets/app_color_v2.dart';
-// import 'package:luvpay/custom_widgets/custom_scaffold.dart';
-// import 'package:luvpay/custom_widgets/custom_text_v2.dart';
-// import 'package:luvpay/custom_widgets/spacing.dart';
-
-// import '../routes/routes.dart';
-// import 'controller.dart';
-
-// class MyOnboardingPage extends StatelessWidget {
-//   const MyOnboardingPage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final OnboardingController controller = Get.put(OnboardingController());
-//     return CustomScaffoldV2(
-//       enableToolBar: false,
-//       padding: EdgeInsets.fromLTRB(24, 20, 24, 0),
-//       scaffoldBody: GetBuilder<OnboardingController>(
-//         builder: (ctxt) {
-//           final currentIndex = controller.currentPage.value;
-//           final currentData = controller.sliderData[currentIndex];
-
-//           return Column(
-//             children: [
-//               SizedBox(height: 35),
-
-//               SizedBox(
-//                 height: MediaQuery.of(context).size.height * .40,
-//                 child: StretchingOverscrollIndicator(
-//                   axisDirection: AxisDirection.right,
-//                   child: ScrollConfiguration(
-//                     behavior: ScrollBehavior().copyWith(overscroll: false),
-//                     child: PageView(
-//                       controller: controller.pageController,
-//                       onPageChanged: (value) {
-//                         controller.onPageChanged(value);
-//                       },
-//                       children: List.generate(
-//                         controller.sliderData.length,
-//                         (index) => Center(
-//                           child: Image(
-//                             image: AssetImage(
-//                               "assets/images/${controller.sliderData[index]['icon']}.png",
-//                             ),
-//                             width: MediaQuery.of(context).size.width * .95,
-//                             fit: BoxFit.contain,
-//                             filterQuality: FilterQuality.high,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//               spacing(height: 30),
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: List.generate(
-//                   controller.sliderData.length,
-//                   (index) => Container(
-//                     width: currentIndex == index ? 10 : 5,
-//                     height: currentIndex == index ? 10 : 5,
-//                     margin: const EdgeInsets.symmetric(horizontal: 4),
-//                     decoration: BoxDecoration(
-//                       shape: BoxShape.circle,
-//                       color:
-//                           currentIndex == index
-//                               ? AppColorV2.lpBlueBrand
-//                               : AppColorV2.pastelBlueAccent,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-
-//               spacing(height: 38),
-
-//               Center(
-//                 child: DefaultText(
-//                   text: currentData["title"],
-//                   textAlign: TextAlign.center,
-//                   style: AppTextStyle.h1,
-//                   height: 32 / 28,
-//                 ),
-//               ),
-//               spacing(height: 10),
-//               Center(
-//                 child: DefaultText(
-//                   text: currentData["subTitle"],
-//                   textAlign: TextAlign.center,
-//                   style: AppTextStyle.paragraph1,
-//                   height: 20 / 16,
-//                 ),
-//               ),
-//               spacing(height: 25),
-//               Expanded(
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   mainAxisAlignment: MainAxisAlignment.end,
-//                   children: [
-//                     Row(
-//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                       children: [
-//                         TextButton(
-//                           onPressed: () {
-//                             Get.offAndToNamed(Routes.login);
-//                           },
-//                           child: DefaultText(
-//                             style: AppTextStyle.textButton,
-//                             color: AppColorV2.lpBlueBrand,
-//                             height: 20 / 16,
-//                             text: "Skip",
-//                           ),
-//                         ),
-//                         SizedBox(width: 35),
-//                         GestureDetector(
-//                           onTap: controller.btnTap,
-
-//                           child: Padding(
-//                             padding: const EdgeInsets.only(right: 14),
-//                             child: Container(
-//                               padding: const EdgeInsets.symmetric(
-//                                 horizontal: 15,
-//                                 vertical: 10,
-//                               ),
-//                               decoration: BoxDecoration(
-//                                 color: AppColorV2.lpBlueBrand,
-
-//                                 borderRadius: BorderRadius.circular(30),
-//                               ),
-//                               child: Row(
-//                                 mainAxisAlignment: MainAxisAlignment.center,
-//                                 children: [
-//                                   DefaultText(
-//                                     text:
-//                                         currentIndex ==
-//                                                 controller.sliderData.length - 1
-//                                             ? "Get started"
-//                                             : "Next",
-//                                     fontSize: 14,
-//                                     fontWeight: FontWeight.w600,
-//                                     color: Colors.white,
-//                                   ),
-//                                   SizedBox(width: 5),
-//                                   Icon(
-//                                     Icons.arrow_right_alt_outlined,
-//                                     color: Colors.white,
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-
-//                     SizedBox(height: 50),
-//                   ],
-//                 ),
-//               ),
-//             ],
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_svg/flutter_svg.dart';
-// import 'package:luvpay/pages/login/index.dart';
-// import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-// import 'package:google_fonts/google_fonts.dart';
-
-// class MyOnboardingPage extends StatefulWidget {
-//   const MyOnboardingPage({super.key});
-
-//   @override
-//   State<MyOnboardingPage> createState() => _MyOnboardingPageState();
-// }
-
-// class _MyOnboardingPageState extends State<MyOnboardingPage> {
-//   final PageController _pageController = PageController();
-//   int _currentPage = 0;
-
-//   final List<OnboardingPage> _pages = [
-//     OnboardingPage(
-//       title: "Secure Digital Wallet",
-//       description:
-//           "Keep your money safe with bank-level security and instant transaction protection",
-//       imagePath: "assets/wallet_secure.svg",
-//       color: Color(0xFF6366F1),
-//     ),
-//     OnboardingPage(
-//       title: "Instant Payments",
-//       description:
-//           "Send and receive money instantly with zero fees to friends and family",
-//       imagePath: "assets/instant_pay.svg",
-//       color: Color(0xFF10B981),
-//     ),
-//     OnboardingPage(
-//       title: "Smart Budgeting",
-//       description:
-//           "Track your spending and set budgets with intelligent insights",
-//       imagePath: "assets/budget.svg",
-//       color: Color(0xFFF59E0B),
-//     ),
-//   ];
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Color(0xFF0F172A),
-//       body: SafeArea(
-//         child: Column(
-//           children: [
-//             // Skip button
-//             Align(
-//               alignment: Alignment.topRight,
-//               child: Padding(
-//                 padding: const EdgeInsets.all(20.0),
-//                 child: TextButton(
-//                   onPressed: () {
-//                     if (_currentPage < _pages.length - 1) {
-//                       _pageController.animateToPage(
-//                         _pages.length - 1,
-//                         duration: Duration(milliseconds: 500),
-//                         curve: Curves.easeInOut,
-//                       );
-//                     } else {
-//                       _completeOnboarding();
-//                     }
-//                   },
-//                   child: Text(
-//                     _currentPage == _pages.length - 1 ? "Get Started" : "Skip",
-//                     style: GoogleFonts.inter(
-//                       color: Colors.white54,
-//                       fontWeight: FontWeight.w600,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//             ),
-
-//             // Page View
-//             Expanded(
-//               flex: 4,
-//               child: PageView.builder(
-//                 controller: _pageController,
-//                 itemCount: _pages.length,
-//                 onPageChanged: (index) {
-//                   setState(() {
-//                     _currentPage = index;
-//                   });
-//                 },
-//                 itemBuilder: (context, index) {
-//                   return OnboardingPageWidget(page: _pages[index]);
-//                 },
-//               ),
-//             ),
-
-//             // Indicator and Next button
-//             Expanded(
-//               flex: 1,
-//               child: Padding(
-//                 padding: const EdgeInsets.all(24.0),
-//                 child: Column(
-//                   children: [
-//                     // Page indicator
-//                     SmoothPageIndicator(
-//                       controller: _pageController,
-//                       count: _pages.length,
-//                       effect: ExpandingDotsEffect(
-//                         activeDotColor: _pages[_currentPage].color,
-//                         dotColor: Colors.white24,
-//                         dotHeight: 8,
-//                         dotWidth: 8,
-//                         spacing: 12,
-//                         expansionFactor: 3,
-//                       ),
-//                     ),
-
-//                     const SizedBox(height: 40),
-
-//                     // Next/Get Started button
-//                     SizedBox(
-//                       width: double.infinity,
-//                       height: 56,
-//                       child: ElevatedButton(
-//                         onPressed: () {
-//                           if (_currentPage < _pages.length - 1) {
-//                             _pageController.nextPage(
-//                               duration: Duration(milliseconds: 500),
-//                               curve: Curves.easeInOut,
-//                             );
-//                           } else {
-//                             _completeOnboarding();
-//                           }
-//                         },
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: _pages[_currentPage].color,
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(16),
-//                           ),
-//                           elevation: 0,
-//                           shadowColor: Colors.transparent,
-//                         ),
-//                         child: Row(
-//                           mainAxisAlignment: MainAxisAlignment.center,
-//                           children: [
-//                             Text(
-//                               _currentPage == _pages.length - 1
-//                                   ? "Get Started"
-//                                   : "Next",
-//                               style: GoogleFonts.inter(
-//                                 fontSize: 16,
-//                                 fontWeight: FontWeight.w600,
-//                                 color: Colors.white,
-//                               ),
-//                             ),
-//                             const SizedBox(width: 8),
-//                             Icon(
-//                               Icons.arrow_forward_rounded,
-//                               size: 20,
-//                               color: Colors.white,
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-//   void _completeOnboarding() {
-//     // Navigate to main app or next screen
-//     Navigator.pushReplacement(
-//       context,
-//       MaterialPageRoute(builder: (context) => LoginScreen()),
-//     );
-//   }
-// }
-
-// class OnboardingPage {
-//   final String title;
-//   final String description;
-//   final String imagePath;
-//   final Color color;
-
-//   OnboardingPage({
-//     required this.title,
-//     required this.description,
-//     required this.imagePath,
-//     required this.color,
-//   });
-// }
-
-// class OnboardingPageWidget extends StatelessWidget {
-//   final OnboardingPage page;
-
-//   const OnboardingPageWidget({super.key, required this.page});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Padding(
-//       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-//       child: Column(
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           // Animated illustration container
-//           Container(
-//             width: 280,
-//             height: 280,
-//             decoration: BoxDecoration(
-//               gradient: LinearGradient(
-//                 begin: Alignment.topLeft,
-//                 end: Alignment.bottomRight,
-//                 colors: [
-//                   page.color.withOpacity(0.2),
-//                   page.color.withOpacity(0.1),
-//                 ],
-//               ),
-//               shape: BoxShape.circle,
-//             ),
-//             child: Center(
-//               child: Container(
-//                 width: 200,
-//                 height: 200,
-//                 decoration: BoxDecoration(
-//                   gradient: LinearGradient(
-//                     begin: Alignment.topLeft,
-//                     end: Alignment.bottomRight,
-//                     colors: [
-//                       page.color.withOpacity(0.4),
-//                       page.color.withOpacity(0.2),
-//                     ],
-//                   ),
-//                   shape: BoxShape.circle,
-//                 ),
-//                 child: Center(
-//                   child: SvgPicture.asset(
-//                     page.imagePath,
-//                     width: 120,
-//                     height: 120,
-//                     color: Colors.white,
-//                   ),
-//                 ),
-//               ),
-//             ),
-//           ),
-
-//           const SizedBox(height: 60),
-
-//           // Title
-//           Text(
-//             page.title,
-//             style: GoogleFonts.inter(
-//               fontSize: 32,
-//               fontWeight: FontWeight.w700,
-//               color: Colors.white,
-//               height: 1.2,
-//             ),
-//             textAlign: TextAlign.center,
-//           ),
-
-//           const SizedBox(height: 16),
-
-//           // Description
-//           Text(
-//             page.description,
-//             style: GoogleFonts.inter(
-//               fontSize: 16,
-//               fontWeight: FontWeight.w400,
-//               color: Colors.white70,
-//               height: 1.5,
-//             ),
-//             textAlign: TextAlign.center,
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+// ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/custom_widgets/smooth_route.dart';
-import 'package:luvpay/pages/dashboard/view.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
+import 'package:luvpay/custom_widgets/app_color_v2.dart';
+import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/pages/routes/routes.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../wallet/wallet_screen.dart';
 
 class MyOnboardingPage extends StatefulWidget {
   const MyOnboardingPage({super.key});
@@ -467,199 +15,384 @@ class MyOnboardingPage extends StatefulWidget {
   State<MyOnboardingPage> createState() => _MyOnboardingPageState();
 }
 
-class LuvPayColors {
-  // Brand Colors
-  static Color lpBlueBrand = const Color(0xFF0078FF);
-  static Color lpTealBrand = const Color(0xFF00DEEB);
-  static Color lpWhite = const Color(0xFFFFFFFF);
-
-  // Derived colors
-  static Color get background => lpWhite;
-  static Color get textPrimary => const Color(0xFF1E293B);
-  static Color get textSecondary => const Color(0xFF64748B);
-  static Color get buttonText => lpWhite;
-}
-
 class _MyOnboardingPageState extends State<MyOnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  double _backgroundOffset = 0.0;
+  double _titleOffset = 0.0;
 
   final List<OnboardingPage> _pages = [
     OnboardingPage(
-      title: "Secure Digital Wallet",
+      title: "Secure & Smart",
       description:
-          "Keep your money safe with bank-level security and instant transaction protection",
+          "Bank-level security meets intelligent finance management. Your money stays safe while growing smarter.",
       imagePath: "assets/svg/wallet_secure.svg",
-      primaryColor: LuvPayColors.lpBlueBrand,
-      secondaryColor: LuvPayColors.lpTealBrand,
+      primaryColor: AppColorV2.lpBlueBrand,
+      accentColor: AppColorV2.lpTealBrand,
+      iconData: Icons.shield_outlined,
     ),
     OnboardingPage(
-      title: "Instant Payments",
+      title: "Lightning Fast",
       description:
-          "Send and receive money instantly with zero fees to friends and family",
+          "Transactions that happen in a blink. Send, receive, and pay instantly across the globe.",
       imagePath: "assets/svg/instant_pay.svg",
-      primaryColor: LuvPayColors.lpTealBrand,
-      secondaryColor: LuvPayColors.lpBlueBrand,
+      primaryColor: AppColorV2.primary,
+      accentColor: AppColorV2.secondary,
+      iconData: Icons.bolt_outlined,
     ),
     OnboardingPage(
-      title: "Smart Budgeting",
+      title: "Your Financial AI",
       description:
-          "Track your spending and set budgets with intelligent insights",
+          "Get personalized insights, smart budgets, and investment suggestions tailored just for you.",
       imagePath: "assets/svg/budget.svg",
-      primaryColor: LuvPayColors.lpBlueBrand,
-      secondaryColor: LuvPayColors.lpTealBrand,
+      primaryColor: AppColorV2.primaryTextColor,
+      accentColor: AppColorV2.accent,
+      iconData: Icons.psychology_outlined,
     ),
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _pageController.addListener(_handlePageScroll);
+  }
+
+  void _handlePageScroll() {
+    if (_pageController.page != null) {
+      setState(() {
+        _backgroundOffset = _pageController.page! * -150;
+        _titleOffset = _pageController.page! * -50;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.removeListener(_handlePageScroll);
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: LuvPayColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Skip button
-            Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: TextButton(
-                  onPressed: () {
-                    if (_currentPage < _pages.length - 1) {
-                      _pageController.animateToPage(
-                        _pages.length - 1,
-                        duration: Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                      );
-                    } else {
-                      _completeOnboarding();
-                    }
-                  },
-                  child: Text(
-                    _currentPage == _pages.length - 1 ? "Get Started" : "Skip",
-                    style: GoogleFonts.inter(
-                      color: LuvPayColors.lpBlueBrand,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
+    final currentPageColor = _pages[_currentPage].primaryColor;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return CustomScaffoldV2(
+      padding: EdgeInsets.zero,
+      enableToolBar: false,
+      backgroundColor: AppColorV2.background,
+      scaffoldBody: Stack(
+        children: [
+          AnimatedPositioned(
+            duration: Duration(milliseconds: 1000),
+            curve: Curves.easeInOutCubic,
+            left: _backgroundOffset,
+            child: Container(
+              width: screenWidth * 3,
+              height: MediaQuery.of(context).size.height,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    _pages[0].primaryColor.withOpacity(0.03),
+                    _pages[1].primaryColor.withOpacity(0.03),
+                    _pages[2].primaryColor.withOpacity(0.03),
+                  ],
+                  stops: [0.0, 0.5, 1.0],
                 ),
               ),
             ),
+          ),
 
-            // Page View
-            Expanded(
-              flex: 4,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _pages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return OnboardingPageWidget(page: _pages[index]);
-                },
+          Positioned(
+            top: 100,
+            left: screenWidth / 3,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    currentPageColor.withOpacity(0.08),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
+          ),
 
-            // Indicator and Next button
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  // Page indicator
-                  SmoothPageIndicator(
-                    controller: _pageController,
-                    count: _pages.length,
-                    effect: ExpandingDotsEffect(
-                      activeDotColor: _pages[_currentPage].primaryColor,
-                      dotColor: LuvPayColors.lpBlueBrand.withOpacity(0.2),
-                      dotHeight: 8,
-                      dotWidth: 8,
-                      spacing: 12,
-                      expansionFactor: 3,
-                    ),
+          Positioned(
+            bottom: 200,
+            right: 50,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  colors: [
+                    _pages[_currentPage].accentColor.withOpacity(0.05),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
                   ),
-
-                  const SizedBox(height: 40),
-
-                  // Next/Get Started button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_currentPage < _pages.length - 1) {
-                          _pageController.nextPage(
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                          );
-                        } else {
-                          _completeOnboarding();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _pages[_currentPage].primaryColor,
-                        shape: RoundedRectangleBorder(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      AnimatedContainer(
+                        duration: Duration(milliseconds: 500),
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              currentPageColor,
+                              _pages[_currentPage].accentColor,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: currentPageColor.withOpacity(0.3),
+                              blurRadius: 15,
+                              offset: Offset(0, 5),
+                              spreadRadius: -5,
+                            ),
+                          ],
                         ),
-                        elevation: 2,
-                        shadowColor: _pages[_currentPage].primaryColor
-                            .withOpacity(0.3),
+                        child: Center(
+                          child: Icon(
+                            Icons.account_balance_wallet_rounded,
+                            color: AppColorV2.background,
+                            size: 26,
+                          ),
+                        ),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _currentPage == _pages.length - 1
-                                ? "Get Started"
-                                : "Next",
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: LuvPayColors.buttonText,
+
+                      AnimatedOpacity(
+                        duration: Duration(milliseconds: 300),
+                        opacity: _currentPage == _pages.length - 1 ? 0 : 1,
+                        child: InkWell(
+                          onTap:
+                              _currentPage == _pages.length - 1
+                                  ? null
+                                  : () => _pageController.animateToPage(
+                                    _pages.length - 1,
+                                    duration: Duration(milliseconds: 600),
+                                    curve: Curves.easeInOutBack,
+                                  ),
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColorV2.background.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppColorV2.boxStroke,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: DefaultText(
+                              text: "Skip",
+                              style: AppTextStyle.paragraph1.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColorV2.onSurfaceVariant,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 20,
-                            color: LuvPayColors.buttonText,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Secondary option for last page
-                  if (_currentPage == _pages.length - 1) ...[
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        // Handle sign in action
-                      },
-                      child: Text(
-                        "Already have an account? Sign In",
-                        style: GoogleFonts.inter(
-                          color: LuvPayColors.lpBlueBrand,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                  ],
-                ],
-              ),
+                    ],
+                  ),
+                ),
+
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _pages.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return ModernOnboardingPageWidget(
+                        page: _pages[index],
+                        isActive: index == _currentPage,
+                        titleOffset: _titleOffset,
+                        index: index,
+                      );
+                    },
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(_pages.length, (index) {
+                          return GestureDetector(
+                            onTap:
+                                () => _pageController.animateToPage(
+                                  index,
+                                  duration: Duration(milliseconds: 500),
+                                  curve: Curves.easeInOut,
+                                ),
+                            child: AnimatedContainer(
+                              duration: Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                              margin: EdgeInsets.symmetric(horizontal: 4),
+                              width: index == _currentPage ? 40 : 12,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color:
+                                    index == _currentPage
+                                        ? currentPageColor
+                                        : AppColorV2.boxStroke,
+                                borderRadius: BorderRadius.circular(3),
+                                boxShadow:
+                                    index == _currentPage
+                                        ? [
+                                          BoxShadow(
+                                            color: currentPageColor.withOpacity(
+                                              0.3,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: Offset(0, 3),
+                                          ),
+                                        ]
+                                        : [],
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+
+                      SizedBox(height: 48),
+
+                      FloatingActionButton.extended(
+                        onPressed: () {
+                          if (_currentPage < _pages.length - 1) {
+                            _pageController.nextPage(
+                              duration: Duration(milliseconds: 600),
+                              curve: Curves.easeInOutCubic,
+                            );
+                          } else {
+                            _completeOnboarding();
+                          }
+                        },
+                        backgroundColor: currentPageColor,
+                        foregroundColor: AppColorV2.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 12,
+                        highlightElevation: 16,
+                        icon: AnimatedSwitcher(
+                          duration: Duration(milliseconds: 400),
+                          child: Icon(
+                            _currentPage == _pages.length - 1
+                                ? Icons.check_rounded
+                                : Icons.arrow_forward_rounded,
+                            key: ValueKey(_currentPage),
+                          ),
+                        ),
+                        label: AnimatedSwitcher(
+                          duration: Duration(milliseconds: 400),
+                          child: DefaultText(
+                            key: ValueKey(_currentPage),
+                            text:
+                                _currentPage == _pages.length - 1
+                                    ? "Get Started"
+                                    : "Continue",
+                            style: AppTextStyle.textButton.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      if (_currentPage == _pages.length - 1) ...[
+                        SizedBox(height: 24),
+                        InkWell(
+                          onTap: () {
+                            Get.toNamed(Routes.login);
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColorV2.background.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppColorV2.boxStroke,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                DefaultText(
+                                  text: "Already have an account? ",
+                                  style: AppTextStyle.paragraph1.copyWith(
+                                    color: AppColorV2.onSurfaceVariant,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                DefaultText(
+                                  text: "Sign In",
+                                  style: AppTextStyle.paragraph1.copyWith(
+                                    color: currentPageColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      SizedBox(height: MediaQuery.of(context).padding.bottom),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   void _completeOnboarding() {
-    // Navigate to main app or next screen
     Get.offAllNamed(Routes.login);
   }
 }
@@ -669,202 +402,207 @@ class OnboardingPage {
   final String description;
   final String imagePath;
   final Color primaryColor;
-  final Color secondaryColor;
+  final Color accentColor;
+  final IconData iconData;
 
   OnboardingPage({
     required this.title,
     required this.description,
     required this.imagePath,
     required this.primaryColor,
-    required this.secondaryColor,
+    required this.accentColor,
+    required this.iconData,
   });
 }
 
-class OnboardingPageWidget extends StatelessWidget {
+class ModernOnboardingPageWidget extends StatelessWidget {
   final OnboardingPage page;
+  final bool isActive;
+  final double titleOffset;
+  final int index;
 
-  const OnboardingPageWidget({super.key, required this.page});
+  const ModernOnboardingPageWidget({
+    super.key,
+    required this.page,
+    required this.isActive,
+    required this.titleOffset,
+    required this.index,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Animated illustration container with gradient
-          Container(
-            width: 280,
-            height: 280,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  page.primaryColor.withOpacity(0.1),
-                  page.secondaryColor.withOpacity(0.05),
-                ],
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: SingleChildScrollView(
+        physics: NeverScrollableScrollPhysics(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: Duration(milliseconds: 800),
+              curve: Curves.easeOutBack,
+              transform: Matrix4.translationValues(0, isActive ? 0 : 60, 0)
+                ..scale(isActive ? 1.0 : 0.9),
               child: Container(
+                margin: EdgeInsets.only(top: 30),
                 width: 200,
                 height: 200,
                 decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(50),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
                       page.primaryColor.withOpacity(0.15),
-                      page.secondaryColor.withOpacity(0.1),
+                      page.accentColor.withOpacity(0.08),
                     ],
                   ),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: page.primaryColor.withOpacity(0.2),
-                    width: 1,
-                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: page.primaryColor.withOpacity(0.15),
+                      blurRadius: 40,
+                      offset: Offset(0, 25),
+                      spreadRadius: -15,
+                    ),
+                  ],
                 ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    page.imagePath,
-                    width: 120,
-                    height: 120,
-                    color: page.primaryColor,
-                  ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      top: -20,
+                      right: -20,
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 600),
+                        width: isActive ? 64 : 48,
+                        height: isActive ? 64 : 48,
+                        decoration: BoxDecoration(
+                          color: page.accentColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: page.accentColor.withOpacity(0.2),
+                              blurRadius: 15,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          page.iconData,
+                          size: 24,
+                          color: AppColorV2.background,
+                        ),
+                      ),
+                    ),
+
+                    Positioned(
+                      bottom: -30,
+                      left: -20,
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 800),
+                        width: isActive ? 100 : 80,
+                        height: isActive ? 100 : 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              page.primaryColor.withOpacity(0.1),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Center(
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 600),
+                        transform:
+                            Matrix4.identity()..scale(isActive ? 1.0 : 0.9),
+                        child: SvgPicture.asset(
+                          page.imagePath,
+                          width: 140,
+                          height: 140,
+                          color: page.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
 
-          const SizedBox(height: 60),
+            SizedBox(height: 15),
 
-          // Title
-          Text(
-            page.title,
-            style: GoogleFonts.inter(
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              color: LuvPayColors.textPrimary,
-              height: 1.2,
+            AnimatedOpacity(
+              duration: Duration(milliseconds: 600),
+              opacity: isActive ? 1 : 0.3,
+              child: Transform.translate(
+                offset: Offset(titleOffset + (index * 50), 0),
+                child: Column(
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        ShaderMask(
+                          shaderCallback: (bounds) {
+                            return LinearGradient(
+                              colors: [page.primaryColor, page.accentColor],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ).createShader(bounds);
+                          },
+                          child: DefaultText(
+                            text: page.title,
+                            style: AppTextStyle.h4,
+                            color: AppColorV2.background,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+
+                        Positioned(
+                          bottom: -12,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: AnimatedContainer(
+                              duration: Duration(milliseconds: 800),
+                              width: isActive ? 80 : 0,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [page.accentColor, page.primaryColor],
+                                ),
+                                borderRadius: BorderRadius.circular(2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: page.accentColor.withOpacity(0.5),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 20),
+
+                    DefaultText(
+                      text: page.description,
+                      style: AppTextStyle.body1,
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Description
-          Text(
-            page.description,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: LuvPayColors.textSecondary,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-
-// class MainAppScreen extends StatefulWidget {
-//   const MainAppScreen({super.key});
-
-//   @override
-//   State<MainAppScreen> createState() => _MainAppScreenState();
-// }
-
-// class _MainAppScreenState extends State<MainAppScreen> {
-//   bool isLoading = false;
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     initialize();
-//   }
-
-//   void initialize() async {
-//     await Future.delayed(Duration(seconds: 3));
-//     setState(() {
-//       isLoading = true;
-//     });
-//     await Future.delayed(Duration(seconds: 1));
-//     setState(() {
-//       isLoading = false;
-//     });
-//     // ignore: use_build_context_synchronously
-//     await SmoothRoute(context: context, child: LandingScreen()).route();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: LuvPayColors.background,
-//       body: Stack(
-//         children: [
-//           Center(
-//             child: Column(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 Container(
-//                   width: 80,
-//                   height: 80,
-//                   decoration: BoxDecoration(
-//                     gradient: LinearGradient(
-//                       colors: [
-//                         LuvPayColors.lpBlueBrand,
-//                         LuvPayColors.lpTealBrand,
-//                       ],
-//                       begin: Alignment.topLeft,
-//                       end: Alignment.bottomRight,
-//                     ),
-//                     borderRadius: BorderRadius.circular(20),
-//                   ),
-//                   child: Icon(
-//                     Icons.account_balance_wallet,
-//                     color: LuvPayColors.lpWhite,
-//                     size: 40,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 24),
-//                 Text(
-//                   "Welcome to LuvPay!",
-//                   style: GoogleFonts.inter(
-//                     fontSize: 28,
-//                     fontWeight: FontWeight.w700,
-//                     color: LuvPayColors.textPrimary,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 12),
-//                 Text(
-//                   "Your digital wallet is ready to use",
-//                   style: GoogleFonts.inter(
-//                     fontSize: 16,
-//                     color: LuvPayColors.textSecondary,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//           if (isLoading)
-//             Positioned.fill(
-//               child: Container(
-//                 color: Colors.black.withValues(alpha: 0.2),
-//                 child: Center(
-//                   child: SizedBox(
-//                     height: 40,
-//                     width: 40,
-//                     child: CircularProgressIndicator(color: Colors.grey),
-//                   ),
-//                 ),
-//               ),
-//             ),
-//         ],
-//       ),
-//     );
-//   }
-// }

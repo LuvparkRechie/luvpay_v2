@@ -3,7 +3,7 @@ import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
-import 'package:luvpay/custom_widgets/custom_scaffold.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
 import 'package:url_launcher/url_launcher.dart';

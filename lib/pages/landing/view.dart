@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_button.dart';
-import '../../custom_widgets/custom_scaffold.dart';
+import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/spacing.dart';
 
@@ -28,7 +28,7 @@ class LandingScreen extends GetView<LandingController> {
                 children: [
                   SizedBox(height: 50),
                   Image(
-                    image: AssetImage("assets/images/onboardluvpark.png"),
+                    image: AssetImage("assets/images/onboardluvpay.png"),
                     width: 175,
                     fit: BoxFit.contain,
                   ),
@@ -36,7 +36,7 @@ class LandingScreen extends GetView<LandingController> {
                   Center(
                     child: DefaultText(
                       textAlign: TextAlign.center,
-                      text: "Get started with luvpark Parking",
+                      text: "Get started with luvpay Parking",
                       style: AppTextStyle.h1,
                       height: 32 / 28,
                     ),
@@ -102,7 +102,7 @@ class LandingScreen extends GetView<LandingController> {
                                           Get.to(
                                             const WebviewPage(
                                               urlDirect:
-                                                  "https://luvpark.ph/terms-of-use/",
+                                                  "https://luvpay.ph/terms-of-use/",
                                               label: "Terms of Use",
                                               isBuyToken: false,
                                             ),
@@ -113,7 +113,7 @@ class LandingScreen extends GetView<LandingController> {
                                           color: AppColorV2.lpBlueBrand,
                                           fontWeight: FontWeight.w700,
                                           letterSpacing: 0,
-                                          text: "luvpark's Terms of use",
+                                          text: "luvpay's Terms of use",
                                         ),
                                       ),
                                     ),

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
-import 'package:luvpay/custom_widgets/custom_scaffold.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
 
@@ -185,7 +185,7 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
         children: [
           SizedBox(height: 30),
           Image(
-            image: AssetImage("assets/images/onboardluvpark.png"),
+            image: AssetImage("assets/images/onboardluvpay.png"),
             width: 180,
           ),
           spacing(height: 28),

@@ -1,0 +1,180 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:luvpay/custom_widgets/app_color_v2.dart';
+import 'package:luvpay/custom_widgets/longprint.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_buttons.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
+import '../../auth/authentication.dart';
+import '../../custom_widgets/custom_text_v2.dart';
+import '../../custom_widgets/luvpay/custom_tile.dart';
+import '../../custom_widgets/variables.dart';
+import '../../functions/functions.dart';
+
+class MyProfile extends StatefulWidget {
+  const MyProfile({super.key});
+
+  @override
+  State<MyProfile> createState() => _MyProfileState();
+}
+
+class _MyProfileState extends State<MyProfile> {
+  Map<String, dynamic> userData = {};
+  String civilStatuss = "";
+
+  @override
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    final objData = await Authentication().getUserData2();
+    userData = objData;
+    if (objData == null) return;
+    setState(() {
+      longPrint(" user data: $userData");
+    });
+  }
+
+  String birthday(String rawDate) {
+    try {
+      final date = DateTime.parse(rawDate);
+      return DateFormat('MMMM d, yyyy').format(date);
+    } catch (e) {
+      debugPrint("Error parsing date: $e");
+      return rawDate;
+    }
+  }
+
+  String getCivilStatusLabel(String? value) {
+    if (value == null || value.isEmpty) return "Not set";
+    final match = Variables.civilStatusData.firstWhere(
+      (item) => item["value"].toString().toLowerCase() == value.toLowerCase(),
+      orElse: () => null,
+    );
+    return match != null ? match["text"] : "Not set";
+  }
+
+  IconData _civilStatusIcon(String? status) {
+    if (status == null) return Icons.heart_broken_outlined;
+    final s = status.toLowerCase();
+    return s == "w"
+        ? LucideIcons.userX
+        : s == "m"
+        ? LucideIcons.users
+        : s == "s"
+        ? LucideIcons.user
+        : Icons.heart_broken_outlined;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isVerified = userData["is_verified"] == "N";
+    return CustomScaffoldV2(
+      padding: const EdgeInsets.fromLTRB(19, 0, 19, 10),
+      scaffoldBody: Column(
+        children: [
+          header(isVerified),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: personalDetails(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  SectionListView personalDetails() {
+    final items = [
+      {'icon': LucideIcons.phone, 'title': userData["mobile_no"] ?? "Not set"},
+      {
+        'icon': LucideIcons.gift,
+        'title':
+            userData["birthday"] == null
+                ? "Birthday not set"
+                : birthday(userData["birthday"]),
+      },
+      {
+        'icon': _civilStatusIcon(userData["civil_status"]),
+        'title': getCivilStatusLabel(userData["civil_status"]),
+      },
+      {
+        'icon':
+            userData["gender"].toString().toLowerCase() == "m"
+                ? Icons.male
+                : Icons.female,
+        'title':
+            userData["gender"].toString().toLowerCase() == "m"
+                ? "Male"
+                : "Female",
+      },
+      {
+        'icon': LucideIcons.home,
+        'title':
+            "${userData["brgy_name"]}, ${userData["city_name"]}, ${userData["province_name"]}, ${userData["zip_code"]}",
+        'maxLines': 5,
+      },
+    ];
+
+    return SectionListView(sectionTitle: 'Personal Details', items: items);
+  }
+
+  Column header(bool isVerified) {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: AppColorV2.background,
+            shape: BoxShape.circle,
+          ),
+          child: CircleAvatar(
+            radius: 60,
+            backgroundImage: _getProfileImageProvider(),
+          ),
+        ),
+        SizedBox(height: 10),
+        DefaultText(
+          text: Functions().getDisplayName(userData),
+          maxLines: 1,
+          style: AppTextStyle.h2,
+          color: AppColorV2.background,
+        ),
+        userData["email"] == null || userData["email"] == ""
+            ? SizedBox.shrink()
+            : DefaultText(
+              text: "${userData["email"] ?? ""}",
+              maxLines: 1,
+              style: AppTextStyle.body1,
+              color: AppColorV2.background,
+            ),
+        SizedBox(height: 10),
+        CustomButtons(
+          text: isVerified ? "Verify Account" : "Edit Profile",
+          onPressed: () {},
+        ),
+        SizedBox(height: 10),
+      ],
+    );
+  }
+
+  ImageProvider _getProfileImageProvider() {
+    final String? base64Image = userData["image_base64"];
+    if (base64Image != null && base64Image.isNotEmpty) {
+      try {
+        String imageString =
+            base64Image.contains(',')
+                ? base64Image.split(',').last
+                : base64Image;
+        return MemoryImage(base64Decode(imageString));
+      } catch (e) {
+        print("Error decoding base64 image: $e");
+      }
+    }
+    return const AssetImage('assets/images/profile_active.png');
+  }
+}

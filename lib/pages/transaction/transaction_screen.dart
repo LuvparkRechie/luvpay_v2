@@ -11,7 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
-import 'package:luvpay/custom_widgets/custom_scaffold.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_textfield.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/loading.dart';
@@ -479,6 +479,8 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                     future: Functions.getTimeNow(),
                     builder:
                         (context, s) => DefaultText(
+                          color: AppColorV2.background,
+                          style: AppTextStyle.body1,
                           text:
                               "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}",
                         ),
@@ -702,11 +704,16 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            DefaultText(
-                              text: key,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                            Container(
+                              padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
+                              decoration: BoxDecoration(
+                                color: AppColorV2.lpBlueBrand.withAlpha(100),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: DefaultText(
+                                text: key,
+                                color: AppColorV2.background,
+                                style: AppTextStyle.body1,
                               ),
                             ),
                             ...list.map((tx) {

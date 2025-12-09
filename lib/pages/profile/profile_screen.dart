@@ -1,13 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
-import 'package:luvpay/custom_widgets/custom_scaffold.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_buttons.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
-import 'package:luvpay/custom_widgets/scanner.dart';
 import 'package:luvpay/custom_widgets/smooth_route.dart';
 import 'package:luvpay/http/http_request.dart';
 import 'package:luvpay/pages/profile/profile_update/profile_update.dart';
@@ -19,6 +18,9 @@ import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/loading.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
+import '../routes/routes.dart';
+import '../transaction/transaction_screen.dart';
+import 'my_profile.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -199,129 +201,172 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final bool isVerified = userData["is_verified"] == "N";
     final Color secondaryTeal = const Color(0xFF009688);
     return CustomScaffoldV2(
-      enableToolBar: false,
+      leading: SizedBox.shrink(),
 
+      showAppBar: false,
       scaffoldBody:
           isLoading
               ? LoadingCard()
               : CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  SliverAppBar(
-                    backgroundColor: Colors.transparent,
-                    expandedHeight: 200,
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Stack(
-                        children: [
-                          Positioned(
-                            top: 20,
-                            right: 20,
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: executeAddressFlow,
-                              icon: Icon(Icons.edit, size: 20),
-                            ),
-                          ),
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      width: 3,
-                                      color: AppColorV2.lpBlueBrand.withAlpha(
-                                        50,
-                                      ),
-                                    ),
-                                    gradient:
-                                        userData["image_base64"] == null
-                                            ? LinearGradient(
-                                              colors: [
-                                                primaryBlue,
-                                                secondaryTeal,
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            )
-                                            : null,
-                                  ),
-                                  child: _buildProfileImage(),
-                                ),
-                                const SizedBox(height: 16),
-                                DefaultText(
-                                  text: Functions().getDisplayName(userData),
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isVerified
-                                            ? AppColorV2.inactiveState
-                                            : AppColorV2.lpBlueBrand,
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: DefaultText(
-                                    style: AppTextStyle.body1,
-                                    text:
-                                        isVerified
-                                            ? "Unverified"
-                                            : "Fully Verified",
-                                    color: AppColorV2.background,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isVerified
-                                            ? AppColorV2.inactiveState
-                                            : AppColorV2.lpBlueBrand,
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: DefaultText(
-                                    style: AppTextStyle.body1,
-                                    text: "Member since 2025",
-
-                                    color: AppColorV2.background,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  headerProfile(primaryBlue, secondaryTeal, isVerified),
+                  SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  !isVerified
+                      ? SliverToBoxAdapter(child: SizedBox.shrink())
+                      : VerifiedWidget(isVerified: isVerified),
                   SliverToBoxAdapter(
                     child: Column(
                       children: [
-                        _buildProfileInfoCard(),
+                        SizedBox(height: 16),
+                        _profile(),
                         const SizedBox(height: 24),
-                        _buildSettingsSection(),
+                        _helpAndSupport(),
                         const SizedBox(height: 24),
-                        _buildSupportSection(),
+                        _legal(),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButtons.no(
+                            text: "Logout",
+                            onPressed: () {
+                              CustomDialogStack.showConfirmation(
+                                isAllBlueColor: false,
+                                context,
+                                "Logout",
+                                "Are you sure you want to logout?",
+                                leftText: "No",
+                                rightText: "Yes",
+                                () {
+                                  Get.back();
+                                },
+                                () async {
+                                  Get.back();
+                                  final uData =
+                                      await Authentication().getUserData2();
+
+                                  Functions.logoutUser(
+                                    uData["session_id"].toString(),
+                                    (isSuccess) async {
+                                      if (isSuccess["is_true"]) {
+                                        Authentication().setLogoutStatus(true);
+                                        Get.offAllNamed(Routes.login);
+                                      }
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
                         const SizedBox(height: 24),
                       ],
                     ),
                   ),
                 ],
               ),
+    );
+  }
+
+  SliverAppBar headerProfile(
+    Color primaryBlue,
+    Color secondaryTeal,
+    isVerified,
+  ) {
+    return SliverAppBar(
+      pinned: true,
+      floating: true,
+      snap: false,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      expandedHeight: 80,
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          final double maxHeight = 100;
+          final double minHeight = kToolbarHeight;
+          final double currentHeight = constraints.biggest.height;
+
+          final double t = ((currentHeight - minHeight) /
+                  (maxHeight - minHeight))
+              .clamp(0.0, 1.0);
+
+          final double avatarSize = 60 * t + 30 * (1 - t);
+          final double nameFont = 18 * t + 14 * (1 - t);
+          final double emailFont = 12 * t + 10 * (1 - t);
+          final double horizontalPadding = 10 * t + 4 * (1 - t);
+
+          return FlexibleSpaceBar(
+            background: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: AppColorV2.background,
+              ),
+              padding: EdgeInsets.all(horizontalPadding),
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 120),
+                    width: avatarSize,
+                    height: avatarSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        width: 3,
+                        color: AppColorV2.lpBlueBrand.withAlpha(50),
+                      ),
+                      gradient:
+                          userData["image_base64"] == null
+                              ? LinearGradient(
+                                colors: [primaryBlue, secondaryTeal],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                              : null,
+                    ),
+                    child: _buildProfileImage(),
+                  ),
+
+                  SizedBox(width: 10 * t + 4 * (1 - t)),
+
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DefaultText(
+                          text: Functions().getDisplayName(userData),
+                          maxLines: 1,
+                          style: AppTextStyle.h3_semibold.copyWith(
+                            fontSize: nameFont,
+                          ),
+                        ),
+                        DefaultText(
+                          text: userData["email"] ?? "No email",
+                          style: AppTextStyle.textbox.copyWith(
+                            fontSize: emailFont,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Transform.scale(
+                    scale: 0.8 + (0.2 * t),
+                    child: CustomButtons.nextCircle(
+                      onPressed: () {
+                        Get.to(MyProfile());
+                      },
+                      isActive: true,
+                      size: 30,
+                      activeColor: AppColorV2.lpBlueBrand,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -359,8 +404,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return Icon(Icons.person, size: 40, color: AppColorV2.background);
   }
 
-  Widget _buildProfileInfoCard() {
+  Widget _profile() {
     return Container(
+      padding: EdgeInsets.all(19),
       decoration: BoxDecoration(
         color: AppColorV2.background,
         borderRadius: BorderRadius.circular(20),
@@ -373,12 +419,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildInfoRow(
-            showIcon: false,
             icon: Icons.qr_code_rounded,
             title: 'Personal QR Code ',
-            value: "This QR Code contains your unique identifier.",
             onTap: () {
               showDialog(
                 context: context,
@@ -390,23 +435,111 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           ),
           const Divider(height: 1),
           _buildInfoRow(
-            icon: Icons.phone,
-            title: 'Mobile Number',
-            value: userData["mobile_no"],
+            icon: LucideIcons.ticket,
+            title: 'Vouchers',
             onTap: () {},
           ),
           const Divider(height: 1),
           _buildInfoRow(
-            icon: Icons.email,
-            title: 'Email',
-            value: userData["email"] ?? "No email",
+            icon: LucideIcons.bell,
+            title: 'Notifications',
             onTap: () {},
           ),
           const Divider(height: 1),
           _buildInfoRow(
-            icon: Icons.location_on,
-            title: 'Address',
-            value: userData["complete_add"],
+            icon: LucideIcons.history,
+            title: 'Transaction History',
+            onTap: () {
+              Get.to(TransactionHistory());
+            },
+          ),
+          const Divider(height: 1),
+          _buildInfoRow(
+            icon: LucideIcons.lock,
+            title: 'App Security',
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _helpAndSupport() {
+    return Container(
+      padding: EdgeInsets.all(19),
+      decoration: BoxDecoration(
+        color: AppColorV2.background,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColorV2.primaryTextColor.withValues(alpha: .05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DefaultText(text: 'Help & Support', style: AppTextStyle.h3),
+          SizedBox(height: 8),
+          _buildInfoRow(
+            icon: Icons.info_outline,
+            title: 'About Us',
+            onTap: () {},
+          ),
+          const Divider(height: 1),
+          _buildInfoRow(
+            icon: LucideIcons.messageCircle,
+            title: 'FAQs',
+            onTap: () {},
+          ),
+          const Divider(height: 1),
+          _buildInfoRow(
+            icon: LucideIcons.bookmark,
+            title: 'Terms of Use',
+            onTap: () {},
+          ),
+          const Divider(height: 1),
+          _buildInfoRow(
+            icon: LucideIcons.shield,
+            title: 'Privacy Policy',
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _legal() {
+    return Container(
+      padding: EdgeInsets.all(19),
+      decoration: BoxDecoration(
+        color: AppColorV2.background,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColorV2.primaryTextColor.withValues(alpha: .05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DefaultText(text: 'Legal', style: AppTextStyle.h3),
+          SizedBox(height: 8),
+
+          _buildInfoRow(
+            icon: LucideIcons.bookmark,
+            title: 'Terms of Use',
+            onTap: () {},
+          ),
+          const Divider(height: 1),
+          _buildInfoRow(
+            icon: LucideIcons.shield,
+            title: 'Privacy Policy',
             onTap: () {},
           ),
         ],
@@ -417,7 +550,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   Widget _buildInfoRow({
     required IconData icon,
     required String title,
-    required String value,
+    String? value,
+    IconData? trailingIcon,
     required VoidCallback onTap,
     bool showIcon = true,
   }) {
@@ -426,7 +560,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColorV2.primary.withValues(alpha: 0.1),
+          color: AppColorV2.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, color: AppColorV2.primary, size: 20),
@@ -434,218 +568,63 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       title: DefaultText(
         text: title,
         color: AppColorV2.primaryTextColor,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      subtitle: DefaultText(
-        text: value,
-        color: AppColorV2.bodyTextColor,
         style: AppTextStyle.body1,
-        maxFontSize: 12,
       ),
+
       trailing:
           showIcon
-              ? Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColorV2.lpTealBrand.withValues(alpha: .1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.edit,
-                  color: AppColorV2.lpTealBrand,
-                  size: 16,
-                ),
-              )
+              ? Icon(trailingIcon, color: AppColorV2.lpTealBrand, size: 16)
               : null,
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
-    );
-  }
-
-  Widget _buildSettingsSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColorV2.background,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColorV2.primaryTextColor.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DefaultText(
-            text: 'Preferences',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColorV2.bodyTextColor,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSettingSwitch(
-            icon: Icons.fingerprint,
-            title: 'Biometric Login',
-            subtitle: 'Use fingerprint or face ID',
-            value: true,
-            onChanged: (value) {},
-          ),
-          _buildSettingSwitch(
-            icon: Icons.vpn_key,
-            title: 'Change Password',
-            subtitle: 'Account security',
-            value: true,
-            onChanged: (value) {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingSwitch({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required Function(bool) onChanged,
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColorV2.lpTealBrand.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: AppColorV2.primary, size: 20),
-      ),
-      title: DefaultText(
-        text: title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      subtitle: DefaultText(
-        text: subtitle,
-        style: TextStyle(fontSize: 12, color: AppColorV2.bodyTextColor),
-      ),
-      trailing:
-          title.toString().toLowerCase().contains("change")
-              ? IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.arrow_forward_ios, size: 16),
-              )
-              : Switch(
-                value: value,
-                onChanged: onChanged,
-                activeColor: AppColorV2.accent,
-                activeTrackColor: AppColorV2.accent.withOpacity(0.3),
-              ),
-      contentPadding: EdgeInsets.zero,
-    );
-  }
-
-  Widget _buildSupportSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColorV2.background,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColorV2.primaryTextColor.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DefaultText(
-            text: 'Support & About',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColorV2.bodyTextColor,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildSupportOption(
-            icon: Icons.help,
-            title: 'Help Center',
-            onTap: () {},
-          ),
-          _buildSupportOption(
-            icon: Icons.description,
-            title: 'Terms & Conditions',
-            onTap: () {},
-          ),
-          _buildSupportOption(
-            icon: Icons.privacy_tip,
-            title: 'Privacy Policy',
-            onTap: () {},
-          ),
-          _buildSupportOption(
-            icon: Icons.info,
-            title: 'About LuvPay',
-            onTap: () {},
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                side: BorderSide(color: AppColorV2.incorrectState),
-                foregroundColor: AppColorV2.incorrectState.withAlpha(200),
-              ),
-              child: const DefaultText(
-                text: 'Logout',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-          SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSupportOption({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColorV2.bodyTextColor.withAlpha(50),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: AppColorV2.bodyTextColor, size: 20),
-      ),
-      title: DefaultText(
-        text: title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        color: AppColorV2.bodyTextColor,
-        size: 16,
-      ),
       onTap: onTap,
       contentPadding: EdgeInsets.zero,
     );
   }
 }
 
-// ========== ENHANCED ADDRESS EXECUTION CONTROLLER ==========
+class VerifiedWidget extends StatelessWidget {
+  final bool isVerified;
+  const VerifiedWidget({super.key, required this.isVerified});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: AppColorV2.lpBlueBrand.withAlpha(200),
+        ),
+        padding: EdgeInsets.all(19),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColorV2.background.withAlpha(50),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(LucideIcons.crown, color: AppColorV2.lpBlueBrand),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: DefaultText(
+                text:
+                    !isVerified
+                        ? "Verified Account\nEnjoy all features available!"
+                        : "Verify your account\nto unlock more features!",
+
+                style: AppTextStyle.body1,
+                color: AppColorV2.background,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class AddressExecutionController {
   bool _isExecuting = false;
   final List<String> _executionSteps = [
@@ -673,7 +652,6 @@ class AddressExecutionController {
     try {
       onProgress(_executionSteps[0]);
 
-      // Execute province API
       final provinceResponse =
           await HttpRequestApi(
             api: "${ApiKeys.getProvince}?p_region_id=$regionId",
@@ -686,7 +664,6 @@ class AddressExecutionController {
 
       onProgress(_executionSteps[1]);
 
-      // Execute city API
       final cityResponse =
           await HttpRequestApi(
             api: "${ApiKeys.getCity}?p_province_id=$provinceId",
@@ -699,7 +676,6 @@ class AddressExecutionController {
 
       onProgress(_executionSteps[2]);
 
-      // Execute barangay API
       final brgyResponse =
           await HttpRequestApi(
             api: "${ApiKeys.getBrgy}?p_city_id=$cityId",
@@ -710,7 +686,6 @@ class AddressExecutionController {
         return false;
       }
 
-      // All calls successful
       onSuccess(
         provinceResponse["items"],
         cityResponse["items"],
@@ -743,7 +718,6 @@ class AddressExecutionController {
   }
 }
 
-// ========== ENHANCED MODERN LOADING COMPONENTS ==========
 class ModernMinimalLoading extends StatefulWidget {
   final String message;
 

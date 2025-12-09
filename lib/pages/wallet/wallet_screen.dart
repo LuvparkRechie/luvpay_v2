@@ -9,8 +9,10 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../auth/authentication.dart';
+import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
+import '../../custom_widgets/luvpay/custom_buttons.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
@@ -36,19 +38,15 @@ class _WalletScreenState extends State<WalletScreen> {
   int unreadMsg = 0;
   int notifCount = 0;
   final PageController _pageController = PageController();
+  bool isOpen = false;
 
+  bool _isDialogVisible = false;
   @override
   void initState() {
     super.initState();
-    getUserInfo();
     getUserData();
-    getNotificationCount();
     getLogs();
-    _startAutoRefresh();
-  }
-
-  void getUserInfo() async {
-    userInfo = await Authentication().getUserData2();
+    getNotificationCount();
   }
 
   void _startAutoRefresh() {
@@ -56,13 +54,19 @@ class _WalletScreenState extends State<WalletScreen> {
     _timer = Timer.periodic(const Duration(seconds: 5), (_) {
       getUserData();
       getLogs();
-
+      getNotificationCount();
       final hour = DateTime.now().hour;
       if (hour == 12 || hour == 17 || hour == 21) {
         if (mounted) {
           setState(() {});
         }
       }
+    });
+  }
+
+  openEye(bool value) {
+    setState(() {
+      isOpen = !isOpen;
     });
   }
 
@@ -108,38 +112,58 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<void> getLogs() async {
-    DateTime timeNow = await Functions.getTimeNow();
-    String toDate = timeNow.toString().split(" ")[0];
-    String fromDate =
-        timeNow.subtract(const Duration(days: 1)).toString().split(" ")[0];
-    String userId = userInfo["user_id"].toString();
+    try {
+      userInfo = await Authentication().getUserData2();
+      DateTime timeNow = await Functions.getTimeNow();
+      String toDate = timeNow.toString().split(" ")[0];
+      String fromDate =
+          timeNow.subtract(const Duration(days: 1)).toString().split(" ")[0];
+      String userId = userInfo["user_id"].toString();
 
-    String subApi =
-        "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=$fromDate&tran_date_to=$toDate";
-    HttpRequestApi(api: subApi).get().then((response) async {
-      if (response is Map && response["items"].isNotEmpty) {
-        DateTime timeNow = await Functions.getTimeNow();
-        DateTime today = timeNow.toUtc();
-
-        String todayString = today.toIso8601String().substring(0, 10);
-
-        if (mounted) {
-          List items = response["items"];
-          setState(() {
-            logs =
-                items
-                    .where((transaction) {
-                      String transactionDate =
-                          transaction['tran_date'].toString().split("T")[0];
-                      return transactionDate == todayString;
-                    })
-                    .toList()
-                    .take(5)
-                    .toList();
-          });
+      String subApi =
+          "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=$fromDate&tran_date_to=$toDate";
+      HttpRequestApi(api: subApi).get().then((response) async {
+        if (response == "No Internet") {
+          hasNet = false;
+          isLoading = false;
+          _startAutoRefresh();
+          if (!_isDialogVisible) {
+            _isDialogVisible = true;
+            CustomDialogStack.showConnectionLost(Get.context!, () {
+              _isDialogVisible = false;
+              Get.back();
+              getLogs();
+            });
+          }
+          return;
         }
-      }
-    });
+
+        if (response is Map && response["items"].isNotEmpty) {
+          DateTime timeNow = await Functions.getTimeNow();
+          DateTime today = timeNow.toUtc();
+
+          String todayString = today.toIso8601String().substring(0, 10);
+
+          if (mounted) {
+            List items = response["items"];
+            setState(() {
+              logs =
+                  items
+                      .where((transaction) {
+                        String transactionDate =
+                            transaction['tran_date'].toString().split("T")[0];
+                        return transactionDate == todayString;
+                      })
+                      .toList()
+                      .take(5)
+                      .toList();
+            });
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint("Error fetching logs: $e");
+    }
   }
 
   @override
@@ -171,7 +195,16 @@ class _WalletScreenState extends State<WalletScreen> {
               _buildHeader(),
               SizedBox(height: 20),
               _buildBalanceCard(),
-              SizedBox(height: 30),
+
+              SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  iconWithBackground(icon: Icons.wallet, onTap: () {}),
+                ],
+              ),
+
+              SizedBox(height: 10),
               _buildTabBar(),
               SizedBox(height: 20),
               Expanded(
@@ -255,7 +288,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildBalanceCard() {
     return Container(
-      height: 180,
+      height: 130,
       decoration: BoxDecoration(
         gradient: AppColorV2.primaryGradient,
         borderRadius: BorderRadius.circular(24),
@@ -294,20 +327,39 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DefaultText(
-                  text: 'Total Balance',
-                  style: AppTextStyle.paragraph1,
-                  color: AppColorV2.background,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    DefaultText(
+                      text: 'Total Balance',
+                      style: AppTextStyle.paragraph1,
+                      color: AppColorV2.background,
+                    ),
+                    InkWell(
+                      onTap: () {
+                        openEye(isOpen);
+                      },
+                      child: Icon(
+                        isOpen
+                            ? Icons.visibility_rounded
+                            : Icons.visibility_off_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 8),
                 DefaultText(
                   text:
-                      userData.isEmpty || userData[0]["items"].isEmpty
-                          ? "•••••"
+                      userData.isEmpty ||
+                              userData[0]["items"].isEmpty ||
+                              !isOpen
+                          ? "•••••••"
                           : toCurrencyString(
                             userData[0]["items"][0]["amount_bal"],
                           ),
@@ -315,57 +367,27 @@ class _WalletScreenState extends State<WalletScreen> {
                   style: AppTextStyle.body1,
                   color: AppColorV2.background,
                 ),
-                Spacer(),
+                SizedBox(height: 8),
                 Row(
                   children: [
                     Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 6,
+                        vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: DefaultText(
+                        maxFontSize: 12,
+                        minFontSize: 8,
                         text:
                             userInfo["mobile_no"] != null
                                 ? "•••••••${userInfo["mobile_no"].toString().substring(userInfo["mobile_no"].toString().length - 4)}"
                                 : "•••••••••••",
                         style: AppTextStyle.body1,
                         color: AppColorV2.background,
-                      ),
-                    ),
-                    Spacer(),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: AppColorV2.success,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          DefaultText(
-                            text: 'Active',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ],
@@ -505,7 +527,10 @@ class _WalletScreenState extends State<WalletScreen> {
             onRefresh: () async {
               await getLogs();
             },
-            child: _buildTransactionList(),
+            child: TransactionSectionListView(
+              sectionTitle: '',
+              transactions: logs.cast<Map<String, dynamic>>(),
+            ),
           ),
         ),
       ],
@@ -1075,5 +1100,185 @@ class ImageCacheHelper {
 
   static void cacheImage(String base64String, ImageProvider imageProvider) {
     _cache[base64String] = imageProvider;
+  }
+}
+
+class TransactionSectionListView extends StatelessWidget {
+  final String sectionTitle;
+  final List<Map<String, dynamic>> transactions;
+
+  const TransactionSectionListView({
+    super.key,
+    required this.sectionTitle,
+    required this.transactions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (transactions.isEmpty) {
+      return NoTransactionsWidget();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DefaultText(
+              text: sectionTitle,
+              style: TextStyle(
+                color: AppColorV2.primaryTextColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListView.builder(
+              physics: BouncingScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: transactions.length,
+              itemBuilder: (context, index) {
+                final transaction = transactions[index];
+                return _buildTransactionItem(context, transaction);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionItem(
+    BuildContext context,
+    Map<String, dynamic> transaction,
+  ) {
+    String formatDate(String dateString) {
+      try {
+        DateTime date = DateTime.parse(dateString).toLocal();
+        return DateFormat('MMM dd, yyyy • HH:mm').format(date);
+      } catch (e) {
+        return dateString;
+      }
+    }
+
+    final amountString = transaction['amount']?.toString() ?? '0';
+    final isPositive = !amountString.contains("-");
+
+    final transactionData = _getTransactionData(
+      transaction['category']?.toString() ?? 'Transaction',
+      isPositive,
+    );
+
+    return InkWell(
+      onTap: () {
+        Get.to(
+          TransactionDetails(index: 0, data: [transaction], isHistory: true),
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColorV2.boxStroke),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: transactionData['color'].withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                transactionData['icon'],
+                color: transactionData['color'],
+                size: 20,
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DefaultText(
+                    text: transaction['category']?.toString() ?? 'Transaction',
+                    style: AppTextStyle.body1,
+                    color: AppColorV2.primaryTextColor,
+                  ),
+                  SizedBox(height: 4),
+                  DefaultText(
+                    text:
+                        transaction['tran_desc']?.toString() ??
+                        'No description',
+                    maxLines: 1,
+                    maxFontSize: 12,
+                  ),
+                  SizedBox(height: 4),
+                  DefaultText(
+                    text: formatDate(
+                      transaction['tran_date']?.toString() ?? '',
+                    ),
+                    style: AppTextStyle.body1,
+                    maxFontSize: 10,
+                    minFontSize: 8,
+                  ),
+                ],
+              ),
+            ),
+            DefaultText(
+              text: toCurrencyString(amountString),
+              style: TextStyle(
+                color: isPositive ? AppColorV2.success : AppColorV2.error,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Map<String, dynamic> _getTransactionData(String category, bool isPositive) {
+    final categoryLower = category.toLowerCase();
+
+    if (isPositive) {
+      return {
+        'icon': Icons.arrow_downward_rounded,
+        'color': AppColorV2.success,
+      };
+    }
+
+    if (categoryLower.contains('electric') ||
+        categoryLower.contains('utility')) {
+      return {'icon': Icons.bolt_rounded, 'color': AppColorV2.warning};
+    } else if (categoryLower.contains('water')) {
+      return {'icon': Icons.water_drop_rounded, 'color': Colors.blue};
+    } else if (categoryLower.contains('internet') ||
+        categoryLower.contains('mobile')) {
+      return {'icon': Icons.wifi_rounded, 'color': Colors.purple};
+    } else if (categoryLower.contains('grocery') ||
+        categoryLower.contains('food')) {
+      return {
+        'icon': Icons.shopping_bag_rounded,
+        'color': AppColorV2.secondary,
+      };
+    } else if (categoryLower.contains('shopping') ||
+        categoryLower.contains('store')) {
+      return {'icon': Icons.shopping_cart_rounded, 'color': Colors.orange};
+    } else {
+      return {'icon': Icons.arrow_upward_rounded, 'color': AppColorV2.error};
+    }
   }
 }

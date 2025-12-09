@@ -163,7 +163,6 @@ Future<void> backgroundFunc(int id, Map<String, dynamic> params) async {
     // Background should still respect tamper check
     tz.initializeTimeZones();
     await checkTamper();
-    await getParkingTrans(userId);
     await getMessNotif();
   } else {
     Variables.bgProcess?.cancel();

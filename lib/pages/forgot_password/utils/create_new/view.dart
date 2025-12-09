@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../custom_widgets/app_color_v2.dart';
 import '../../../../custom_widgets/custom_button.dart';
-import '../../../../custom_widgets/custom_scaffold.dart';
+import '../../../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../../../custom_widgets/custom_text_v2.dart';
 import '../../../../custom_widgets/custom_textfield.dart';
 import '../../../../custom_widgets/password_indicator.dart';

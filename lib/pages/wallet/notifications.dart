@@ -12,7 +12,7 @@ import 'package:luvpay/pages/wallet/wallet_screen.dart';
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
-import '../../custom_widgets/custom_scaffold.dart';
+import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_scrollbar.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/loading.dart';
@@ -302,8 +302,6 @@ class _WalletNotificationsState extends State<WalletNotifications> {
               : IconButton(
                 onPressed: () {
                   Get.back();
-                  // WalletScreenState walletController = Get.find();
-                  // walletController.getNotificationCount();
                 },
                 icon: Row(
                   children: [

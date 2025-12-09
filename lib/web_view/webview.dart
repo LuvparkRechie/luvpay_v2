@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/custom_widgets/custom_scaffold.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -143,7 +143,7 @@ class _WebviewPageState extends State<WebviewPage> {
           onNavigationRequest: (NavigationRequest request) {
             final uri = Uri.parse(request.url);
 
-            if (uri.host == 'luvpark.ph' && uri.path.startsWith('/webhooks/')) {
+            if (uri.host == 'luvpay.ph' && uri.path.startsWith('/webhooks/')) {
               final status = uri.queryParameters['_st']?.toUpperCase();
 
               Get.back(result: {'status': status, 'url': request.url});

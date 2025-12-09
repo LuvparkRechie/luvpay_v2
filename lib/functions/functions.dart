@@ -95,8 +95,6 @@ class Functions {
             PaMessageDatabase.instance.deleteAll();
             ShareLocationDatabase.instance.deleteAll();
             NotificationController.cancelNotifications();
-            //  ForegroundNotif.onStop();
-            // Authentication().clearPassword();
             Get.offAndToNamed(Routes.login);
           });
         },
@@ -198,18 +196,13 @@ class Functions {
     }
   }
 
-  //Checking if open area
   static Future<bool> checkAvailability(
     String startTimeStr,
     String endTimeStr, {
     time,
   }) async {
-    // Get the current time
-
-    // Get the current time
     DateTime currentTime = time ?? await Functions.getTimeNow();
 
-    // Parse start and end times
     List<String> startParts = startTimeStr.split(':');
     List<String> endParts = endTimeStr.split(':');
 
@@ -218,7 +211,6 @@ class Functions {
     int endHour = int.parse(endParts[0]);
     int endMinute = int.parse(endParts[1]);
 
-    // Create DateTime objects for start and end times
     DateTime startTime = DateTime(
       currentTime.year,
       currentTime.month,
@@ -235,7 +227,6 @@ class Functions {
       endMinute,
     );
 
-    // Check if the current time is between start and end times
     return currentTime.isAfter(startTime) && currentTime.isBefore(endTime);
   }
 
@@ -250,8 +241,6 @@ class Functions {
       {"distance": result["distanceFormatted"], "time": result["etaFormatted"]},
     ];
   }
-
-  // Example decodePolyline method (ensure this exists in your code)
 
   static List<LatLng> decodePolyline(String encoded) {
     List<LatLng> poly = [];
@@ -301,7 +290,6 @@ class Functions {
 
       final duration = startTime.difference(startTime);
 
-      // Use the duration as the delay
       await Future.delayed(duration);
 
       return "$myAddress-${locality.isEmpty ? subLocality : locality}";
@@ -310,7 +298,6 @@ class Functions {
     }
   }
 
-  //sort json data by key
   static List<dynamic> sortJsonList(
     List<dynamic> jsonList,
     String key, {
@@ -374,13 +361,11 @@ class Functions {
     }
   }
 
-  // tracking if has service fee
   static bool isValidInput(double inputAmount, serviceFee, balance) {
     double totalAmount = inputAmount + serviceFee;
     return totalAmount <= balance;
   }
 
-  // i used this to generate unique secret key
   static Uint8List generateKey(String key, int length) {
     var keyBytes = utf8.encode(key);
     if (keyBytes.length < length) {
@@ -394,7 +379,6 @@ class Functions {
     return Uint8List.fromList(keyBytes);
   }
 
-  //Logout users
   static Future<void> logoutUser(String sessionId, Function cb) async {
     CustomDialogStack.showLoading(Get.context!);
 
@@ -456,7 +440,6 @@ class Functions {
     }
   }
 
-  //Logout users
   static Future<void> logoutUserSession(String sessionId, Function cb) async {
     DateTime timeNow = await Functions.getTimeNow();
     String formattedDt = DateFormat('yyyy-MM-dd HH:mm:ss').format(timeNow);
@@ -582,7 +565,6 @@ class Functions {
       }
     });
   }
-  //check user status
 
   Future<void> verifyMobile(String mobileNo, Function cb) async {
     CustomDialogStack.showLoading(Get.context!);
@@ -786,9 +768,9 @@ class Functions {
           return 'assets/details_logo/green/green_car.png';
         }
       case "V":
-        return 'assets/details_logo/violet/v.png'; // Valet
+        return 'assets/details_logo/violet/v.png';
       default:
-        return 'assets/images/no_image.png'; // Fallback icon
+        return 'assets/images/no_image.png';
     }
   }
 
@@ -860,11 +842,9 @@ class Functions {
   }
 
   static Future<dynamic> getDropdownVehicles({parkAreaId}) async {
-    // CustomDialogStack.showLoading(Get.context!);
     String api = "${ApiKeys.getDropdownVhTypesArea}$parkAreaId";
 
     final returnData = await HttpRequestApi(api: api).get();
-    // Get.back();
 
     if (returnData == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -928,7 +908,6 @@ class Functions {
     final last = user['last_name'] ?? '';
     final mobile = user['mobile_no'] ?? '';
 
-    // Try to form a full name if any name exists
     final fullName =
         [
           first,
@@ -938,7 +917,6 @@ class Functions {
 
     if (fullName.isNotEmpty) return fullName;
 
-    // If no name, fallback to masked mobile or generic
     if (mobile.toString().isNotEmpty && mobile.toString().length >= 4) {
       return "User ${mobile.toString().substring(mobile.toString().length - 4)}";
     }

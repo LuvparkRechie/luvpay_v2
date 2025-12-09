@@ -21,6 +21,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   final DashboardController controller = Get.put(DashboardController());
+
   final List<Widget> _screens = [
     const WalletScreen(),
     const TransactionHistory(),
