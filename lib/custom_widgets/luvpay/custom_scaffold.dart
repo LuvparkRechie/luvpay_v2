@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
+import '../custom_text_v2.dart';
 import 'custom_buttons.dart';
 
 class CustomGradientBackground extends StatelessWidget {
@@ -94,6 +94,9 @@ class CustomScaffoldV2 extends StatelessWidget {
   final double? appBarLeadingWidth;
   final bool showAppBar;
 
+  /// 💡 NEW OPTION — to disable gradient stack completely
+  final bool useNormalBody;
+
   const CustomScaffoldV2({
     super.key,
     this.appBar,
@@ -124,6 +127,9 @@ class CustomScaffoldV2 extends StatelessWidget {
     this.resizeToAvoidBottomInset = true,
     this.appBarLeadingWidth,
     this.showAppBar = true,
+
+    /// Default still uses the gradient
+    this.useNormalBody = false,
   });
 
   @override
@@ -142,35 +148,48 @@ class CustomScaffoldV2 extends StatelessWidget {
         floatingActionButton: floatingButton,
         persistentFooterButtons: persistentFooterButtons,
         appBar: showAppBar ? (appBar ?? _buildDefaultAppBar(context)) : null,
-        body: Stack(
-          children: [
-            CustomGradientBackground(
-              blurSigma: 80,
-              gradientColors: [
-                AppColorV2.lpBlueBrand.withAlpha(150),
-                AppColorV2.lpTealBrand,
-                AppColorV2.background,
-                AppColorV2.background,
-              ],
-              bodyColor: Colors.transparent,
-              borderRadius:
-                  removeBorderRadius
-                      ? null
-                      : const BorderRadius.only(
-                        topLeft: Radius.circular(30),
-                        topRight: Radius.circular(30),
+
+        /// 💡 NEW BODY LOGIC
+        body:
+            useNormalBody
+                ? SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding:
+                        padding ?? const EdgeInsets.fromLTRB(19, 20, 19, 0),
+                    child: scaffoldBody,
+                  ),
+                )
+                : Stack(
+                  children: [
+                    CustomGradientBackground(
+                      blurSigma: 80,
+                      gradientColors: [
+                        AppColorV2.lpBlueBrand.withAlpha(150),
+                        AppColorV2.lpTealBrand,
+                        AppColorV2.background,
+                        AppColorV2.background,
+                      ],
+                      bodyColor: Colors.transparent,
+                      borderRadius:
+                          removeBorderRadius
+                              ? null
+                              : const BorderRadius.only(
+                                topLeft: Radius.circular(30),
+                                topRight: Radius.circular(30),
+                              ),
+                      padding: EdgeInsets.zero,
+                    ),
+                    SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding:
+                            padding ?? const EdgeInsets.fromLTRB(19, 20, 19, 0),
+                        child: scaffoldBody,
                       ),
-              padding: EdgeInsets.zero,
-            ),
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: padding ?? const EdgeInsets.fromLTRB(19, 20, 19, 0),
-                child: scaffoldBody,
-              ),
-            ),
-          ],
-        ),
+                    ),
+                  ],
+                ),
       ),
     );
   }
@@ -198,7 +217,6 @@ class CustomScaffoldV2 extends StatelessWidget {
                   activeColor: AppColorV2.background,
                   activeIconColor: AppColorV2.primaryTextColor,
                 ),
-
                 if (leadingText != null)
                   DefaultText(
                     color: AppColorV2.background,

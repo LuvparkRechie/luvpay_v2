@@ -81,9 +81,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
+      useNormalBody: true,
       enableToolBar: false,
       canPop: false,
       appBar: null,
+      backgroundColor: AppColorV2.background,
 
       scaffoldBody: isLoadingPage ? LoadingCard() : screen!,
     );
@@ -105,10 +107,9 @@ class DefaultLoginScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 100),
                 Image(
-                  image: AssetImage("assets/images/onboard5.png"),
-                  width: 246,
+                  image: AssetImage("assets/images/luvpay_logo.png"),
+                  width: 200,
                 ),
                 SizedBox(height: 18),
                 Column(
@@ -116,6 +117,7 @@ class DefaultLoginScreen extends StatelessWidget {
                     DefaultText(
                       text: "Welcome to luvpay!",
                       style: AppTextStyle.h1,
+                      color: AppColorV2.background,
                       maxLines: 1,
                     ),
                     SizedBox(height: 4),
