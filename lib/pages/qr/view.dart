@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';

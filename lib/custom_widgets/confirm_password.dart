@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
-import 'package:luvpay/custom_widgets/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/custom_textfield.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 
 class CustomConfirmPassword<T extends GetxController> extends StatefulWidget {
   final TextEditingController passwordController;
