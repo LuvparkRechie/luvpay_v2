@@ -7,6 +7,7 @@ import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -41,6 +42,38 @@ class _WalletScreenState extends State<WalletScreen> {
   bool isOpen = false;
 
   bool _isDialogVisible = false;
+
+  // Add merchant grid items with SVG paths
+  final List<Map<String, dynamic>> _merchantGridItems = [
+    {
+      'icon': "assets/svg/merchant.svg",
+      'label': 'Merchant',
+      'color': Colors.blue,
+      'onTap': () {
+        print("Merchant pressed");
+        // Get.to(() => MerchantScreen());
+      },
+    },
+    {
+      'icon': "assets/svg/bills.svg", // Changed to SVG path
+      'label': 'Bills',
+      'color': Colors.green,
+      'onTap': () {
+        print("Bills pressed");
+        // Get.to(() => BillsScreen());
+      },
+    },
+    {
+      'icon': "assets/svg/top_up.svg", // Assuming you have this SVG
+      'label': 'Top-up',
+      'color': Colors.orange,
+      'onTap': () {
+        print("Mobile Top-up pressed");
+        // Get.to(() => MobileTopUpScreen());
+      },
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -196,16 +229,9 @@ class _WalletScreenState extends State<WalletScreen> {
               SizedBox(height: 20),
               _buildBalanceCard(),
 
-              SizedBox(height: 10),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  iconWithBackground(icon: Icons.wallet, onTap: () {}),
-                ],
-              ),
+              SizedBox(height: 20),
+              _buildMerchantBillsGrid(),
 
-              SizedBox(height: 10),
-              _buildTabBar(),
               SizedBox(height: 20),
               Expanded(
                 child: PageView(
@@ -221,6 +247,55 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // ADDED: Merchant & Bills & Top-up Grid Widget
+  Widget _buildMerchantBillsGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 20,
+        childAspectRatio: 1.1,
+      ),
+      itemCount: _merchantGridItems.length,
+      itemBuilder: (context, index) {
+        final item = _merchantGridItems[index];
+        return _buildMerchantGridItem(item);
+      },
+    );
+  }
+
+  // ADDED: Merchant Grid Item Widget
+  Widget _buildMerchantGridItem(Map<String, dynamic> item) {
+    return GestureDetector(
+      onTap: item['onTap'],
+      child: Container(
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: SvgPicture.asset(item['icon'], width: 50, height: 50),
+            ),
+            SizedBox(height: 8),
+            Text(
+              item['label'],
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColorV2.primaryTextColor,
+              ),
+              maxLines: 2,
+            ),
+          ],
         ),
       ),
     );
@@ -338,7 +413,9 @@ class _WalletScreenState extends State<WalletScreen> {
                       text: 'Total Balance',
                       style: AppTextStyle.paragraph1,
                       color: AppColorV2.background,
+                      fontWeight: FontWeight.w600,
                     ),
+
                     InkWell(
                       onTap: () {
                         openEye(isOpen);
