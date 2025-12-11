@@ -38,12 +38,13 @@ class RegistrationPage extends GetView<RegistrationController> {
     }
 
     return CustomScaffoldV2(
+      backgroundColor: AppColorV2.background,
+      useNormalBody: true,
       enableToolBar: true,
       canPop: false,
       onPressedLeading: () {
-        controller.mobileNumber.text == "";
-        controller.password.text == "";
-        // Get.offNamed(Routes.login);
+        controller.mobileNumber.text = "";
+        controller.password.text = "";
         Get.back();
       },
       scaffoldBody: SizedBox(
@@ -60,11 +61,18 @@ class RegistrationPage extends GetView<RegistrationController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 32),
+                        Center(
+                          child: Image(
+                            image: AssetImage("assets/images/luvpay_logo.png"),
+                            width: 60,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        SizedBox(height: 10),
                         Center(
                           child: DefaultText(
                             textAlign: TextAlign.center,
-                            text: "Create an account",
+                            text: "Create your LuvPay Wallet account",
                             style: AppTextStyle.h1,
                             maxLines: 1,
                             minFontSize: 18,
@@ -72,14 +80,17 @@ class RegistrationPage extends GetView<RegistrationController> {
                           ),
                         ),
                         SizedBox(height: 5),
+
                         DefaultText(
                           textAlign: TextAlign.center,
                           text:
-                              "Sign up today for a seamless parking experience and effortless reservations!",
+                              "Quick, secure, and hassle-free setup to access seamless digital payments.",
                           height: 20 / 16,
                           style: AppTextStyle.paragraph1,
                         ),
+
                         const VerticalHeight(height: 30),
+
                         DefaultText(
                           text: "Mobile Number",
                           style: AppTextStyle.h3,
@@ -88,13 +99,14 @@ class RegistrationPage extends GetView<RegistrationController> {
                         CustomMobileNumber(
                           hintText: "10 digit mobile number",
                           controller: controller.mobileNumber,
-
                           inputFormatters: [Variables.maskFormatter],
                           onChange: (value) {
                             controller.onMobileChanged(value);
                           },
                         ),
+
                         spacing(height: 14),
+
                         DefaultText(
                           text: "Password",
                           style: AppTextStyle.h3,
@@ -102,7 +114,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                         ),
                         Obx(
                           () => CustomTextField(
-                            hintText: "Enter your password",
+                            hintText: "Create a password",
                             controller: controller.password,
                             isObscure: controller.isShowPass.value,
                             suffixIcon:
@@ -120,12 +132,11 @@ class RegistrationPage extends GetView<RegistrationController> {
                             ],
                             validator: (txtValue) {
                               if (txtValue == null || txtValue.isEmpty) {
-                                return "Field is required";
+                                return "Password is required";
                               }
                               if (txtValue.length < 8 || txtValue.length > 32) {
                                 return "Password must be between 8 and 32 characters";
                               }
-
                               return null;
                             },
                             onChange: (value) {
@@ -133,7 +144,9 @@ class RegistrationPage extends GetView<RegistrationController> {
                             },
                           ),
                         ),
+
                         spacing(height: 14),
+
                         Obx(
                           () => Container(
                             padding: const EdgeInsets.all(10),
@@ -142,9 +155,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                               shape: RoundedRectangleBorder(
                                 side: BorderSide(
                                   width: 1,
-                                  color: Colors.black.withValues(
-                                    alpha: 0.05999999865889549,
-                                  ),
+                                  color: Colors.black.withValues(alpha: 0.06),
                                 ),
                                 borderRadius: BorderRadius.circular(5),
                               ),
@@ -152,9 +163,11 @@ class RegistrationPage extends GetView<RegistrationController> {
                             child: passwordStrength(getColorForStrength),
                           ),
                         ),
+
                         const SizedBox(height: 46.0),
+
                         CustomButton(
-                          text: "Submit",
+                          text: "Continue",
                           isInactive:
                               Variables.getPasswordStrengthText(
                                 controller.passStrength.value,
@@ -173,8 +186,8 @@ class RegistrationPage extends GetView<RegistrationController> {
                                   "Strong Password") {
                                 CustomDialogStack.showInfo(
                                   context,
-                                  "Invalid Password",
-                                  "For enhanced security, please create a stronger password.",
+                                  "Weak Password",
+                                  "For your security, please choose a stronger password.",
                                   () {
                                     Get.back();
                                   },
@@ -185,7 +198,9 @@ class RegistrationPage extends GetView<RegistrationController> {
                             }
                           },
                         ),
+
                         spacing(height: 30),
+
                         Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -193,7 +208,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                               DefaultText(
                                 style: AppTextStyle.paragraph2,
                                 color: AppColorV2.primaryTextColor,
-                                text: "Already a luvpay user?",
+                                text: "Already have a LuvPay Wallet account?",
                                 height: 18 / 14,
                               ),
                               SizedBox(width: 6),
@@ -263,12 +278,11 @@ class RegistrationPage extends GetView<RegistrationController> {
                       PasswordStrengthIndicator(
                         strength: 1,
                         currentStrength: controller.passStrength.value,
-
                         color: getColorForStrength(
                           controller.passStrength.value,
                         ),
                       ),
-                      Container(width: 5),
+                      SizedBox(width: 5),
                       PasswordStrengthIndicator(
                         strength: 2,
                         currentStrength: controller.passStrength.value,
@@ -276,7 +290,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                           controller.passStrength.value,
                         ),
                       ),
-                      Container(width: 5),
+                      SizedBox(width: 5),
                       PasswordStrengthIndicator(
                         strength: 3,
                         currentStrength: controller.passStrength.value,
@@ -284,8 +298,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                           controller.passStrength.value,
                         ),
                       ),
-
-                      Container(width: 5),
+                      SizedBox(width: 5),
                       PasswordStrengthIndicator(
                         strength: 4,
                         currentStrength: controller.passStrength.value,
@@ -341,7 +354,6 @@ class RegistrationPage extends GetView<RegistrationController> {
               height: 20,
               fit: BoxFit.contain,
             ),
-
             SizedBox(width: 8),
             DefaultText(
               height: 18 / 14,

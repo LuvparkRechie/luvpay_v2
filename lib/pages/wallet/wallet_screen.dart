@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -40,7 +41,7 @@ class _WalletScreenState extends State<WalletScreen> {
   int notifCount = 0;
   final PageController _pageController = PageController();
   bool isOpen = false;
-
+  String myprofile = "";
   bool _isDialogVisible = false;
 
   // Add merchant grid items with SVG paths
@@ -147,6 +148,8 @@ class _WalletScreenState extends State<WalletScreen> {
   Future<void> getLogs() async {
     try {
       userInfo = await Authentication().getUserData2();
+      final profilepic = await Authentication().getUserProfilePic();
+      myprofile = profilepic;
       DateTime timeNow = await Functions.getTimeNow();
       String toDate = timeNow.toString().split(" ")[0];
       String fromDate =
@@ -306,7 +309,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
     return Row(
       children: [
-        _buildProfileImage(),
+        LpProfileAvatar(base64Image: myprofile, size: 50, borderWidth: 3),
         SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -1034,84 +1037,6 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildProfileImage() {
-    final String? base64Image = userInfo["image_base64"];
-
-    if (base64Image != null && base64Image.isNotEmpty) {
-      try {
-        String imageString = base64Image;
-        if (base64Image.contains(',')) {
-          imageString = base64Image.split(',').last;
-        }
-
-        ImageProvider? cachedImage = ImageCacheHelper.getCachedImage(
-          base64Image,
-        );
-
-        if (cachedImage == null) {
-          final bytes = base64Decode(imageString);
-          cachedImage = MemoryImage(bytes);
-          ImageCacheHelper.cacheImage(base64Image, cachedImage);
-        }
-
-        return Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: AppColorV2.primaryVariant.withOpacity(0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipOval(
-            child: Image(
-              image: cachedImage,
-              width: 50,
-              height: 50,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return _buildDefaultProfileIcon();
-              },
-            ),
-          ),
-        );
-      } catch (e) {
-        return _buildDefaultProfileIcon();
-      }
-    } else {
-      return _buildDefaultProfileIcon();
-    }
-  }
-
-  Widget _buildDefaultProfileIcon() {
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            AppColorV2.primaryVariant,
-            AppColorV2.primaryVariant.withOpacity(0.7),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColorV2.primaryVariant.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Icon(Icons.person_rounded, color: Colors.white, size: 24),
     );
   }
 }

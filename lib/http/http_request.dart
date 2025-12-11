@@ -213,7 +213,7 @@ class HttpRequestApi {
       try {
         var response = await http
             .get(
-              Uri.https("luvpay.ph", "/terms-of-use"),
+              Uri.https("luvpark.ph", "/terms-of-use"),
               headers: {"Content-Type": 'application/json; charset=utf-8'},
             )
             .timeout(Duration(seconds: 10));

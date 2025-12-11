@@ -504,4 +504,28 @@ class CustomDialogStack {
       },
     );
   }
+
+  static void showUnderDevelopment(BuildContext context, VoidCallback onClose) {
+    _showBaseDialog(
+      context,
+      "Under Development",
+      "This feature is currently under development. Thank you for your patience.",
+      "dialog_information",
+      onClose,
+      leftText: "Okay",
+      showRightButton: false,
+    );
+  }
+
+  static void showComingSoon(BuildContext context, VoidCallback onClose) {
+    _showBaseDialog(
+      context,
+      "Coming Soon",
+      "This feature isn’t available yet.",
+      "dialog_information",
+      onClose,
+      leftText: "Okay",
+      showRightButton: false,
+    );
+  }
 }

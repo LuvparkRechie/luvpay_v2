@@ -1,5 +1,9 @@
 import 'package:get/get.dart';
 import 'package:luvpay/otp_field/index.dart';
+import 'package:luvpay/pages/faq/index.dart';
+import 'package:luvpay/pages/forgot_password/index.dart';
+import 'package:luvpay/pages/forgot_password/utils/create_new/index.dart';
+import 'package:luvpay/pages/my_account/utils/index.dart';
 import 'package:luvpay/pages/qr/index.dart';
 
 import '../dashboard/index.dart';
@@ -18,7 +22,7 @@ class AppPages {
       name: Routes.onboarding,
       page: () => const MyOnboardingPage(),
       binding: OnboardingBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
@@ -27,7 +31,7 @@ class AppPages {
       name: Routes.landing,
       page: () => const LandingScreen(),
       binding: LandingBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
@@ -36,7 +40,7 @@ class AppPages {
       name: Routes.loading,
       page: () => const LoadingScreen(),
       binding: LoadingBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
@@ -51,15 +55,12 @@ class AppPages {
         milliseconds: 300,
       ), // Speed of animation  preventDuplicates: true,
     ),
-    // GetPage(
-    //     name: Routes.dashboard,
-    //     page: () => const DashboardScreen(),
-    //     binding: DashboardBinding()),
+
     GetPage(
       name: Routes.registration,
       page: () => const RegistrationPage(),
       binding: RegistrationBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
@@ -68,7 +69,7 @@ class AppPages {
       name: Routes.splash,
       page: () => const SplashScreen(),
       binding: SplashBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
@@ -76,7 +77,7 @@ class AppPages {
       name: Routes.lockScreen,
       page: () => const LockScreen(),
       binding: LockScreenBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
@@ -84,7 +85,7 @@ class AppPages {
       name: Routes.dashboard,
       page: () => const DashboardScreen(),
       binding: DashboardBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
@@ -93,7 +94,7 @@ class AppPages {
       name: Routes.otpField,
       page: () => const OtpFieldScreen(),
       binding: OtpFieldScreenBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
@@ -101,6 +102,39 @@ class AppPages {
       name: Routes.qr,
       page: () => const QR(),
       binding: QRBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.forgotPass,
+      page: () => const ForgotPassword(),
+      binding: ForgotPasswordBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.createNewPass,
+      page: () => const CreateNewPassword(),
+      binding: CreateNewPasswordBinding(),
+
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.faqpage,
+      page: () => const FaqPage(),
+      binding: FaqPageBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.updProfile,
+      page: () => const UpdateProfile(),
+      binding: UpdateProfileBinding(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,

@@ -276,6 +276,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
+      backgroundColor: AppColorV2.background,
       persistentFooterButtons:
           !isSelectionMode
               ? null
@@ -343,7 +344,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
               : isLoading
               ? LoadingCard()
               : notifications.isEmpty
-              ? noDataFound()
+              ? Center(child: noDataFound())
               : CustomScrollbarSingleChild(child: allNotifications()),
     );
   }
@@ -365,12 +366,10 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   }
 
   Widget allNotifications() {
-    return ListView.separated(
+    return ListView.builder(
       padding: EdgeInsets.zero,
       physics: const BouncingScrollPhysics(),
-      separatorBuilder: (context, index) {
-        return Divider(height: 15, color: AppColorV2.inactiveState);
-      },
+
       itemCount: notifications.length,
       itemBuilder: (context, index) {
         String img = "";
@@ -401,46 +400,61 @@ class _WalletNotificationsState extends State<WalletNotifications> {
           },
           child: Padding(
             padding: const EdgeInsets.only(bottom: 10, top: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SvgPicture.asset("assets/images/$img.svg"),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildNotificationText(notificationMessage),
-                            const SizedBox(height: 8),
-                            DefaultText(
-                              text:
-                                  _formatDate(createdOn) +
-                                  " " +
-                                  _formatTime(createdOn),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (isSelectionMode)
-                        Checkbox.adaptive(
-                          value: selectedIndex.contains(
-                            int.parse(
-                              notifications[index]["notification_id"]
-                                  .toString(),
-                            ),
-                          ),
-                          onChanged: (value) {
-                            toggleMark(index);
-                          },
-                          activeColor: AppColorV2.lpBlueBrand,
-                        ),
-                    ],
+            child: Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(120),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColorV2.background),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SvgPicture.asset("assets/images/$img.svg"),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildNotificationText(notificationMessage),
+                              const SizedBox(height: 8),
+                              DefaultText(
+                                text:
+                                    _formatDate(createdOn) +
+                                    " " +
+                                    _formatTime(createdOn),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isSelectionMode)
+                          Checkbox.adaptive(
+                            value: selectedIndex.contains(
+                              int.parse(
+                                notifications[index]["notification_id"]
+                                    .toString(),
+                              ),
+                            ),
+                            onChanged: (value) {
+                              toggleMark(index);
+                            },
+                            activeColor: AppColorV2.lpBlueBrand,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

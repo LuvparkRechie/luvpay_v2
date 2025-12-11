@@ -52,6 +52,8 @@ class _WebviewPageState extends State<WebviewPage> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
+      useNormalBody: true,
+      backgroundColor: AppColorV2.lpBlueBrand,
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
@@ -143,7 +145,7 @@ class _WebviewPageState extends State<WebviewPage> {
           onNavigationRequest: (NavigationRequest request) {
             final uri = Uri.parse(request.url);
 
-            if (uri.host == 'luvpay.ph' && uri.path.startsWith('/webhooks/')) {
+            if (uri.host == 'luvpark.ph' && uri.path.startsWith('/webhooks/')) {
               final status = uri.queryParameters['_st']?.toUpperCase();
 
               Get.back(result: {'status': status, 'url': request.url});

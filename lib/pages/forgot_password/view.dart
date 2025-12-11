@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:pinput/pinput.dart';
 
 import '../../custom_widgets/custom_button.dart';
@@ -50,6 +51,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       horizontalPadding: 77,
                       text: "Recover Account",
                       style: AppTextStyle.h2,
+                      color: AppColorV2.lpBlueBrand,
                       maxLines: 1,
                       height: 28 / 24,
                     ),

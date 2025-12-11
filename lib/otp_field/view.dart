@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -347,6 +346,8 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     }
 
     return CustomScaffoldV2(
+      backgroundColor: AppColorV2.background,
+      useNormalBody: true,
       enableToolBar: true,
       scaffoldBody:
           isLoading
@@ -366,14 +367,13 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Center(
-                              child: Image(
-                                image: AssetImage(
-                                  "assets/images/otp_image.png",
-                                ),
-                                fit: BoxFit.contain,
-                                width: 200,
+                            Center(
+                              child: Image.asset(
                                 height: 200,
+                                width: 200,
+                                'assets/gif/registration.gif',
+                                fit: BoxFit.cover,
+                                gaplessPlayback: true,
                               ),
                             ),
                             Center(
@@ -418,50 +418,51 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                         Center(
                           child: Directionality(
                             textDirection: TextDirection.ltr,
-                            child: Pinput(
-                              pinAnimationType: PinAnimationType.slide,
-                              autofocus: true,
-                              showCursor: false,
-                              keyboardType:
-                                  Platform.isAndroid
-                                      ? TextInputType.phone
-                                      : TextInputType.numberWithOptions(
-                                        signed: true,
-                                        decimal: false,
+                            child: Center(
+                              child: Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: Pinput(
+                                  length: 6,
+                                  controller: pinController,
+                                  autofocus: true,
+                                  showCursor: true,
+                                  closeKeyboardWhenCompleted: false,
+                                  smsRetriever: null,
+                                  autofillHints: const [],
+
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.done,
+
+                                  defaultPinTheme: getDefaultPinTheme(
+                                    borderColor: borderColor,
+                                    textColor: textColor,
+                                  ),
+
+                                  hapticFeedbackType:
+                                      HapticFeedbackType.lightImpact,
+
+                                  onChanged: (value) {
+                                    onInputChanged(value);
+                                  },
+
+                                  onCompleted: (pin) {
+                                    onInputChanged(pin);
+                                  },
+
+                                  focusedPinTheme: getDefaultPinTheme(
+                                    borderColor: AppColorV2.lpBlueBrand,
+                                    textColor: textColor,
+                                  ).copyWith(
+                                    decoration: getDefaultPinTheme(
+                                      borderColor: AppColorV2.lpBlueBrand,
+                                      textColor: textColor,
+                                    ).decoration!.copyWith(
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: AppColorV2.lpBlueBrand,
+                                        width: 2,
                                       ),
-                              textInputAction: TextInputAction.done,
-                              length: 6,
-                              controller: pinController,
-                              defaultPinTheme: getDefaultPinTheme(
-                                borderColor: borderColor,
-                                textColor: textColor,
-                              ),
-                              hapticFeedbackType:
-                                  HapticFeedbackType.lightImpact,
-                              onCompleted: (pin) {
-                                if (pin.length == 6) {
-                                  onInputChanged(pin);
-                                }
-                              },
-                              onChanged: (value) {
-                                if (value.isEmpty) {
-                                  onInputChanged(value);
-                                } else {
-                                  onInputChanged(value);
-                                }
-                              },
-                              focusedPinTheme: getDefaultPinTheme(
-                                borderColor: AppColorV2.lpBlueBrand,
-                                textColor: textColor,
-                              ).copyWith(
-                                decoration: getDefaultPinTheme(
-                                  borderColor: AppColorV2.lpBlueBrand,
-                                  textColor: textColor,
-                                ).decoration!.copyWith(
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(
-                                    color: AppColorV2.lpBlueBrand,
-                                    width: 2,
+                                    ),
                                   ),
                                 ),
                               ),

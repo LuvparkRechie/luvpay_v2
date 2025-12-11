@@ -1,16 +1,27 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/longprint.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_buttons.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import '../../auth/authentication.dart';
+import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/luvpay/custom_tile.dart';
 import '../../custom_widgets/variables.dart';
 import '../../functions/functions.dart';
+import '../../http/api_keys.dart';
+import '../../http/http_request.dart';
+import '../routes/routes.dart';
+import 'profile_screen.dart';
 
 class MyProfile extends StatefulWidget {
   const MyProfile({super.key});
@@ -22,6 +33,19 @@ class MyProfile extends StatefulWidget {
 class _MyProfileState extends State<MyProfile> {
   Map<String, dynamic> userData = {};
   String civilStatuss = "";
+  final ImagePicker _picker = ImagePicker();
+  String? imageBase64;
+  File? imageFile;
+  List regionData = [];
+  String myName = "";
+  String myAddress = "";
+  String civilStatus = "";
+  String province = "";
+  String gender = "";
+  String myprofile = "";
+  bool isLoading = true;
+  bool isNetConn = true;
+  var profWidget = <Widget>[];
 
   @override
   void initState() {
@@ -31,11 +55,12 @@ class _MyProfileState extends State<MyProfile> {
 
   Future<void> initialize() async {
     final objData = await Authentication().getUserData2();
-    userData = objData;
+    final profilepic = await Authentication().getUserProfilePic();
+    myprofile = profilepic;
     if (objData == null) return;
-    setState(() {
-      longPrint(" user data: $userData");
-    });
+
+    userData = objData;
+    setState(() {});
   }
 
   String birthday(String rawDate) {
@@ -48,12 +73,234 @@ class _MyProfileState extends State<MyProfile> {
     }
   }
 
+  void showBottomSheetCamera() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext cont) {
+        return CupertinoActionSheet(
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Get.back();
+                takePhoto(ImageSource.camera);
+              },
+              child: const Text('Use Camera'),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Get.back();
+                takePhoto(ImageSource.gallery);
+              },
+              child: const Text('Upload from files'),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () {
+              Get.back();
+            },
+            child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+          ),
+        );
+      },
+    );
+  }
+
+  void takePhoto(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(
+      preferredCameraDevice: CameraDevice.front,
+      source: source,
+      imageQuality: Platform.isIOS ? 14 : 20,
+      maxWidth: Platform.isIOS ? 200 : 400,
+      requestFullMetadata: true,
+    );
+
+    imageFile = pickedFile != null ? File(pickedFile.path) : null;
+
+    if (imageFile != null) {
+      imageFile!.readAsBytes().then((data) {
+        imageBase64 = base64.encode(data);
+        submitProfilePic();
+      });
+    } else {
+      setState(() {
+        imageBase64 = null;
+      });
+    }
+  }
+
+  void submitProfilePic() async {
+    CustomDialogStack.showLoading(context);
+    final myData = await Authentication().getUserData2();
+
+    Map<String, dynamic> parameters = {
+      "mobile_no": myData["mobile_no"],
+      "last_name": myData["last_name"],
+      "first_name": myData["first_name"],
+      "middle_name": myData["middle_name"],
+      "birthday": myData["birthday"]?.toString().split("T")[0] ?? "",
+      "gender": myData["gender"],
+      "civil_status": myData["civil_status"],
+      "address1": myData["address1"],
+      "address2": myData["address2"],
+      "brgy_id": myData["brgy_id"] ?? "",
+      "city_id": myData["city_id"] ?? "",
+      "province_id": myData["province_id"] ?? "",
+      "region_id": myData["region_id"] ?? "",
+      "zip_code": myData["zip_code"] ?? "",
+      "email": myData["email"],
+      "secq_id1": myData["secq_id1"] ?? "",
+      "secq_id2": myData["secq_id2"] ?? "",
+      "secq_id3": myData["secq_id3"] ?? "",
+      "seca1": myData["seca1"],
+      "seca2": myData["seca2"],
+      "seca3": myData["seca3"],
+      "image_base64": imageBase64!,
+    };
+
+    HttpRequestApi(
+      api: ApiKeys.putUpdateUserProf,
+      parameters: parameters,
+    ).putBody().then((res) async {
+      Get.back();
+
+      if (res == "No Internet") {
+        CustomDialogStack.showConnectionLost(context, () {
+          Get.back();
+        });
+        return;
+      }
+
+      if (res == null) {
+        CustomDialogStack.showServerError(context, () {
+          Get.back();
+        });
+        return;
+      }
+
+      if (res["success"] == "Y") {
+        myprofile = imageBase64!;
+        setNewUserImg(myprofile);
+        Authentication().setProfilePic(jsonEncode(imageBase64!));
+        initialize();
+      } else {
+        CustomDialogStack.showError(context, "luvpay", res["msg"], () {
+          Get.back();
+        });
+      }
+    });
+  }
+
+  void getRegions() async {
+    CustomDialogStack.showLoading(context);
+    var returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
+    Get.back();
+
+    if (returnData == "No Internet") {
+      CustomDialogStack.showConnectionLost(context, () {
+        Get.back();
+      });
+      return;
+    }
+
+    if (returnData == null) {
+      CustomDialogStack.showServerError(context, () {
+        Get.back();
+      });
+      return;
+    }
+
+    if (returnData["items"].isNotEmpty) {
+      regionData = returnData["items"];
+      Navigator.pushNamed(context, Routes.updProfile, arguments: regionData);
+    } else {
+      CustomDialogStack.showServerError(context, () {
+        Get.back();
+      });
+    }
+  }
+
+  void getProvince(regionId) async {
+    String params = "${ApiKeys.getProvince}?p_region_id=$regionId";
+    isLoading = false;
+
+    var returnData = await HttpRequestApi(api: params).get();
+
+    if (returnData == "No Internet") {
+      isNetConn = false;
+      CustomDialogStack.showConnectionLost(context, () {
+        Get.back();
+      });
+      return;
+    }
+
+    if (returnData == null) {
+      CustomDialogStack.showServerError(context, () {
+        Get.back();
+      });
+      isNetConn = true;
+      return;
+    }
+
+    if (returnData["items"].isNotEmpty) {
+      isNetConn = true;
+      province =
+          returnData["items"]
+              .where(
+                (element) => element["value"] == userData[0]["province_id"],
+              )
+              .toList()[0]["text"];
+      return;
+    }
+
+    isNetConn = true;
+    CustomDialogStack.showServerError(context, () {
+      Get.back();
+    });
+  }
+
+  void setNewUserImg(String img) {
+    profWidget.clear();
+    profWidget.add(
+      Material(
+        color: Colors.transparent,
+        child: Container(
+          height: 60,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColorV2.background, width: 4.0),
+          ),
+          child: Center(
+            child: CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.grey[200],
+              backgroundImage:
+                  img.isNotEmpty ? MemoryImage(base64Decode(img)) : null,
+              child:
+                  img.isEmpty
+                      ? Icon(
+                        Icons.person,
+                        size: 32,
+                        color: AppColorV2.lpBlueBrand,
+                      )
+                      : null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    initialize();
+  }
+
   String getCivilStatusLabel(String? value) {
     if (value == null || value.isEmpty) return "Not set";
+
     final match = Variables.civilStatusData.firstWhere(
       (item) => item["value"].toString().toLowerCase() == value.toLowerCase(),
       orElse: () => null,
     );
+
     return match != null ? match["text"] : "Not set";
   }
 
@@ -72,14 +319,24 @@ class _MyProfileState extends State<MyProfile> {
   @override
   Widget build(BuildContext context) {
     final bool isVerified = userData["is_verified"] == "N";
+
     return CustomScaffoldV2(
+      onPressedLeading: () {
+        Get.back(result: "refresh");
+      },
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          Get.back(result: "refresh");
+        }
+      },
       padding: const EdgeInsets.fromLTRB(19, 0, 19, 10),
       scaffoldBody: Column(
         children: [
           header(isVerified),
           Expanded(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: personalDetails(),
             ),
           ),
@@ -126,55 +383,53 @@ class _MyProfileState extends State<MyProfile> {
   Column header(bool isVerified) {
     return Column(
       children: [
-        Container(
-          padding: EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: AppColorV2.background,
-            shape: BoxShape.circle,
-          ),
-          child: CircleAvatar(
-            radius: 60,
-            backgroundImage: _getProfileImageProvider(),
-          ),
+        Stack(
+          children: [
+            LpProfileAvatar(base64Image: myprofile, size: 130, borderWidth: 3),
+            Positioned(
+              right: 0,
+              bottom: 1,
+              child: InkWell(
+                onTap: () => showBottomSheetCamera(),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColorV2.background),
+                    shape: BoxShape.circle,
+                    color: AppColorV2.lpBlueBrand,
+                  ),
+                  child: Icon(
+                    Icons.edit_outlined,
+                    size: 20,
+                    color: AppColorV2.background,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         DefaultText(
           text: Functions().getDisplayName(userData),
           maxLines: 1,
           style: AppTextStyle.h2,
-          color: AppColorV2.background,
+          color: AppColorV2.primaryTextColor.withAlpha(200),
         ),
-        userData["email"] == null || userData["email"] == ""
-            ? SizedBox.shrink()
+        (userData["email"] == null || userData["email"] == "")
+            ? const SizedBox.shrink()
             : DefaultText(
-              text: "${userData["email"] ?? ""}",
+              text: "${userData["email"]}",
               maxLines: 1,
               style: AppTextStyle.body1,
-              color: AppColorV2.background,
+              color: AppColorV2.primaryTextColor.withAlpha(200),
             ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         CustomButtons(
           text: isVerified ? "Verify Account" : "Edit Profile",
-          onPressed: () {},
+          onPressed: () => getRegions(),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
       ],
     );
-  }
-
-  ImageProvider _getProfileImageProvider() {
-    final String? base64Image = userData["image_base64"];
-    if (base64Image != null && base64Image.isNotEmpty) {
-      try {
-        String imageString =
-            base64Image.contains(',')
-                ? base64Image.split(',').last
-                : base64Image;
-        return MemoryImage(base64Decode(imageString));
-      } catch (e) {
-        print("Error decoding base64 image: $e");
-      }
-    }
-    return const AssetImage('assets/images/profile_active.png');
   }
 }

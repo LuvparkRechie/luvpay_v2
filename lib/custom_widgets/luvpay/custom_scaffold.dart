@@ -94,7 +94,6 @@ class CustomScaffoldV2 extends StatelessWidget {
   final double? appBarLeadingWidth;
   final bool showAppBar;
 
-  /// 💡 NEW OPTION — to disable gradient stack completely
   final bool useNormalBody;
 
   const CustomScaffoldV2({
@@ -128,7 +127,6 @@ class CustomScaffoldV2 extends StatelessWidget {
     this.appBarLeadingWidth,
     this.showAppBar = true,
 
-    /// Default still uses the gradient
     this.useNormalBody = false,
   });
 
@@ -149,7 +147,6 @@ class CustomScaffoldV2 extends StatelessWidget {
         persistentFooterButtons: persistentFooterButtons,
         appBar: showAppBar ? (appBar ?? _buildDefaultAppBar(context)) : null,
 
-        /// 💡 NEW BODY LOGIC
         body:
             useNormalBody
                 ? SafeArea(
@@ -166,7 +163,8 @@ class CustomScaffoldV2 extends StatelessWidget {
                       blurSigma: 80,
                       gradientColors: [
                         AppColorV2.lpBlueBrand.withAlpha(150),
-                        AppColorV2.lpTealBrand,
+                        AppColorV2.background,
+                        AppColorV2.background,
                         AppColorV2.background,
                         AppColorV2.background,
                       ],

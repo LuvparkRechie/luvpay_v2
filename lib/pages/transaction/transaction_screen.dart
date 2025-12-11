@@ -62,6 +62,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     final subApi =
         "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=${filterFromDate.text}&tran_date_to=${filterToDate.text}";
     final response = await HttpRequestApi(api: subApi).get();
+    print("response   $response");
     setState(() => isLoadingPage = false);
     if (response == "No Internet") {
       setState(() {
@@ -471,7 +472,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
               : !isNetConn
               ? NoInternetConnected(onTap: () => fetchLogs(isInitial: true))
               : groupedLogs.isEmpty
-              ? NoDataFound(text: "No transaction found")
+              ? Center(child: NoDataFound(text: "No transaction found"))
               : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -603,6 +604,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                             ),
                                                           ),
                                                           SizedBox(width: 10),
+
                                                           Expanded(
                                                             child: CustomButton(
                                                               text: "Confirm",
@@ -736,10 +738,10 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                     child: Container(
                                       padding: EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: Colors.white.withAlpha(120),
                                         borderRadius: BorderRadius.circular(16),
                                         border: Border.all(
-                                          color: AppColorV2.boxStroke,
+                                          color: AppColorV2.background,
                                         ),
                                         boxShadow: [
                                           BoxShadow(

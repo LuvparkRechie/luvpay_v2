@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -18,8 +20,10 @@ import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/loading.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
+import '../../web_view/webview.dart';
 import '../routes/routes.dart';
 import '../transaction/transaction_screen.dart';
+import '../wallet/notifications.dart';
 import 'my_profile.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
@@ -36,7 +40,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   bool isLoading = true;
   bool isLoadingExec = false;
   List provinceData = [];
-
+  String myprofile = "";
   List cityData = [];
   List brgyData = [];
 
@@ -57,6 +61,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Future<void> initialize() async {
     final objData = await Authentication().getUserData2();
+    final profilepic = await Authentication().getUserProfilePic();
+    myprofile = profilepic;
     userData = objData;
     if (objData["created_on"] != null) {
       try {
@@ -290,7 +296,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   (maxHeight - minHeight))
               .clamp(0.0, 1.0);
 
-          final double avatarSize = 60 * t + 30 * (1 - t);
+          final double avatarSize = 70 * t + 50 * (1 - t);
           final double nameFont = 18 * t + 14 * (1 - t);
           final double emailFont = 12 * t + 10 * (1 - t);
           final double horizontalPadding = 10 * t + 4 * (1 - t);
@@ -314,16 +320,24 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         width: 3,
                         color: AppColorV2.lpBlueBrand.withAlpha(50),
                       ),
-                      gradient:
-                          userData["image_base64"] == null
-                              ? LinearGradient(
-                                colors: [primaryBlue, secondaryTeal],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              )
-                              : null,
                     ),
-                    child: _buildProfileImage(),
+                    child: ClipOval(
+                      child: Container(
+                        height: 130,
+                        width: 130,
+                        decoration: const BoxDecoration(shape: BoxShape.circle),
+                        child:
+                            myprofile.isEmpty
+                                ? Image.asset(
+                                  "assets/images/d_unverified_img.png",
+                                  height: 60,
+                                )
+                                : Image.memory(
+                                  base64Decode(myprofile),
+                                  fit: BoxFit.cover,
+                                ),
+                      ),
+                    ),
                   ),
 
                   SizedBox(width: 10 * t + 4 * (1 - t)),
@@ -354,7 +368,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     scale: 0.8 + (0.2 * t),
                     child: CustomButtons.nextCircle(
                       onPressed: () {
-                        Get.to(MyProfile());
+                        Get.to(() => MyProfile())!.then((value) {
+                          if (value == "refresh") initialize();
+                        });
                       },
                       isActive: true,
                       size: 30,
@@ -368,40 +384,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         },
       ),
     );
-  }
-
-  Widget _buildProfileImage() {
-    final String? base64Image = userData["image_base64"];
-
-    if (base64Image != null && base64Image.isNotEmpty) {
-      try {
-        String imageString = base64Image;
-        if (base64Image.contains(',')) {
-          imageString = base64Image.split(',').last;
-        }
-
-        return ClipOval(
-          child: Image.memory(
-            base64Decode(imageString),
-            width: 80,
-            height: 80,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return _buildDefaultProfileIcon();
-            },
-          ),
-        );
-      } catch (e) {
-        print("Error decoding base64 image: $e");
-        return _buildDefaultProfileIcon();
-      }
-    } else {
-      return _buildDefaultProfileIcon();
-    }
-  }
-
-  Widget _buildDefaultProfileIcon() {
-    return Icon(Icons.person, size: 40, color: AppColorV2.background);
   }
 
   Widget _profile() {
@@ -437,13 +419,19 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           _buildInfoRow(
             icon: LucideIcons.ticket,
             title: 'Vouchers',
-            onTap: () {},
+            onTap: () {
+              CustomDialogStack.showUnderDevelopment(context, () {
+                Get.back();
+              });
+            },
           ),
           const Divider(height: 1),
           _buildInfoRow(
             icon: LucideIcons.bell,
             title: 'Notifications',
-            onTap: () {},
+            onTap: () {
+              Get.to(WalletNotifications());
+            },
           ),
           const Divider(height: 1),
           _buildInfoRow(
@@ -486,25 +474,36 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           _buildInfoRow(
             icon: Icons.info_outline,
             title: 'About Us',
-            onTap: () {},
+            onTap: () async {
+              CustomDialogStack.showLoading(context);
+              final response = await HttpRequestApi(api: "").linkToPage();
+              Get.back();
+              if (response == "Success") {
+                Get.to(
+                  const WebviewPage(
+                    urlDirect: "https://luvpark.ph/about-us/",
+                    label: "About Us",
+                    isBuyToken: false,
+                    bodyPadding: EdgeInsets.symmetric(
+                      horizontal: 19,
+                      vertical: 10,
+                    ),
+                  ),
+                );
+              } else {
+                CustomDialogStack.showConnectionLost(context, () {
+                  Get.back();
+                });
+              }
+            },
           ),
           const Divider(height: 1),
           _buildInfoRow(
             icon: LucideIcons.messageCircle,
             title: 'FAQs',
-            onTap: () {},
-          ),
-          const Divider(height: 1),
-          _buildInfoRow(
-            icon: LucideIcons.bookmark,
-            title: 'Terms of Use',
-            onTap: () {},
-          ),
-          const Divider(height: 1),
-          _buildInfoRow(
-            icon: LucideIcons.shield,
-            title: 'Privacy Policy',
-            onTap: () {},
+            onTap: () {
+              Get.toNamed(Routes.faqpage);
+            },
           ),
         ],
       ),
@@ -534,13 +533,58 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           _buildInfoRow(
             icon: LucideIcons.bookmark,
             title: 'Terms of Use',
-            onTap: () {},
+            onTap: () async {
+              CustomDialogStack.showLoading(context);
+              final response = await HttpRequestApi(api: "").linkToPage();
+              Get.back();
+              if (response == "Success") {
+                Get.to(
+                  const WebviewPage(
+                    urlDirect: "https://luvpark.ph/terms-of-use/",
+                    label: "Terms of Use",
+                    isBuyToken: false,
+                    bodyPadding: EdgeInsets.symmetric(
+                      horizontal: 19,
+                      vertical: 10,
+                    ),
+                  ),
+                );
+              } else {
+                CustomDialogStack.showConnectionLost(context, () {
+                  Get.back();
+                });
+              }
+              // CustomDialogStack.showUnderDevelopment(context, () {
+              //   Get.back();
+              // });
+            },
           ),
           const Divider(height: 1),
           _buildInfoRow(
             icon: LucideIcons.shield,
             title: 'Privacy Policy',
-            onTap: () {},
+            onTap: () async {
+              CustomDialogStack.showLoading(context);
+              final response = await HttpRequestApi(api: "").linkToPage();
+              Get.back();
+              if (response == "Success") {
+                Get.to(
+                  const WebviewPage(
+                    urlDirect: "https://luvpark.ph/privacy-policy/",
+                    label: "Privacy Policy",
+                    isBuyToken: false,
+                    bodyPadding: EdgeInsets.symmetric(
+                      horizontal: 19,
+                      vertical: 10,
+                    ),
+                  ),
+                );
+              } else {
+                CustomDialogStack.showConnectionLost(context, () {
+                  Get.back();
+                });
+              }
+            },
           ),
         ],
       ),

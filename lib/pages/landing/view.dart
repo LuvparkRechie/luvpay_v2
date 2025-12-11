@@ -17,6 +17,8 @@ class LandingScreen extends GetView<LandingController> {
   Widget build(BuildContext context) {
     Get.put(LandingController());
     return CustomScaffoldV2(
+      backgroundColor: AppColorV2.background,
+      useNormalBody: true,
       enableToolBar: false,
       scaffoldBody: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,15 +30,16 @@ class LandingScreen extends GetView<LandingController> {
                 children: [
                   SizedBox(height: 50),
                   Image(
-                    image: AssetImage("assets/images/onboardluvpay.png"),
+                    image: AssetImage("assets/images/luvpay_logo.png"),
                     width: 175,
                     fit: BoxFit.contain,
                   ),
                   SizedBox(height: 35),
+
                   Center(
                     child: DefaultText(
                       textAlign: TextAlign.center,
-                      text: "Get started with luvpay Parking",
+                      text: "Get started with LuvPay Wallet",
                       style: AppTextStyle.h1,
                       height: 32 / 28,
                     ),
@@ -44,20 +47,19 @@ class LandingScreen extends GetView<LandingController> {
                   Container(height: 12),
                   DefaultText(
                     text:
-                        "Start your journey to hassle-free parking in just a few taps.",
+                        "Experience a smarter way to pay. Fast, secure, and convenient wallet transactions—all in one app.",
                     textAlign: TextAlign.center,
                     style: AppTextStyle.paragraph1,
-                    height: 20 / 16,
+                    maxFontSize: 16,
+                    maxLines: 3,
                   ),
+                  DefaultText(text: "asdadasd"),
                   Container(height: 24),
-                  const Image(
-                    image: AssetImage("assets/images/create_account.png"),
-                  ),
                 ],
               ),
             ),
           ),
-          const Divider(height: 34),
+
           Obx(
             () => Column(
               children: [
@@ -90,7 +92,7 @@ class LandingScreen extends GetView<LandingController> {
                                   children: [
                                     DefaultText(
                                       style: AppTextStyle.paragraph2,
-                                      text: "Agree with",
+                                      text: "Agree to the",
                                       letterSpacing: 0,
                                       height: 18 / 14,
                                     ),
@@ -102,7 +104,7 @@ class LandingScreen extends GetView<LandingController> {
                                           Get.to(
                                             const WebviewPage(
                                               urlDirect:
-                                                  "https://luvpay.ph/terms-of-use/",
+                                                  "https://luvpark.ph/terms-of-use/",
                                               label: "Terms of Use",
                                               isBuyToken: false,
                                             ),
@@ -113,7 +115,7 @@ class LandingScreen extends GetView<LandingController> {
                                           color: AppColorV2.lpBlueBrand,
                                           fontWeight: FontWeight.w700,
                                           letterSpacing: 0,
-                                          text: "luvpay's Terms of use",
+                                          text: "LuvPay Wallet Terms of Use",
                                         ),
                                       ),
                                     ),
@@ -127,11 +129,12 @@ class LandingScreen extends GetView<LandingController> {
                     ),
                   ],
                 ),
+
                 spacing(height: 24),
+
                 CustomButton(
                   isInactive: !controller.isAgree.value,
-                  text: "Proceed",
-
+                  text: "Create Account",
                   onPressed:
                       !controller.isAgree.value
                           ? () {}
@@ -145,6 +148,7 @@ class LandingScreen extends GetView<LandingController> {
               ],
             ),
           ),
+
           spacing(height: 50),
         ],
       ),

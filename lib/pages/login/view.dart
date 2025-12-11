@@ -3,11 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/loading.dart';
-import 'package:luvpay/custom_widgets/smooth_route.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
 import 'package:luvpay/custom_widgets/variables.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -18,7 +18,6 @@ import '../../custom_widgets/vertical_height.dart';
 import '../../functions/functions.dart';
 import '../../security/app_security.dart';
 import '../routes/routes.dart';
-import '../wallet/wallet_screen.dart';
 import 'controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -107,9 +106,16 @@ class DefaultLoginScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Image(
-                  image: AssetImage("assets/images/luvpay_logo.png"),
+                SizedBox(height: 30),
+                // Image(
+                //   image: AssetImage("assets/images/luvpay_logo.png"),
+                //   width: 200,
+                // ),
+                Lottie.asset(
+                  'assets/lottie/login.json',
                   width: 200,
+                  height: 200,
+                  fit: BoxFit.contain,
                 ),
                 SizedBox(height: 18),
                 Column(
@@ -117,7 +123,7 @@ class DefaultLoginScreen extends StatelessWidget {
                     DefaultText(
                       text: "Welcome to luvpay!",
                       style: AppTextStyle.h1,
-                      color: AppColorV2.background,
+                      color: AppColorV2.lpBlueBrand,
                       maxLines: 1,
                     ),
                     SizedBox(height: 4),
@@ -335,11 +341,11 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image(
-                      image: const AssetImage("assets/images/onboardlogin.png"),
-                      width: MediaQuery.of(Get.context!).size.width * .55,
+                    Lottie.asset(
+                      'assets/lottie/welcome_again.json',
+                      width: 200,
+                      height: 200,
                       fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
                     ),
                     LayoutBuilder(
                       builder: (context, constraints) {
@@ -448,9 +454,8 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
 
                           controller.postLogin(Get.context!, postParam, (data) {
                             Get.back();
-
                             if (data[0]["items"].isNotEmpty) {
-                              Get.offAllNamed(Routes.map);
+                              Get.offAllNamed(Routes.dashboard);
                             }
                           });
                         },

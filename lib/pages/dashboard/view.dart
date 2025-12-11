@@ -77,7 +77,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       ScannerScreenV2(
         onchanged: (args) async {
           if (args.isNotEmpty) {
-            // await Get.to(() => ScannedQR(args: args));
             getService(args);
           }
         },
@@ -327,6 +326,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                           onTap: () {
                             controller.changePage(0);
                             _handlePageChange(0);
+
+                            _handleScroll(
+                              UserScrollNotification(
+                                metrics: controller.pageController.position,
+                                context: context,
+                                direction: ScrollDirection.forward,
+                              ),
+                            );
                           },
                           child: Icon(
                             LucideIcons.home,

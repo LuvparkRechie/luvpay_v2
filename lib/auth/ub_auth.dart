@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class UnionBankAuthService {
-  static final String? _getCookie = dotenv.env['UB_COOKIE'];
+  // static final String? _getCookie = dotenv.env['UB_COOKIE'];
   static final String? _payCookie = dotenv.env['UB_PAY_COOKIE'];
   static final String? _baseUrl = dotenv.env['UB_BASE_URL'];
   static final String? _tokenEndpoint = dotenv.env["TOKEN_END_POINT"];
