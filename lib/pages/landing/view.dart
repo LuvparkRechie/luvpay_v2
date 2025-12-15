@@ -17,6 +17,7 @@ class LandingScreen extends GetView<LandingController> {
   Widget build(BuildContext context) {
     Get.put(LandingController());
     return CustomScaffoldV2(
+      canPop: false,
       backgroundColor: AppColorV2.background,
       useNormalBody: true,
       enableToolBar: false,

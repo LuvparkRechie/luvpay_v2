@@ -231,10 +231,10 @@ class _WalletScreenState extends State<WalletScreen> {
               _buildHeader(),
               SizedBox(height: 20),
               _buildBalanceCard(),
-
               SizedBox(height: 20),
               _buildMerchantBillsGrid(),
-
+              SizedBox(height: 20),
+              _buildTabBar(),
               SizedBox(height: 20),
               Expanded(
                 child: PageView(
@@ -255,7 +255,6 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  // ADDED: Merchant & Bills & Top-up Grid Widget
   Widget _buildMerchantBillsGrid() {
     return GridView.builder(
       shrinkWrap: true,
@@ -601,7 +600,7 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        SizedBox(height: 8),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
@@ -1057,34 +1056,36 @@ class NoTransactionsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(40),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColorV2.pastelBlueAccent.withOpacity(0.3),
-              shape: BoxShape.circle,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColorV2.pastelBlueAccent.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.receipt_long_outlined,
+                size: 50,
+                color: AppColorV2.lpBlueBrand.withOpacity(0.5),
+              ),
             ),
-            child: Icon(
-              Icons.receipt_long_outlined,
-              size: 50,
-              color: AppColorV2.lpBlueBrand.withOpacity(0.5),
+            const SizedBox(height: 24),
+            DefaultText(
+              text: subtitle ?? 'Your recent transactions will appear here',
+              style: TextStyle(
+                color: AppColorV2.bodyTextColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 24),
-          DefaultText(
-            text: subtitle ?? 'Your recent transactions will appear here',
-            style: TextStyle(
-              color: AppColorV2.bodyTextColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-        ],
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -1124,6 +1125,7 @@ class TransactionSectionListView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(0),
       child: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

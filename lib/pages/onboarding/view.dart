@@ -393,7 +393,7 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
   }
 
   void _completeOnboarding() {
-    Get.offAllNamed(Routes.login);
+    Get.offAllNamed(Routes.landing);
   }
 }
 

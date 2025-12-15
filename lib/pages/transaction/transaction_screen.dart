@@ -486,8 +486,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                               "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}",
                         ),
                   ),
-                  SizedBox(height: 10),
-                  Divider(),
+
                   SizedBox(height: 10),
                   Expanded(
                     child: ListView.builder(
