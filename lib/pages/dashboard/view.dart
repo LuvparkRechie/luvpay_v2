@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/auth/authentication.dart';
-import 'package:luvpay/custom_widgets/scanner.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/pages/merchant/pay_merchant.dart';
 import 'package:luvpay/pages/scanner_screen.dart';
@@ -15,7 +14,6 @@ import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../biller_screen/biller_screen.dart';
 import '../profile/profile_screen.dart';
-import '../qr/qr_return/scanned_qr.dart';
 import '../transaction/transaction_screen.dart';
 import 'controller.dart';
 

@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import 'package:luvpay/otp_field/index.dart';
+import 'package:luvpay/pages/billers/index.dart';
+import 'package:luvpay/pages/bills_payment/index.dart';
 import 'package:luvpay/pages/faq/index.dart';
 import 'package:luvpay/pages/forgot_password/index.dart';
 import 'package:luvpay/pages/forgot_password/utils/create_new/index.dart';
@@ -35,7 +37,22 @@ class AppPages {
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
-
+    GetPage(
+      name: Routes.billers,
+      page: () => Billers(),
+      binding: BillersBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.billsPayment,
+      page: () => const BillsPayment(),
+      binding: BillsPaymentBinding(),
+      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
     GetPage(
       name: Routes.loading,
       page: () => const LoadingScreen(),

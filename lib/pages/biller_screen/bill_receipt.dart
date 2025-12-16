@@ -8,6 +8,7 @@ import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
+import 'package:luvpay/custom_widgets/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
 import 'package:screenshot/screenshot.dart';
@@ -33,25 +34,9 @@ class BillPaymentReceipt extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          leading: IconButton(
-            onPressed: () => Get.back(result: true),
-            icon: Icon(CupertinoIcons.back, color: Colors.white, size: 24),
-            splashColor: AppColorV2.lpBlueBrand.withAlpha(50),
-          ),
-          title: DefaultText(
-            text: "Payment Receipt",
-            color: Colors.white,
-            fontSize: 14,
-            style: AppTextStyle.h3,
-            maxLines: 1,
-          ),
-          centerTitle: true,
-          backgroundColor: AppColorV2.lpBlueBrand,
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.white,
-            statusBarIconBrightness: Brightness.dark,
-            statusBarBrightness: Brightness.light,
-          ),
+          automaticallyImplyLeading: false,
+          toolbarHeight: 0,
+          elevation: 0,
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -66,39 +51,17 @@ class BillPaymentReceipt extends StatelessWidget {
                 Column(
                   children: [
                     // Download Button
-                    Container(
-                      width: double.infinity,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColorV2.lpBlueBrand),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _saveReceipt(context),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.download_rounded,
-                                color: AppColorV2.lpBlueBrand,
-                                size: 20,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Save Receipt',
-                                style: TextStyle(
-                                  color: AppColorV2.lpBlueBrand,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    CustomButton(
+                      text: "Done",
+                      onPressed: () => Get.back(result: true),
+                    ),
+                    SizedBox(height: 10),
+                    CustomButton(
+                      text: "Save Receipt",
+                      btnColor: Colors.white,
+                      textColor: AppColorV2.lpBlueBrand,
+                      bordercolor: AppColorV2.lpBlueBrand,
+                      onPressed: () => _saveReceipt(context),
                     ),
                     SizedBox(height: 12),
                   ],

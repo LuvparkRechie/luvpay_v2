@@ -9,6 +9,9 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
+import 'package:luvpay/pages/billers/index.dart';
+import 'package:luvpay/pages/billers/utils/allbillers.dart';
+import 'package:luvpay/pages/routes/routes.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -45,7 +48,7 @@ class _WalletScreenState extends State<WalletScreen> {
   bool _isDialogVisible = false;
 
   // Add merchant grid items with SVG paths
-  final List<Map<String, dynamic>> _merchantGridItems = [
+  List<Map<String, dynamic>> get _merchantGridItems => [
     {
       'icon': "assets/svg/merchant.svg",
       'label': 'Merchant',
@@ -59,9 +62,17 @@ class _WalletScreenState extends State<WalletScreen> {
       'icon': "assets/svg/bills.svg", // Changed to SVG path
       'label': 'Bills',
       'color': Colors.green,
-      'onTap': () {
-        print("Bills pressed");
-        // Get.to(() => BillsScreen());
+      'onTap': () async {
+        final billController = Get.put(BillersController());
+        billController.getBillers((billers) async {
+          final result = await Get.to(
+            () => Allbillers(),
+            arguments: {'source': 'pay'},
+          );
+          if (result != null) {
+            _startAutoRefresh();
+          }
+        });
       },
     },
     {
