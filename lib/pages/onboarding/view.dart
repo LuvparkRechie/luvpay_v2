@@ -188,36 +188,38 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
 
                       AnimatedOpacity(
                         duration: Duration(milliseconds: 300),
-                        opacity: _currentPage == _pages.length - 1 ? 0 : 1,
-                        child: InkWell(
-                          onTap:
-                              _currentPage == _pages.length - 1
-                                  ? null
-                                  : () => _pageController.animateToPage(
-                                    _pages.length - 1,
-                                    duration: Duration(milliseconds: 600),
-                                    curve: Curves.easeInOutBack,
-                                  ),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColorV2.background.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: AppColorV2.boxStroke,
-                                width: 1.5,
+                        opacity: _currentPage == 0 ? 1.0 : 0.0,
+                        child: IgnorePointer(
+                          ignoring: _currentPage != 0,
+                          child: InkWell(
+                            onTap: () {
+                              _pageController.animateToPage(
+                                _pages.length - 1,
+                                duration: Duration(milliseconds: 600),
+                                curve: Curves.easeInOutCubic,
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
                               ),
-                            ),
-                            child: DefaultText(
-                              text: "Skip",
-                              style: AppTextStyle.paragraph1.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: AppColorV2.onSurfaceVariant,
-                                fontSize: 14,
+                              decoration: BoxDecoration(
+                                color: AppColorV2.background.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppColorV2.boxStroke,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: DefaultText(
+                                text: "Skip",
+                                style: AppTextStyle.paragraph1.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColorV2.onSurfaceVariant,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                           ),

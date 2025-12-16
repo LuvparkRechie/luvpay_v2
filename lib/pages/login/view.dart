@@ -80,6 +80,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(left: 8.0),
+        child: DefaultText(
+          style: AppTextStyle.textbox,
+          text: 'V${Variables.version}',
+        ),
+      ),
       useNormalBody: true,
       enableToolBar: false,
       canPop: false,
