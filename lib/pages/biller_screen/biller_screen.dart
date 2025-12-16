@@ -278,7 +278,7 @@ class _BillerScreenState extends State<BillerScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DefaultText(text: "luvpark Balance", style: AppTextStyle.h3),
+        DefaultText(text: "luvpay Balance", style: AppTextStyle.h3),
         spacing(height: 14),
         Container(
           height: 50,

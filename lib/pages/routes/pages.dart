@@ -14,6 +14,7 @@ import '../landing/index.dart';
 import '../loading/index.dart';
 import '../lock_screen/index.dart';
 import '../login/index.dart';
+import '../merchant/merchantreceipt/index.dart';
 import '../onboarding/index.dart';
 import '../registration/index.dart';
 import '../splash_screen/index.dart';
@@ -162,6 +163,14 @@ class AppPages {
       page: () => const Security(),
       binding: SecuritySettingsBinding(),
       transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.merchantReceipt,
+      page: () => MerchantQRReceipt(),
+      binding: merchantQRRBindings(),
+      transition: Transition.rightToLeftWithFade, // Smooth slide transition
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),

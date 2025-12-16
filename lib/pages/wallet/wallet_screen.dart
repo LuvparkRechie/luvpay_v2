@@ -6,18 +6,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/pages/billers/index.dart';
 import 'package:luvpay/pages/billers/utils/allbillers.dart';
+import 'package:luvpay/pages/merchant/pay_merchant.dart';
 import 'package:luvpay/pages/routes/routes.dart';
+import 'package:luvpay/pages/scanner_screen.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/luvpay/custom_buttons.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
@@ -54,8 +55,7 @@ class _WalletScreenState extends State<WalletScreen> {
       'label': 'Merchant',
       'color': Colors.blue,
       'onTap': () {
-        print("Merchant pressed");
-        // Get.to(() => MerchantScreen());
+        scanMerchant();
       },
     },
     {
@@ -80,8 +80,7 @@ class _WalletScreenState extends State<WalletScreen> {
       'label': 'Top-up',
       'color': Colors.orange,
       'onTap': () {
-        print("Mobile Top-up pressed");
-        // Get.to(() => MobileTopUpScreen());
+        showTopUpMethod();
       },
     },
   ];
@@ -113,6 +112,169 @@ class _WalletScreenState extends State<WalletScreen> {
     setState(() {
       isOpen = !isOpen;
     });
+  }
+
+  Future<void> scanMerchant() async {
+    showDialog(
+      context: Get.context!,
+      builder: (BuildContext context) {
+        return ScannerScreenV2(
+          onchanged: (args) async {
+            if (args.isNotEmpty) {
+              getService(args);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Future<dynamic> getScannedQr(String apiKey) async {
+    print("Calling API: $apiKey");
+    final response = await HttpRequestApi(api: apiKey).get();
+    return response;
+  }
+
+  void getService(String args) async {
+    CustomDialogStack.showLoading(Get.context!);
+
+    String apiMerchant = "${ApiKeys.getMerchantScan}?merchant_key=$args";
+
+    /// ---- TRY MERCHANT QR SCdfafdasfN ----
+    final merchantResponse = await getScannedQr(apiMerchant);
+
+    if (merchantResponse == "No Internet") {
+      _showInternetError();
+      return;
+    }
+
+    if (_isValidResponse(merchantResponse)) {
+      String serviceName = merchantResponse["items"][0]["merchant_name"] ?? "";
+      String serviceAddress =
+          merchantResponse["items"][0]["merchant_address"] ?? "";
+      _handleSuccess(
+        args,
+        "merchant",
+        merchantResponse,
+        serviceName,
+        serviceAddress,
+      );
+      return;
+    }
+
+    /// ---- BOTH FAILED: INVALID QR ----
+    Get.back();
+    CustomDialogStack.showError(
+      Get.context!,
+      "Invalid QR Code",
+      "This QR code is not registered in the system.",
+      () {
+        Get.back();
+      },
+    );
+  }
+
+  /// Helper to detect valid API response
+  bool _isValidResponse(dynamic res) {
+    if (res == null) return false;
+    if (res == "Error" || res == "Failed") return false;
+    if (res == "" || res == "{}" || res == "[]") return false;
+
+    // If it's a map and contains required fields
+    if (res is Map && res.isNotEmpty) return true;
+    if (res is List && res.isNotEmpty) return true;
+
+    return false;
+  }
+
+  /// Handles success response
+  void _handleSuccess(
+    String args,
+    String type,
+    dynamic response,
+    serviceName,
+    serviceAddress,
+  ) async {
+    // Navigate or handle according to type
+    final paymentHk = await getpaymentHK();
+    Get.back();
+
+    List itemData = [
+      {
+        "data": response["items"],
+        'merchant_key': args,
+        "merchant_name": serviceName,
+        'merchant_address': serviceAddress,
+        "payment_key": paymentHk,
+      },
+    ];
+    Get.to(
+      Scaffold(
+        backgroundColor: AppColorV2.background,
+        appBar: AppBar(
+          elevation: 1,
+          backgroundColor: AppColorV2.lpBlueBrand,
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: AppColorV2.lpBlueBrand,
+            statusBarBrightness: Brightness.dark,
+            statusBarIconBrightness: Brightness.light,
+          ),
+          title: Text("Pay Merchant"),
+          centerTitle: true,
+          leading: IconButton(
+            onPressed: () {
+              Get.back();
+            },
+            icon: Icon(Iconsax.arrow_left, color: Colors.white),
+          ),
+        ),
+        body: PayMerchant(data: itemData),
+      ),
+    );
+  }
+
+  /// Common internet error dialog
+  void _showInternetError() {
+    Get.back();
+    CustomDialogStack.showError(
+      Get.context!,
+      "Error",
+      "Please check your internet connection and try again.",
+      () {
+        Get.back();
+      },
+    );
+  }
+
+  Future<dynamic> getpaymentHK() async {
+    // CustomDialogStack.showLoading(Get.context!);
+    final userID = await Authentication().getUserId();
+
+    final paymentKey =
+        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
+    if (paymentKey == "No Internet") {
+      CustomDialogStack.showConnectionLost(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+    if (paymentKey == null) {
+      CustomDialogStack.showServerError(Get.context!, () {
+        Get.back();
+      });
+
+      return null;
+    }
+    if (paymentKey["items"].isNotEmpty) {
+      print("diri ${paymentKey["items"][0]["payment_hk"]}");
+      return paymentKey["items"][0]["payment_hk"].toString();
+    } else {
+      CustomDialogStack.showServerError(Get.context!, () {
+        Get.back();
+      });
+
+      return null;
+    }
   }
 
   Future<void> getNotificationCount() async {
@@ -213,6 +375,145 @@ class _WalletScreenState extends State<WalletScreen> {
     }
   }
 
+  Future<void> showTopUpMethod() async {
+    final banks = [
+      {
+        'name': 'UnionBank',
+        'image': 'assets/images/w_unionbank.png',
+        'color': AppColorV2.secondary,
+        'onTap': () {
+          Get.toNamed(
+            Routes.walletrechargeload,
+            arguments: {
+              "bank_type": "UnionBank",
+              "image": "assets/images/wt_unionbank.png",
+              "bank_code": " UB ONLINE",
+            },
+          );
+        },
+      },
+
+      {
+        'name': 'InstaPay',
+        'image': 'assets/images/w_instapay.png',
+        'color': AppColorV2.warning,
+        'onTap': () {
+          Get.toNamed(
+            Routes.walletrechargeload,
+            arguments: {
+              "bank_type": "InstaPay",
+              "image": "assets/images/wt_instapay.png",
+              "bank_code": " InstaPay",
+            },
+          );
+        },
+      },
+
+      {
+        'name': 'UnionBank',
+        'image': 'assets/images/w_pesonet.png',
+        'color': AppColorV2.secondary,
+        'onTap': () {
+          Get.toNamed(
+            Routes.walletrechargeload,
+            arguments: {
+              "bank_type": "UnionBank",
+              "image": "assets/images/wt_pesonet.png",
+              "bank_code": "paygate",
+            },
+          );
+        },
+      },
+      {
+        'name': 'Landbank',
+        'image': 'assets/images/w_landbank.png',
+        'color': AppColorV2.success,
+        'onTap': () {
+          Get.toNamed(
+            Routes.walletrechargeload,
+            arguments: {
+              "bank_type": "Landbank",
+              "image": "assets/images/wt_landbank.png",
+              "bank_code": " LandBank",
+            },
+          );
+        },
+      },
+      {
+        'name': 'Maya',
+        'image': "assets/images/w_maya.png",
+        'color': AppColorV2.success,
+        'onTap': () {
+          Get.toNamed(
+            Routes.walletrechargeload,
+            arguments: {
+              "bank_type": "Maya",
+              "image": "assets/images/wt_maya.png",
+              "bank_code": " Maya",
+            },
+          );
+        },
+      },
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              SizedBox(height: 16),
+
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColorV2.boxStroke,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              DefaultText(
+                text: 'Select Top-Up Method',
+                style: TextStyle(
+                  color: AppColorV2.primaryTextColor,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: 16),
+              Expanded(
+                child: GridView.builder(
+                  padding: EdgeInsets.all(16),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.5,
+                  ),
+                  itemCount: banks.length,
+                  itemBuilder: (context, index) {
+                    final bank = banks[index];
+                    return _buildBankCard(bank, context);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -244,21 +545,8 @@ class _WalletScreenState extends State<WalletScreen> {
               _buildBalanceCard(),
               SizedBox(height: 20),
               _buildMerchantBillsGrid(),
-              SizedBox(height: 20),
-              _buildTabBar(),
-              SizedBox(height: 20),
-              Expanded(
-                child: PageView(
-                  physics: NeverScrollableScrollPhysics(),
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _selectedTab = index;
-                    });
-                  },
-                  children: [_buildTransactionsTab(), _buildTopUpTab()],
-                ),
-              ),
+              SizedBox(height: 15),
+              Expanded(child: _buildTransactionsTab()),
             ],
           ),
         ),
@@ -382,7 +670,7 @@ class _WalletScreenState extends State<WalletScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColorV2.lpBlueBrand.withOpacity(0.3),
+            color: AppColorV2.lpBlueBrand.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: Offset(0, 10),
           ),
@@ -397,7 +685,7 @@ class _WalletScreenState extends State<WalletScreen> {
               width: 150,
               height: 150,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
             ),
@@ -409,7 +697,7 @@ class _WalletScreenState extends State<WalletScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
             ),
@@ -466,7 +754,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: DefaultText(
@@ -483,100 +771,6 @@ class _WalletScreenState extends State<WalletScreen> {
                   ],
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      height: 48,
-      decoration: BoxDecoration(
-        color: AppColorV2.pastelBlueAccent.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                _pageController.animateToPage(
-                  0,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.ease,
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: _selectedTab == 0 ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow:
-                      _selectedTab == 0
-                          ? [
-                            BoxShadow(
-                              color: AppColorV2.boxStroke.withOpacity(0.5),
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ]
-                          : null,
-                ),
-                child: Center(
-                  child: DefaultText(
-                    text: 'Transactions',
-                    style: TextStyle(
-                      color:
-                          _selectedTab == 0
-                              ? AppColorV2.lpBlueBrand
-                              : AppColorV2.bodyTextColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                _pageController.animateToPage(
-                  1,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.ease,
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: _selectedTab == 1 ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow:
-                      _selectedTab == 1
-                          ? [
-                            BoxShadow(
-                              color: AppColorV2.boxStroke.withOpacity(0.5),
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ]
-                          : null,
-                ),
-                child: Center(
-                  child: DefaultText(
-                    text: 'Top Up',
-                    style: TextStyle(
-                      color:
-                          _selectedTab == 1
-                              ? AppColorV2.lpBlueBrand
-                              : AppColorV2.bodyTextColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
             ),
           ),
         ],
@@ -611,7 +805,6 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
           ],
         ),
-        SizedBox(height: 8),
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
@@ -627,217 +820,6 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _buildTransactionList() {
-    if (logs.isEmpty) {
-      return NoTransactionsWidget();
-    }
-
-    return ListView.builder(
-      physics: BouncingScrollPhysics(),
-      itemCount: logs.length + 1,
-      itemBuilder: (context, index) {
-        if (index == logs.length) {
-          return SizedBox(height: MediaQuery.of(context).size.height * 0.1);
-        }
-
-        final transaction = logs[index];
-        return _buildTransactionItem(transaction);
-      },
-    );
-  }
-
-  Widget _buildTransactionItem(Map<String, dynamic> transaction) {
-    String formatDate(String dateString) {
-      try {
-        DateTime date = DateTime.parse(dateString).toLocal();
-        return DateFormat('MMM dd, yyyy • HH:mm').format(date);
-      } catch (e) {
-        return dateString;
-      }
-    }
-
-    final amountString = transaction['amount']?.toString() ?? '0';
-    final isPositive = !amountString.contains("-");
-
-    final transactionData = _getTransactionData(
-      transaction['category']?.toString() ?? 'Transaction',
-      isPositive,
-    );
-
-    return InkWell(
-      onTap: () {
-        Get.to(
-          TransactionDetails(index: 0, data: [transaction], isHistory: true),
-        );
-      },
-      child: Container(
-        margin: EdgeInsets.only(bottom: 12),
-        padding: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColorV2.boxStroke),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: transactionData['color'].withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                transactionData['icon'],
-                color: transactionData['color'],
-                size: 20,
-              ),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DefaultText(
-                    text: transaction['category']?.toString() ?? 'Transaction',
-                    style: AppTextStyle.body1,
-                    color: AppColorV2.primaryTextColor,
-                  ),
-                  SizedBox(height: 4),
-                  DefaultText(
-                    text:
-                        transaction['tran_desc']?.toString() ??
-                        'No description',
-                    maxLines: 1,
-                    maxFontSize: 12,
-                  ),
-                  SizedBox(height: 4),
-                  DefaultText(
-                    text: formatDate(
-                      transaction['tran_date']?.toString() ?? '',
-                    ),
-                    style: AppTextStyle.body1,
-                    maxFontSize: 10,
-                    minFontSize: 8,
-                  ),
-                ],
-              ),
-            ),
-            DefaultText(
-              text: toCurrencyString(amountString),
-              style: TextStyle(
-                color: isPositive ? AppColorV2.success : AppColorV2.error,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Map<String, dynamic> _getTransactionData(String category, bool isPositive) {
-    final categoryLower = category.toLowerCase();
-
-    if (isPositive) {
-      return {
-        'icon': Icons.arrow_downward_rounded,
-        'color': AppColorV2.success,
-      };
-    }
-
-    if (categoryLower.contains('electric') ||
-        categoryLower.contains('utility')) {
-      return {'icon': Icons.bolt_rounded, 'color': AppColorV2.warning};
-    } else if (categoryLower.contains('water')) {
-      return {'icon': Icons.water_drop_rounded, 'color': Colors.blue};
-    } else if (categoryLower.contains('internet') ||
-        categoryLower.contains('mobile')) {
-      return {'icon': Icons.wifi_rounded, 'color': Colors.purple};
-    } else if (categoryLower.contains('grocery') ||
-        categoryLower.contains('food')) {
-      return {
-        'icon': Icons.shopping_bag_rounded,
-        'color': AppColorV2.secondary,
-      };
-    } else if (categoryLower.contains('shopping') ||
-        categoryLower.contains('store')) {
-      return {'icon': Icons.shopping_cart_rounded, 'color': Colors.orange};
-    } else {
-      return {'icon': Icons.arrow_upward_rounded, 'color': AppColorV2.error};
-    }
-  }
-
-  Widget _buildTopUpTab() {
-    final banks = [
-      {
-        'name': 'Maya',
-        'image': 'assets/images/w_maya.png',
-        'color': AppColorV2.lpBlueBrand,
-      },
-      {
-        'name': 'Landbank',
-        'image': 'assets/images/w_landbank.png',
-        'color': AppColorV2.success,
-      },
-      {
-        'name': 'UnionBank',
-        'image': 'assets/images/w_unionbank.png',
-        'color': AppColorV2.secondary,
-      },
-      {
-        'name': 'InstaPay',
-        'image': 'assets/images/w_instapay.png',
-        'color': AppColorV2.warning,
-      },
-    ];
-
-    return ListView(
-      children: [
-        DefaultText(
-          text: 'Top Up Methods',
-          style: TextStyle(
-            color: AppColorV2.primaryTextColor,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        SizedBox(height: 16),
-        DefaultText(
-          text: 'Select your preferred bank to top up your wallet',
-          style: TextStyle(color: AppColorV2.bodyTextColor, fontSize: 14),
-        ),
-        SizedBox(height: 24),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.6,
-          ),
-          itemCount: banks.length,
-          itemBuilder: (context, index) {
-            final bank = banks[index];
-            return _buildBankCard(bank, context);
-          },
-        ),
-        SizedBox(height: 20),
-        _buildQuickTopUpSection(),
-        SizedBox(height: MediaQuery.of(context).size.height * 0.15),
-      ],
-    );
-  }
-
   Widget _buildBankCard(Map<String, dynamic> bank, BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -846,7 +828,7 @@ class _WalletScreenState extends State<WalletScreen> {
         border: Border.all(color: AppColorV2.boxStroke),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -877,7 +859,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: bank['color'].withOpacity(0.1),
+                            color: bank['color'].withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
@@ -895,7 +877,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     style: TextStyle(
                       color: AppColorV2.primaryTextColor,
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: 12,
                     ),
                   ),
                 ],
@@ -920,33 +902,6 @@ class _WalletScreenState extends State<WalletScreen> {
       default:
         return Icons.account_balance_wallet_rounded;
     }
-  }
-
-  Widget _buildQuickTopUpSection() {
-    final amounts = [100, 500, 1000, 2000, 5000, 10000];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DefaultText(
-          text: 'Quick Top Up',
-          style: TextStyle(
-            color: AppColorV2.primaryTextColor,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children:
-              amounts.map((amount) {
-                return _buildAmountChip(amount);
-              }).toList(),
-        ),
-      ],
-    );
   }
 
   Widget _buildAmountChip(int amount) {
@@ -1075,13 +1030,13 @@ class NoTransactionsWidget extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: AppColorV2.pastelBlueAccent.withOpacity(0.3),
+                color: AppColorV2.pastelBlueAccent.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.receipt_long_outlined,
                 size: 50,
-                color: AppColorV2.lpBlueBrand.withOpacity(0.5),
+                color: AppColorV2.lpBlueBrand.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 24),
@@ -1200,7 +1155,7 @@ class TransactionSectionListView extends StatelessWidget {
           border: Border.all(color: AppColorV2.boxStroke),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 8,
               offset: Offset(0, 2),
             ),
@@ -1212,7 +1167,7 @@ class TransactionSectionListView extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: transactionData['color'].withOpacity(0.1),
+                color: transactionData['color'].withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
