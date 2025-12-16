@@ -7,6 +7,7 @@ import 'package:luvpay/pages/forgot_password/index.dart';
 import 'package:luvpay/pages/forgot_password/utils/create_new/index.dart';
 import 'package:luvpay/pages/my_account/utils/index.dart';
 import 'package:luvpay/pages/qr/index.dart';
+import 'package:luvpay/pages/security_settings/index.dart';
 
 import '../dashboard/index.dart';
 import '../landing/index.dart';
@@ -152,6 +153,14 @@ class AppPages {
       name: Routes.updProfile,
       page: () => const UpdateProfile(),
       binding: UpdateProfileBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.securitySettings,
+      page: () => const Security(),
+      binding: SecuritySettingsBinding(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,

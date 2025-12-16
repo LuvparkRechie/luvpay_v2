@@ -497,7 +497,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                               Get.back();
 
                               if (data[0]["items"].isNotEmpty) {
-                                Get.offAllNamed(Routes.map);
+                                Get.offAllNamed(Routes.dashboard);
                               }
                             });
                           }

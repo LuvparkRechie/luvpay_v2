@@ -49,4 +49,5 @@ class Routes {
   static const billsPayment = "/bills_payment";
   static const voucher = "/voucher";
   static const dashboard = "/dashboard";
+  static const securitySettings = "/security_settings";
 }

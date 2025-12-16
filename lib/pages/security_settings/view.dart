@@ -7,6 +7,7 @@ import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/loading.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
+import '../../custom_widgets/luvpay/custom_tile.dart';
 import 'controller.dart';
 import 'utils/otppreference.dart';
 
@@ -34,17 +35,52 @@ class Security extends GetView<SecuritySettingsController> {
                         padding: EdgeInsets.zero,
                         children: [
                           SizedBox(height: 14),
-                          updatePassword(),
-                          SizedBox(height: 10),
-                          Divider(
-                            color: AppColorV2.bodyTextColor.withAlpha(80),
-                          ),
-                          SizedBox(height: 10),
-                          securityPreference(context),
-                          deleteAccout(),
-                          SizedBox(height: 10),
-                          Divider(
-                            color: AppColorV2.bodyTextColor.withAlpha(80),
+                          DefaultContainer(
+                            child: Column(
+                              spacing: 24,
+                              children: [
+                                InfoRowTile(
+                                  icon: LucideIcons.lock,
+                                  title: 'Update Password',
+                                  subtitle:
+                                      "Secure your account with a new password.",
+                                  subtitleMaxlines: 2,
+                                  onTap: controller.verifyMobile,
+                                ),
+                                InfoRowTile(
+                                  icon: LucideIcons.fingerprint,
+                                  title: "Security Preference",
+                                  subtitleMaxlines: 2,
+                                  subtitle:
+                                      "Use biometrics for secure transactions.",
+                                  onTap: () async {
+                                    CustomDialogStack.showLoading(context);
+                                    await Future.delayed(
+                                      Duration(milliseconds: 500),
+                                    );
+                                    Get.back();
+                                    Get.to(OTPPreference());
+                                  },
+                                ),
+                                InfoRowTile(
+                                  icon: LucideIcons.fileX,
+                                  title: "Delete your account",
+                                  subtitleMaxlines: 2,
+                                  subtitle:
+                                      "Remove your account and all stored data.",
+                                  onTap: () {
+                                    CustomDialogStack.showInfo(
+                                      Get.context!,
+                                      "🛠️ Delete Account",
+                                      "The account deletion feature is currently under development and will be available soon.",
+                                      () {
+                                        Get.back();
+                                      },
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -149,34 +185,41 @@ class Security extends GetView<SecuritySettingsController> {
     );
   }
 
-  InkWell updatePassword() {
-    return InkWell(
-      onTap: controller.verifyMobile,
-      child: Row(
-        children: [
-          Icon(LucideIcons.lock, color: AppColorV2.lpBlueBrand),
-          SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DefaultText(text: "Update Password", style: AppTextStyle.h3),
-                SizedBox(height: 4),
-                DefaultText(
-                  text: "Secure your account with a new password.",
-                  maxLines: 1,
+  Widget updatePassword() {
+    return Column(
+      children: [
+        InkWell(
+          onTap: controller.verifyMobile,
+          child: Row(
+            children: [
+              Icon(LucideIcons.lock, color: AppColorV2.lpBlueBrand),
+              SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DefaultText(
+                      text: "Update Password",
+                      style: AppTextStyle.h3,
+                    ),
+                    SizedBox(height: 4),
+                    DefaultText(
+                      text: "Secure your account with a new password.",
+                      maxLines: 1,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              SizedBox(width: 10),
+              Icon(
+                LucideIcons.chevronRight,
+                color: AppColorV2.bodyTextColor,
+                size: 24,
+              ),
+            ],
           ),
-          SizedBox(width: 10),
-          Icon(
-            LucideIcons.chevronRight,
-            color: AppColorV2.bodyTextColor,
-            size: 24,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -18,6 +18,7 @@ import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/loading.dart';
+import '../../custom_widgets/luvpay/custom_tile.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../web_view/webview.dart';
@@ -223,14 +224,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       : VerifiedWidget(isVerified: isVerified),
                   SliverToBoxAdapter(
                     child: Column(
+                      spacing: 14,
                       children: [
                         SizedBox(height: 16),
                         _profile(),
-                        const SizedBox(height: 24),
                         _helpAndSupport(),
-                        const SizedBox(height: 24),
                         _legal(),
-                        const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
                           child: CustomButtons.no(
@@ -387,23 +386,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   Widget _profile() {
-    return Container(
-      padding: EdgeInsets.all(19),
-      decoration: BoxDecoration(
-        color: AppColorV2.background,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColorV2.primaryTextColor.withValues(alpha: .05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return DefaultContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(
+          InfoRowTile(
             icon: Icons.qr_code_rounded,
             title: 'Personal QR Code ',
             onTap: () {
@@ -415,8 +402,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               );
             },
           ),
-          const Divider(height: 1),
-          _buildInfoRow(
+          InfoRowTile(
             icon: LucideIcons.ticket,
             title: 'Vouchers',
             onTap: () {
@@ -425,27 +411,26 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               });
             },
           ),
-          const Divider(height: 1),
-          _buildInfoRow(
+          InfoRowTile(
             icon: LucideIcons.bell,
             title: 'Notifications',
             onTap: () {
               Get.to(WalletNotifications());
             },
           ),
-          const Divider(height: 1),
-          _buildInfoRow(
+          InfoRowTile(
             icon: LucideIcons.history,
             title: 'Transaction History',
             onTap: () {
               Get.to(TransactionHistory());
             },
           ),
-          const Divider(height: 1),
-          _buildInfoRow(
+          InfoRowTile(
             icon: LucideIcons.lock,
             title: 'App Security',
-            onTap: () {},
+            onTap: () {
+              Get.toNamed(Routes.securitySettings);
+            },
           ),
         ],
       ),
@@ -453,25 +438,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   Widget _helpAndSupport() {
-    return Container(
-      padding: EdgeInsets.all(19),
-      decoration: BoxDecoration(
-        color: AppColorV2.background,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColorV2.primaryTextColor.withValues(alpha: .05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return DefaultContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           DefaultText(text: 'Help & Support', style: AppTextStyle.h3),
           SizedBox(height: 8),
-          _buildInfoRow(
+          InfoRowTile(
             icon: Icons.info_outline,
             title: 'About Us',
             onTap: () async {
@@ -497,8 +470,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               }
             },
           ),
-          const Divider(height: 1),
-          _buildInfoRow(
+          InfoRowTile(
             icon: LucideIcons.messageCircle,
             title: 'FAQs',
             onTap: () {
@@ -511,26 +483,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   Widget _legal() {
-    return Container(
-      padding: EdgeInsets.all(19),
-      decoration: BoxDecoration(
-        color: AppColorV2.background,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColorV2.primaryTextColor.withValues(alpha: .05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return DefaultContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           DefaultText(text: 'Legal', style: AppTextStyle.h3),
           SizedBox(height: 8),
 
-          _buildInfoRow(
+          InfoRowTile(
             icon: LucideIcons.bookmark,
             title: 'Terms of Use',
             onTap: () async {
@@ -559,8 +519,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               // });
             },
           ),
-          const Divider(height: 1),
-          _buildInfoRow(
+          InfoRowTile(
             icon: LucideIcons.shield,
             title: 'Privacy Policy',
             onTap: () async {
@@ -588,39 +547,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String title,
-    String? value,
-    IconData? trailingIcon,
-    required VoidCallback onTap,
-    bool showIcon = true,
-  }) {
-    return ListTile(
-      minVerticalPadding: 0,
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColorV2.primary.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(icon, color: AppColorV2.primary, size: 20),
-      ),
-      title: DefaultText(
-        text: title,
-        color: AppColorV2.primaryTextColor,
-        style: AppTextStyle.body1,
-      ),
-
-      trailing:
-          showIcon
-              ? Icon(trailingIcon, color: AppColorV2.lpTealBrand, size: 16)
-              : null,
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
     );
   }
 }

@@ -21,7 +21,6 @@ import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
 import '../routes/routes.dart';
-import 'profile_screen.dart';
 
 class MyProfile extends StatefulWidget {
   const MyProfile({super.key});

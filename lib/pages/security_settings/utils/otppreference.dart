@@ -1,11 +1,11 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_tile.dart';
 
 import '../../../auth/authentication.dart';
 import '../../../custom_widgets/app_color_v2.dart';
-import '../../../custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../../security/app_security.dart';
 import '../controller.dart';
@@ -63,82 +63,66 @@ class _OTPPreferenceState extends State<OTPPreference> {
             () => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 14),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Symbols.shield_person,
-                      color: AppColorV2.lpBlueBrand,
-                      size: 30,
-                    ),
-                    SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          DefaultText(
-                            text: "Login Security",
-                            style: AppTextStyle.h3,
+                DefaultContainer(
+                  child: Column(
+                    children: [
+                      InfoRowTile(
+                        icon: LucideIcons.shield,
+                        title: 'Login Security',
+                        subtitle: "Enable secure login with biometrics.",
+                        subtitleMaxlines: 2,
+                        onTap: () {
+                          controller.toggleBiometricAuthentication(
+                            !controller.isToggle.value,
+                          );
+                        },
+                        trailing: Container(
+                          width: 50,
+                          height: 25,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            color:
+                                controller.isToggle.value
+                                    ? AppColorV2.lpBlueBrand
+                                    : AppColorV2.inactiveButton,
                           ),
-                          SizedBox(height: 4),
-                          DefaultText(
-                            text: "Enable secure login with biometrics.",
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    InkWell(
-                      onTap: () {
-                        controller.toggleBiometricAuthentication(
-                          !controller.isToggle.value,
-                        );
-                      },
-                      child: Container(
-                        width: 50,
-                        height: 25,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color:
-                              controller.isToggle.value
-                                  ? AppColorV2.lpBlueBrand
-                                  : AppColorV2.inactiveButton,
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            AnimatedPositioned(
-                              duration: Duration(milliseconds: 200),
-                              left: controller.isToggle.value ? 30 : 5,
-                              child: Container(
-                                width: 15,
-                                height: 15,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 2.0,
-                                      spreadRadius: 1.0,
-                                    ),
-                                  ],
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AnimatedPositioned(
+                                duration: Duration(milliseconds: 200),
+                                left: controller.isToggle.value ? 30 : 5,
+                                child: Container(
+                                  width: 15,
+                                  height: 15,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(30),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 2.0,
+                                        spreadRadius: 1.0,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        trailingOnTap: () {
+                          controller.toggleBiometricAuthentication(
+                            !controller.isToggle.value,
+                          );
+                        },
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 14),
-          Divider(color: AppColorV2.bodyTextColor.withAlpha(80)),
-          SizedBox(height: 14),
 
           // Column(
           //   crossAxisAlignment: CrossAxisAlignment.start,
