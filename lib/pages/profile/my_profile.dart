@@ -37,14 +37,11 @@ class _MyProfileState extends State<MyProfile> {
   File? imageFile;
   List regionData = [];
   String myName = "";
-  String myAddress = "";
-  String civilStatus = "";
   String province = "";
-  String gender = "";
   String myprofile = "";
   bool isLoading = true;
   bool isNetConn = true;
-  var profWidget = <Widget>[];
+  ImageProvider? profileImage;
 
   @override
   void initState() {
@@ -53,12 +50,14 @@ class _MyProfileState extends State<MyProfile> {
   }
 
   Future<void> initialize() async {
-    final objData = await Authentication().getUserData2();
     final profilepic = await Authentication().getUserProfilePic();
     myprofile = profilepic;
-    if (objData == null) return;
 
-    userData = objData;
+    if (profilepic.isNotEmpty) {
+      final bytes = base64Decode(profilepic);
+      profileImage = MemoryImage(bytes);
+    }
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -177,10 +176,15 @@ class _MyProfileState extends State<MyProfile> {
       }
 
       if (res["success"] == "Y") {
-        myprofile = imageBase64!;
-        setNewUserImg(myprofile);
-        Authentication().setProfilePic(jsonEncode(imageBase64!));
-        initialize();
+        if (myprofile != imageBase64) {
+          myprofile = imageBase64!;
+          profileImage = MemoryImage(base64Decode(myprofile));
+        }
+
+        Authentication().setProfilePic(jsonEncode(myprofile));
+
+        if (!mounted) return;
+        setState(() {});
       } else {
         CustomDialogStack.showError(context, "luvpay", res["msg"], () {
           Get.back();
@@ -255,41 +259,6 @@ class _MyProfileState extends State<MyProfile> {
     CustomDialogStack.showServerError(context, () {
       Get.back();
     });
-  }
-
-  void setNewUserImg(String img) {
-    profWidget.clear();
-    profWidget.add(
-      Material(
-        color: Colors.transparent,
-        child: Container(
-          height: 60,
-          decoration: BoxDecoration(
-            color: Colors.blue,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColorV2.background, width: 4.0),
-          ),
-          child: Center(
-            child: CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.grey[200],
-              backgroundImage:
-                  img.isNotEmpty ? MemoryImage(base64Decode(img)) : null,
-              child:
-                  img.isEmpty
-                      ? Icon(
-                        Icons.person,
-                        size: 32,
-                        color: AppColorV2.lpBlueBrand,
-                      )
-                      : null,
-            ),
-          ),
-        ),
-      ),
-    );
-
-    initialize();
   }
 
   String getCivilStatusLabel(String? value) {
@@ -384,7 +353,12 @@ class _MyProfileState extends State<MyProfile> {
       children: [
         Stack(
           children: [
-            LpProfileAvatar(base64Image: myprofile, size: 130, borderWidth: 3),
+            LpProfileAvatar(
+              imageProvider: profileImage,
+              size: 130,
+              borderWidth: 3,
+            ),
+
             Positioned(
               right: 0,
               bottom: 1,

@@ -326,12 +326,26 @@ class _WalletScreenState extends State<WalletScreen> {
     }
   }
 
+  ImageProvider? profileImage;
+
   Future<void> _loadProfile({bool force = false}) async {
     final pic = await Authentication().getUserProfilePic();
-
     if (!mounted) return;
 
+    if (pic.isEmpty) return;
+
     if (force || pic != myprofile) {
+      final cached = ImageCacheHelper.getCachedImage(pic);
+
+      if (cached != null) {
+        profileImage = cached;
+      } else {
+        final bytes = base64Decode(pic);
+        final provider = MemoryImage(bytes);
+        ImageCacheHelper.cacheImage(pic, provider);
+        profileImage = provider;
+      }
+
       setState(() {
         myprofile = pic;
       });
@@ -646,7 +660,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
     return Row(
       children: [
-        LpProfileAvatar(base64Image: myprofile, size: 50, borderWidth: 3),
+        LpProfileAvatar(imageProvider: profileImage, size: 50, borderWidth: 3),
         SizedBox(width: 12),
         Expanded(
           child: Column(

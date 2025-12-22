@@ -1,15 +1,14 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 
 class LpProfileAvatar extends StatelessWidget {
-  final String base64Image;
+  final ImageProvider? imageProvider;
   final double size;
   final double borderWidth;
+
   const LpProfileAvatar({
     super.key,
-    required this.base64Image,
+    required this.imageProvider,
     required this.size,
     required this.borderWidth,
   });
@@ -17,6 +16,8 @@ class LpProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
@@ -25,18 +26,17 @@ class LpProfileAvatar extends StatelessWidget {
         ),
       ),
       child: ClipOval(
-        child: Container(
-          height: size,
-          width: size,
-          decoration: BoxDecoration(shape: BoxShape.circle),
-          child:
-              base64Image.isEmpty
-                  ? Image.asset(
-                    "assets/images/d_unverified_img.png",
-                    height: size * 0.8,
-                  )
-                  : Image.memory(base64Decode(base64Image), fit: BoxFit.cover),
-        ),
+        child:
+            imageProvider == null
+                ? Image.asset(
+                  "assets/images/d_unverified_img.png",
+                  fit: BoxFit.cover,
+                )
+                : Image(
+                  image: imageProvider!,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                ),
       ),
     );
   }
