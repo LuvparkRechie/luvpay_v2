@@ -62,7 +62,6 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     final subApi =
         "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=${filterFromDate.text}&tran_date_to=${filterToDate.text}";
     final response = await HttpRequestApi(api: subApi).get();
-    print("response   $response");
     setState(() => isLoadingPage = false);
     if (response == "No Internet") {
       setState(() {

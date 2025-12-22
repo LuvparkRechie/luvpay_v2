@@ -209,7 +209,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final Color secondaryTeal = const Color(0xFF009688);
     return CustomScaffoldV2(
       leading: SizedBox.shrink(),
-
+      canPop: false,
       showAppBar: false,
       scaffoldBody:
           isLoading

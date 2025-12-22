@@ -69,10 +69,9 @@ class SecuritySettingsController extends GetxController {
       }
 
       final bool authenticated = await auth.authenticate(
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
+        biometricOnly: true,
+        persistAcrossBackgrounding: true,
+
         localizedReason: 'Please authenticate to continue',
         authMessages: const <AuthMessages>[
           AndroidAuthMessages(

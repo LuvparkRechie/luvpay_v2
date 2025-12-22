@@ -7,6 +7,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_textfield.dart';
 import 'package:luvpay/custom_widgets/loading.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/http/http_request.dart';
@@ -149,145 +150,147 @@ class _PayMerchantState extends State<PayMerchant> {
 
   @override
   Widget build(BuildContext context) {
-    return isLoadingMerch
-        ? LoadingCard()
-        : !hasNet
-        ? NoInternetConnected()
-        : Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 20),
-          child: Column(
-            children: [
-              spacing(height: 20),
+    return CustomScaffoldV2(
+      scaffoldBody:
+          isLoadingMerch
+              ? LoadingCard()
+              : !hasNet
+              ? NoInternetConnected()
+              : Column(
+                children: [
+                  _buildMerchantCard(),
+                  spacing(height: 10),
 
-              _buildMerchantCard(),
-              spacing(height: 10),
+                  Expanded(
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        children: [
+                          spacing(height: 20),
 
-              Expanded(
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    children: [
-                      spacing(height: 20),
+                          buildWalletBalance(),
+                          spacing(height: 20),
+                          DefaultText(text: "Amount", style: AppTextStyle.h3),
+                          CustomTextField(
+                            hintText: "Enter payment amount",
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            controller: amountController,
+                            inputFormatters: [AutoDecimalInputFormatter()],
+                            validator: _validateAmount,
+                          ),
+                          spacing(height: 14),
+                          DefaultText(
+                            text: "Order Number (Optional)",
+                            style: AppTextStyle.h3,
+                          ),
+                          CustomTextField(
+                            hintText: "Enter order number",
+                            keyboardType: TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            controller: orderNumberController,
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(20),
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                          ),
+                          spacing(height: 30),
+                          CustomButton(
+                            text: "Pay now",
+                            onPressed: () async {
+                              FocusManager.instance.primaryFocus?.unfocus();
 
-                      buildWalletBalance(),
-                      spacing(height: 20),
-                      DefaultText(text: "Amount", style: AppTextStyle.h3),
-                      CustomTextField(
-                        hintText: "Enter payment amount",
-                        keyboardType: TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        controller: amountController,
-                        inputFormatters: [AutoDecimalInputFormatter()],
-                        validator: _validateAmount,
-                      ),
-                      spacing(height: 14),
-                      DefaultText(
-                        text: "Order Number (Optional)",
-                        style: AppTextStyle.h3,
-                      ),
-                      CustomTextField(
-                        hintText: "Enter order number",
-                        keyboardType: TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        controller: orderNumberController,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(20),
-                          FilteringTextInputFormatter.digitsOnly,
+                              if (_formKey.currentState?.validate() ?? false) {
+                                bool? isEnabledBioTrans =
+                                    await Authentication().getBiometricStatus();
+                                Map<String, dynamic> data =
+                                    await Authentication().getEncryptedKeys();
+                                final uData =
+                                    await Authentication().getUserData2();
+
+                                //
+                                if (isEnabledBioTrans!) {
+                                  bool isEnabledBio =
+                                      await AppSecurity.authenticateBio();
+
+                                  if (isEnabledBio) {
+                                    payMerchantVerify(isAuth: data["pwd"]);
+                                  }
+                                } else {
+                                  CustomDialogStack.showLoading(Get.context!);
+                                  DateTime timeNow =
+                                      await Functions.getTimeNow();
+                                  Map<String, String> requestParam = {
+                                    "mobile_no": data["mobile_no"],
+                                    "pwd": data["pwd"],
+                                  };
+                                  Get.back();
+
+                                  Functions().requestOtp(requestParam, (
+                                    objData,
+                                  ) async {
+                                    DateTime timeExp = DateFormat(
+                                      "yyyy-MM-dd hh:mm:ss a",
+                                    ).parse(objData["otp_exp_dt"].toString());
+                                    DateTime otpExpiry = DateTime(
+                                      timeExp.year,
+                                      timeExp.month,
+                                      timeExp.day,
+                                      timeExp.hour,
+                                      timeExp.minute,
+                                      timeExp.millisecond,
+                                    );
+
+                                    // Calculate difference
+                                    Duration difference = otpExpiry.difference(
+                                      timeNow,
+                                    );
+
+                                    if (objData["success"] == "Y" ||
+                                        objData["status"] == "PENDING") {
+                                      Map<String, String> putParam = {
+                                        "mobile_no":
+                                            uData["mobile_no"].toString(),
+                                        "otp": objData["otp"].toString(),
+                                        "req_type": "SR",
+                                      };
+
+                                      Object args = {
+                                        "time_duration": difference,
+                                        "mobile_no":
+                                            uData["mobile_no".toString()]
+                                                .toString(),
+                                        "req_otp_param": requestParam,
+                                        "verify_param": putParam,
+                                        "callback": (otp) async {
+                                          if (otp != null) {
+                                            payMerchantVerify();
+                                          }
+                                        },
+                                      };
+
+                                      Get.to(
+                                        OtpFieldScreen(arguments: args),
+                                        transition:
+                                            Transition.rightToLeftWithFade,
+                                        duration: Duration(milliseconds: 400),
+                                      );
+                                    }
+                                  });
+                                }
+                              }
+                            },
+                          ),
+                          // spacing(height: 90),
                         ],
                       ),
-                      spacing(height: 30),
-                      CustomButton(
-                        text: "Pay now",
-                        onPressed: () async {
-                          FocusManager.instance.primaryFocus?.unfocus();
-
-                          if (_formKey.currentState?.validate() ?? false) {
-                            bool? isEnabledBioTrans =
-                                await Authentication().getBiometricStatus();
-                            Map<String, dynamic> data =
-                                await Authentication().getEncryptedKeys();
-                            final uData = await Authentication().getUserData2();
-
-                            //
-                            if (isEnabledBioTrans!) {
-                              bool isEnabledBio =
-                                  await AppSecurity.authenticateBio();
-
-                              if (isEnabledBio) {
-                                payMerchantVerify(isAuth: data["pwd"]);
-                              }
-                            } else {
-                              CustomDialogStack.showLoading(Get.context!);
-                              DateTime timeNow = await Functions.getTimeNow();
-                              Map<String, String> requestParam = {
-                                "mobile_no": data["mobile_no"],
-                                "pwd": data["pwd"],
-                              };
-                              Get.back();
-
-                              Functions().requestOtp(requestParam, (
-                                objData,
-                              ) async {
-                                DateTime timeExp = DateFormat(
-                                  "yyyy-MM-dd hh:mm:ss a",
-                                ).parse(objData["otp_exp_dt"].toString());
-                                DateTime otpExpiry = DateTime(
-                                  timeExp.year,
-                                  timeExp.month,
-                                  timeExp.day,
-                                  timeExp.hour,
-                                  timeExp.minute,
-                                  timeExp.millisecond,
-                                );
-
-                                // Calculate difference
-                                Duration difference = otpExpiry.difference(
-                                  timeNow,
-                                );
-
-                                if (objData["success"] == "Y" ||
-                                    objData["status"] == "PENDING") {
-                                  Map<String, String> putParam = {
-                                    "mobile_no": uData["mobile_no"].toString(),
-                                    "otp": objData["otp"].toString(),
-                                    "req_type": "SR",
-                                  };
-
-                                  Object args = {
-                                    "time_duration": difference,
-                                    "mobile_no":
-                                        uData["mobile_no".toString()]
-                                            .toString(),
-                                    "req_otp_param": requestParam,
-                                    "verify_param": putParam,
-                                    "callback": (otp) async {
-                                      if (otp != null) {
-                                        payMerchantVerify();
-                                      }
-                                    },
-                                  };
-
-                                  Get.to(
-                                    OtpFieldScreen(arguments: args),
-                                    transition: Transition.rightToLeftWithFade,
-                                    duration: Duration(milliseconds: 400),
-                                  );
-                                }
-                              });
-                            }
-                          }
-                        },
-                      ),
-                      // spacing(height: 90),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        );
+    );
   }
 
   Widget buildWalletBalance() {
@@ -334,13 +337,10 @@ class _PayMerchantState extends State<PayMerchant> {
         Icon(LucideIcons.store, color: AppColorV2.lpBlueBrand, size: 24),
         SizedBox(width: 10),
         Expanded(
-          child: Text(
-            _capitalize(widget.data[0]["merchant_name"]),
-            style: TextStyle(
-              color: AppColorV2.lpBlueBrand,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
+          child: DefaultText(
+            color: AppColorV2.lpBlueBrand,
+            text: _capitalize(widget.data[0]["data"]["merchant_name"]),
+            style: AppTextStyle.h4,
           ),
         ),
       ],

@@ -8,6 +8,7 @@ import 'package:luvpay/pages/forgot_password/utils/create_new/index.dart';
 import 'package:luvpay/pages/my_account/utils/index.dart';
 import 'package:luvpay/pages/qr/index.dart';
 import 'package:luvpay/pages/security_settings/index.dart';
+import 'package:luvpay/pages/subwallet/index.dart';
 
 import '../dashboard/index.dart';
 import '../landing/index.dart';
@@ -170,7 +171,15 @@ class AppPages {
       name: Routes.merchantReceipt,
       page: () => MerchantQRReceipt(),
       binding: merchantQRRBindings(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.subwallet,
+      page: () => SubWalletScreen(),
+      binding: SubWalletBinding(),
+      transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),

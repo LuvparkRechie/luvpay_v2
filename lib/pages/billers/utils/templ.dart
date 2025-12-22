@@ -187,7 +187,7 @@ class _TemplState extends State<Templ> {
       NotificationController.parkingNotif(
         dateNow.microsecond,
         0,
-        "Payment Successfull",
+        "Payment Successful",
         msg,
         "",
       );

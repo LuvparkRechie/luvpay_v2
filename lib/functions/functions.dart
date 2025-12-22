@@ -923,4 +923,23 @@ class Functions {
 
     return "Wallet User";
   }
+
+  String getFirstSurnameLetter(Map<String, dynamic> user) {
+    final first = user['first_name']?.toString().trim() ?? '';
+    final last = user['last_name']?.toString().trim() ?? '';
+    final mobile = user['mobile_no'] ?? '';
+
+    final lastInitial = last.isNotEmpty ? '${last[0]}.' : '';
+
+    final fullName =
+        [first, lastInitial].where((e) => e.isNotEmpty).join(' ').trim();
+
+    if (fullName.isNotEmpty) return fullName;
+
+    if (mobile.toString().isNotEmpty && mobile.toString().length >= 4) {
+      return "User ${mobile.toString().substring(mobile.toString().length - 4)}";
+    }
+
+    return "luvpay User";
+  }
 }

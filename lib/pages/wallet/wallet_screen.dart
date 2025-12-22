@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/pages/billers/index.dart';
 import 'package:luvpay/pages/billers/utils/allbillers.dart';
@@ -22,6 +24,7 @@ import '../../custom_widgets/custom_text_v2.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
+import '../dashboard/refresh_wallet.dart';
 import '../transaction/transaction_details.dart';
 import '../transaction/transaction_screen.dart';
 import 'notifications.dart';
@@ -34,7 +37,6 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  int _selectedTab = 0;
   bool isLoading = false;
   List userData = [];
   bool hasNet = true;
@@ -48,10 +50,9 @@ class _WalletScreenState extends State<WalletScreen> {
   String myprofile = "";
   bool _isDialogVisible = false;
 
-  // Add merchant grid items with SVG paths
   List<Map<String, dynamic>> get _merchantGridItems => [
     {
-      'icon': "assets/svg/merchant.svg",
+      'icon': "assets/images/luvpay_merchant.png",
       'label': 'Merchant',
       'color': Colors.blue,
       'onTap': () {
@@ -59,7 +60,7 @@ class _WalletScreenState extends State<WalletScreen> {
       },
     },
     {
-      'icon': "assets/svg/bills.svg", // Changed to SVG path
+      'icon': "assets/images/luvpay_bills.png",
       'label': 'Bills',
       'color': Colors.green,
       'onTap': () async {
@@ -76,11 +77,19 @@ class _WalletScreenState extends State<WalletScreen> {
       },
     },
     {
-      'icon': "assets/svg/top_up.svg", // Assuming you have this SVG
+      'icon': "assets/images/luvpay_topup.png",
       'label': 'Top-up',
       'color': Colors.orange,
       'onTap': () {
         showTopUpMethod();
+      },
+    },
+    {
+      'icon': "assets/images/luvpay_subwallet.png",
+      'label': 'Subwallets',
+      'color': Colors.red,
+      'onTap': () {
+        Get.toNamed(Routes.subwallet);
       },
     },
   ];
@@ -88,9 +97,16 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserInfo().then((_) {
+      getLogs();
+    });
     getUserData();
-    getLogs();
+    _loadProfile();
     getNotificationCount();
+
+    ever(WalletRefreshBus.refresh, (_) {
+      _startAutoRefresh();
+    });
   }
 
   void _startAutoRefresh() {
@@ -140,7 +156,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
     String apiMerchant = "${ApiKeys.getMerchantScan}?merchant_key=$args";
 
-    /// ---- TRY MERCHANT QR SCdfafdasfN ----
     final merchantResponse = await getScannedQr(apiMerchant);
 
     if (merchantResponse == "No Internet") {
@@ -162,7 +177,6 @@ class _WalletScreenState extends State<WalletScreen> {
       return;
     }
 
-    /// ---- BOTH FAILED: INVALID QR ----
     Get.back();
     CustomDialogStack.showError(
       Get.context!,
@@ -174,20 +188,17 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  /// Helper to detect valid API response
   bool _isValidResponse(dynamic res) {
     if (res == null) return false;
     if (res == "Error" || res == "Failed") return false;
     if (res == "" || res == "{}" || res == "[]") return false;
 
-    // If it's a map and contains required fields
     if (res is Map && res.isNotEmpty) return true;
     if (res is List && res.isNotEmpty) return true;
 
     return false;
   }
 
-  /// Handles success response
   void _handleSuccess(
     String args,
     String type,
@@ -195,7 +206,6 @@ class _WalletScreenState extends State<WalletScreen> {
     serviceName,
     serviceAddress,
   ) async {
-    // Navigate or handle according to type
     final paymentHk = await getpaymentHK();
     Get.back();
 
@@ -233,7 +243,6 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  /// Common internet error dialog
   void _showInternetError() {
     Get.back();
     CustomDialogStack.showError(
@@ -247,7 +256,6 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<dynamic> getpaymentHK() async {
-    // CustomDialogStack.showLoading(Get.context!);
     final userID = await Authentication().getUserId();
 
     final paymentKey =
@@ -318,58 +326,74 @@ class _WalletScreenState extends State<WalletScreen> {
     }
   }
 
+  Future<void> _loadProfile({bool force = false}) async {
+    final pic = await Authentication().getUserProfilePic();
+
+    if (!mounted) return;
+
+    if (force || pic != myprofile) {
+      setState(() {
+        myprofile = pic;
+      });
+    }
+  }
+
+  Future<void> _loadUserInfo() async {
+    final data = await Authentication().getUserData2();
+    if (!mounted) return;
+
+    setState(() {
+      userInfo = data;
+    });
+  }
+
   Future<void> getLogs() async {
+    if (userInfo["user_id"] == null) return;
+
     try {
-      userInfo = await Authentication().getUserData2();
-      final profilepic = await Authentication().getUserProfilePic();
-      myprofile = profilepic;
       DateTime timeNow = await Functions.getTimeNow();
       String toDate = timeNow.toString().split(" ")[0];
       String fromDate =
           timeNow.subtract(const Duration(days: 1)).toString().split(" ")[0];
-      String userId = userInfo["user_id"].toString();
 
       String subApi =
-          "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=$fromDate&tran_date_to=$toDate";
-      HttpRequestApi(api: subApi).get().then((response) async {
-        if (response == "No Internet") {
-          hasNet = false;
-          isLoading = false;
-          _startAutoRefresh();
-          if (!_isDialogVisible) {
-            _isDialogVisible = true;
-            CustomDialogStack.showConnectionLost(Get.context!, () {
-              _isDialogVisible = false;
-              Get.back();
-              getLogs();
-            });
-          }
-          return;
+          "${ApiKeys.getTransLogs}?user_id=${userInfo["user_id"]}&tran_date_from=$fromDate&tran_date_to=$toDate";
+
+      final response = await HttpRequestApi(api: subApi).get();
+
+      if (!mounted) return;
+
+      if (response == "No Internet") {
+        hasNet = false;
+        isLoading = false;
+        _startAutoRefresh();
+        if (!_isDialogVisible) {
+          _isDialogVisible = true;
+          CustomDialogStack.showConnectionLost(Get.context!, () {
+            _isDialogVisible = false;
+            Get.back();
+            getLogs();
+          });
         }
+        return;
+      }
 
-        if (response is Map && response["items"].isNotEmpty) {
-          DateTime timeNow = await Functions.getTimeNow();
-          DateTime today = timeNow.toUtc();
+      if (response is Map && response["items"].isNotEmpty) {
+        final today = (await Functions.getTimeNow())
+            .toUtc()
+            .toIso8601String()
+            .substring(0, 10);
 
-          String todayString = today.toIso8601String().substring(0, 10);
-
-          if (mounted) {
-            List items = response["items"];
-            setState(() {
-              logs =
-                  items
-                      .where((transaction) {
-                        String transactionDate =
-                            transaction['tran_date'].toString().split("T")[0];
-                        return transactionDate == todayString;
-                      })
-                      .toList()
-                      .take(5)
-                      .toList();
-            });
-          }
-        }
-      });
+        setState(() {
+          logs =
+              response["items"]
+                  .where(
+                    (e) => e['tran_date'].toString().split("T")[0] == today,
+                  )
+                  .take(5)
+                  .toList();
+        });
+      }
     } catch (e) {
       debugPrint("Error fetching logs: $e");
     }
@@ -539,12 +563,36 @@ class _WalletScreenState extends State<WalletScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(19, 19, 19, 0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _buildHeader(),
               SizedBox(height: 20),
               _buildBalanceCard(),
-              SizedBox(height: 20),
               _buildMerchantBillsGrid(),
+              SizedBox(height: 25),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  DefaultText(
+                    text: 'Recent Transactions',
+                    style: TextStyle(
+                      color: AppColorV2.primaryTextColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Get.to(() => TransactionHistory());
+                    },
+                    child: DefaultText(
+                      text: 'See all',
+                      style: AppTextStyle.textButton,
+                      color: AppColorV2.lpBlueBrand,
+                    ),
+                  ),
+                ],
+              ),
               SizedBox(height: 15),
               Expanded(child: _buildTransactionsTab()),
             ],
@@ -556,13 +604,11 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildMerchantBillsGrid() {
     return GridView.builder(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 20,
-        childAspectRatio: 1.1,
+        crossAxisCount: 4,
       ),
       itemCount: _merchantGridItems.length,
       itemBuilder: (context, index) {
@@ -572,29 +618,22 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  // ADDED: Merchant Grid Item Widget
   Widget _buildMerchantGridItem(Map<String, dynamic> item) {
     return GestureDetector(
       onTap: item['onTap'],
-      child: Container(
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+      child: FittedBox(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: SvgPicture.asset(item['icon'], width: 50, height: 50),
-            ),
-            SizedBox(height: 8),
-            Text(
-              item['label'],
+            Image.asset(item['icon'], width: 55, height: 60),
+            SizedBox(height: 5),
+            DefaultText(
+              text: item['label'],
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColorV2.primaryTextColor,
-              ),
-              maxLines: 2,
+              style: AppTextStyle.body1,
+              color: AppColorV2.primaryTextColor,
+              minFontSize: 5,
+              maxLines: 1,
             ),
           ],
         ),
@@ -619,7 +658,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 color: AppColorV2.primaryTextColor,
               ),
               DefaultText(
-                text: Functions().getDisplayName(userInfo),
+                text: Functions().getFirstSurnameLetter(userInfo),
                 style: AppTextStyle.h4,
                 maxLines: 1,
               ),
@@ -652,29 +691,25 @@ class _WalletScreenState extends State<WalletScreen> {
     final hour = DateTime.now().hour;
 
     if (hour >= 5 && hour < 12) {
-      return 'Good Morning';
+      return 'Good Morning,';
     } else if (hour >= 12 && hour < 17) {
-      return 'Good Afternoon';
+      return 'Good Afternoon,';
     } else if (hour >= 17 && hour < 21) {
-      return 'Good Evening';
+      return 'Good Evening,';
     } else {
-      return 'Good Night';
+      return 'Good Night,';
     }
   }
 
   Widget _buildBalanceCard() {
     return Container(
-      height: 130,
+      height: 198,
+      width: 350,
       decoration: BoxDecoration(
-        gradient: AppColorV2.primaryGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColorV2.lpBlueBrand.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
+        image: DecorationImage(
+          image: AssetImage("assets/images/luvpay_card.png"),
+          fit: BoxFit.fill,
+        ),
       ),
       child: Stack(
         children: [
@@ -705,68 +740,92 @@ class _WalletScreenState extends State<WalletScreen> {
           Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Image.asset(
+                          "assets/images/onboardluvpay.png",
+                          width: 100,
+                          height: 30,
+                        ),
+                        InkWell(
+                          onTap: () {
+                            openEye(isOpen);
+                          },
+                          child: Image.asset(
+                            isOpen
+                                ? "assets/images/eye_show.png"
+                                : "assets/images/eye_hide.png",
+                            width: 30,
+                            height: 30,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        DefaultText(
+                          text: 'Available Balance',
+                          style: AppTextStyle.paragraph1,
+                          color: AppColorV2.background,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                    DefaultText(
+                      text:
+                          userData.isEmpty ||
+                                  userData[0]["items"].isEmpty ||
+                                  !isOpen
+                              ? "PHP •••••••"
+                              : "PHP ${toCurrencyString(userData[0]["items"][0]["amount_bal"])}",
+                      fontSize: 32,
+                      style: AppTextStyle.body1,
+                      color: AppColorV2.background,
+                    ),
+                    SizedBox(height: 8),
+                  ],
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     DefaultText(
-                      text: 'Total Balance',
-                      style: AppTextStyle.paragraph1,
+                      text: Functions().getFirstSurnameLetter(userInfo),
+                      style: AppTextStyle.h3_semibold,
                       color: AppColorV2.background,
-                      fontWeight: FontWeight.w600,
+                      maxLines: 1,
                     ),
-
-                    InkWell(
-                      onTap: () {
-                        openEye(isOpen);
-                      },
-                      child: Icon(
-                        isOpen
-                            ? Icons.visibility_rounded
-                            : Icons.visibility_off_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                DefaultText(
-                  text:
-                      userData.isEmpty ||
-                              userData[0]["items"].isEmpty ||
-                              !isOpen
-                          ? "•••••••"
-                          : toCurrencyString(
-                            userData[0]["items"][0]["amount_bal"],
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 2,
                           ),
-                  fontSize: 32,
-                  style: AppTextStyle.body1,
-                  color: AppColorV2.background,
-                ),
-                SizedBox(height: 8),
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: DefaultText(
-                        maxFontSize: 12,
-                        minFontSize: 8,
-                        text:
-                            userInfo["mobile_no"] != null
-                                ? "•••••••${userInfo["mobile_no"].toString().substring(userInfo["mobile_no"].toString().length - 4)}"
-                                : "•••••••••••",
-                        style: AppTextStyle.body1,
-                        color: AppColorV2.background,
-                      ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DefaultText(
+                            maxFontSize: 12,
+                            minFontSize: 8,
+                            text:
+                                userInfo["mobile_no"] != null
+                                    ? "•••••••${userInfo["mobile_no"].toString().substring(userInfo["mobile_no"].toString().length - 4)}"
+                                    : "•••••••••••",
+                            style: AppTextStyle.body1,
+                            color: AppColorV2.background,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -779,44 +838,11 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildTransactionsTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            DefaultText(
-              text: 'Recent Transactions',
-              style: TextStyle(
-                color: AppColorV2.primaryTextColor,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                Get.to(TransactionHistory());
-              },
-              child: DefaultText(
-                text: 'See all',
-                color: AppColorV2.lpBlueBrand,
-                style: AppTextStyle.body1,
-              ),
-            ),
-          ],
-        ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await getLogs();
-            },
-            child: TransactionSectionListView(
-              sectionTitle: '',
-              transactions: logs.cast<Map<String, dynamic>>(),
-            ),
-          ),
-        ),
-      ],
+    return SingleChildScrollView(
+      physics: BouncingScrollPhysics(),
+      child: TransactionSectionListView(
+        transactions: logs.cast<Map<String, dynamic>>(),
+      ),
     );
   }
 
@@ -1073,14 +1099,9 @@ class ImageCacheHelper {
 }
 
 class TransactionSectionListView extends StatelessWidget {
-  final String sectionTitle;
   final List<Map<String, dynamic>> transactions;
 
-  const TransactionSectionListView({
-    super.key,
-    required this.sectionTitle,
-    required this.transactions,
-  });
+  const TransactionSectionListView({super.key, required this.transactions});
 
   @override
   Widget build(BuildContext context) {
@@ -1089,32 +1110,16 @@ class TransactionSectionListView extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(0),
-      child: SingleChildScrollView(
+      padding: EdgeInsets.zero,
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
         physics: BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DefaultText(
-              text: sectionTitle,
-              style: TextStyle(
-                color: AppColorV2.primaryTextColor,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ListView.builder(
-              physics: BouncingScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: transactions.length,
-              itemBuilder: (context, index) {
-                final transaction = transactions[index];
-                return _buildTransactionItem(context, transaction);
-              },
-            ),
-          ],
-        ),
+        shrinkWrap: true,
+        itemCount: transactions.length,
+        itemBuilder: (context, index) {
+          final transaction = transactions[index];
+          return _buildTransactionItem(context, transaction);
+        },
       ),
     );
   }
@@ -1146,21 +1151,8 @@ class TransactionSectionListView extends StatelessWidget {
           TransactionDetails(index: 0, data: [transaction], isHistory: true),
         );
       },
-      child: Container(
-        margin: EdgeInsets.only(bottom: 12),
-        padding: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColorV2.boxStroke),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 25.0),
         child: Row(
           children: [
             Container(

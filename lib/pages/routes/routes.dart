@@ -50,4 +50,5 @@ class Routes {
   static const voucher = "/voucher";
   static const dashboard = "/dashboard";
   static const securitySettings = "/security_settings";
+  static const subwallet = "/subwallet";
 }
