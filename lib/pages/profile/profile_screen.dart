@@ -211,64 +211,72 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       leading: SizedBox.shrink(),
       canPop: false,
       showAppBar: false,
+      padding: EdgeInsets.zero,
       scaffoldBody:
           isLoading
               ? LoadingCard()
-              : CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  headerProfile(primaryBlue, secondaryTeal, isVerified),
-                  SliverToBoxAdapter(child: SizedBox(height: 20)),
-                  !isVerified
-                      ? SliverToBoxAdapter(child: SizedBox.shrink())
-                      : VerifiedWidget(isVerified: isVerified),
-                  SliverToBoxAdapter(
-                    child: Column(
-                      spacing: 14,
-                      children: [
-                        SizedBox(height: 16),
-                        _profile(),
-                        _helpAndSupport(),
-                        _legal(),
-                        SizedBox(
-                          width: double.infinity,
-                          child: CustomButtons.no(
-                            text: "Logout",
-                            onPressed: () {
-                              CustomDialogStack.showConfirmation(
-                                isAllBlueColor: false,
-                                context,
-                                "Logout",
-                                "Are you sure you want to logout?",
-                                leftText: "No",
-                                rightText: "Yes",
-                                () {
-                                  Get.back();
-                                },
-                                () async {
-                                  Get.back();
-                                  final uData =
-                                      await Authentication().getUserData2();
+              : CustomGradientBackground(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(19, 19, 19, 0),
+                  child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      headerProfile(primaryBlue, secondaryTeal, isVerified),
+                      SliverToBoxAdapter(child: SizedBox(height: 20)),
+                      !isVerified
+                          ? SliverToBoxAdapter(child: SizedBox.shrink())
+                          : VerifiedWidget(isVerified: isVerified),
+                      SliverToBoxAdapter(
+                        child: Column(
+                          spacing: 14,
+                          children: [
+                            SizedBox(height: 16),
+                            _profile(),
+                            _helpAndSupport(),
+                            _legal(),
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButtons.no(
+                                text: "Logout",
+                                onPressed: () {
+                                  CustomDialogStack.showConfirmation(
+                                    isAllBlueColor: false,
+                                    context,
+                                    "Logout",
+                                    "Are you sure you want to logout?",
+                                    leftText: "No",
+                                    rightText: "Yes",
+                                    () {
+                                      Get.back();
+                                    },
+                                    () async {
+                                      Get.back();
+                                      final uData =
+                                          await Authentication().getUserData2();
 
-                                  Functions.logoutUser(
-                                    uData["session_id"].toString(),
-                                    (isSuccess) async {
-                                      if (isSuccess["is_true"]) {
-                                        Authentication().setLogoutStatus(true);
-                                        Get.offAllNamed(Routes.login);
-                                      }
+                                      Functions.logoutUser(
+                                        uData["session_id"].toString(),
+                                        (isSuccess) async {
+                                          if (isSuccess["is_true"]) {
+                                            Authentication().setLogoutStatus(
+                                              true,
+                                            );
+                                            Get.offAllNamed(Routes.login);
+                                          }
+                                        },
+                                      );
                                     },
                                   );
                                 },
-                              );
-                            },
-                          ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
                         ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
     );
   }

@@ -479,7 +479,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                     future: Functions.getTimeNow(),
                     builder:
                         (context, s) => DefaultText(
-                          color: AppColorV2.background,
+                          color: AppColorV2.lpBlueBrand,
                           style: AppTextStyle.body1,
                           text:
                               "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}",

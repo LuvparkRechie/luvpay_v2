@@ -95,6 +95,16 @@ class AppTextStyle {
     color: AppColorV2.bodyTextColor, //0x6B7D91
   );
 
+  /// 12
+  /// 700
+  /// bodyTextColor
+  static TextStyle body2 = GoogleFonts.manrope(
+    fontSize: 12,
+    fontWeight: FontWeight.w700,
+    height: 18 / 14,
+    color: AppColorV2.bodyTextColor, //0x6B7D91
+  );
+
   /// 14
   /// 600
   /// bodyTextColor

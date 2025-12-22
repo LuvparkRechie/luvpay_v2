@@ -96,7 +96,7 @@ class SectionListView extends StatelessWidget {
           itemBuilder: (context, index) {
             final item = items[index];
             return InfoRowTile(
-              icon: item['icon'], // optional now
+              icon: item['icon'],
               title: item['title'],
               value: item['value'],
               trailing: item['trailing'],
