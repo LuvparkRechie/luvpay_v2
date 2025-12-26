@@ -530,6 +530,7 @@ class _WalletScreenState extends State<WalletScreen> {
               SizedBox(height: 16),
               Expanded(
                 child: GridView.builder(
+                  physics: BouncingScrollPhysics(),
                   padding: EdgeInsets.all(16),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
