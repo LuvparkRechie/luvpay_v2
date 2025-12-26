@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 import '../custom_widgets/alert_dialog.dart';
 import '../custom_widgets/app_color_v2.dart';
+import '../custom_widgets/custom_text_v2.dart';
+import '../custom_widgets/luvpay/custom_scaffold.dart';
 
 class WebviewPage extends StatefulWidget {
   final String urlDirect, label;
@@ -17,6 +18,8 @@ class WebviewPage extends StatefulWidget {
   final Function? onAgree;
   final Function? callback;
   final EdgeInsetsGeometry? bodyPadding;
+  final Map<String, dynamic>? lbReturn;
+  final Map<String, dynamic>? userData;
 
   const WebviewPage({
     super.key,
@@ -27,6 +30,8 @@ class WebviewPage extends StatefulWidget {
     this.callback,
     required this.label,
     this.bodyPadding,
+    this.lbReturn,
+    this.userData,
   });
 
   @override
@@ -41,6 +46,7 @@ class _WebviewPageState extends State<WebviewPage> {
   WebViewController? _controller;
   final UniqueKey _key = UniqueKey();
   bool isLoading = true;
+  bool hasError = false;
   int index = 0;
 
   @override
@@ -52,8 +58,6 @@ class _WebviewPageState extends State<WebviewPage> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
-      useNormalBody: true,
-      backgroundColor: AppColorV2.lpBlueBrand,
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
@@ -63,9 +67,7 @@ class _WebviewPageState extends State<WebviewPage> {
             "Are you sure you want to close this page?",
             leftText: "No",
             rightText: "Yes",
-            () {
-              Get.back();
-            },
+            () => Get.back(),
             () {
               Get.back();
               Get.back();
@@ -82,17 +84,13 @@ class _WebviewPageState extends State<WebviewPage> {
           "Are you sure you want to close this page?",
           leftText: "No",
           rightText: "Yes",
-          () {
-            Get.back();
-          },
+          () => Get.back(),
           () {
             Get.back();
             Get.back();
           },
         );
       },
-
-      // canPop: index <= 1,
       padding:
           widget.bodyPadding ?? EdgeInsets.only(top: 10, left: 0, right: 0),
       scaffoldBody:
@@ -111,6 +109,91 @@ class _WebviewPageState extends State<WebviewPage> {
                 key: _key,
                 gestureRecognizers: gestureRecognizers,
               ),
+      bottomNavigationBar:
+          widget.urlDirect.toLowerCase().contains("landbank") &&
+                  !isLoading &&
+                  !hasError &&
+                  widget.lbReturn?["status"]?.toString().toLowerCase() ==
+                      "success"
+              ? Container(
+                height: MediaQuery.of(context).size.height * 0.45,
+                padding: EdgeInsets.all(8),
+                alignment: Alignment.bottomCenter,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    DefaultText(
+                      text: "Transfer fees may apply",
+                      style: AppTextStyle.body1,
+                    ),
+                    SizedBox(height: 15),
+                    DefaultText(
+                      text: "${widget.userData?["name"] ?? ""}",
+                      style: AppTextStyle.h2,
+                      color: AppColorV2.lpBlueBrand,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        DefaultText(text: "Mobile No: "),
+                        DefaultText(
+                          text:
+                              (() {
+                                final n =
+                                    widget.userData?["to_mobile_no"] ?? "";
+                                return n.length < 4
+                                    ? n
+                                    : n.replaceRange(
+                                      n.length - 4,
+                                      n.length,
+                                      "••••",
+                                    );
+                              })(),
+                          style: AppTextStyle.body1,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        DefaultText(text: "Reference No: "),
+                        DefaultText(
+                          text:
+                              (() {
+                                final n =
+                                    widget.lbReturn?["reference_no"]
+                                        ?.toString() ??
+                                    "";
+                                return n.length < 10
+                                    ? "•" * n.length
+                                    : n.replaceRange(0, 10, "•" * 10);
+                              })(),
+                          style: AppTextStyle.body1,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 15),
+                    DefaultText(
+                      text: "${widget.lbReturn?["amount"] ?? ""}",
+                      style: AppTextStyle.h2,
+                    ),
+                    if (widget.lbReturn?["service_fee"] != null &&
+                        widget.lbReturn!["service_fee"] != "0")
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          DefaultText(text: "Service Fee: "),
+                          DefaultText(
+                            text: "${widget.lbReturn?["service_fee"]}",
+                            style: AppTextStyle.body1,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              )
+              : null,
     );
   }
 
@@ -126,7 +209,6 @@ class _WebviewPageState extends State<WebviewPage> {
     final WebViewController controller =
         WebViewController.fromPlatformCreationParams(params);
 
-    // Intercept page loads, including redirect success URLs
     controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
@@ -134,26 +216,31 @@ class _WebviewPageState extends State<WebviewPage> {
         NavigationDelegate(
           onPageStarted: (url) {
             index++;
-
-            if (index <= 1) {
-              if (mounted) setState(() => isLoading = true);
-            }
+            if (index <= 1 && mounted) setState(() => isLoading = true);
           },
           onPageFinished: (url) {
-            if (mounted) setState(() => isLoading = false);
+            if (mounted)
+              setState(() {
+                isLoading = false;
+                hasError = false;
+              });
+            widget.callback?.call(true);
           },
-          onNavigationRequest: (NavigationRequest request) {
+          onNavigationRequest: (request) {
             final uri = Uri.parse(request.url);
-
             if (uri.host == 'luvpark.ph' && uri.path.startsWith('/webhooks/')) {
               final status = uri.queryParameters['_st']?.toUpperCase();
-
               Get.back(result: {'status': status, 'url': request.url});
-
               return NavigationDecision.prevent;
             }
-
             return NavigationDecision.navigate;
+          },
+          onWebResourceError: (error) {
+            if (mounted)
+              setState(() {
+                isLoading = false;
+                hasError = true;
+              });
           },
         ),
       )
@@ -178,11 +265,6 @@ class _WebviewPageState extends State<WebviewPage> {
           .setMediaPlaybackRequiresUserGesture(false);
     }
 
-    // Android-Specific (Optional)
-    if (controller.platform is AndroidWebViewController) {
-      (controller.platform as AndroidWebViewController)
-          .setMediaPlaybackRequiresUserGesture(false);
-    }
     setState(() => _controller = controller);
   }
 }

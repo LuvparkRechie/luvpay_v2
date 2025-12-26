@@ -245,4 +245,17 @@ class ApiKeys {
     '{LUV_API}',
     luvApi,
   );
+
+  /// API endpoint: /ords/{PARK_SPACE_API}/pv2/reservations/
+  static final String putParkingVouchers = dotenv.env['PARKING_VOUCHERS']!
+      .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
+  static final String postUBTrans = dotenv.env['POST_UB_TRANS']!.replaceAll(
+    '{LUV_API}',
+    luvApi,
+  );
+  static final String postLandBankTrans = dotenv.env['POST_LANDBANK_END_POINT']!
+      .replaceAll('{LUV_API}', luvApi);
+
+  static final String parkAreaSubs = dotenv.env['PARKING_AREA_SUBSCRIPTION']!
+      .replaceAll('{PARK_SPACE_API}', luvApi);
 }

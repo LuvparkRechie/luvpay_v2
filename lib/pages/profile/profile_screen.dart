@@ -19,6 +19,7 @@ import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/loading.dart';
 import '../../custom_widgets/luvpay/custom_tile.dart';
+import '../../custom_widgets/luvpay/statusbar_manager.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../web_view/webview.dart';
@@ -207,77 +208,80 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final Color primaryBlue = const Color(0xFF2196F3);
     final bool isVerified = userData["is_verified"] == "N";
     final Color secondaryTeal = const Color(0xFF009688);
-    return CustomScaffoldV2(
-      leading: SizedBox.shrink(),
-      canPop: false,
-      showAppBar: false,
-      padding: EdgeInsets.zero,
-      scaffoldBody:
-          isLoading
-              ? LoadingCard()
-              : CustomGradientBackground(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(19, 19, 19, 0),
-                  child: CustomScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      headerProfile(primaryBlue, secondaryTeal, isVerified),
-                      SliverToBoxAdapter(child: SizedBox(height: 20)),
-                      !isVerified
-                          ? SliverToBoxAdapter(child: SizedBox.shrink())
-                          : VerifiedWidget(isVerified: isVerified),
-                      SliverToBoxAdapter(
-                        child: Column(
-                          spacing: 14,
-                          children: [
-                            SizedBox(height: 16),
-                            _profile(),
-                            _helpAndSupport(),
-                            _legal(),
-                            SizedBox(
-                              width: double.infinity,
-                              child: CustomButtons.no(
-                                text: "Logout",
-                                onPressed: () {
-                                  CustomDialogStack.showConfirmation(
-                                    isAllBlueColor: false,
-                                    context,
-                                    "Logout",
-                                    "Are you sure you want to logout?",
-                                    leftText: "No",
-                                    rightText: "Yes",
-                                    () {
-                                      Get.back();
-                                    },
-                                    () async {
-                                      Get.back();
-                                      final uData =
-                                          await Authentication().getUserData2();
+    return ConsistentStatusBarWrapper(
+      child: CustomScaffoldV2(
+        leading: SizedBox.shrink(),
+        canPop: false,
+        showAppBar: false,
+        padding: EdgeInsets.zero,
+        scaffoldBody:
+            isLoading
+                ? LoadingCard()
+                : CustomGradientBackground(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(19, 19, 19, 0),
+                    child: CustomScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      slivers: [
+                        headerProfile(primaryBlue, secondaryTeal, isVerified),
+                        SliverToBoxAdapter(child: SizedBox(height: 20)),
+                        !isVerified
+                            ? SliverToBoxAdapter(child: SizedBox.shrink())
+                            : VerifiedWidget(isVerified: isVerified),
+                        SliverToBoxAdapter(
+                          child: Column(
+                            spacing: 14,
+                            children: [
+                              SizedBox(height: 16),
+                              _profile(),
+                              _helpAndSupport(),
+                              _legal(),
+                              SizedBox(
+                                width: double.infinity,
+                                child: CustomButtons.no(
+                                  text: "Logout",
+                                  onPressed: () {
+                                    CustomDialogStack.showConfirmation(
+                                      isAllBlueColor: false,
+                                      context,
+                                      "Logout",
+                                      "Are you sure you want to logout?",
+                                      leftText: "No",
+                                      rightText: "Yes",
+                                      () {
+                                        Get.back();
+                                      },
+                                      () async {
+                                        Get.back();
+                                        final uData =
+                                            await Authentication()
+                                                .getUserData2();
 
-                                      Functions.logoutUser(
-                                        uData["session_id"].toString(),
-                                        (isSuccess) async {
-                                          if (isSuccess["is_true"]) {
-                                            Authentication().setLogoutStatus(
-                                              true,
-                                            );
-                                            Get.offAllNamed(Routes.login);
-                                          }
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
+                                        Functions.logoutUser(
+                                          uData["session_id"].toString(),
+                                          (isSuccess) async {
+                                            if (isSuccess["is_true"]) {
+                                              Authentication().setLogoutStatus(
+                                                true,
+                                              );
+                                              Get.offAllNamed(Routes.login);
+                                            }
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
+                              const SizedBox(height: 24),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
+      ),
     );
   }
 

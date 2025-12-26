@@ -15,6 +15,7 @@ import '../http/api_keys.dart';
 import '../http/http_request.dart';
 import '../otp_field/view.dart';
 import '../pages/routes/routes.dart';
+import 'package:get_storage/get_storage.dart';
 
 class DeviceRegScreen extends StatefulWidget {
   final String mobileNo;
@@ -153,7 +154,12 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
       return;
     }
     if (response["success"] == 'Y') {
+      final box = GetStorage();
+
+      box.writeIfNull('isFirstLogin', true);
+
       Get.back(result: {"success": true});
+
       if (args["cb"] == null) {
         CustomDialogStack.showSuccess(
           Get.context!,

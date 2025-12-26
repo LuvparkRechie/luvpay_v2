@@ -248,6 +248,7 @@ class LoginScreenController extends GetxController {
             returnPost["msg"],
             () {
               Get.back();
+              Get.back();
             },
           );
         }
@@ -331,7 +332,7 @@ class LoginScreenController extends GetxController {
             rightText: "Update",
             () {
               Get.back();
-              extendPassword((isTrue) {
+              extendPassword(param["mobile_no"], (isTrue) {
                 if (isTrue) {
                   getUserData(param, returnPost, (data) {
                     cb(data);
@@ -354,9 +355,8 @@ class LoginScreenController extends GetxController {
     });
   }
 
-  void extendPassword(Function cb) async {
-    final uData = await Authentication().getUserData2();
-    final putParam = {"extend": "Y", "mobile_no": uData["mobile_no"]};
+  void extendPassword(String mobileNo, Function cb) async {
+    final putParam = {"extend": "Y", "mobile_no": mobileNo};
     CustomDialogStack.showLoading(Get.context!);
     final response =
         await HttpRequestApi(

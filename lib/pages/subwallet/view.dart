@@ -1,7 +1,10 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../custom_widgets/app_color_v2.dart';
@@ -225,22 +228,13 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
     });
   }
 
-  List<Transaction> _getAllTransactions() {
-    final allTransactions = <Transaction>[];
-    for (final wallet in wallets) {
-      allTransactions.addAll(wallet.transactions);
-    }
-    allTransactions.sort((a, b) => b.date.compareTo(a.date));
-    return allTransactions;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(SubWalletController());
-
-    return Scaffold(
+    return CustomScaffoldV2(
+      appBarTitle: "Subwallet",
+      padding: EdgeInsets.zero,
       backgroundColor: AppColorV2.background,
-      body:
+      scaffoldBody:
           isLoading
               ? Center(
                 child: CircularProgressIndicator(color: AppColorV2.lpBlueBrand),
@@ -248,137 +242,29 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
               : CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  SliverAppBar(
-                    expandedHeight: 180,
-                    pinned: true,
-                    elevation: 1,
-                    backgroundColor: AppColorV2.background,
-                    surfaceTintColor: AppColorV2.background,
-                    automaticallyImplyLeading: true,
-                    flexibleSpace: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final maxHeight = 180.0;
-                        final minHeight = kToolbarHeight;
-                        final currentHeight = constraints.biggest.height;
-
-                        final collapseProgress = ((maxHeight - currentHeight) /
-                                (maxHeight - minHeight))
-                            .clamp(0.0, 1.0);
-
-                        return FlexibleSpaceBar(
-                          titlePadding: const EdgeInsets.only(
-                            left: 16,
-                            bottom: 12,
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DefaultText(
+                            text: 'Total Subwallet Balance',
+                            color: AppColorV2.lpBlueBrand,
                           ),
-                          title: Padding(
-                            padding: const EdgeInsets.only(left: 30.0),
-                            child: FittedBox(
-                              child: Opacity(
-                                opacity: (collapseProgress - 0).clamp(0.0, 1.0),
-                                child: DefaultText(
-                                  text: 'My Sub Wallets',
-                                  color: AppColorV2.lpBlueBrand,
-                                  style: AppTextStyle.h3_f22,
-                                ),
-                              ),
-                            ),
+                          const SizedBox(height: 8),
+                          DefaultText(
+                            text: totalBalance.toStringAsFixed(2),
+                            style: AppTextStyle.h2,
+                            color: AppColorV2.lpBlueBrand,
                           ),
-                          background: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppColorV2.lpBlueBrand,
-                                  AppColorV2.accent,
-                                ],
-                              ),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                top: 60,
-                                left: 20,
-                                right: 20,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 30.0),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            DefaultText(
-                                              text: 'luvpay Balance',
-                                              color: AppColorV2.background,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Obx(
-                                              () => DefaultText(
-                                                text:
-                                                    controller.luvpayBal.value,
-                                                style: AppTextStyle.h2,
-                                                color: AppColorV2.background,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            DefaultText(
-                                              text: 'Total Sub Wallet Balance',
-                                              color: AppColorV2.background,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            DefaultText(
-                                              text:
-                                                  '${totalBalance.toStringAsFixed(2)}',
-                                              style: AppTextStyle.h2,
-                                              color: AppColorV2.background,
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      _buildStatCard(
-                                        'Sub Wallets',
-                                        wallets.length.toString(),
-                                        Iconsax.wallet,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      _buildStatCard(
-                                        'Active',
-                                        wallets.length.toString(),
-                                        Iconsax.activity,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      _buildStatCard(
-                                        'Categories',
-                                        categories.length.toString(),
-                                        Iconsax.category,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+                        ],
+                      ),
                     ),
                   ),
-
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -414,7 +300,6 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
                           wallets.isEmpty
                               ? Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -526,91 +411,8 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
                       ),
                     ),
                   ),
-
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          DefaultText(
-                            text: 'Recent Transactions',
-                            style: AppTextStyle.h3_f22,
-                          ),
-                          const SizedBox(height: 16),
-                          if (_getAllTransactions().isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              child: Center(
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Iconsax.receipt,
-                                      size: 50,
-                                      color: AppColorV2.boxStroke,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    DefaultText(
-                                      text: 'No transactions yet',
-                                      style: AppTextStyle.paragraph1,
-                                    ),
-                                    DefaultText(
-                                      text:
-                                          'Add money to wallets to see transactions',
-                                      style: AppTextStyle.paragraph2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          else
-                            ..._getAllTransactions()
-                                .take(3)
-                                .map(
-                                  (transaction) =>
-                                      _buildTransactionTile(transaction),
-                                )
-                                .toList(),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColorV2.background.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
-        ),
-        child: FittedBox(
-          child: Row(
-            children: [
-              Icon(icon, color: Colors.white, size: 16),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DefaultText(
-                    text: value,
-                    style: AppTextStyle.body1.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  DefaultText(text: title, color: AppColorV2.background),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -647,20 +449,22 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(wallet.icon, style: const TextStyle(fontSize: 24)),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: DefaultText(
-                      text: wallet.category,
-                      style: AppTextStyle.body1.copyWith(
-                        color: Colors.white,
-                        fontSize: 10,
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DefaultText(
+                        text: wallet.category,
+                        style: AppTextStyle.body1,
+                        color: AppColorV2.background,
+                        minFontSize: 8,
                       ),
                     ),
                   ),
@@ -679,7 +483,7 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
                   ),
                   const SizedBox(height: 4),
                   DefaultText(
-                    text: '${wallet.balance.toStringAsFixed(2)}',
+                    text: wallet.balance.toStringAsFixed(2),
                     style: AppTextStyle.h2.copyWith(
                       color: Colors.white,
                       fontSize: 20,
@@ -690,79 +494,6 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTransactionTile(Transaction transaction) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColorV2.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColorV2.boxStroke),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color:
-                  transaction.isIncome
-                      ? AppColorV2.correctState.withOpacity(0.1)
-                      : AppColorV2.incorrectState.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              transaction.isIncome ? Iconsax.arrow_down : Iconsax.arrow_up,
-              color:
-                  transaction.isIncome
-                      ? AppColorV2.correctState
-                      : AppColorV2.incorrectState,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DefaultText(
-                  text: transaction.description,
-                  style: AppTextStyle.h3.copyWith(
-                    color: AppColorV2.primaryTextColor,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                DefaultText(
-                  text:
-                      '${transaction.date.day}/${transaction.date.month}/${transaction.date.year} ${transaction.date.hour.toString().padLeft(2, '0')}:${transaction.date.minute.toString().padLeft(2, '0')}',
-                  style: AppTextStyle.paragraph2,
-                ),
-              ],
-            ),
-          ),
-          DefaultText(
-            text:
-                '${transaction.isIncome ? '+' : '-'}${transaction.amount.toStringAsFixed(2)}',
-            style: AppTextStyle.h3.copyWith(
-              color:
-                  transaction.isIncome
-                      ? AppColorV2.correctState
-                      : AppColorV2.incorrectState,
-              fontSize: 16,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -843,7 +574,7 @@ class _AddWalletModalState extends State<AddWalletModal> {
               ),
               maxLength: 15,
               decoration: InputDecoration(
-                labelText: 'Sub Wallet Name',
+                labelText: 'Subwallet Name',
                 labelStyle: AppTextStyle.paragraph2,
                 filled: true,
                 fillColor: AppColorV2.pastelBlueAccent,
@@ -1031,10 +762,6 @@ class _AddWalletModalState extends State<AddWalletModal> {
               height: 56,
               child: ElevatedButton(
                 onPressed: () {
-                  print('Create button pressed');
-                  print('Name: ${_nameController.text}');
-                  print('Balance: ${_balanceController.text}');
-
                   if (_nameController.text.isNotEmpty &&
                       _balanceController.text.isNotEmpty) {
                     if (_nameController.text.length > 15) {
@@ -1083,8 +810,6 @@ class _AddWalletModalState extends State<AddWalletModal> {
                         color: _selectedColor,
                         transactions: [],
                       );
-
-                      print('Created wallet: ${newWallet.name}');
 
                       _nameController.clear();
                       _balanceController.clear();
@@ -1272,7 +997,7 @@ class WalletDetailsModal extends StatelessWidget {
                       style: AppTextStyle.h3_f22,
                     ),
                     DefaultText(
-                      text: '${wallet.balance.toStringAsFixed(2)}',
+                      text: wallet.balance.toStringAsFixed(2),
                       style: AppTextStyle.h3.copyWith(
                         color: AppColorV2.lpBlueBrand,
                       ),

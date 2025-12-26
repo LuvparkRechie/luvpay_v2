@@ -17,6 +17,7 @@ import 'package:luvpay/custom_widgets/brightness_setter.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/loading.dart';
+import 'package:luvpay/custom_widgets/luvpay/statusbar_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
@@ -131,74 +132,72 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColorV2.lpBlueBrand,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.white,
-          statusBarBrightness: Brightness.light,
-          statusBarIconBrightness: Brightness.dark,
-        ),
-        title: Text(
-          "QR Scanner",
-          style: GoogleFonts.inter(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+    return ConsistentStatusBarWrapper(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: AppColorV2.lpBlueBrand,
+
+          title: Text(
+            "QR Scanner",
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        centerTitle: true,
-        leading:
-            widget.isBack
-                ? Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: IconButton(
-                    onPressed: () => Get.back(),
-                    icon: Icon(
-                      CupertinoIcons.back,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    splashColor: AppColorV2.lpBlueBrand.withAlpha(50),
-                  ),
-                )
-                : const SizedBox(),
-        actions: [],
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Colors.white,
-        child:
-            isLoading
-                ? _buildLoadingState()
-                : Stack(
-                  children: [
-                    // QR Scanner View
-                    QRView(
-                      key: GlobalKey(debugLabel: 'QR'),
-                      onQRViewCreated: _onQRViewCreated,
-                      overlay: QrScannerOverlayShape(
-                        borderColor: AppColorV2.lpBlueBrand,
-                        borderRadius: 16,
-                        borderLength: 40,
-                        borderWidth: 6,
-                        cutOutSize: 280,
+          centerTitle: true,
+          leading:
+              widget.isBack
+                  ? Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: IconButton(
+                      onPressed: () => Get.back(),
+                      icon: Icon(
+                        CupertinoIcons.back,
+                        color: Colors.white,
+                        size: 24,
                       ),
+                      splashColor: AppColorV2.lpBlueBrand.withAlpha(50),
                     ),
+                  )
+                  : const SizedBox(),
+          actions: [],
+        ),
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: Colors.white,
+          child:
+              isLoading
+                  ? _buildLoadingState()
+                  : Stack(
+                    children: [
+                      // QR Scanner View
+                      QRView(
+                        key: GlobalKey(debugLabel: 'QR'),
+                        onQRViewCreated: _onQRViewCreated,
+                        overlay: QrScannerOverlayShape(
+                          borderColor: AppColorV2.lpBlueBrand,
+                          borderRadius: 16,
+                          borderLength: 40,
+                          borderWidth: 6,
+                          cutOutSize: 280,
+                        ),
+                      ),
 
-                    // Animated Scan Line
-                    _buildAnimatedScanLine(),
+                      // Animated Scan Line
+                      _buildAnimatedScanLine(),
 
-                    // Instructions
-                    _buildInstructions(),
+                      // Instructions
+                      _buildInstructions(),
 
-                    // Bottom Controls
-                    _buildBottomControls(),
-                  ],
-                ),
+                      // Bottom Controls
+                      _buildBottomControls(),
+                    ],
+                  ),
+        ),
       ),
     );
   }

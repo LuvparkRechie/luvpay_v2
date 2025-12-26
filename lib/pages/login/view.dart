@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:luvpay/auth/authentication.dart';
@@ -33,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoadingPage = true;
   List userData = [];
   Widget? screen;
+
   @override
   void initState() {
     controller.password = TextEditingController();
@@ -98,9 +100,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class DefaultLoginScreen extends StatelessWidget {
+class DefaultLoginScreen extends StatefulWidget {
   const DefaultLoginScreen({super.key});
 
+  @override
+  State<DefaultLoginScreen> createState() => _DefaultLoginScreenState();
+}
+
+class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
+  final box = GetStorage();
   @override
   Widget build(BuildContext context) {
     final LoginScreenController controller = Get.put(LoginScreenController());
@@ -250,10 +258,15 @@ class DefaultLoginScreen extends StatelessWidget {
                           "pwd": controller.password.text,
                           "device_key": devKey.toString(),
                         };
-                        controller.postLogin(Get.context!, postParam, (data) {
-                          Get.back();
-
+                        controller.postLogin(Get.context!, postParam, (
+                          data,
+                        ) async {
                           if (data[0]["items"].isNotEmpty) {
+                            final userLogin =
+                                await Authentication().getUserLogin();
+                            if (userLogin == null) {
+                              box.write('isFirstLogin', true);
+                            }
                             Get.offAllNamed(Routes.dashboard);
                           }
                         });

@@ -1,107 +1,3 @@
-// import 'package:awesome_notifications/awesome_notifications.dart';
-// import 'package:dart_ping_ios/dart_ping_ios.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-// import 'package:flutter_dotenv/flutter_dotenv.dart';
-// import 'package:get/get.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:luvpay/custom_widgets/variables.dart';
-// import 'package:luvpay/notification_controller.dart';
-// import 'package:package_info_plus/package_info_plus.dart';
-// import 'package:permission_handler/permission_handler.dart';
-
-// import 'custom_widgets/app_color_v2.dart';
-// import 'pages/routes/pages.dart';
-// import 'pages/routes/routes.dart';
-
-// final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-
-//   await dotenv.load();
-//   DartPingIOS.register();
-
-//   final packageInfo = await PackageInfo.fromPlatform();
-//   Variables.version = packageInfo.version;
-
-//   final status = await Permission.notification.status;
-//   if (status.isDenied) {
-//     await Permission.notification.request();
-//   }
-
-//   bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
-//   if (!isAllowed) {
-//     AwesomeNotifications().requestPermissionToSendNotifications();
-//   }
-
-//   NotificationController.initializeLocalNotifications();
-//   NotificationController.initializeIsolateReceivePort();
-//   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((
-//     _,
-//   ) {
-//     runApp(const MyApp());
-//   });
-//   runApp(const MyApp());
-// }
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   void _onUserActivity() {} // This widget is the root of your application.
-//   @override
-//   Widget build(BuildContext context) {
-//     return Listener(
-//       onPointerDown: (_) => _onUserActivity(),
-//       child: GetMaterialApp(
-//         navigatorKey: navigatorKey,
-//         debugShowCheckedModeBanner: false,
-//         title: 'MyApp',
-//         theme: ThemeData(
-//           scaffoldBackgroundColor: AppColorV2.background,
-//           colorScheme: ColorScheme(
-//             primary: AppColorV2.lpBlueBrand,
-//             onPrimaryFixedVariant: AppColorV2.lpBlueBrand,
-//             secondary: AppColorV2.lpTealBrand,
-//             onSecondaryFixedVariant: AppColorV2.lpTealBrand,
-//             surface: Colors.white,
-//             error: AppColorV2.incorrectState,
-//             onPrimary: Colors.white,
-//             onSecondary: Colors.white,
-//             onSurface: AppColorV2.primaryTextColor,
-//             onError: Colors.white,
-//             brightness: Brightness.light,
-//           ),
-//           useMaterial3: false,
-//           appBarTheme: AppBarTheme(
-//             titleTextStyle: GoogleFonts.manrope(
-//               fontSize: 18,
-//               fontWeight: FontWeight.w700,
-//               height: 28 / 18,
-//               color: AppColorV2.background,
-//               fontStyle: FontStyle.normal,
-//             ),
-//             backgroundColor: AppColorV2.lpBlueBrand,
-//             systemOverlayStyle: SystemUiOverlayStyle(
-//               statusBarColor: AppColorV2.lpBlueBrand,
-//               statusBarIconBrightness: Brightness.light,
-//               statusBarBrightness: Brightness.dark,
-//             ),
-//           ),
-//           dividerTheme: DividerThemeData(
-//             color: Colors.grey.shade300,
-//             thickness: 0.5,
-//             space: 15,
-//             indent: 5,
-//           ),
-//         ),
-//         navigatorObservers: [GetObserver()],
-//         initialRoute: Routes.splash,
-//         getPages: AppPages.pages,
-//       ),
-//     );
-//   }
-// }
-
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:async';
@@ -116,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/bg_process/bg_process.dart';
@@ -291,7 +188,7 @@ void _exitApp() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await GetStorage.init();
   await dotenv.load();
   DartPingIOS.register();
   await setTamperDialogActive(false);
@@ -427,3 +324,29 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+// import 'package:flutter/material.dart';
+// import 'package:camera/camera.dart';
+// import 'verification/verify_identity_screen.dart';
+
+// late List<CameraDescription> cameras; // Global variable
+
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   // Initialize cameras
+//   final camerasList = await availableCameras();
+
+//   runApp(MyApp(cameras: camerasList));
+// }
+
+// class MyApp extends StatelessWidget {
+//   final List<CameraDescription> cameras;
+
+//   const MyApp({super.key, required this.cameras});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(home: VerifyIdentityScreen(cameras: cameras));
+//   }
+// }

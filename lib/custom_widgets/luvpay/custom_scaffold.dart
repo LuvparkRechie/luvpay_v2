@@ -27,6 +27,8 @@ class CustomGradientBackground extends StatelessWidget {
       Color(0xFFFFFFFF),
       Color(0xFFFFFFFF),
       Color(0xFFFFFFFF),
+      Color(0xFFFFFFFF),
+      Color(0xFFFFFFFF),
     ],
     this.borderRadius,
     this.padding,

@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/auth/authentication.dart';
-import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/pages/merchant/pay_merchant.dart';
 import 'package:luvpay/pages/scanner_screen.dart';
-import 'package:luvpay/pages/wallet/wallet_screen.dart';
 
 import '../../custom_widgets/alert_dialog.dart';
 import '../biller_screen/biller_screen.dart';
 import '../profile/profile_screen.dart';
+import '../wallet/wallet_screen.dart';
 import 'controller.dart';
 import 'package:luvpay/http/http_request.dart';
 

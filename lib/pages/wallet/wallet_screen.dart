@@ -274,7 +274,6 @@ class _WalletScreenState extends State<WalletScreen> {
       return null;
     }
     if (paymentKey["items"].isNotEmpty) {
-      print("diri ${paymentKey["items"][0]["payment_hk"]}");
       return paymentKey["items"][0]["payment_hk"].toString();
     } else {
       CustomDialogStack.showServerError(Get.context!, () {
@@ -439,7 +438,7 @@ class _WalletScreenState extends State<WalletScreen> {
           Get.toNamed(
             Routes.walletrechargeload,
             arguments: {
-              "bank_type": "InstaPay",
+              "bank_type": "UnionBank",
               "image": "assets/images/wt_instapay.png",
               "bank_code": " InstaPay",
             },
@@ -448,7 +447,7 @@ class _WalletScreenState extends State<WalletScreen> {
       },
 
       {
-        'name': 'UnionBank',
+        'name': 'Pesonet',
         'image': 'assets/images/w_pesonet.png',
         'color': AppColorV2.secondary,
         'onTap': () {
@@ -878,7 +877,10 @@ class _WalletScreenState extends State<WalletScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {},
+          onTap: () {
+            Get.back();
+            bank["onTap"]();
+          },
           child: Padding(
             padding: const EdgeInsets.all(8),
             child: FittedBox(
