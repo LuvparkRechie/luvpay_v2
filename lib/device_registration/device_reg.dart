@@ -186,54 +186,56 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
     return CustomScaffoldV2(
       canPop: false,
       enableToolBar: false,
-
-      scaffoldBody: Column(
-        children: [
-          SizedBox(height: 30),
-          Image(
-            image: AssetImage("assets/images/onboardluvpay.png"),
-            width: 180,
-          ),
-          spacing(height: 28),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                DefaultText(
-                  maxLines: 1,
-                  text: "New sign-in detected",
-                  textAlign: TextAlign.center,
-                  style: AppTextStyle.h1,
+      padding: EdgeInsets.zero,
+      scaffoldBody: CustomGradientBackground(
+        child: Padding(
+          padding: const EdgeInsets.all(19.0),
+          child: Column(
+            children: [
+              SizedBox(height: 30),
+              Image(image: AssetImage("assets/images/luvpay.png"), height: 60),
+              spacing(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    DefaultText(
+                      maxLines: 1,
+                      text: "New sign-in detected",
+                      textAlign: TextAlign.center,
+                      style: AppTextStyle.h1,
+                    ),
+                    SizedBox(height: 5),
+                    DefaultText(
+                      maxLines: 2,
+                      text:
+                          "Would you like to register your phone\nnumber to this device?",
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                SizedBox(height: 5),
-                DefaultText(
-                  maxLines: 2,
-                  text:
-                      "Would you like to register your phone\nnumber to this device?",
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+              ),
+              SvgPicture.asset("assets/images/register_device.svg"),
+              spacing(height: 50),
+              CustomButton(
+                text: "Register this device",
+                onPressed: isVerifiedOtp ? registerDevice : onRegisterDev,
+              ),
+              spacing(height: 18),
+              CustomButton(
+                bordercolor: AppColorV2.lpBlueBrand,
+                btnColor: Colors.transparent,
+                text: "Later",
+                textColor: AppColorV2.lpBlueBrand,
+                onPressed: () {
+                  Get.back();
+                },
+              ),
+              spacing(height: 30),
+            ],
           ),
-          SvgPicture.asset("assets/images/register_device.svg"),
-          spacing(height: 50),
-          CustomButton(
-            text: "Register this device",
-            onPressed: isVerifiedOtp ? registerDevice : onRegisterDev,
-          ),
-          spacing(height: 18),
-          CustomButton(
-            bordercolor: AppColorV2.lpBlueBrand,
-            btnColor: Colors.transparent,
-            text: "Later",
-            textColor: AppColorV2.lpBlueBrand,
-            onPressed: () {
-              Get.back();
-            },
-          ),
-          spacing(height: 30),
-        ],
+        ),
       ),
     );
   }

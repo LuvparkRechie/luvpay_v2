@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
@@ -9,7 +8,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/pages/billers/index.dart';
 import 'package:luvpay/pages/billers/utils/allbillers.dart';
@@ -112,6 +110,10 @@ class _WalletScreenState extends State<WalletScreen> {
   void _startAutoRefresh() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) {
+        _timer?.cancel();
+        return;
+      }
       getUserData();
       getLogs();
       getNotificationCount();
@@ -157,6 +159,7 @@ class _WalletScreenState extends State<WalletScreen> {
     String apiMerchant = "${ApiKeys.getMerchantScan}?merchant_key=$args";
 
     final merchantResponse = await getScannedQr(apiMerchant);
+    print("apiMerchant $apiMerchant");
 
     if (merchantResponse == "No Internet") {
       _showInternetError();
@@ -211,7 +214,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
     List itemData = [
       {
-        "data": response["items"],
+        "data": response["items"][0],
         'merchant_key': args,
         "merchant_name": serviceName,
         'merchant_address': serviceAddress,
@@ -221,23 +224,7 @@ class _WalletScreenState extends State<WalletScreen> {
     Get.to(
       Scaffold(
         backgroundColor: AppColorV2.background,
-        appBar: AppBar(
-          elevation: 1,
-          backgroundColor: AppColorV2.lpBlueBrand,
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: AppColorV2.lpBlueBrand,
-            statusBarBrightness: Brightness.dark,
-            statusBarIconBrightness: Brightness.light,
-          ),
-          title: Text("Pay Merchant"),
-          centerTitle: true,
-          leading: IconButton(
-            onPressed: () {
-              Get.back();
-            },
-            icon: Icon(Iconsax.arrow_left, color: Colors.white),
-          ),
-        ),
+
         body: PayMerchant(data: itemData),
       ),
     );
@@ -303,7 +290,8 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<void> getUserData() async {
-    if (isLoading) return;
+    if (isLoading || !mounted) return;
+
     setState(() {
       isLoading = true;
     });
@@ -319,9 +307,11 @@ class _WalletScreenState extends State<WalletScreen> {
     } catch (e) {
       debugPrint("Error fetching user data: $e");
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -555,6 +545,7 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _timer = null;
     _pageController.dispose();
     super.dispose();
   }

@@ -480,7 +480,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                     builder:
                         (context, s) => DefaultText(
                           color: AppColorV2.lpBlueBrand,
-                          style: AppTextStyle.body1,
+                          style: AppTextStyle.h4,
                           text:
                               "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}",
                         ),
@@ -707,12 +707,12 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                             Container(
                               padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
                               decoration: BoxDecoration(
-                                color: AppColorV2.lpBlueBrand.withAlpha(100),
+                                color: AppColorV2.lpBlueBrand.withAlpha(30),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: DefaultText(
                                 text: key,
-                                color: AppColorV2.background,
+                                color: AppColorV2.lpBlueBrand,
                                 style: AppTextStyle.body1,
                               ),
                             ),

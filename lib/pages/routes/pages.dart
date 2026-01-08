@@ -9,6 +9,7 @@ import 'package:luvpay/pages/my_account/utils/index.dart';
 import 'package:luvpay/pages/qr/index.dart';
 import 'package:luvpay/pages/security_settings/index.dart';
 import 'package:luvpay/pages/subwallet/index.dart';
+import 'package:luvpay/pages/vouchers/index.dart';
 import 'package:luvpay/pages/wallet_recharge_load/index.dart';
 
 import '../dashboard/index.dart';
@@ -189,6 +190,14 @@ class AppPages {
       name: Routes.walletrechargeload,
       page: () => const WalletRechargeLoadScreen(),
       binding: WalletRechargeLoadBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.vouchers,
+      page: () => const Vouchers(),
+      binding: VouchersBinding(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,

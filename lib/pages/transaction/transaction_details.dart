@@ -19,7 +19,6 @@ import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_button.dart';
 import '../../custom_widgets/custom_separator.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/spacing.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../custom_widgets/variables.dart';
 
@@ -106,163 +105,150 @@ class TransactionDetails extends StatelessWidget {
   }
 
   Widget ticket(BuildContext context, String img) {
-    return Material(
-      color: Colors.transparent,
-      child: MediaQuery(
-        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(1)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: 20),
-            Stack(
-              fit: StackFit.loose,
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white,
-                  ),
-                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      spacing(height: 30),
-                      DefaultText(
-                        textAlign: TextAlign.center,
-                        text: data[index]["category"],
-                        style: AppTextStyle.h3_semibold,
-                        maxLines: 1,
-                        color: AppColorV2.primaryTextColor,
-                      ),
-                      spacing(height: 3),
-                      DefaultText(
-                        textAlign: TextAlign.center,
-                        fontSize: 18,
-                        text: "${data[index]["tran_desc"]}",
-                        style: AppTextStyle.body1,
-                        maxFontSize: 14,
-                        color: AppColorV2.primaryTextColor,
-                      ),
-                      spacing(height: 20),
-                      const MySeparator(color: Color(0xFFD9D9D9)),
-                      spacing(height: 20),
-                      rowWidget(
-                        "Transaction Date",
-                        Variables.formatDateLocal(data[index]["tran_date"]),
-                      ),
-                      spacing(height: 5),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(20, 40, 20, 28),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
 
-                      rowWidget(
-                        "Amount",
-                        toCurrencyString(
-                          data[index]["amount"].replaceAll('-', '').toString(),
-                        ),
-                      ),
-                      spacing(height: 5),
-                      rowWidget(
-                        isHistory ? "Balance Before" : "Previous Balance",
-                        toCurrencyString(data[index]["bal_before"].toString()),
-                      ),
-                      spacing(height: 5),
-                      rowWidget(
-                        isHistory ? "Balance After" : "Current Balance",
-                        toCurrencyString(data[index]["bal_after"].toString()),
-                      ),
-                      spacing(height: 20),
-                      const MySeparator(color: Color(0xFFD9D9D9)),
-                      spacing(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Center(
-                            child: DefaultText(
-                              maxLines: 1,
-                              style: GoogleFonts.manrope(
-                                color: AppColorV2.primaryTextColor,
-                                fontWeight: FontWeight.w400,
-                              ),
-                              text: "Reference Number: ",
-                            ),
-                          ),
-                          InkWell(
-                            onTapDown: (details) async {
-                              await Clipboard.setData(
-                                ClipboardData(
-                                  text: data[index]["ref_no"].toString(),
-                                ),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Text copied to clipboard'),
-                                ),
-                              );
-                            },
-                            child: SelectableText(
-                              toolbarOptions: ToolbarOptions(copy: true),
-                              style: GoogleFonts.manrope(
-                                fontWeight: FontWeight.w500,
-                              ),
-                              data[index]["ref_no"].toString(),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+              DefaultText(
+                textAlign: TextAlign.center,
+                text: data[index]["category"],
+                style: AppTextStyle.h3_semibold.copyWith(fontSize: 20),
+                color: AppColorV2.primaryTextColor,
+                maxLines: 1,
+              ),
+
+              const SizedBox(height: 6),
+
+              DefaultText(
+                textAlign: TextAlign.center,
+                text: data[index]["tran_desc"].toString(),
+                style: AppTextStyle.body1.copyWith(
+                  color: AppColorV2.primaryTextColor.withOpacity(0.75),
                 ),
-                Positioned(
-                  top: -30,
-                  left: 0,
-                  right: 0,
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(width: 10, color: Colors.white),
-                      ),
-                      child: SvgPicture.asset(
-                        fit: BoxFit.cover,
-                        height: 50,
-                        "assets/images/$img.svg",
-                      ),
+                maxFontSize: 14,
+              ),
+
+              const SizedBox(height: 22),
+              const MySeparator(color: Color(0xFFE6E6E6)),
+              const SizedBox(height: 22),
+
+              rowWidget(
+                "Transaction Date",
+                Variables.formatDateLocal(data[index]["tran_date"]),
+              ),
+              const SizedBox(height: 12),
+              rowWidget(
+                "Amount",
+                toCurrencyString(
+                  data[index]["amount"].replaceAll('-', '').toString(),
+                ),
+                isEmphasized: true,
+              ),
+              const SizedBox(height: 12),
+              rowWidget(
+                isHistory ? "Balance Before" : "Previous Balance",
+                toCurrencyString(data[index]["bal_before"].toString()),
+              ),
+              const SizedBox(height: 12),
+              rowWidget(
+                isHistory ? "Balance After" : "Current Balance",
+                toCurrencyString(data[index]["bal_after"].toString()),
+              ),
+
+              const SizedBox(height: 22),
+              const MySeparator(color: Color(0xFFE6E6E6)),
+              const SizedBox(height: 18),
+
+              Column(
+                children: [
+                  DefaultText(
+                    text: "Reference Number",
+                    style: AppTextStyle.body1.copyWith(
+                      color: AppColorV2.primaryTextColor.withOpacity(0.6),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(height: 6),
+                  SelectableText(
+                    data[index]["ref_no"].toString(),
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.4,
+                      color: AppColorV2.lpBlueBrand,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
+
+        Positioned(
+          top: -28,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: SvgPicture.asset("assets/images/$img.svg", height: 48),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Row rowWidget(String label, String value) {
+  Row rowWidget(String label, String value, {bool isEmphasized = false}) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        DefaultText(
-          style: AppTextStyle.body1,
-          maxFontSize: 16,
-          maxLines: 1,
-          color: AppColorV2.primaryTextColor,
-          text: label,
-        ),
         Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: DefaultText(
-              text: value,
-              style: AppTextStyle.body1,
-              maxFontSize: 16,
-              maxLines: 1,
-              color: AppColorV2.bodyTextColor,
+          child: DefaultText(
+            text: label,
+            style: AppTextStyle.body1.copyWith(
+              color: AppColorV2.primaryTextColor.withOpacity(0.65),
+              fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
           ),
+        ),
+        DefaultText(
+          text: value,
+          style: AppTextStyle.body1.copyWith(
+            fontWeight: isEmphasized ? FontWeight.w700 : FontWeight.w600,
+            color:
+                isEmphasized
+                    ? AppColorV2.lpBlueBrand
+                    : AppColorV2.bodyTextColor,
+          ),
+          maxLines: 1,
         ),
       ],
     );

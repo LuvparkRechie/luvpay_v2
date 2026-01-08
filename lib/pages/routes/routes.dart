@@ -47,8 +47,8 @@ class Routes {
   static const merchant = "/merchant";
   static const otpField = "/otp_field";
   static const billsPayment = "/bills_payment";
-  static const voucher = "/voucher";
   static const dashboard = "/dashboard";
   static const securitySettings = "/security_settings";
   static const subwallet = "/subwallet";
+  static const vouchers = "/vouchers";
 }

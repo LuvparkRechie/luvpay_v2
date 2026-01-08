@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -11,7 +10,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/luvpay/custom_buttons.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import '../../auth/authentication.dart';
@@ -488,16 +486,26 @@ class _MyProfileState extends State<MyProfile> {
                       ),
                     ),
                   const SizedBox(height: 16),
-                  if (isVerified)
-                    Container(
+
+                  InkWell(
+                    onTap: () => getRegions(),
+                    child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
+                        color:
+                            !isVerified
+                                ? AppColorV2.lpBlueBrand.withAlpha(80)
+                                : Colors.orange.shade50,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.orange.shade200),
+                        border: Border.all(
+                          color:
+                              !isVerified
+                                  ? AppColorV2.lpBlueBrand
+                                  : Colors.orange.shade200,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -505,28 +513,29 @@ class _MyProfileState extends State<MyProfile> {
                           Icon(
                             Icons.verified_outlined,
                             size: 16,
-                            color: Colors.orange.shade600,
+                            color:
+                                !isVerified
+                                    ? AppColorV2.lpBlueBrand
+                                    : Colors.orange.shade600,
                           ),
                           const SizedBox(width: 6),
                           DefaultText(
-                            text: 'Verification Required',
+                            text:
+                                !isVerified
+                                    ? "Edit Profile"
+                                    : 'Verification Required',
                             style: AppTextStyle.body1.copyWith(
                               fontWeight: FontWeight.w500,
                             ),
-                            color: Colors.orange.shade700,
+                            color:
+                                !isVerified
+                                    ? AppColorV2.lpBlueBrand
+                                    : Colors.orange.shade700,
                           ),
                         ],
                       ),
                     ),
-                  if (!isVerified)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: CustomButtons(
-                        text: 'Edit Profile',
-                        onPressed: () => getRegions(),
-                      ),
-                    ),
+                  ),
                 ],
               ),
             ),
@@ -710,15 +719,6 @@ class _MyProfileState extends State<MyProfile> {
                       color: AppColorV2.bodyTextColor,
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: CustomButtons(
-                  text: 'Verify Account',
-                  onPressed: () => getRegions(),
                 ),
               ),
             ],

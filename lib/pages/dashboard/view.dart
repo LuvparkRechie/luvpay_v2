@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/http/api_keys.dart';
@@ -151,31 +152,52 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          PageView.builder(
-            controller: controller.pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 2,
-            itemBuilder: (_, index) {
-              return NotificationListener<UserScrollNotification>(
-                onNotification: (n) {
-                  _handleScroll(n);
-                  return false;
-                },
-                child: Obx(() {
-                  return controller.currentIndex.value == index
-                      ? _buildScreen(index)
-                      : const SizedBox();
-                }),
-              );
-            },
-          ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        CustomDialogStack.showConfirmation(
+          context,
+          "Close Application",
+          "Are you sure you want to close application?",
+          leftText: "No",
+          rightText: "Yes",
+          () {
+            Get.back();
+          },
+          () {
+            Get.back();
+            Future.delayed(Duration(milliseconds: 500), () {
+              FlutterExitApp.exitApp(iosForceExit: true);
+            });
+          },
+        );
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            PageView.builder(
+              controller: controller.pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 2,
+              itemBuilder: (_, index) {
+                return NotificationListener<UserScrollNotification>(
+                  onNotification: (n) {
+                    _handleScroll(n);
+                    return false;
+                  },
+                  child: Obx(() {
+                    return controller.currentIndex.value == index
+                        ? _buildScreen(index)
+                        : const SizedBox();
+                  }),
+                );
+              },
+            ),
 
-          _buildBottomNav(),
-          // _buildQrFab(context),
-        ],
+            _buildBottomNav(),
+            // _buildQrFab(context),
+          ],
+        ),
       ),
     );
   }

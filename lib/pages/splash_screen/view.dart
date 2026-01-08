@@ -17,33 +17,17 @@ class SplashScreen extends GetView<SplashController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColorV2.lpBlueBrand, AppColorV2.lpTealBrand],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(
-                  Icons.account_balance_wallet,
-                  color: AppColorV2.background,
-                  size: 40,
-                ),
-              ),
+              Image.asset("assets/images/luvpay.png", height: 80),
               const SizedBox(height: 24),
               Text(
-                "Welcome to LuvPay!",
+                "Welcome to luvpay!",
                 style: GoogleFonts.inter(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   color: AppColorV2.primaryTextColor,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 4),
               Text(
                 "Your digital wallet is ready to use",
                 style: GoogleFonts.inter(

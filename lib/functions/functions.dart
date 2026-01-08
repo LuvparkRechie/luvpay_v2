@@ -918,7 +918,7 @@ class Functions {
     if (fullName.isNotEmpty) return fullName;
 
     if (mobile.toString().isNotEmpty && mobile.toString().length >= 4) {
-      return "User ${mobile.toString().substring(mobile.toString().length - 4)}";
+      return "User${mobile.toString().substring(mobile.toString().length - 4)}";
     }
 
     return "Wallet User";

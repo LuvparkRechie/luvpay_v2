@@ -60,7 +60,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
     try {
       BrightnessSetter.setFullBrightness();
 
-      // Initialize scan animation
       _animationController = AnimationController(
         duration: const Duration(milliseconds: 2000),
         vsync: this,
@@ -174,7 +173,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
                   ? _buildLoadingState()
                   : Stack(
                     children: [
-                      // QR Scanner View
                       QRView(
                         key: GlobalKey(debugLabel: 'QR'),
                         onQRViewCreated: _onQRViewCreated,
@@ -187,13 +185,10 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
                         ),
                       ),
 
-                      // Animated Scan Line
                       _buildAnimatedScanLine(),
 
-                      // Instructions
                       _buildInstructions(),
 
-                      // Bottom Controls
                       _buildBottomControls(),
                     ],
                   ),

@@ -418,9 +418,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             icon: LucideIcons.ticket,
             title: 'Vouchers',
             onTap: () {
-              CustomDialogStack.showUnderDevelopment(context, () {
-                Get.back();
-              });
+              // CustomDialogStack.showUnderDevelopment(context, () {
+              //   Get.back();
+              // });
+              Get.toNamed(Routes.vouchers);
             },
           ),
           InfoRowTile(

@@ -166,7 +166,6 @@ class BillsPaymentController extends GetxController {
     serviceName,
     serviceAddress,
   ) async {
-    // Navigate or handle according to type
     final paymentHk = await getpaymentHK();
     Get.back();
     if (type == "biller") {
@@ -174,7 +173,7 @@ class BillsPaymentController extends GetxController {
     } else {
       List itemData = [
         {
-          "data": response["items"],
+          "data": response["items"][0],
           'merchant_key': args,
           "merchant_name": serviceName,
           'merchant_address': serviceAddress,
@@ -184,23 +183,7 @@ class BillsPaymentController extends GetxController {
       Get.to(
         Scaffold(
           backgroundColor: AppColorV2.background,
-          appBar: AppBar(
-            elevation: 1,
-            backgroundColor: AppColorV2.lpBlueBrand,
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: AppColorV2.lpBlueBrand,
-              statusBarBrightness: Brightness.dark,
-              statusBarIconBrightness: Brightness.light,
-            ),
-            title: Text("Pay Merchant"),
-            centerTitle: true,
-            leading: IconButton(
-              onPressed: () {
-                Get.back();
-              },
-              icon: Icon(Iconsax.arrow_left, color: Colors.white),
-            ),
-          ),
+
           body: PayMerchant(data: itemData),
         ),
       );
