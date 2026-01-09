@@ -2,13 +2,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'dart:async';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
+import '../my_account/utils/view.dart';
 import 'controller.dart';
 
 enum WalletModalMode { create, edit }
@@ -20,7 +23,7 @@ class Wallet {
   final String name;
   final double balance;
   final String category;
-  final String icon;
+  final Uint8List? iconBytes;
   final Color color;
   final List<Transaction> transactions;
   final double? targetAmount;
@@ -30,7 +33,7 @@ class Wallet {
     required this.name,
     required this.balance,
     required this.category,
-    required this.icon,
+    required this.iconBytes,
     required this.color,
     required this.transactions,
     this.targetAmount,
@@ -46,7 +49,7 @@ class Wallet {
       name: name ?? this.name,
       balance: balance ?? this.balance,
       category: category,
-      icon: icon,
+      iconBytes: iconBytes,
       color: color,
       transactions: transactions ?? this.transactions,
       targetAmount: targetAmount ?? this.targetAmount,
@@ -58,26 +61,98 @@ class Wallet {
     'name': name,
     'balance': balance,
     'category': category,
-    'icon': icon,
+    'icon_base64': iconBytes != null ? base64.encode(iconBytes!) : null,
     'color': color.value,
     'transactions': transactions.map((e) => e.toJson()).toList(),
     'targetAmount': targetAmount,
   };
 
-  factory Wallet.fromJson(Map<String, dynamic> json) {
+  static const String _walletsKey = 'wallets';
+
+  factory Wallet.fromJson(
+    Map<String, dynamic> json,
+    List<Map<String, dynamic>> categoryList,
+  ) {
+    final categoryData = categoryList.firstWhere(
+      (cat) => cat['category_title'] == json['category'],
+      orElse: () => {},
+    );
+
+    final base64Str = categoryData['image_base64']?.toString() ?? '';
+
+    Color color;
+    if (categoryData['color'] is int) {
+      color = Color(categoryData['color']);
+    } else if (categoryData['color'] is String) {
+      color = _getColorFromString(categoryData['color']);
+    } else {
+      color = AppColorV2.lpBlueBrand;
+    }
+
     return Wallet(
       id: json['id'],
       name: json['name'],
       balance: (json['balance'] as num).toDouble(),
       category: json['category'],
-      icon: json['icon'],
-      color: Color(json['color']),
+      iconBytes: base64Str.isNotEmpty ? decodeBase64Safe(base64Str) : null,
+      color: color,
       transactions:
           (json['transactions'] as List)
               .map((e) => Transaction.fromJson(e))
               .toList(),
       targetAmount: (json['targetAmount'] as num?)?.toDouble(),
     );
+  }
+}
+
+Widget buildWalletIcon(Uint8List? bytes) {
+  if (bytes == null) {
+    return const Icon(Iconsax.wallet, size: 24);
+  }
+
+  return Image(
+    image: MemoryImage(bytes),
+    width: 30,
+    height: 30,
+    fit: BoxFit.contain,
+    gaplessPlayback: true,
+    filterQuality: FilterQuality.high,
+  );
+}
+
+Uint8List? decodeBase64Safe(String base64Str) {
+  try {
+    final clean = base64Str.replaceAll(RegExp(r'\s'), '');
+    return Uint8List.fromList(base64.decode(clean));
+  } catch (_) {
+    return null;
+  }
+}
+
+Color _getColorFromString(String colorString) {
+  switch (colorString.toLowerCase()) {
+    case 'blue':
+    case 'lpbluebrand':
+      return AppColorV2.lpBlueBrand;
+    case 'secondary':
+      return AppColorV2.secondary;
+    case 'accent':
+      return AppColorV2.accent;
+    case 'teal':
+    case 'lptealbrand':
+      return AppColorV2.lpTealBrand;
+    case 'success':
+      return AppColorV2.success;
+    case 'warning':
+      return AppColorV2.warning;
+    case 'correct':
+    case 'correctstate':
+      return AppColorV2.correctState;
+    case 'mint':
+    case 'darkmintaccent':
+      return AppColorV2.darkMintAccent;
+    default:
+      return AppColorV2.lpBlueBrand;
   }
 }
 
@@ -115,25 +190,6 @@ class Transaction {
   }
 }
 
-final List<Map<String, dynamic>> categories = [
-  {'name': 'Food', 'icon': Iconsax.coffee, 'color': AppColorV2.lpBlueBrand},
-  {'name': 'Shopping', 'icon': Iconsax.bag_2, 'color': AppColorV2.secondary},
-  {'name': 'Transport', 'icon': Iconsax.car, 'color': AppColorV2.accent},
-  {
-    'name': 'Entertainment',
-    'icon': Iconsax.video,
-    'color': AppColorV2.lpTealBrand,
-  },
-  {'name': 'Bills', 'icon': Iconsax.receipt, 'color': AppColorV2.success},
-  {'name': 'Healthcare', 'icon': Iconsax.health, 'color': AppColorV2.warning},
-  {'name': 'Education', 'icon': Iconsax.book, 'color': AppColorV2.error},
-  {
-    'name': 'Income',
-    'icon': Iconsax.wallet_add,
-    'color': AppColorV2.correctState,
-  },
-];
-
 class SubWalletScreen extends StatefulWidget {
   const SubWalletScreen({super.key});
 
@@ -145,13 +201,24 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
   List<Wallet> wallets = [];
   double totalBalance = 0;
   bool isLoading = true;
+  bool categoriesLoaded = false;
 
   final String _walletsKey = 'user_wallets';
-  final SubWalletController controller = Get.find<SubWalletController>();
+  final controller = Get.find<SubWalletController>();
+
   @override
   void initState() {
     super.initState();
-    _loadWallets();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await _waitForCategories();
+    setState(() {
+      categoriesLoaded = true;
+    });
+
+    await _loadWallets();
   }
 
   Future<bool> transferFunds({
@@ -217,7 +284,12 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
 
       if (walletsJson != null) {
         final List<dynamic> walletsList = json.decode(walletsJson);
-        wallets = walletsList.map((w) => Wallet.fromJson(w)).toList();
+
+        wallets =
+            walletsList.map((w) {
+              return Wallet.fromJson(w, controller.categoryList);
+            }).toList();
+
         print('Loaded ${wallets.length} wallets from storage');
       } else {
         wallets = [];
@@ -235,6 +307,30 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
         });
       }
     }
+  }
+
+  Future<void> _waitForCategories() async {
+    if (controller.categoryList.isNotEmpty) return;
+
+    Completer<void> completer = Completer();
+    int attempts = 0;
+    const int maxAttempts = 50;
+
+    Future.doWhile(() async {
+      attempts++;
+      if (controller.categoryList.isNotEmpty) {
+        completer.complete();
+        return false;
+      }
+      if (attempts >= maxAttempts) {
+        completer.complete();
+        return false;
+      }
+      await Future.delayed(const Duration(milliseconds: 100));
+      return true;
+    });
+
+    await completer.future;
   }
 
   Widget _buildBalanceHeader() {
@@ -508,7 +604,7 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
       padding: EdgeInsets.zero,
       backgroundColor: AppColorV2.background,
       scaffoldBody:
-          isLoading
+          !categoriesLoaded || isLoading
               ? Center(
                 child: CircularProgressIndicator(color: AppColorV2.lpBlueBrand),
               )
@@ -603,66 +699,6 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
                         }, childCount: wallets.length),
                       ),
                     ),
-
-                  // SliverToBoxAdapter(
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.all(20),
-                  //     child: Column(
-                  //       crossAxisAlignment: CrossAxisAlignment.start,
-                  //       children: [
-                  //         DefaultText(
-                  //           text: 'Categories',
-                  //           style: AppTextStyle.h3_f22,
-                  //         ),
-                  //         const SizedBox(height: 16),
-                  //         SizedBox(
-                  //           height: 100,
-                  //           child: ListView.builder(
-                  //             physics: const BouncingScrollPhysics(),
-                  //             scrollDirection: Axis.horizontal,
-                  //             itemCount: categories.length,
-                  //             itemBuilder: (context, index) {
-                  //               final category = categories[index];
-                  //               return Padding(
-                  //                 padding: const EdgeInsets.only(right: 16),
-                  //                 child: Column(
-                  //                   children: [
-                  //                     Container(
-                  //                       width: 60,
-                  //                       height: 60,
-                  //                       decoration: BoxDecoration(
-                  //                         color: category['color'] as Color,
-                  //                         borderRadius: BorderRadius.circular(
-                  //                           20,
-                  //                         ),
-                  //                         boxShadow: [
-                  //                           BoxShadow(
-                  //                             color: (category['color']
-                  //                                     as Color)
-                  //                                 .withOpacity(0.3),
-                  //                             blurRadius: 8,
-                  //                             spreadRadius: 1,
-                  //                           ),
-                  //                         ],
-                  //                       ),
-                  //                       child: Icon(
-                  //                         category['icon'] as IconData,
-                  //                         color: Colors.white,
-                  //                         size: 28,
-                  //                       ),
-                  //                     ),
-                  //                     const SizedBox(height: 8),
-                  //                     DefaultText(text: category['name']),
-                  //                   ],
-                  //                 ),
-                  //               );
-                  //             },
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  // ),
                 ],
               ),
     );
@@ -673,24 +709,11 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
       onTap: () => _showWalletDetails(context, wallet),
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              wallet.color.withOpacity(0.9),
-              wallet.color.withOpacity(0.6),
-            ],
-          ),
+          color: AppColorV2.lpBlueBrand.withAlpha(20),
+          border: Border.all(color: AppColorV2.lpBlueBrand.withAlpha(40)),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: wallet.color.withOpacity(0.3),
-              blurRadius: 15,
-              spreadRadius: 1,
-            ),
-          ],
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(10),
         child: SingleChildScrollView(
           physics: BouncingScrollPhysics(),
           child: Column(
@@ -700,7 +723,11 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(wallet.icon, style: const TextStyle(fontSize: 24)),
+                  RepaintBoundary(
+                    child: ClipOval(child: buildWalletIcon(wallet.iconBytes)),
+                  ),
+
+                  SizedBox(width: 8),
                   Expanded(
                     child: Container(
                       alignment: Alignment.center,
@@ -709,26 +736,28 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: AppColorV2.lpBlueBrand.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: DefaultText(
                         text: wallet.category,
                         style: AppTextStyle.body1,
-                        color: AppColorV2.background,
+                        color: AppColorV2.lpBlueBrand,
                         minFontSize: 8,
+                        maxLines: 1,
                       ),
                     ),
                   ),
                 ],
               ),
+
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DefaultText(
                     text: wallet.name,
                     style: AppTextStyle.h3.copyWith(
-                      color: Colors.white,
+                      color: AppColorV2.lpBlueBrand,
                       fontSize: 16,
                     ),
                     maxLines: 1,
@@ -737,7 +766,7 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
                   DefaultText(
                     text: wallet.balance.toStringAsFixed(2),
                     style: AppTextStyle.h2.copyWith(
-                      color: Colors.white,
+                      color: AppColorV2.lpBlueBrand,
                       fontSize: 20,
                     ),
                   ),
@@ -779,7 +808,6 @@ class _SubWalletScreenState extends State<SubWalletScreen> {
             _saveWallets();
           },
 
-          // 🔹 DELETE
           onDelete: () {
             deleteWallet(wallet.id);
             Navigator.pop(context);
@@ -807,33 +835,15 @@ class AddWalletModal extends StatefulWidget {
 class _AddWalletModalState extends State<AddWalletModal> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
-  String _selectedCategory = 'Food';
-  Color _selectedColor = AppColorV2.lpBlueBrand;
-  String _selectedIcon = '🍔';
+  String? _selectedCategory;
+  Color? _selectedColor;
 
-  final List<Map<String, dynamic>> _icons = [
-    {'emoji': '🍔', 'label': 'Food'},
-    {'emoji': '🛍️', 'label': 'Shopping'},
-    {'emoji': '🚗', 'label': 'Transport'},
-    {'emoji': '🎬', 'label': 'Entertainment'},
-    {'emoji': '💼', 'label': 'Work'},
-    {'emoji': '🏠', 'label': 'Home'},
-    {'emoji': '💊', 'label': 'Health'},
-    {'emoji': '📚', 'label': 'Education'},
-    {'emoji': '✈️', 'label': 'Travel'},
-    {'emoji': '🎁', 'label': 'Gifts'},
-    {'emoji': '🏋️', 'label': 'Fitness'},
-    {'emoji': '🍽️', 'label': 'Dining'},
-    {'emoji': '🎮', 'label': 'Gaming'},
-    {'emoji': '📱', 'label': 'Tech'},
-    {'emoji': '👕', 'label': 'Clothing'},
-    {'emoji': '🎵', 'label': 'Music'},
-  ];
   String? _nameError;
   String? _balanceError;
   final FocusNode _balanceFocusNode = FocusNode();
 
   final SubWalletController controller = Get.find<SubWalletController>();
+
   @override
   void initState() {
     super.initState();
@@ -843,7 +853,7 @@ class _AddWalletModalState extends State<AddWalletModal> {
       _nameController.text = w.name;
       _selectedCategory = w.category;
       _selectedColor = w.color;
-      _selectedIcon = w.icon;
+      _selectedIconBytes = w.iconBytes;
     }
 
     _balanceFocusNode.addListener(_validateBalanceOnBlur);
@@ -923,6 +933,12 @@ class _AddWalletModalState extends State<AddWalletModal> {
 
   bool _validateAll() {
     final nameError = _validateName(_nameController.text);
+
+    if (widget.mode == WalletModalMode.edit) {
+      setState(() => _nameError = nameError);
+      return nameError == null;
+    }
+
     final balanceError = _validateBalance(_balanceController.text);
 
     setState(() {
@@ -932,6 +948,9 @@ class _AddWalletModalState extends State<AddWalletModal> {
 
     return nameError == null && balanceError == null;
   }
+
+  Uint8List? _selectedIconBytes;
+  final Map<String, Uint8List> _iconCache = {};
 
   @override
   Widget build(BuildContext context) {
@@ -961,9 +980,175 @@ class _AddWalletModalState extends State<AddWalletModal> {
                       : 'Edit Wallet',
               style: AppTextStyle.popup,
             ),
+            const SizedBox(height: 10),
 
+            Obx(
+              () => Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColorV2.pastelBlueAccent.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColorV2.boxStroke),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Iconsax.wallet_money,
+                      color: AppColorV2.lpBlueBrand,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DefaultText(
+                        text:
+                            'Available Main Balance: ${controller.luvpayBal.value}',
+                        style: AppTextStyle.paragraph1.copyWith(
+                          color: AppColorV2.lpBlueBrand,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+            DefaultText(
+              text: 'Select Category',
+              style: AppTextStyle.h3.copyWith(
+                color: AppColorV2.primaryTextColor,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Obx(() {
+              if (controller.categoryList.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: CircularProgressIndicator(
+                      color: AppColorV2.lpBlueBrand,
+                    ),
+                  ),
+                );
+              }
+
+              return SizedBox(
+                height: 60,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: controller.categoryList.length,
+                  itemBuilder: (context, index) {
+                    final category = controller.categoryList[index];
+                    final categoryName =
+                        category['category_title']?.toString() ?? 'Unknown';
+                    final isSelected = _selectedCategory == categoryName;
+
+                    final imageBase64 =
+                        category['image_base64']?.toString() ?? '';
+                    Color color;
+
+                    if (category['color'] is int) {
+                      color = Color(category['color']);
+                    } else if (category['color'] is String) {
+                      color = _getColorFromString(category['color']);
+                    } else {
+                      color = AppColorV2.lpBlueBrand;
+                    }
+
+                    Widget iconWidget;
+                    if (imageBase64.isNotEmpty) {
+                      try {
+                        final cleanBase64 = imageBase64.replaceAll(
+                          RegExp(r'\s'),
+                          '',
+                        );
+                        Uint8List? bytes;
+
+                        if (_iconCache.containsKey(categoryName)) {
+                          bytes = _iconCache[categoryName];
+                        } else {
+                          try {
+                            bytes = base64.decode(cleanBase64);
+                            _iconCache[categoryName] = bytes;
+                          } catch (_) {
+                            bytes = null;
+                          }
+                        }
+
+                        iconWidget =
+                            bytes != null
+                                ? Image.memory(
+                                  bytes,
+                                  width: 30,
+                                  height: 30,
+                                  fit: BoxFit.contain,
+                                  gaplessPlayback: true,
+                                )
+                                : const Icon(Iconsax.wallet, size: 30);
+                      } catch (e) {
+                        print(
+                          'Error decoding base64 image for category $categoryName: $e',
+                        );
+                        iconWidget = Icon(Iconsax.wallet, size: 30);
+                      }
+                    } else {
+                      iconWidget = Icon(Iconsax.wallet, size: 30);
+                    }
+                    if (_selectedCategory == null && index == 0) {
+                      _selectedCategory = categoryName;
+                      _selectedColor = color;
+                      _selectedIconBytes = _iconCache[categoryName];
+                    }
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedCategory = categoryName;
+                          _selectedColor = color;
+                          _selectedIconBytes = _iconCache[categoryName];
+                        });
+                      },
+
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected ? color : AppColorV2.pastelBlueAccent,
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: isSelected ? color : AppColorV2.boxStroke,
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            ClipOval(child: iconWidget),
+                            const SizedBox(width: 8),
+                            DefaultText(
+                              text: categoryName,
+                              style: AppTextStyle.h3.copyWith(
+                                color:
+                                    isSelected
+                                        ? Colors.white
+                                        : AppColorV2.primaryTextColor,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }),
             const SizedBox(height: 30),
-
             TextField(
               controller: _nameController,
               onChanged: _validateNameOnChange,
@@ -971,6 +1156,7 @@ class _AddWalletModalState extends State<AddWalletModal> {
                 color: AppColorV2.primaryTextColor,
               ),
               maxLength: 15,
+              inputFormatters: [UpperCaseTextFormatter()],
               decoration: InputDecoration(
                 labelText: 'Subwallet Name',
                 labelStyle: AppTextStyle.paragraph2,
@@ -1091,173 +1277,6 @@ class _AddWalletModalState extends State<AddWalletModal> {
 
             const SizedBox(height: 20),
 
-            Obx(
-              () => Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColorV2.pastelBlueAccent.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColorV2.boxStroke),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Iconsax.wallet_money,
-                      color: AppColorV2.lpBlueBrand,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: DefaultText(
-                        text:
-                            'Available Main Balance: ${controller.luvpayBal.value}',
-                        style: AppTextStyle.paragraph1.copyWith(
-                          color: AppColorV2.lpBlueBrand,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Category Selection
-            DefaultText(
-              text: 'Select Category',
-              style: AppTextStyle.h3.copyWith(
-                color: AppColorV2.primaryTextColor,
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 60,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  final isSelected = _selectedCategory == category['name'];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = category['name'];
-                        _selectedColor = category['color'] as Color;
-                      });
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 12),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isSelected
-                                ? category['color'] as Color
-                                : AppColorV2.pastelBlueAccent,
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color:
-                              isSelected
-                                  ? category['color'] as Color
-                                  : AppColorV2.boxStroke,
-                          width: isSelected ? 2 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            category['icon'] as IconData,
-                            color:
-                                isSelected
-                                    ? Colors.white
-                                    : category['color'] as Color,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          DefaultText(
-                            text: category['name'],
-                            style: AppTextStyle.h3.copyWith(
-                              color:
-                                  isSelected
-                                      ? Colors.white
-                                      : AppColorV2.primaryTextColor,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            DefaultText(
-              text: 'Select Icon',
-              style: AppTextStyle.h3.copyWith(
-                color: AppColorV2.primaryTextColor,
-              ),
-            ),
-            const SizedBox(height: 10),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: _icons.length,
-              itemBuilder: (context, index) {
-                final icon = _icons[index];
-                final isSelected = _selectedIcon == icon['emoji'];
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedIcon = icon['emoji'];
-                    });
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    decoration: BoxDecoration(
-                      color:
-                          isSelected
-                              ? _selectedColor
-                              : AppColorV2.pastelBlueAccent,
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(
-                        color:
-                            isSelected ? _selectedColor : AppColorV2.boxStroke,
-                        width: isSelected ? 2 : 1,
-                      ),
-                      boxShadow:
-                          isSelected
-                              ? [
-                                BoxShadow(
-                                  color: _selectedColor.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  spreadRadius: 1,
-                                ),
-                              ]
-                              : [],
-                    ),
-                    child: Center(
-                      child: Text(
-                        icon['emoji'],
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-
             SizedBox(
               width: double.infinity,
               height: 56,
@@ -1276,9 +1295,9 @@ class _AddWalletModalState extends State<AddWalletModal> {
                         widget.mode == WalletModalMode.edit
                             ? widget.wallet!.balance
                             : double.tryParse(_balanceController.text) ?? 0,
-                    category: _selectedCategory,
-                    icon: _selectedIcon,
-                    color: _selectedColor,
+                    category: _selectedCategory ?? 'Uncategorized',
+                    iconBytes: _selectedIconBytes,
+                    color: _selectedColor ?? AppColorV2.lpBlueBrand,
                     transactions:
                         widget.mode == WalletModalMode.edit
                             ? widget.wallet!.transactions
@@ -1286,10 +1305,6 @@ class _AddWalletModalState extends State<AddWalletModal> {
                   );
 
                   Navigator.pop(context, wallet);
-
-                  if (widget.mode == WalletModalMode.edit) {
-                    Navigator.pop(context);
-                  }
                 },
                 child: Text(
                   widget.mode == WalletModalMode.create
@@ -1298,68 +1313,6 @@ class _AddWalletModalState extends State<AddWalletModal> {
                 ),
               ),
             ),
-
-            const SizedBox(height: 16),
-            if (widget.mode == WalletModalMode.create)
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: OutlinedButton(
-                  onPressed: () {
-                    if (_nameController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: DefaultText(
-                            text: 'Please enter a wallet name',
-                          ),
-                          backgroundColor: AppColorV2.incorrectState,
-                        ),
-                      );
-                      return;
-                    }
-
-                    if (_nameController.text.length > 15) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: DefaultText(
-                            text: 'Wallet name must be 15 characters or less',
-                          ),
-                          backgroundColor: AppColorV2.incorrectState,
-                        ),
-                      );
-                      return;
-                    }
-
-                    final newWallet = Wallet(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: _nameController.text.trim(),
-                      balance: 0.0,
-                      category: _selectedCategory,
-                      icon: _selectedIcon,
-                      color: _selectedColor,
-                      transactions: [],
-                    );
-
-                    _nameController.clear();
-                    _balanceController.clear();
-
-                    Navigator.of(context).pop(newWallet);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: _selectedColor, width: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    backgroundColor: _selectedColor.withOpacity(0.1),
-                  ),
-                  child: DefaultText(
-                    text: 'Create with Zero Balance',
-                    style: AppTextStyle.textButton.copyWith(
-                      color: _selectedColor,
-                    ),
-                  ),
-                ),
-              ),
 
             const SizedBox(height: 16),
             Container(
@@ -1424,7 +1377,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     _wallet = widget.wallet;
   }
 
-  // ================= ADD MONEY =================
   void _handleAddMoney(double amount) {
     final updatedWallet = _wallet.copyWith(
       balance: _wallet.balance + amount,
@@ -1445,7 +1397,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     widget.onUpdate?.call(updatedWallet);
   }
 
-  // ================= RETURN MONEY =================
   void _handleReturnMoney(double amount) {
     if (_wallet.balance < amount) return;
 
@@ -1468,7 +1419,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     widget.onUpdate?.call(updatedWallet);
   }
 
-  // ================= EDIT WALLET =================
   void _showEditWallet(BuildContext context) {
     showModalBottomSheet<Wallet>(
       context: context,
@@ -1487,7 +1437,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     });
   }
 
-  // ================= DELETE =================
   Future<void> _deleteWallet(BuildContext context) async {
     final result = await showDialog<bool>(
       context: context,
@@ -1638,7 +1587,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     );
   }
 
-  // ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1648,7 +1596,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
         children: [
           Row(
             children: [
-              Text(_wallet.icon, style: const TextStyle(fontSize: 28)),
+              RepaintBoundary(
+                child: ClipOval(child: buildWalletIcon(_wallet.iconBytes)),
+              ),
+
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
