@@ -86,8 +86,13 @@ class _WalletScreenState extends State<WalletScreen> {
       'icon': "assets/images/luvpay_subwallet.png",
       'label': 'Subwallets',
       'color': Colors.red,
-      'onTap': () {
-        Get.toNamed(Routes.subwallet);
+      'onTap': () async {
+        final result = await Get.toNamed(Routes.subwallet);
+        if (result == true) {
+          _startAutoRefresh();
+          getUserData();
+          getLogs();
+        }
       },
     },
   ];

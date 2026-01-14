@@ -259,7 +259,13 @@ class ApiKeys {
   static final String parkAreaSubs = dotenv.env['PARKING_AREA_SUBSCRIPTION']!
       .replaceAll('{PARK_SPACE_API}', luvApi);
 
-  ///sub wallet categories
+  ///sub wallet
   static final String getSubWalletCategories = dotenv.env['GET_CATEGORIES']!
+      .replaceAll('{LUV_API}', luvApi);
+  static final String subWallets = dotenv.env['SUBCATEGORIES']!.replaceAll(
+    '{LUV_API}',
+    luvApi,
+  );
+  static final String subwalletTransfer = dotenv.env['SUBCATEGORIES_TRANSFER']!
       .replaceAll('{LUV_API}', luvApi);
 }
