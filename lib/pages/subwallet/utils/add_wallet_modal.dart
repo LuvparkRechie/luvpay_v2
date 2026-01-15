@@ -29,10 +29,10 @@ class AddWalletModal extends StatefulWidget {
   });
 
   @override
-  _AddWalletModalState createState() => _AddWalletModalState();
+  AddWalletModalState createState() => AddWalletModalState();
 }
 
-class _AddWalletModalState extends State<AddWalletModal> {
+class AddWalletModalState extends State<AddWalletModal> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
   String? _selectedCategoryId;

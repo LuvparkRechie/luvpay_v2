@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:typed_data';
 import 'dart:ui';
 
@@ -39,6 +41,10 @@ class SubWalletCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final outerBorder = const Color(0xFF0F172A).withOpacity(.01);
+    final innerTintBorder = WalletTileTheme.darken(base, .10).withOpacity(.01);
+    final shadow = const Color(0xFF0F172A).withOpacity(.08);
+
     final card = GestureDetector(
       onTap: onTap,
       child: ClipRRect(
@@ -52,20 +58,48 @@ class SubWalletCard extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      WalletTileTheme.lighten(base, .1).withOpacity(.40),
-                      WalletTileTheme.lighten(base, .06).withOpacity(.20),
-                      WalletTileTheme.lighten(base, .09).withOpacity(.10),
+                      WalletTileTheme.lighten(base, .14).withOpacity(1),
+                      WalletTileTheme.lighten(base, .08).withOpacity(.50),
                     ],
                   ),
                 ),
               ),
             ),
+
             Positioned.fill(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                 child: const SizedBox(),
               ),
             ),
+
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: outerBorder, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadow,
+                      blurRadius: 22,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.all(1),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(23),
+                    border: Border.all(color: innerTintBorder, width: 1),
+                  ),
+                ),
+              ),
+            ),
+
             Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
@@ -86,12 +120,12 @@ class SubWalletCard extends StatelessWidget {
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
-                                  Colors.white.withOpacity(.70),
-                                  Colors.white.withOpacity(.18),
+                                  Colors.white.withOpacity(.90),
+                                  Colors.white.withOpacity(.30),
                                 ],
                               ),
                               border: Border.all(
-                                color: Colors.white.withOpacity(.28),
+                                color: const Color(0xFF0F172A).withOpacity(.10),
                               ),
                             ),
                             child: Center(
@@ -108,6 +142,7 @@ class SubWalletCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 10),
+
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -115,9 +150,9 @@ class SubWalletCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
-                              color: Colors.white.withOpacity(.18),
+                              color: Colors.white.withOpacity(.55),
                               border: Border.all(
-                                color: Colors.white.withOpacity(.22),
+                                color: const Color(0xFF0F172A).withOpacity(.08),
                               ),
                             ),
                             child: DefaultText(
@@ -134,9 +169,9 @@ class SubWalletCard extends StatelessWidget {
                         height: 36,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(14),
-                          color: Colors.white.withOpacity(.16),
+                          color: Colors.white.withOpacity(.50),
                           border: Border.all(
-                            color: Colors.white.withOpacity(.20),
+                            color: const Color(0xFF0F172A).withOpacity(.08),
                           ),
                         ),
                         child: Icon(Iconsax.more, size: 18, color: titleColor),
@@ -144,6 +179,7 @@ class SubWalletCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
+
                   Align(
                     alignment: Alignment.centerLeft,
                     child: DefaultText(
@@ -171,6 +207,7 @@ class SubWalletCard extends StatelessWidget {
                 ],
               ),
             ),
+
             Positioned(
               top: -34,
               left: -44,
@@ -183,7 +220,7 @@ class SubWalletCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(60),
                     gradient: LinearGradient(
                       colors: [
-                        Colors.white.withOpacity(.22),
+                        Colors.white.withOpacity(.24),
                         Colors.white.withOpacity(0),
                       ],
                     ),
@@ -228,10 +265,10 @@ class SubWalletCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: base.withOpacity(0.22 * t),
-                  blurRadius: 26 * t,
+                  color: base.withOpacity(0.18 * t),
+                  blurRadius: 28 * t,
                   spreadRadius: 2 * t,
-                  offset: const Offset(0, 10),
+                  offset: const Offset(0, 12),
                 ),
               ],
             ),

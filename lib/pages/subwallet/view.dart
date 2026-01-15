@@ -474,7 +474,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       child: _balanceCard(
         title: 'Subwallet Savings',
         amount: totalBalance.toStringAsFixed(2),
-        color: AppColorV2.lpTealBrand,
+        color: AppColorV2.lpBlueBrand,
         icon: Iconsax.wallet_money,
       ),
     );
@@ -486,28 +486,11 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     required Color color,
     required IconData icon,
   }) {
-    final titleColor = WalletTileTheme.darken(color, .28);
-    final amtColor = WalletTileTheme.darken(color, .25);
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
       child: Stack(
         children: [
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    WalletTileTheme.lighten(color, .18).withOpacity(.35),
-                    WalletTileTheme.lighten(color, .06).withOpacity(.12),
-                    AppColorV2.background.withOpacity(.10),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          Positioned.fill(child: Container(decoration: BoxDecoration())),
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
@@ -517,8 +500,12 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
+              color: AppColorV2.lpBlueBrand,
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: Colors.white.withOpacity(.20)),
+              border: Border.all(
+                color: const Color(0xFF0F172A).withOpacity(.01),
+              ),
+
               boxShadow: [
                 BoxShadow(
                   color: color.withOpacity(.18),
@@ -542,9 +529,11 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                         Colors.white.withOpacity(.18),
                       ],
                     ),
-                    border: Border.all(color: Colors.white.withOpacity(.30)),
+                    border: Border.all(
+                      color: const Color(0xFF0F172A).withOpacity(.10),
+                    ),
                   ),
-                  child: Icon(icon, color: WalletTileTheme.darken(color, .25)),
+                  child: Icon(icon, color: AppColorV2.background),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -556,7 +545,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                         text: title,
                         maxLines: 1,
                         style: AppTextStyle.paragraph2.copyWith(
-                          color: titleColor,
+                          color: AppColorV2.background,
                           fontWeight: FontWeight.w700,
                           letterSpacing: .2,
                         ),
@@ -567,7 +556,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                         minFontSize: 12,
                         style: AppTextStyle.h3_semibold.copyWith(
                           fontSize: 24,
-                          color: amtColor,
+                          color: AppColorV2.background,
                         ),
                       ),
                     ],
@@ -606,76 +595,89 @@ class _SubWalletScreenState extends State<SubWalletScreen>
               ? Center(
                 child: CircularProgressIndicator(color: AppColorV2.lpBlueBrand),
               )
-              : CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _PinnedHeaderDelegate(
-                      minH: 104,
-                      maxH: 104,
-                      background: AppColorV2.background,
-                      child:
-                          hasWallets
-                              ? _buildBalanceHeader()
-                              : const SizedBox.shrink(),
-                    ),
+              : RefreshIndicator.adaptive(
+                color: AppColorV2.lpBlueBrand,
+                backgroundColor: AppColorV2.background,
+                onRefresh: _refreshData,
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
                   ),
-                  if (hasWallets)
-                    const SliverToBoxAdapter(child: SizedBox(height: 6)),
-                  if (!hasWallets)
-                    SliverToBoxAdapter(child: _emptyState(context))
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      sliver: SliverGrid(
-                        key: ValueKey(wallets.length),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 1,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 1.35,
-                              mainAxisExtent: 120,
-                            ),
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final w = wallets[index];
-
-                          final iconBytes =
-                              (w.imageBase64?.isNotEmpty ?? false)
-                                  ? decodeBase64Safe(w.imageBase64!)
-                                  : null;
-
-                          final base = w.color;
-                          final titleColor = WalletTileTheme.darken(base, .010);
-                          final amountColor = WalletTileTheme.darken(
-                            base,
-                            .020,
-                          );
-                          final categoryLabel =
-                              (w.categoryTitle.trim().isNotEmpty
-                                  ? w.categoryTitle
-                                  : w.category);
-
-                          return SubWalletCard(
-                            wallet: w,
-                            onTap: () => _showWalletDetails(context, w),
-                            iconBytes: iconBytes,
-                            base: base,
-                            titleColor: titleColor,
-                            amountColor: amountColor,
-                            categoryLabel: categoryLabel,
-                            isDeleting: w.id == _deletingWalletId,
-                            isPulsing: w.id == _pulsingWalletId,
-                            deleteAnim: _deleteAnim,
-                            pulseAnim: _pulseAnim,
-                          );
-                        }, childCount: wallets.length),
+                  slivers: [
+                    const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _PinnedHeaderDelegate(
+                        minH: 104,
+                        maxH: 104,
+                        background: AppColorV2.background,
+                        child:
+                            hasWallets
+                                ? _buildBalanceHeader()
+                                : const SizedBox.shrink(),
                       ),
                     ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 30)),
-                ],
+                    if (hasWallets)
+                      const SliverToBoxAdapter(child: SizedBox(height: 6)),
+                    if (!hasWallets)
+                      SliverToBoxAdapter(child: _emptyState(context))
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: SliverGrid(
+                          key: ValueKey(wallets.length),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 1,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                                childAspectRatio: 1.35,
+                                mainAxisExtent: 120,
+                              ),
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final w = wallets[index];
+
+                            final iconBytes =
+                                (w.imageBase64?.isNotEmpty ?? false)
+                                    ? decodeBase64Safe(w.imageBase64!)
+                                    : null;
+
+                            final base = w.color;
+                            final titleColor = WalletTileTheme.darken(
+                              base,
+                              .099,
+                            );
+                            final amountColor = WalletTileTheme.darken(
+                              base,
+                              .099,
+                            );
+                            final categoryLabel =
+                                (w.categoryTitle.trim().isNotEmpty
+                                    ? w.categoryTitle
+                                    : w.category);
+
+                            return SubWalletCard(
+                              wallet: w,
+                              onTap: () => _showWalletDetails(context, w),
+                              iconBytes: iconBytes,
+                              base: base,
+                              titleColor: titleColor,
+                              amountColor: amountColor,
+                              categoryLabel: categoryLabel,
+                              isDeleting: w.id == _deletingWalletId,
+                              isPulsing: w.id == _pulsingWalletId,
+                              deleteAnim: _deleteAnim,
+                              pulseAnim: _pulseAnim,
+                            );
+                          }, childCount: wallets.length),
+                        ),
+                      ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                  ],
+                ),
               ),
     );
   }
@@ -978,17 +980,17 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
 class WalletTileTheme {
   static const List<Color> palette = [
-    Color(0xFF3B82F6),
-    Color(0xFF4F46E5),
-    Color(0xFF2563EB),
-    Color(0xFF0284C7),
-    Color(0xFF38BDF8),
-    Color(0xFF14B8A6),
-    Color(0xFF22D3EE),
-    Color(0xFF34D399),
-    Color(0xFF4ADE80),
-    Color(0xFF22C55E),
-    Color(0xFF2DD4BF),
+    Color(0xFF2563EB), // Soft Royal Blue (primary)
+    Color(0xFF1D4ED8), // Deeper Blue
+    Color(0xFF1E40AF), // Navy Blue
+    Color(0xFF0369A1), // Muted Cyan Blue
+    Color(0xFF0284C7), // Calm Sky Blue
+    Color(0xFF0891B2), // Blue-Teal
+    Color(0xFF0E7490), // Deep Teal
+    Color(0xFF0F766E), // Muted Teal
+    Color(0xFF059669), // Soft Emerald
+    Color(0xFF16A34A), // Fresh Green Accent
+    Color(0xFF14B8A6), // Teal Accent
   ];
 
   static Color colorFromKey(String key) {
@@ -1009,6 +1011,9 @@ class WalletTileTheme {
     final hsl = HSLColor.fromColor(c);
     return hsl.withLightness((hsl.lightness - a).clamp(0.0, 1.0)).toColor();
   }
+
+  static const Color savingsBase = Color(0xFF0F766E);
+  static const Color savingsAccent = Color(0xFFBFAE70);
 }
 
 class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
