@@ -7,11 +7,13 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
+import 'package:luvpay/pages/subwallet/utils/target_card.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
 import '../controller.dart';
 import '../view.dart';
 import 'add_wallet_modal.dart';
 import 'transaction_modal.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WalletDetailsModal extends StatefulWidget {
   final Wallet wallet;
@@ -39,12 +41,48 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
   late Wallet _wallet;
   final SubWalletController mainController = Get.find<SubWalletController>();
   late Future<List<Transaction>> _txFuture;
+  String get _targetKey {
+    final normalizedId = int.tryParse(_wallet.id)?.toString() ?? _wallet.id;
+    return 'subwallet_target_$normalizedId';
+  }
 
   @override
   void initState() {
     super.initState();
     _wallet = widget.wallet;
     _txFuture = _loadTx();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadLocalTarget();
+    });
+  }
+
+  Future<void> _loadLocalTarget() async {
+    final sp = await SharedPreferences.getInstance();
+    final v = sp.getDouble(_targetKey);
+
+    if (!mounted) return;
+    setState(() {
+      _wallet = _wallet.copyWith(targetAmount: v);
+    });
+  }
+
+  Future<void> _saveLocalTarget(double? targetAmount) async {
+    final sp = await SharedPreferences.getInstance();
+
+    if (targetAmount == null) {
+      await sp.remove(_targetKey);
+    } else {
+      await sp.setDouble(
+        _targetKey,
+        double.parse(targetAmount.toStringAsFixed(2)),
+      );
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _wallet = _wallet.copyWith(targetAmount: targetAmount);
+    });
   }
 
   Future<List<Transaction>> _loadTx() {
@@ -64,6 +102,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
       if (updated != null) _wallet = Wallet.fromJson(updated);
       _txFuture = _loadTx();
     });
+
+    await _loadLocalTarget();
   }
 
   Future<void> _handleAddMoney(double amount) async {
@@ -163,6 +203,364 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
       context,
       title: 'Move funds back to main wallet',
       onConfirm: _handleReturnMoney,
+    );
+  }
+
+  Future<void> _openTargetDialog() async {
+    _showTargetDialog(
+      context,
+      title: (_wallet.targetAmount ?? 0) > 0 ? 'Update target' : 'Set target',
+      onConfirm: (value) async => _saveLocalTarget(value),
+      onRemove: () async => _saveLocalTarget(null),
+    );
+  }
+
+  void _showTargetDialog(
+    BuildContext context, {
+    required String title,
+    required Future<void> Function(double amount) onConfirm,
+    required Future<void> Function() onRemove,
+  }) {
+    final controller = TextEditingController(
+      text:
+          (_wallet.targetAmount ?? 0) > 0
+              ? (_wallet.targetAmount!).toStringAsFixed(2)
+              : '',
+    );
+
+    String? errorText;
+    bool canConfirm = controller.text.trim().isNotEmpty;
+
+    double _parse() {
+      final raw = controller.text.trim().replaceAll(',', '');
+      return double.tryParse(raw) ?? 0.0;
+    }
+
+    void _revalidate(StateSetter setState) {
+      final v = _parse();
+
+      if (v <= 0) {
+        setState(() {
+          errorText = null;
+          canConfirm = false;
+        });
+        return;
+      }
+
+      if (v < _wallet.balance) {
+        setState(() {
+          errorText = 'Target must be ≥ current balance';
+          canConfirm = false;
+        });
+        return;
+      }
+
+      setState(() {
+        errorText = null;
+        canConfirm = true;
+      });
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final hasTarget = (_wallet.targetAmount ?? 0) > 0;
+
+            return Dialog(
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 24,
+              ),
+              backgroundColor: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                decoration: BoxDecoration(
+                  color: AppColorV2.background,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: Colors.black.withAlpha(16)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(18),
+                      blurRadius: 26,
+                      offset: const Offset(0, 14),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => Navigator.of(context).pop(),
+                          child: Ink(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.black.withAlpha(10),
+                            ),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 18,
+                              color: Colors.black.withAlpha(130),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(140),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color:
+                              errorText != null
+                                  ? AppColorV2.incorrectState.withAlpha(140)
+                                  : Colors.black.withAlpha(16),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Target amount",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black.withAlpha(150),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: controller,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            onChanged: (_) => _revalidate(setState),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              border: InputBorder.none,
+                              hintText: "0.00",
+                              hintStyle: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.black.withAlpha(60),
+                              ),
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 2,
+                                  right: 6,
+                                ),
+                                child: Center(
+                                  widthFactor: 0,
+                                  child: Text(
+                                    "₱",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.black.withAlpha(160),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              prefixIconConstraints: const BoxConstraints(
+                                minWidth: 22,
+                              ),
+                            ),
+                          ),
+
+                          if (errorText != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  Iconsax.info_circle,
+                                  size: 16,
+                                  color: AppColorV2.incorrectState,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    errorText!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColorV2.incorrectState,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Current balance: ₱ ${_wallet.balance.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black.withAlpha(120),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        if (hasTarget) ...[
+                          Expanded(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () async {
+                                  Navigator.of(context).pop();
+                                  await onRemove();
+                                  await _loadLocalTarget();
+                                },
+
+                                child: Ink(
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: AppColorV2.incorrectState.withAlpha(
+                                      16,
+                                    ),
+                                    border: Border.all(
+                                      color: AppColorV2.incorrectState
+                                          .withAlpha(80),
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Remove",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColorV2.incorrectState,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Ink(
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  color: Colors.black.withAlpha(10),
+                                  border: Border.all(
+                                    color: Colors.black.withAlpha(16),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "Cancel",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.black.withAlpha(160),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap:
+                                  canConfirm
+                                      ? () async {
+                                        final v = _parse();
+                                        Navigator.of(context).pop();
+                                        await onConfirm(v);
+                                      }
+                                      : null,
+                              child: Ink(
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  color:
+                                      canConfirm
+                                          ? AppColorV2.lpBlueBrand
+                                          : AppColorV2.lpBlueBrand.withAlpha(
+                                            90,
+                                          ),
+                                  boxShadow:
+                                      canConfirm
+                                          ? [
+                                            BoxShadow(
+                                              color: AppColorV2.lpBlueBrand
+                                                  .withAlpha(30),
+                                              blurRadius: 18,
+                                              offset: const Offset(0, 10),
+                                            ),
+                                          ]
+                                          : [],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "Save",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColorV2.background,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -278,6 +676,14 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
             _BalanceCard(
               balanceText: "₱ ${_wallet.balance.toStringAsFixed(2)}",
+            ),
+
+            const SizedBox(height: 12),
+
+            TargetCard(
+              balance: _wallet.balance,
+              target: _wallet.targetAmount,
+              onTapSet: _openTargetDialog,
             ),
 
             const SizedBox(height: 14),
@@ -565,7 +971,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 12),
 
                     Container(
@@ -871,21 +1276,22 @@ class _HeaderCard extends StatelessWidget {
               ],
             ),
           ),
-          _IconAction(icon: Iconsax.edit_2, onTap: onEdit),
+          IconAction(icon: Iconsax.edit_2, onTap: onEdit),
           const SizedBox(width: 8),
-          _IconAction(icon: Iconsax.trash, onTap: onDelete, danger: true),
+          IconAction(icon: Iconsax.trash, onTap: onDelete, danger: true),
         ],
       ),
     );
   }
 }
 
-class _IconAction extends StatelessWidget {
+class IconAction extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool danger;
 
-  const _IconAction({
+  const IconAction({
+    super.key,
     required this.icon,
     required this.onTap,
     this.danger = false,
