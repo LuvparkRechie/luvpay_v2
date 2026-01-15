@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
 
 import 'dart:convert';
 import 'dart:typed_data';
@@ -265,97 +265,85 @@ class _AddWalletModalState extends State<AddWalletModal> {
   }
 
   Future<void> _submitForm() async {
-    CustomDialogStack.showLoading(context);
     if (_isSubmitting) return;
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
+
+    final ctx = Get.overlayContext ?? context;
+
+    CustomDialogStack.showLoading(ctx);
 
     try {
       final walletName = _nameController.text.trim();
+
       final double walletAmount =
           widget.mode == WalletModalMode.edit
-              ? widget.wallet!.balance
+              ? (widget.wallet?.balance ?? 0.0)
               : (_balanceController.text.trim().isEmpty
                   ? 0.0
                   : double.parse(_balanceController.text.trim()));
 
-      if (widget.mode == WalletModalMode.create) {
-        if (_selectedCategoryId == null) {
-          CustomDialogStack.showError(
-            context,
-            "luvpay",
-            'Please select a category',
-            () {},
-          );
+      if (widget.mode == WalletModalMode.create &&
+          _selectedCategoryId == null) {
+        if (Get.isDialogOpen == true) Get.back();
 
-          return;
-        }
-
-        final result = await controller.postSubWallet(
-          categoryId: int.tryParse(_selectedCategoryId!),
-          subWalletName: walletName,
-          amount: walletAmount,
+        CustomDialogStack.showError(
+          ctx,
+          "luvpay",
+          "Please select a category",
+          () => Get.back(),
         );
-        if (result["success"] == true) {
-          await controller.getUserSubWallets();
-          await controller.luvpayBalance();
-          widget.onWalletCreated?.call();
-          CustomDialogStack.showSuccess(
-            context,
-            "Success",
-            result["message"] ?? 'Wallet created successfully',
-            () {
-              Get.back();
-              Get.back();
-              Get.back(result: true);
-            },
-          );
-        } else {
-          CustomDialogStack.showError(
-            context,
-            "luvpay",
-            result["error"] ?? 'Failed to create wallet',
-            () {
-              Get.back();
-              Get.back();
-              Get.back();
-            },
-          );
-        }
-      } else {
-        if (widget.wallet != null) {
-          final res = await controller.editSubwallet(
-            subwalletId: int.tryParse(widget.wallet!.id),
-            subWalletName: walletName,
-          );
-
-          if (res["success"] == true) {
-            await controller.getUserSubWallets();
-          }
-          CustomDialogStack.showSuccess(
-            context,
-            "Success",
-            "${res["message"] ?? 'Wallet updated successfully'}",
-            () {
-              Get.back();
-              Get.back();
-              Get.back(result: true);
-            },
-          );
-        }
+        return;
       }
-    } catch (e) {
-      () {
-        Get.back();
-      };
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
+
+      final Map<String, dynamic> result =
+          widget.mode == WalletModalMode.create
+              ? await controller.postSubWallet(
+                categoryId: int.tryParse(_selectedCategoryId!),
+                subWalletName: walletName,
+                amount: walletAmount,
+              )
+              : await controller.editSubwallet(
+                subwalletId: int.tryParse(widget.wallet!.id),
+                subWalletName: walletName,
+              );
+
+      if (result["success"] == true) {
+        await controller.getUserSubWallets();
+        await controller.luvpayBalance();
+        widget.onWalletCreated?.call();
+      }
+
+      if (Get.isDialogOpen == true) Get.back();
+
+      final isOk = result["success"] == true;
+      final msg =
+          (isOk ? result["message"] : result["error"])?.toString() ??
+          (isOk ? "Success" : "Failed");
+
+      if (isOk) {
+        CustomDialogStack.showSuccess(ctx, "Success", msg, () {
+          Get.back();
+          Get.back();
+          Navigator.of(context).pop(true);
+        });
+      } else {
+        CustomDialogStack.showError(ctx, "luvpay", msg, () {
+          Get.back();
+          Get.back();
         });
       }
+    } catch (e) {
+      if (Get.isDialogOpen == true) Get.back();
+
+      CustomDialogStack.showError(
+        ctx,
+        "luvpay",
+        "Something went wrong. Please try again.",
+        () => Get.back(),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
