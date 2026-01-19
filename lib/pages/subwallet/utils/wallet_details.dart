@@ -679,13 +679,13 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
             ),
 
             const SizedBox(height: 12),
-
+            //di removed target card
             // TargetCard(
             //   balance: _wallet.balance,
             //   target: _wallet.targetAmount,
             //   onTapSet: _openTargetDialog,
             // ),
-            // const SizedBox(height: 14),
+            const SizedBox(height: 14),
             Row(
               children: [
                 Expanded(

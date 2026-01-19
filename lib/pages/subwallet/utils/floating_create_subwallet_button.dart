@@ -43,8 +43,8 @@ class FloatingCreateSubwalletButton extends StatelessWidget {
                   child: const Icon(Iconsax.add, color: Colors.white, size: 16),
                 ),
                 const SizedBox(width: 10),
-                Text(
-                  "Create subwallet",
+                DefaultText(
+                  text: "Create subwallet",
                   style: AppTextStyle.paragraph1.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,

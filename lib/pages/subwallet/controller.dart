@@ -321,7 +321,6 @@ class SubWalletController extends GetxController
     try {
       final api = ApiKeys.getSubWalletCategories;
       final returnData = await HttpRequestApi(api: api).get();
-
       if (returnData == "No Internet") {
         if (Get.context != null) {
           CustomDialogStack.showConnectionLost(Get.context!, Get.back);

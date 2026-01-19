@@ -546,6 +546,13 @@ class AddWalletModalState extends State<AddWalletModal> {
                     },
                   ),
                 ),
+              if (_availableCategories.isEmpty)
+                DefaultText(
+                  text: 'No categories available',
+                  style: AppTextStyle.paragraph2.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                ),
               const SizedBox(height: 20),
             ],
             if (widget.mode == WalletModalMode.edit &&

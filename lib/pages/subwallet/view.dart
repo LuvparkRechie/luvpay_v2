@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
+import 'package:luvpay/custom_widgets/no_internet.dart';
 import 'package:luvpay/pages/subwallet/utils/floating_create_subwallet_button.dart';
 
 import '../../custom_widgets/app_color_v2.dart';
@@ -285,8 +286,9 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     setState(() => isLoading = true);
 
     try {
-      if (controller.userSubWallets.isEmpty)
+      if (controller.userSubWallets.isEmpty) {
         await controller.getUserSubWallets();
+      }
 
       wallets =
           controller.userSubWallets.map((w) {
@@ -367,8 +369,9 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     if (amount <= 0) return false;
 
     if (type == TransferType.toSubwallet &&
-        controller.numericBalance.value < amount)
+        controller.numericBalance.value < amount) {
       return false;
+    }
     if (type == TransferType.toMain && wallet.balance < amount) return false;
 
     try {
@@ -384,8 +387,9 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   }
 
   Future<void> addMoneyToWallet(Wallet wallet, double amount) async {
-    if (controller.numericBalance.value < amount)
+    if (controller.numericBalance.value < amount) {
       return _err("Insufficient main balance");
+    }
     await controller.transferSubWallet(
       subwalletId: int.tryParse(wallet.id),
       amount: amount,
@@ -595,6 +599,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
               ? Center(
                 child: CircularProgressIndicator(color: AppColorV2.lpBlueBrand),
               )
+              : !controller.hasNet.value
+              ? NoInternetConnected(onTap: _refreshData)
               : RefreshIndicator.adaptive(
                 color: AppColorV2.lpBlueBrand,
                 backgroundColor: AppColorV2.background,
@@ -738,222 +744,6 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildWalletCard(Wallet wallet) {
-    final iconBytes =
-        (wallet.imageBase64?.isNotEmpty ?? false)
-            ? decodeBase64Safe(wallet.imageBase64!)
-            : null;
-
-    final base = wallet.color;
-    final titleColor = WalletTileTheme.darken(base, .010);
-    final amountColor = WalletTileTheme.darken(base, .020);
-
-    final categoryLabel =
-        (wallet.categoryTitle.trim().isNotEmpty
-            ? wallet.categoryTitle
-            : wallet.category);
-
-    final card = GestureDetector(
-      onTap: () => _showWalletDetails(context, wallet),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      WalletTileTheme.lighten(base, .1).withOpacity(.40),
-                      WalletTileTheme.lighten(base, .06).withOpacity(.20),
-                      WalletTileTheme.lighten(base, .09).withOpacity(.10),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: const SizedBox(),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white.withOpacity(.70),
-                                  Colors.white.withOpacity(.18),
-                                ],
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(.28),
-                              ),
-                            ),
-                            child: Center(
-                              child: ClipOval(
-                                child: SizedBox(
-                                  width: 30,
-                                  height: 30,
-                                  child: FittedBox(
-                                    fit: BoxFit.contain,
-                                    child: buildWalletIcon(iconBytes),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(999),
-                              color: Colors.white.withOpacity(.18),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(.22),
-                              ),
-                            ),
-                            child: DefaultText(
-                              text: categoryLabel,
-                              maxLines: 1,
-                              color: titleColor,
-                              style: AppTextStyle.body1,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          color: Colors.white.withOpacity(.16),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(.20),
-                          ),
-                        ),
-                        child: Icon(Iconsax.more, size: 18, color: titleColor),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: DefaultText(
-                      text: wallet.name,
-                      maxLines: 1,
-                      style: AppTextStyle.h3.copyWith(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w800,
-                        color: titleColor,
-                        letterSpacing: .2,
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: DefaultText(
-                      text: "₱ ${wallet.balance.toStringAsFixed(2)}",
-                      maxLines: 1,
-                      style: AppTextStyle.h3_semibold.copyWith(
-                        fontSize: 18,
-                        color: amountColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-              top: -34,
-              left: -44,
-              child: Transform.rotate(
-                angle: -0.45,
-                child: Container(
-                  width: 190,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(60),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withOpacity(.22),
-                        Colors.white.withOpacity(0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    final isDeleting = wallet.id == _deletingWalletId;
-    if (isDeleting) {
-      return AnimatedBuilder(
-        animation: _deleteAnim,
-        child: card,
-        builder: (_, child) {
-          final t = 1.0 - _deleteAnim.value;
-          return Opacity(
-            opacity: t.clamp(0.0, 1.0),
-            child: Transform.scale(scale: t.clamp(0.0, 1.0), child: child),
-          );
-        },
-      );
-    }
-
-    final isPulsing = wallet.id == _pulsingWalletId;
-    if (!isPulsing) return card;
-
-    return AnimatedBuilder(
-      animation: _pulseAnim,
-      child: card,
-      builder: (_, child) {
-        final t = _pulseAnim.value;
-        return Transform.scale(
-          scale: 1.0 + (0.04 * t),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: base.withOpacity(0.22 * t),
-                  blurRadius: 26 * t,
-                  spreadRadius: 2 * t,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: child,
-          ),
-        );
-      },
     );
   }
 

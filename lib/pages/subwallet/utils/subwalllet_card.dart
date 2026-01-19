@@ -38,197 +38,131 @@ class SubWalletCard extends StatelessWidget {
     required this.deleteAnim,
     required this.pulseAnim,
   });
-
   @override
   Widget build(BuildContext context) {
-    final outerBorder = const Color(0xFF0F172A).withOpacity(.01);
-    final innerTintBorder = WalletTileTheme.darken(base, .10).withOpacity(.01);
-    final shadow = const Color(0xFF0F172A).withOpacity(.08);
+    final borderColor = base;
 
     final card = GestureDetector(
       onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      WalletTileTheme.lighten(base, .14).withOpacity(1),
-                      WalletTileTheme.lighten(base, .08).withOpacity(.50),
-                    ],
-                  ),
-                ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: borderColor.withOpacity(.20), width: 1.6),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(.06),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
               ),
-            ),
-
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: const SizedBox(),
-              ),
-            ),
-
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: outerBorder, width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: shadow,
-                      blurRadius: 22,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.all(1),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(23),
-                    border: Border.all(color: innerTintBorder, width: 1),
-                  ),
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white.withOpacity(.90),
-                                  Colors.white.withOpacity(.30),
-                                ],
-                              ),
-                              border: Border.all(
-                                color: const Color(0xFF0F172A).withOpacity(.10),
-                              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: borderColor.withOpacity(.30),
+                              width: 1.4,
                             ),
-                            child: Center(
-                              child: ClipOval(
-                                child: SizedBox(
-                                  width: 30,
-                                  height: 30,
-                                  child: FittedBox(
-                                    fit: BoxFit.contain,
-                                    child: buildWalletIcon(iconBytes),
-                                  ),
+                          ),
+                          child: Center(
+                            child: ClipOval(
+                              child: SizedBox(
+                                width: 30,
+                                height: 30,
+                                child: FittedBox(
+                                  fit: BoxFit.contain,
+                                  child: buildWalletIcon(iconBytes),
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                        ),
+                        const SizedBox(width: 10),
 
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(999),
-                              color: Colors.white.withOpacity(.55),
-                              border: Border.all(
-                                color: const Color(0xFF0F172A).withOpacity(.08),
-                              ),
-                            ),
-                            child: DefaultText(
-                              text: categoryLabel,
-                              maxLines: 1,
-                              color: titleColor,
-                              style: AppTextStyle.body1,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: borderColor.withOpacity(.30),
+                              width: 1.2,
                             ),
                           ),
-                        ],
-                      ),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          color: Colors.white.withOpacity(.50),
-                          border: Border.all(
-                            color: const Color(0xFF0F172A).withOpacity(.08),
+                          child: DefaultText(
+                            text: categoryLabel,
+                            maxLines: 1,
+                            color: titleColor,
+                            style: AppTextStyle.body1,
                           ),
                         ),
-                        child: Icon(Iconsax.more, size: 18, color: titleColor),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: DefaultText(
-                      text: wallet.name,
-                      maxLines: 1,
-                      style: AppTextStyle.h3.copyWith(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w800,
-                        color: titleColor,
-                        letterSpacing: .2,
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: DefaultText(
-                      text: "₱ ${wallet.balance.toStringAsFixed(2)}",
-                      maxLines: 1,
-                      style: AppTextStyle.h3_semibold.copyWith(
-                        fontSize: 18,
-                        color: amountColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Positioned(
-              top: -34,
-              left: -44,
-              child: Transform.rotate(
-                angle: -0.45,
-                child: Container(
-                  width: 190,
-                  height: 110,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(60),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withOpacity(.24),
-                        Colors.white.withOpacity(0),
                       ],
+                    ),
+
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: borderColor.withOpacity(.35),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Icon(Iconsax.more, size: 18, color: titleColor),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: DefaultText(
+                    text: wallet.name,
+                    maxLines: 1,
+                    style: AppTextStyle.h3.copyWith(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w800,
+                      color: titleColor,
+                      letterSpacing: .2,
                     ),
                   ),
                 ),
-              ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: DefaultText(
+                    text: "₱ ${wallet.balance.toStringAsFixed(2)}",
+                    maxLines: 1,
+                    style: AppTextStyle.h3_semibold.copyWith(
+                      fontSize: 18,
+                      color: amountColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
