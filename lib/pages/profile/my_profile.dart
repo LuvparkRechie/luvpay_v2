@@ -10,11 +10,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
+import 'package:luvpay/custom_widgets/custom_textfield.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
+import '../../custom_widgets/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
+import '../../custom_widgets/upper_case_formatter.dart';
 import '../../custom_widgets/variables.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
@@ -41,6 +44,8 @@ class _MyProfileState extends State<MyProfile> {
   bool isLoading = true;
   bool isNetConn = true;
   ImageProvider? profileImage;
+
+  TextEditingController referralController = TextEditingController();
 
   @override
   void initState() {
@@ -598,17 +603,7 @@ class _MyProfileState extends State<MyProfile> {
             ),
             if (isVerified) ...[
               const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: DefaultText(
-                  text: 'Referral Program',
-                  style: AppTextStyle.h4.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                  ),
-                  color: AppColorV2.primaryTextColor,
-                ),
-              ),
+
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -637,7 +632,7 @@ class _MyProfileState extends State<MyProfile> {
                         ),
                         const SizedBox(width: 8),
                         DefaultText(
-                          text: 'Your Referral Code',
+                          text: 'My Referral Code',
                           style: AppTextStyle.h3.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -645,36 +640,21 @@ class _MyProfileState extends State<MyProfile> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColorV2.lpBlueBrand.withAlpha(10),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColorV2.lpBlueBrand.withAlpha(100),
-                              ),
-                            ),
-                            child: DefaultText(
-                              text: "ABCD1234",
-                              style: AppTextStyle.h3_f22.copyWith(
-                                letterSpacing: 1.5,
-                              ),
-                              color: AppColorV2.lpBlueBrand,
-                            ),
+                        DefaultText(
+                          text: "CMDSI-RG08099800",
+                          style: AppTextStyle.h3_f22.copyWith(
+                            letterSpacing: 1.5,
                           ),
+                          color: AppColorV2.lpBlueBrand,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 5),
                         GestureDetector(
                           onTap: () {
                             Clipboard.setData(
-                              const ClipboardData(text: "ABCD1234"),
+                              const ClipboardData(text: "ABCD-1234"),
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -687,36 +667,55 @@ class _MyProfileState extends State<MyProfile> {
                               ),
                             );
                           },
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: AppColorV2.lpBlueBrand,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColorV2.lpBlueBrand.withOpacity(
-                                    0.3,
-                                  ),
-                                  blurRadius: 8,
-                                  spreadRadius: 0,
-                                ),
-                              ],
-                            ),
-                            child: Icon(
-                              Iconsax.copy,
-                              color: AppColorV2.background,
-                              size: 22,
-                            ),
+                          child: Icon(
+                            Iconsax.copy,
+                            size: 22,
+                            color: AppColorV2.bodyTextColor,
                           ),
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 12),
                     DefaultText(
                       text:
                           "Share your code with friends and earn rewards when they sign up!",
                       style: AppTextStyle.body1,
                       color: AppColorV2.bodyTextColor,
+                    ),
+                    const SizedBox(height: 8),
+                    DefaultText(
+                      text: "Terms and conditions Apply",
+                      style: AppTextStyle.body2,
+                      color: AppColorV2.lpBlueBrand,
+                    ),
+                    const SizedBox(height: 18),
+                    DefaultText(
+                      text: "Did someone refer you?",
+                      style: AppTextStyle.body2,
+                      color: AppColorV2.bodyTextColor,
+                    ),
+                    CustomTextField(
+                      controller: referralController,
+                      hintText: "Enter your friend's referral code",
+                      keyboardType: TextInputType.text,
+                      inputFormatters: [
+                        UpperCaseTextFormatter(),
+                        FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                        LengthLimitingTextInputFormatter(15),
+                      ],
+                      onChange: (value) {},
+                    ),
+                    const SizedBox(height: 10),
+                    CustomButton(
+                      width: MediaQuery.of(context).size.width / 3,
+                      text: "Submit",
+                      onPressed:
+                          () async => {
+                            CustomDialogStack.showComingSoon(context, () {
+                              Get.back();
+                            }),
+                          },
                     ),
                   ],
                 ),

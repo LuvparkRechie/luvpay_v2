@@ -3,6 +3,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
@@ -1199,64 +1200,86 @@ class _HeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withAlpha(14)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(10),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+    final radius = BorderRadius.circular(20);
+
+    return Neumorphic(
+      style: NeumorphicStyle(
+        color: AppColorV2.background,
+        shape: NeumorphicShape.convex,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: 5,
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              color: AppColorV2.lpBlueBrand.withAlpha(14),
-            ),
-            child: Center(
-              child: ClipOval(
-                child: SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: buildWalletIcon(iconBytes),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DefaultText(
-                  text: wallet.name,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Neumorphic(
+                    style: NeumorphicStyle(
+                      color: AppColorV2.background,
+                      shape: NeumorphicShape.convex,
+                      boxShape: NeumorphicBoxShape.roundRect(
+                        BorderRadius.circular(18),
+                      ),
+                      depth: 3,
+                    ),
+                    child: SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: Center(
+                        child: ClipOval(
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: buildWalletIcon(iconBytes),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                DefaultText(
-                  text: wallet.categoryTitle,
-                  fontSize: 12,
-                  color: Colors.black.withAlpha(140),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DefaultText(
+                          text: wallet.name,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        DefaultText(
+                          text: wallet.categoryTitle,
+                          fontSize: 12,
+                          color: Colors.black.withAlpha(140),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconAction(icon: Iconsax.edit_2, onTap: onEdit),
+                  const SizedBox(width: 8),
+                  IconAction(
+                    icon: Iconsax.trash,
+                    onTap: onDelete,
+                    danger: true,
+                  ),
+                ],
+              ),
             ),
-          ),
-          IconAction(icon: Iconsax.edit_2, onTap: onEdit),
-          const SizedBox(width: 8),
-          IconAction(icon: Iconsax.trash, onTap: onDelete, danger: true),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1278,20 +1301,20 @@ class IconAction extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = danger ? AppColorV2.incorrectState : AppColorV2.lpBlueBrand;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Ink(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            color: color.withAlpha(14),
-          ),
-          child: Icon(icon, color: color, size: 18),
-        ),
+    return NeumorphicButton(
+      onPressed: onTap,
+      padding: EdgeInsets.zero,
+      style: NeumorphicStyle(
+        color: AppColorV2.background,
+        shape: NeumorphicShape.convex,
+        boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(14)),
+        depth: 3,
+        border: NeumorphicBorder(color: color.withAlpha(55), width: 1),
+      ),
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: Center(child: Icon(icon, color: color, size: 18)),
       ),
     );
   }
@@ -1304,49 +1327,55 @@ class _BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColorV2.lpBlueBrand.withAlpha(245),
-            AppColorV2.lpBlueBrand.withAlpha(170),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColorV2.lpBlueBrand.withAlpha(30),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
-          ),
-        ],
+    final radius = BorderRadius.circular(22);
+
+    return Neumorphic(
+      style: NeumorphicStyle(
+        color: AppColorV2.background,
+        shape: NeumorphicShape.convex,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: 5,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Subwallet balance",
-            style: TextStyle(
-              color: Colors.white.withAlpha(210),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColorV2.lpBlueBrand.withAlpha(245),
+                AppColorV2.lpBlueBrand.withAlpha(170),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            balanceText,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.2,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Subwallet balance",
+                style: TextStyle(
+                  color: Colors.white.withAlpha(210),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                balanceText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1367,45 +1396,41 @@ class _ActionPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = filled ? AppColorV2.lpBlueBrand : Colors.transparent;
-    final fg = filled ? AppColorV2.background : AppColorV2.lpBlueBrand;
+    final radius = BorderRadius.circular(16);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Ink(
-          height: 52,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color:
-                  filled
-                      ? Colors.transparent
-                      : AppColorV2.lpBlueBrand.withAlpha(90),
-            ),
-            boxShadow:
-                filled
-                    ? [
-                      BoxShadow(
-                        color: AppColorV2.lpBlueBrand.withAlpha(30),
-                        blurRadius: 18,
-                        offset: const Offset(0, 10),
-                      ),
-                    ]
-                    : [],
-          ),
+    return NeumorphicButton(
+      onPressed: onTap,
+      padding: EdgeInsets.zero,
+      style: NeumorphicStyle(
+        color: filled ? AppColorV2.lpBlueBrand : AppColorV2.background,
+        shape: NeumorphicShape.convex,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: filled ? 4 : 3,
+        border: NeumorphicBorder(
+          color:
+              filled
+                  ? Colors.transparent
+                  : AppColorV2.lpBlueBrand.withAlpha(90),
+          width: 1,
+        ),
+      ),
+      child: SizedBox(
+        height: 52,
+        child: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: fg, size: 20),
+              Icon(
+                icon,
+                color: filled ? AppColorV2.background : AppColorV2.lpBlueBrand,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Text(
                 label,
                 style: TextStyle(
-                  color: fg,
+                  color:
+                      filled ? AppColorV2.background : AppColorV2.lpBlueBrand,
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
                 ),
@@ -1431,34 +1456,39 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(22);
+
     return Center(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.black.withAlpha(14)),
+      child: Neumorphic(
+        style: NeumorphicStyle(
+          color: AppColorV2.background,
+          shape: NeumorphicShape.convex,
+          boxShape: NeumorphicBoxShape.roundRect(radius),
+          depth: 4,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 58, color: Colors.grey.shade400),
-            const SizedBox(height: 14),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: Colors.grey.shade700,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 58, color: Colors.grey.shade400),
+              const SizedBox(height: 14),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.grey.shade700,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-            ),
-          ],
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              ),
+            ],
+          ),
         ),
       ),
     );

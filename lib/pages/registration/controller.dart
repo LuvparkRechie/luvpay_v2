@@ -21,12 +21,13 @@ class RegistrationController extends GetxController
   RxBool isLoading = false.obs;
   RxInt passStrength = 1.obs;
   RxInt storedOtp = 0.obs;
-
   final GlobalKey<FormState> formKeyRegister = GlobalKey<FormState>();
   TextEditingController mobileNumber = TextEditingController();
   TextEditingController password = TextEditingController();
+  TextEditingController referralCode = TextEditingController();
   bool isLogin = false;
   bool isInternetConnected = true;
+  RxBool isApplied = false.obs;
 
   bool isTappedReg = false;
   var usersLogin = [];
@@ -46,13 +47,64 @@ class RegistrationController extends GetxController
 
   void onMobileChanged(String value) {
     if (value.startsWith("0")) {
-      mobileNumber.text = value.substring(
-        1,
-      ); // Update mobileNumber with substring
+      mobileNumber.text = value.substring(1);
     } else {
-      mobileNumber.text = value; // Update mobileNumber with original value
+      mobileNumber.text = value;
     }
     update();
+  }
+
+  Future<bool> validateReferral() async {
+    final code = referralCode.text.trim();
+
+    if (code.isEmpty) {
+      CustomDialogStack.showInfo(
+        Get.context!,
+        "Referral Code",
+        "Please enter a referral code.",
+        () {
+          Get.back();
+        },
+      );
+      return false;
+    }
+
+    if (Get.isBottomSheetOpen ?? false) Get.back();
+
+    CustomDialogStack.showLoading(Get.context!);
+
+    try {
+      String api = "";
+      final res =
+          await HttpRequestApi(
+            api: api,
+            parameters: {"referral_code": code},
+          ).postBody();
+
+      Get.back();
+
+      if (res == "No Internet" || res == null) {
+        CustomDialogStack.showServerError(Get.context!, () => Get.back());
+        return false;
+      }
+
+      final ok = res["success"] == "Y";
+      if (!ok) {
+        CustomDialogStack.showError(
+          Get.context!,
+          "luvpay",
+          res["msg"] ?? "Invalid code.",
+          () => Get.back(),
+        );
+        return false;
+      }
+
+      return true;
+    } catch (_) {
+      Get.back();
+      CustomDialogStack.showServerError(Get.context!, () => Get.back());
+      return false;
+    }
   }
 
   Future<void> onSubmit() async {
@@ -61,6 +113,7 @@ class RegistrationController extends GetxController
       "mobile_no": "63${mobileNumber.text.toString().replaceAll(" ", "")}",
       "pwd": password.text,
       "device_key": devKey.toString(),
+      // "referral_code": referralCode.text,
     };
     print("parameters $parameters");
     if (isAgree) {
@@ -153,8 +206,6 @@ class RegistrationController extends GetxController
         timeExp.minute,
         timeExp.millisecond,
       );
-
-      // Calculate difference
       Duration difference = otpExpiry.difference(timeNow);
 
       if (obj["success"] == "Y" || obj["status"] == "PENDING") {

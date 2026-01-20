@@ -2,16 +2,14 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
-import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/no_internet.dart';
-import 'package:luvpay/pages/subwallet/utils/floating_create_subwallet_button.dart';
 
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
@@ -245,6 +243,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
   String? _deletingWalletId;
   bool isRefreshing = false;
+  final ScrollController _scrollCtrl = ScrollController();
+  bool _pinHeader = true;
 
   @override
   void initState() {
@@ -254,6 +254,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
   @override
   void dispose() {
+    _scrollCtrl.dispose();
     _pulseTimer?.cancel();
     _pulseCtrl.dispose();
     _deleteCtrl.dispose();
@@ -479,84 +480,137 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   }
 
   Widget _buildBalanceHeader() {
-    return _balanceCard(
-      title: 'Subwallet Savings',
-      amount: totalBalance.toStringAsFixed(2),
-      color: AppColorV2.lpBlueBrand,
-      icon: Iconsax.wallet_money,
-    );
-  }
+    final masked = isRefreshing;
 
-  Widget _balanceCard({
-    required String title,
-    required String amount,
-    required Color color,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-      decoration: BoxDecoration(
-        color: AppColorV2.lpBlueBrand,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF0F172A).withOpacity(.01)),
+    final walletCountText = masked ? "******" : "${wallets.length} wallets";
+    final totalText =
+        masked ? "₱ *******" : "₱ ${totalBalance.toStringAsFixed(2)}";
 
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(.18),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
-          ),
-        ],
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(24),
+        bottomRight: Radius.circular(24),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(.65),
-                  Colors.white.withOpacity(.18),
-                ],
-              ),
-              border: Border.all(
-                color: const Color(0xFF0F172A).withOpacity(.10),
-              ),
-            ),
-            child: Icon(icon, color: AppColorV2.background),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+      child: Container(
+        width: double.infinity,
+        color: AppColorV2.lpBlueBrand,
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                DefaultText(
-                  text: title,
-                  maxLines: 1,
-                  style: AppTextStyle.paragraph2.copyWith(
-                    color: AppColorV2.background,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: .2,
+                Expanded(
+                  child: DefaultText(
+                    text: "Subwallet Savings",
+                    maxLines: 1,
+                    style: AppTextStyle.paragraph2.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColorV2.background,
+                    ),
                   ),
                 ),
                 DefaultText(
-                  text: "₱ $amount",
+                  text: walletCountText,
                   maxLines: 1,
-                  minFontSize: 12,
-                  style: AppTextStyle.h3_semibold.copyWith(
-                    fontSize: 24,
+                  style: AppTextStyle.paragraph2.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
                     color: AppColorV2.background,
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                DefaultText(
+                  text: totalText,
+                  maxLines: 1,
+                  style: AppTextStyle.h3_semibold.copyWith(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: .2,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: DefaultText(
+                    text: "total",
+                    maxLines: 1,
+                    style: AppTextStyle.paragraph2.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColorV2.background,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 82,
+              height: 82,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColorV2.lpBlueBrand.withOpacity(.10),
+                border: Border.all(
+                  color: AppColorV2.lpBlueBrand.withOpacity(.18),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColorV2.lpBlueBrand.withOpacity(.10),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.add_circle_outlined,
+                size: 80,
+                color: AppColorV2.lpBlueBrand,
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            DefaultText(
+              text: "No subwallets yet",
+              maxLines: 1,
+              style: AppTextStyle.h3.copyWith(
+                fontWeight: FontWeight.w900,
+                color: AppColorV2.primaryTextColor,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            DefaultText(
+              text: "Create one to start saving and tracking your goals.",
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: AppTextStyle.paragraph2.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColorV2.bodyTextColor.withOpacity(.75),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -565,174 +619,198 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   Widget build(BuildContext context) {
     final ready = categoriesLoaded && !isLoading;
     final hasWallets = wallets.isNotEmpty;
+    final headerH = hasWallets && _pinHeader ? 104.0 : 0.0;
 
-    return CustomScaffoldV2(
-      backgroundColor: const Color.fromARGB(255, 250, 251, 251),
-      floatingButton:
-          ready && hasWallets
-              ? FloatingCreateSubwalletButton(
-                onTap: () => _showAddWalletModal(context),
-              )
-              : null,
-      onPressedLeading: () => Get.back(result: true),
+    return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) Get.back(result: true);
       },
-      appBarTitle: "Subwallet",
-      padding: EdgeInsets.zero,
-      scaffoldBody: PremiumLoaderOverlay(
-        loading: !ready,
-        title: "Loading wallets…",
-        subtitle: "Please wait a moment",
-        accentColor: AppColorV2.lpBlueBrand,
-        glowColor: AppColorV2.lpTealBrand,
-        child:
-            !controller.hasNet.value
-                ? NoInternetConnected(onTap: _refreshData)
-                : PremiumRefreshOverlay(
-                  refreshing: isRefreshing,
-                  label: "Refreshing…",
-                  accentColor: AppColorV2.lpBlueBrand,
-                  glowColor: AppColorV2.lpTealBrand,
-                  child: RefreshIndicator(
-                    elevation: 0,
-                    color: Colors.transparent,
-                    backgroundColor: Colors.transparent,
-                    notificationPredicate: (_) => !isRefreshing,
-                    onRefresh: _refreshData,
-                    child: CustomScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(
-                        parent: BouncingScrollPhysics(),
-                      ),
-                      slivers: [
-                        const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                        SliverPersistentHeader(
-                          pinned: true,
-                          delegate: _PinnedHeaderDelegate(
-                            minH: 104,
-                            maxH: 104,
-                            background: Colors.transparent,
-                            child:
-                                hasWallets
-                                    ? Padding(
-                                      padding: const EdgeInsets.all(14.0),
-                                      child: _buildBalanceHeader(),
-                                    )
-                                    : const SizedBox.shrink(),
-                          ),
-                        ),
-                        if (hasWallets)
-                          const SliverToBoxAdapter(child: SizedBox(height: 6)),
-                        if (!hasWallets)
-                          SliverToBoxAdapter(child: _emptyState(context))
-                        else
-                          SliverPadding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            sliver: SliverGrid(
-                              key: ValueKey(wallets.length),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 10,
-                                    mainAxisSpacing: 10,
-                                    childAspectRatio: 1.35,
-                                    mainAxisExtent: 120,
-                                  ),
-                              delegate: SliverChildBuilderDelegate((
-                                context,
-                                index,
-                              ) {
-                                final w = wallets[index];
-                                final iconBytes =
-                                    (w.imageBase64?.isNotEmpty ?? false)
-                                        ? decodeBase64Safe(w.imageBase64!)
-                                        : null;
-
-                                final categoryLabel =
-                                    (w.categoryTitle.trim().isNotEmpty
-                                        ? w.categoryTitle
-                                        : w.category);
-
-                                return SubWalletCard(
-                                  wallet: w,
-                                  onTap: () => _showWalletDetails(context, w),
-                                  iconBytes: iconBytes,
-                                  base: w.color,
-                                  titleColor: AppColorV2.primaryTextColor,
-                                  amountColor: AppColorV2.bodyTextColor,
-                                  categoryLabel: categoryLabel,
-                                  isDeleting: w.id == _deletingWalletId,
-                                  isPulsing: w.id == _pulsingWalletId,
-                                  deleteAnim: _deleteAnim,
-                                  pulseAnim: _pulseAnim,
-                                );
-                              }, childCount: wallets.length),
-                            ),
-                          ),
-                        const SliverToBoxAdapter(child: SizedBox(height: 30)),
-                      ],
-                    ),
+      child: Scaffold(
+        backgroundColor: AppColorV2.background,
+        appBar: AppBar(
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: AppColorV2.lpBlueBrand,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.light,
+          ),
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: AppColorV2.lpBlueBrand,
+          centerTitle: true,
+          leading: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => Get.back(result: true),
+                child: Ink(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(.16),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withOpacity(.12)),
                   ),
-                ),
-      ),
-    );
-  }
-
-  Widget _emptyState(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-      child: Center(
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: () => _showAddWalletModal(context),
-              borderRadius: BorderRadius.circular(999),
-              child: ClipOval(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                  child: Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColorV2.lpBlueBrand.withOpacity(.38),
-                          AppColorV2.lpTealBrand.withOpacity(.22),
-                          Colors.white.withOpacity(.10),
-                        ],
-                      ),
-                      border: Border.all(color: Colors.white.withOpacity(.25)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColorV2.lpBlueBrand.withOpacity(.16),
-                          blurRadius: 18,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Iconsax.add,
-                        size: 26,
-                        color: AppColorV2.lpBlueBrand,
-                      ),
-                    ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18,
+                    color: Colors.white.withOpacity(.95),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            DefaultText(text: 'No wallets yet', style: AppTextStyle.paragraph1),
-            DefaultText(
-              text: 'Tap + to create your first wallet',
-              style: AppTextStyle.paragraph2,
+          ),
+          title: DefaultText(
+            text: "Subwallets",
+            color: Colors.white.withOpacity(.95),
+            style: AppTextStyle.h3.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: .2,
             ),
-          ],
+          ),
+        ),
+
+        body: SafeArea(
+          top: false,
+          bottom: true,
+          child: PremiumLoaderOverlay(
+            topInset: headerH,
+            loading: !ready,
+            title: "Loading wallets…",
+            subtitle: "Please wait a moment",
+            accentColor: AppColorV2.lpBlueBrand,
+            glowColor: AppColorV2.lpTealBrand,
+            child:
+                !controller.hasNet.value
+                    ? NoInternetConnected(onTap: _refreshData)
+                    : PremiumRefreshOverlay(
+                      topInset: headerH,
+                      refreshing: isRefreshing,
+                      label: "Refreshing…",
+                      accentColor: AppColorV2.lpBlueBrand,
+                      glowColor: AppColorV2.lpTealBrand,
+                      child: Stack(
+                        children: [
+                          RefreshIndicator.noSpinner(
+                            elevation: 0,
+                            onRefresh: _refreshData,
+                            child: CustomScrollView(
+                              controller: _scrollCtrl,
+                              physics: const AlwaysScrollableScrollPhysics(
+                                parent: BouncingScrollPhysics(),
+                              ),
+                              slivers: [
+                                SliverToBoxAdapter(
+                                  child: SizedBox(
+                                    height: hasWallets ? 104 : 10,
+                                  ),
+                                ),
+                                SliverPadding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                  ),
+                                  sliver:
+                                      wallets.isEmpty
+                                          ? SliverFillRemaining(
+                                            hasScrollBody: false,
+                                            child: GestureDetector(
+                                              onTap:
+                                                  () => _showAddWalletModal(
+                                                    context,
+                                                  ),
+                                              child: _buildEmptyState(context),
+                                            ),
+                                          )
+                                          : SliverGrid(
+                                            gridDelegate:
+                                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                                  crossAxisCount: 2,
+                                                  crossAxisSpacing: 15,
+                                                  mainAxisSpacing: 10,
+                                                  childAspectRatio: 1.35,
+                                                  mainAxisExtent: 120,
+                                                ),
+                                            delegate: SliverChildBuilderDelegate(
+                                              (context, index) {
+                                                final isCreateTile =
+                                                    index == wallets.length;
+
+                                                if (isCreateTile) {
+                                                  return CreateSubwalletTile(
+                                                    onTap:
+                                                        () =>
+                                                            _showAddWalletModal(
+                                                              context,
+                                                            ),
+                                                  );
+                                                }
+
+                                                final w = wallets[index];
+                                                final iconBytes =
+                                                    (w
+                                                                .imageBase64
+                                                                ?.isNotEmpty ??
+                                                            false)
+                                                        ? decodeBase64Safe(
+                                                          w.imageBase64!,
+                                                        )
+                                                        : null;
+
+                                                final categoryLabel =
+                                                    (w.categoryTitle
+                                                            .trim()
+                                                            .isNotEmpty
+                                                        ? w.categoryTitle
+                                                        : w.category);
+
+                                                return SubWalletCard(
+                                                  wallet: w,
+                                                  onTap:
+                                                      () => _showWalletDetails(
+                                                        context,
+                                                        w,
+                                                      ),
+                                                  iconBytes: iconBytes,
+                                                  base: w.color,
+                                                  titleColor:
+                                                      AppColorV2
+                                                          .primaryTextColor,
+                                                  amountColor:
+                                                      AppColorV2.bodyTextColor,
+                                                  categoryLabel: categoryLabel,
+                                                  isDeleting:
+                                                      w.id == _deletingWalletId,
+                                                  isPulsing:
+                                                      w.id == _pulsingWalletId,
+                                                  deleteAnim: _deleteAnim,
+                                                  pulseAnim: _pulseAnim,
+                                                );
+                                              },
+                                              childCount: wallets.length + 1,
+                                            ),
+                                          ),
+                                ),
+
+                                const SliverToBoxAdapter(
+                                  child: SizedBox(height: 30),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          if (hasWallets && _pinHeader)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              child: _buildBalanceHeader(),
+                            ),
+                        ],
+                      ),
+                    ),
+          ),
         ),
       ),
     );
@@ -759,45 +837,126 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   }
 }
 
-class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double minH, maxH;
-  final Widget child;
-  final Color background;
+class CreateSubwalletTile extends StatefulWidget {
+  final VoidCallback onTap;
 
-  _PinnedHeaderDelegate({
-    required this.minH,
-    required this.maxH,
-    required this.child,
-    required this.background,
-  });
+  const CreateSubwalletTile({super.key, required this.onTap});
 
   @override
-  double get minExtent => minH;
+  State<CreateSubwalletTile> createState() => _CreateSubwalletTileState();
+}
 
-  @override
-  double get maxExtent => maxH;
+class _CreateSubwalletTileState extends State<CreateSubwalletTile> {
+  bool _pressed = false;
 
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return SizedBox(
-      height: maxExtent,
-      child: Container(
-        color: background,
-        alignment: Alignment.center,
-        child: child,
-      ),
-    );
+  void _setPressed(bool v) {
+    if (!mounted) return;
+    if (_pressed == v) return;
+    setState(() => _pressed = v);
   }
 
   @override
-  bool shouldRebuild(covariant _PinnedHeaderDelegate old) {
-    return old.minH != minH ||
-        old.maxH != maxH ||
-        old.background != background ||
-        old.child != child;
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(24);
+
+    final double scale = _pressed ? 0.965 : 1.0;
+    final double yTranslate = _pressed ? 2.0 : 0.0;
+
+    final style = NeumorphicStyle(
+      color: AppColorV2.background,
+      shape: NeumorphicShape.convex,
+      boxShape: NeumorphicBoxShape.roundRect(radius),
+      depth: _pressed ? -3 : 5,
+      intensity: 0.70,
+      surfaceIntensity: 0.10,
+    );
+
+    final core = Neumorphic(
+      style: style,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                ),
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Neumorphic(
+                      style: NeumorphicStyle(
+                        color: AppColorV2.lpBlueBrand.withAlpha(100),
+                        shape: NeumorphicShape.convex,
+                        boxShape: const NeumorphicBoxShape.circle(),
+                        depth: _pressed ? -2 : 4,
+                      ),
+                      child: SizedBox(
+                        width: 58,
+                        height: 58,
+                        child: Center(
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColorV2.boxStroke.withAlpha(30),
+                            ),
+                            child: Icon(
+                              Iconsax.add,
+                              size: 30,
+                              color: AppColorV2.lpBlueBrand,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DefaultText(
+                      text: "Add new subwallet",
+                      maxLines: 1,
+                      style: AppTextStyle.paragraph2.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: AppColorV2.primaryTextColor.withOpacity(.70),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapCancel: () => _setPressed(false),
+      onTapUp: (_) => _setPressed(false),
+      onTap: () {
+        _setPressed(false);
+        widget.onTap();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        transform:
+            Matrix4.identity()
+              ..translate(0.0, yTranslate)
+              ..scale(scale, scale),
+        child: core,
+      ),
+    );
   }
 }

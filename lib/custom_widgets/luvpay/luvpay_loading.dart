@@ -126,6 +126,8 @@ class PremiumLoaderOverlay extends StatelessWidget {
 
   final bool barrierDismissible;
 
+  final double topInset;
+
   const PremiumLoaderOverlay({
     super.key,
     required this.loading,
@@ -135,6 +137,7 @@ class PremiumLoaderOverlay extends StatelessWidget {
     required this.accentColor,
     this.glowColor,
     this.barrierDismissible = false,
+    this.topInset = 0,
   });
 
   @override
@@ -142,66 +145,72 @@ class PremiumLoaderOverlay extends StatelessWidget {
     return Stack(
       children: [
         child,
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          switchInCurve: Curves.easeOut,
-          switchOutCurve: Curves.easeIn,
-          child:
-              !loading
-                  ? const SizedBox.shrink()
-                  : Positioned.fill(
-                    child: IgnorePointer(
-                      ignoring: barrierDismissible,
-                      child: Container(
-                        decoration: BoxDecoration(color: AppColorV2.background),
 
-                        child: Center(
-                          child: PremiumFrostCard(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                PremiumSpinner(
-                                  size: 20,
-                                  strokeWidth: 2.4,
-                                  color: accentColor,
-                                  glowColor: glowColor,
-                                ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+        Positioned(
+          top: topInset,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            ignoring: barrierDismissible,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder:
+                  (w, anim) => FadeTransition(opacity: anim, child: w),
+              child:
+                  !loading
+                      ? const SizedBox.shrink(key: ValueKey("loader_off"))
+                      : Container(
+                        key: const ValueKey("loader_on"),
+                        color: AppColorV2.background,
+                        alignment: Alignment.center,
+                        child: PremiumFrostCard(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PremiumSpinner(
+                                size: 20,
+                                strokeWidth: 2.4,
+                                color: accentColor,
+                                glowColor: glowColor,
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: .2,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  if (subtitle != null) ...[
+                                    const SizedBox(height: 2),
                                     Text(
-                                      title,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: .2,
-                                        color: Color(0xFF0F172A),
+                                      subtitle!,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(
+                                          0xFF0F172A,
+                                        ).withOpacity(.62),
                                       ),
                                     ),
-                                    if (subtitle != null) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        subtitle!,
-                                        style: TextStyle(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w600,
-                                          color: const Color(
-                                            0xFF0F172A,
-                                          ).withOpacity(.62),
-                                        ),
-                                      ),
-                                    ],
                                   ],
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ),
+            ),
+          ),
         ),
       ],
     );
@@ -218,6 +227,8 @@ class PremiumRefreshOverlay extends StatelessWidget {
 
   final bool blockTouches;
 
+  final double topInset;
+
   const PremiumRefreshOverlay({
     super.key,
     required this.refreshing,
@@ -226,6 +237,7 @@ class PremiumRefreshOverlay extends StatelessWidget {
     required this.accentColor,
     this.glowColor,
     this.blockTouches = true,
+    this.topInset = 0,
   });
 
   @override
@@ -233,46 +245,53 @@ class PremiumRefreshOverlay extends StatelessWidget {
     return Stack(
       children: [
         child,
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 180),
-          switchInCurve: Curves.easeOut,
-          switchOutCurve: Curves.easeIn,
-          child:
-              !refreshing
-                  ? const SizedBox.shrink()
-                  : Positioned.fill(
-                    child: IgnorePointer(
-                      ignoring: !blockTouches,
-                      child: Container(
+
+        Positioned(
+          top: topInset,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            ignoring: !blockTouches,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder:
+                  (w, anim) => FadeTransition(opacity: anim, child: w),
+              child:
+                  !refreshing
+                      ? const SizedBox.shrink(key: ValueKey("refresh_off"))
+                      : Container(
+                        key: const ValueKey("refresh_on"),
                         color: AppColorV2.background,
-                        child: Center(
-                          child: PremiumFrostCard(
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                PremiumSpinner(
-                                  size: 18,
-                                  strokeWidth: 2.2,
-                                  color: accentColor,
-                                  glowColor: glowColor,
+                        alignment: Alignment.center,
+                        child: PremiumFrostCard(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PremiumSpinner(
+                                size: 18,
+                                strokeWidth: 2.2,
+                                color: accentColor,
+                                glowColor: glowColor,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                label,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: .2,
+                                  color: Color(0xFF0F172A),
                                 ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  label,
-                                  style: const TextStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: .2,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ),
+            ),
+          ),
         ),
       ],
     );

@@ -16,6 +16,7 @@ import 'package:luvpay/custom_widgets/vertical_height.dart';
 import 'package:luvpay/pages/registration/controller.dart';
 
 import '../../custom_widgets/app_color_v2.dart';
+import '../../custom_widgets/upper_case_formatter.dart';
 import '../routes/routes.dart';
 
 class RegistrationPage extends GetView<RegistrationController> {
@@ -38,6 +39,7 @@ class RegistrationPage extends GetView<RegistrationController> {
     }
 
     return CustomScaffoldV2(
+      removeBorderRadius: true,
       backgroundColor: AppColorV2.background,
       useNormalBody: true,
       enableToolBar: true,
@@ -163,6 +165,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                             child: passwordStrength(getColorForStrength),
                           ),
                         ),
+                        spacing(height: 14),
 
                         const SizedBox(height: 46.0),
 
@@ -198,7 +201,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                             }
                           },
                         ),
-
+                        // referral(context),
                         spacing(height: 30),
 
                         Center(
@@ -241,6 +244,90 @@ class RegistrationPage extends GetView<RegistrationController> {
           ),
         ),
       ),
+    );
+  }
+
+  Column referral(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        spacing(height: 10),
+        Align(
+          alignment: Alignment.center,
+          child: GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (context) {
+                  final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: bottomInset),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColorV2.background,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(20),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DefaultText(
+                              text: "Referral Code",
+                              style: AppTextStyle.h2,
+                            ),
+                            const SizedBox(height: 10),
+                            DefaultText(
+                              text:
+                                  "A code is not necessary to continue, but if you have one, please enter it here.",
+                              maxLines: 3,
+                            ),
+                            const SizedBox(height: 10),
+                            CustomTextField(
+                              suffixIcon: Icons.close,
+                              onIconTap:
+                                  () => controller.referralCode.text = "",
+                              hintText: "Enter referral code",
+                              controller: controller.referralCode,
+                              inputFormatters: [
+                                UpperCaseTextFormatter(),
+                                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                                LengthLimitingTextInputFormatter(15),
+                              ],
+                              onChange: (value) {},
+                            ),
+                            const SizedBox(height: 10),
+                            CustomButton(
+                              text: "Send Code",
+                              onPressed:
+                                  () async =>
+                                      controller.isApplied.value =
+                                          await controller.validateReferral(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            child: DefaultText(
+              text: "Have a referral code?",
+              style: AppTextStyle.body2,
+              color: AppColorV2.lpBlueBrand,
+              height: 20 / 16,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

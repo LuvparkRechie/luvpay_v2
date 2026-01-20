@@ -13,6 +13,7 @@ import 'package:luvpay/custom_widgets/upper_case_formatter.dart';
 import '../../../custom_widgets/app_color_v2.dart';
 import '../controller.dart';
 import '../view.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
 class AddWalletModal extends StatefulWidget {
   final WalletModalMode mode;
@@ -263,6 +264,119 @@ class AddWalletModalState extends State<AddWalletModal> {
     }
   }
 
+  Widget _softNeumorphicCard({
+    required Widget child,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(12),
+    BorderRadius radius = const BorderRadius.all(Radius.circular(12)),
+  }) {
+    return Neumorphic(
+      style: NeumorphicStyle(
+        color: AppColorV2.background,
+        shape: NeumorphicShape.convex,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: 2,
+        intensity: 0.6,
+        surfaceIntensity: 0.08,
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+  }
+
+  Widget _categoryChip({
+    required bool isSelected,
+    required Color color,
+    required Widget iconWidget,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final radius = BorderRadius.circular(15);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Neumorphic(
+        style: NeumorphicStyle(
+          color: isSelected ? color : AppColorV2.background,
+          shape: NeumorphicShape.convex,
+          boxShape: NeumorphicBoxShape.roundRect(radius),
+          depth: isSelected ? -2 : 2,
+          intensity: 0.6,
+          surfaceIntensity: 0.10,
+          border: NeumorphicBorder(
+            color: isSelected ? color.withOpacity(.25) : AppColorV2.boxStroke,
+            width: isSelected ? 1.2 : 1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipOval(child: iconWidget),
+              const SizedBox(width: 8),
+              DefaultText(
+                text: label,
+                style: AppTextStyle.h3.copyWith(
+                  color:
+                      isSelected ? Colors.white : AppColorV2.primaryTextColor,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _primaryButton({
+    required bool enabled,
+    required bool loading,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    final radius = BorderRadius.circular(16);
+
+    return NeumorphicButton(
+      onPressed: enabled ? onTap : null,
+      padding: EdgeInsets.zero,
+      style: NeumorphicStyle(
+        color:
+            enabled
+                ? AppColorV2.lpBlueBrand
+                : AppColorV2.lpBlueBrand.withAlpha(120),
+        shape: NeumorphicShape.flat,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: enabled ? 1.5 : 0,
+        intensity: 0.45,
+        surfaceIntensity: 0.10,
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: Center(
+          child:
+              loading
+                  ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                  : DefaultText(
+                    text: text,
+                    color: AppColorV2.background,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _submitForm() async {
     if (_isSubmitting) return;
 
@@ -390,13 +504,8 @@ class AddWalletModalState extends State<AddWalletModal> {
 
             if (widget.mode == WalletModalMode.create) ...[
               Obx(
-                () => Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColorV2.pastelBlueAccent.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColorV2.boxStroke),
-                  ),
+                () => _softNeumorphicCard(
+                  radius: BorderRadius.circular(12),
                   child: Row(
                     children: [
                       Icon(
@@ -419,6 +528,7 @@ class AddWalletModalState extends State<AddWalletModal> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 10),
               DefaultText(
                 text: 'Select Category',
@@ -498,49 +608,22 @@ class AddWalletModalState extends State<AddWalletModal> {
                         iconWidget = const Icon(Iconsax.wallet, size: 30);
                       }
 
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedCategoryId = categoryId;
-                            _selectedCategoryName = categoryName;
-                            _selectedColor = color;
-                            _selectedIconBytes = _iconCache[categoryId];
-                          });
-                          _validateCategoryOnChange(categoryId);
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 12),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected
-                                    ? color
-                                    : AppColorV2.pastelBlueAccent,
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(
-                              color: isSelected ? color : AppColorV2.boxStroke,
-                              width: isSelected ? 2 : 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              ClipOval(child: iconWidget),
-                              const SizedBox(width: 8),
-                              DefaultText(
-                                text: categoryName,
-                                style: AppTextStyle.h3.copyWith(
-                                  color:
-                                      isSelected
-                                          ? Colors.white
-                                          : AppColorV2.primaryTextColor,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
+                      return Padding(
+                        padding: const EdgeInsets.all(3),
+                        child: _categoryChip(
+                          isSelected: isSelected,
+                          color: color,
+                          iconWidget: iconWidget,
+                          label: categoryName,
+                          onTap: () {
+                            setState(() {
+                              _selectedCategoryId = categoryId;
+                              _selectedCategoryName = categoryName;
+                              _selectedColor = color;
+                              _selectedIconBytes = _iconCache[categoryId];
+                            });
+                            _validateCategoryOnChange(categoryId);
+                          },
                         ),
                       );
                     },
@@ -557,40 +640,41 @@ class AddWalletModalState extends State<AddWalletModal> {
             ],
             if (widget.mode == WalletModalMode.edit &&
                 widget.wallet != null) ...[
-              Container(
+              _softNeumorphicCard(
+                radius: BorderRadius.circular(14),
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: widget.wallet!.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: widget.wallet!.color.withOpacity(0.3),
-                  ),
-                ),
                 child: Row(
                   children: [
-                    ClipOval(
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: widget.wallet!.color.withOpacity(0.2),
-                          shape: BoxShape.circle,
+                    Neumorphic(
+                      style: NeumorphicStyle(
+                        color: widget.wallet!.color.withOpacity(0.10),
+                        shape: NeumorphicShape.flat,
+                        boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(16),
                         ),
-                        child:
-                            widget.wallet!.imageBase64 != null &&
-                                    widget.wallet!.imageBase64!.isNotEmpty
-                                ? Image.memory(
-                                  decodeBase64Safe(
-                                    widget.wallet!.imageBase64!,
-                                  )!,
-                                  fit: BoxFit.contain,
-                                )
-                                : Icon(
-                                  Iconsax.wallet,
-                                  color: widget.wallet!.color,
-                                  size: 20,
-                                ),
+                        depth: 1,
+                        intensity: 0.35,
+                        surfaceIntensity: 0.08,
+                      ),
+                      child: SizedBox(
+                        width: 52,
+                        height: 52,
+                        child: Center(
+                          child: ClipOval(
+                            child: SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: buildWalletIcon(
+                                widget.wallet!.imageBase64 != null &&
+                                        widget.wallet!.imageBase64!.isNotEmpty
+                                    ? decodeBase64Safe(
+                                      widget.wallet!.imageBase64!,
+                                    )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -601,13 +685,16 @@ class AddWalletModalState extends State<AddWalletModal> {
                           DefaultText(
                             text: 'Current Category',
                             style: AppTextStyle.paragraph2.copyWith(
-                              color: Colors.grey.shade600,
+                              color: AppColorV2.bodyTextColor.withOpacity(.65),
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           DefaultText(
                             text: widget.wallet!.categoryTitle,
                             style: AppTextStyle.h3.copyWith(
-                              color: widget.wallet!.color,
+                              color: AppColorV2.primaryTextColor,
+                              fontWeight: FontWeight.w900,
                             ),
                           ),
                         ],
@@ -754,38 +841,21 @@ class AddWalletModalState extends State<AddWalletModal> {
             SizedBox(
               width: double.infinity,
               height: 56,
-              child: ElevatedButton(
-                onPressed: canSubmit ? _submitForm : null,
-                child:
-                    _isSubmitting
-                        ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                        : DefaultText(
-                          text:
-                              widget.mode == WalletModalMode.create
-                                  ? 'Create Wallet'
-                                  : 'Save Changes',
-                          color: AppColorV2.background,
-                        ),
+              child: _primaryButton(
+                enabled: canSubmit,
+                loading: _isSubmitting,
+                text:
+                    widget.mode == WalletModalMode.create
+                        ? 'Create Wallet'
+                        : 'Save Changes',
+                onTap: _submitForm,
               ),
             ),
 
             if (widget.mode == WalletModalMode.create) ...[
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColorV2.pastelBlueAccent.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              _softNeumorphicCard(
+                radius: BorderRadius.circular(12),
                 child: Row(
                   children: [
                     Icon(

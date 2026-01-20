@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
@@ -80,56 +81,33 @@ class _SubWalletCardState extends State<SubWalletCard> {
       ),
     );
 
-    // Press effect values
     final bool canPress = !widget.isDeleting;
     final bool pressedVisual = canPress && _pressed;
 
     final double scale = pressedVisual ? 0.965 : 1.0;
     final double yTranslate = pressedVisual ? 2.0 : 0.0;
 
-    final normalShadows = <BoxShadow>[
-      BoxShadow(
-        color: const Color(0xFF0F172A).withOpacity(0.10),
-        blurRadius: 34,
-        spreadRadius: 1,
-        offset: const Offset(0, 0),
-      ),
-      BoxShadow(
-        color: const Color(0xFF0F172A).withOpacity(0.06),
-        blurRadius: 16,
-        spreadRadius: 0,
-        offset: const Offset(0, 0),
-      ),
-    ];
+    final NeumorphicStyle neumorphicStyle = NeumorphicStyle(
+      color: AppColorV2.background,
+      shape: NeumorphicShape.convex,
+      boxShape: NeumorphicBoxShape.roundRect(radius),
+      depth: widget.isSelected ? -1 : (pressedVisual ? -1.5 : 2),
+      intensity: 0.70,
+      surfaceIntensity: 0.10,
+    );
 
-    final pressedShadows = <BoxShadow>[
-      BoxShadow(
-        color: const Color(0xFF0F172A).withOpacity(0.08),
-        blurRadius: 16,
-        spreadRadius: 0,
-        offset: const Offset(0, 6),
-      ),
-    ];
-
-    final cardCore = AnimatedContainer(
-      duration: const Duration(milliseconds: 120),
-      curve: Curves.easeOut,
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow:
-            widget.isSelected
-                ? []
-                : (pressedVisual ? pressedShadows : normalShadows),
-      ),
+    final cardCore = Neumorphic(
+      style: neumorphicStyle,
       child: ClipRRect(
         borderRadius: radius,
         child: Stack(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: radius,
-                color: Colors.white.withOpacity(
-                  widget.isSelected ? 0.88 : 0.92,
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(
+                    widget.isSelected ? 0.10 : 0.06,
+                  ),
                 ),
               ),
             ),
@@ -235,7 +213,7 @@ class _SubWalletCardState extends State<SubWalletCard> {
                   color: AppColorV2.background,
                   text: "₱ ${widget.wallet.balance.toStringAsFixed(2)}",
                   maxLines: 1,
-                  maxFontSize: 8,
+                  maxFontSize: 12,
                   minFontSize: 8,
                   style: AppTextStyle.body2,
                 ),
@@ -266,6 +244,7 @@ class _SubWalletCardState extends State<SubWalletCard> {
         child: cardCore,
       ),
     );
+
     Widget card = IgnorePointer(
       ignoring: widget.isDeleting,
       child: interactiveCard,
@@ -298,7 +277,6 @@ class _SubWalletCardState extends State<SubWalletCard> {
         final t = widget.pulseAnim.value;
         return Transform.scale(
           scale: 1.0 + (0.06 * t),
-
           child: Container(
             decoration: BoxDecoration(
               borderRadius: radius,

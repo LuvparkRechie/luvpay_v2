@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_size_text/flutter_auto_size_text.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -75,41 +76,41 @@ class CustomDialogStack {
                       ),
                       const SizedBox(height: 14),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            child: CustomButton(
+                            child: _dialogNeumorphicButton(
                               text: leftText,
                               onPressed: leftButtonAction,
-                              textColor:
+                              fg:
                                   !showRightButton
                                       ? AppColorV2.background
-                                      : leftTextColor ?? AppColorV2.lpBlueBrand,
-                              btnColor:
+                                      : (leftTextColor ??
+                                          AppColorV2.lpBlueBrand),
+                              bg:
                                   !showRightButton
                                       ? AppColorV2.lpBlueBrand
-                                      : leftBtnColor ??
-                                          AppColorV2.lpBlueBrand.withAlpha(20),
+                                      : (leftBtnColor ??
+                                          AppColorV2.lpBlueBrand.withAlpha(20)),
                             ),
                           ),
                           if (showRightButton) const SizedBox(width: 10),
                           if (showRightButton)
                             Expanded(
-                              child: CustomButton(
+                              child: _dialogNeumorphicButton(
                                 text: rightText,
                                 onPressed: rightButtonAction!,
-                                textColor:
+                                fg:
                                     isAllBlueColor
                                         ? AppColorV2.background
-                                        : rightTextColor ??
-                                            AppColorV2.incorrectState,
-                                btnColor:
+                                        : (rightTextColor ??
+                                            AppColorV2.incorrectState),
+                                bg:
                                     isAllBlueColor
                                         ? AppColorV2.lpBlueBrand
-                                        : rightBtnColor ??
+                                        : (rightBtnColor ??
                                             AppColorV2.incorrectState.withAlpha(
                                               20,
-                                            ),
+                                            )),
                               ),
                             ),
                         ],
@@ -526,6 +527,38 @@ class CustomDialogStack {
       onClose,
       leftText: "Okay",
       showRightButton: false,
+    );
+  }
+
+  static Widget _dialogNeumorphicButton({
+    required String text,
+    required VoidCallback onPressed,
+    required Color bg,
+    required Color fg,
+  }) {
+    final radius = BorderRadius.circular(14);
+
+    return NeumorphicButton(
+      onPressed: onPressed,
+      padding: EdgeInsets.zero,
+      style: NeumorphicStyle(
+        color: bg,
+        shape: NeumorphicShape.flat,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: 1.5,
+        intensity: 0.45,
+        surfaceIntensity: 0.12,
+      ),
+      child: SizedBox(
+        height: 46,
+        child: Center(
+          child: DefaultText(
+            text: text,
+            color: fg,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+          ),
+        ),
+      ),
     );
   }
 }

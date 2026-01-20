@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
@@ -48,16 +49,20 @@ class TransferDetailsModal extends StatelessWidget {
                       ),
                     ),
                   ),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Ink(
+                  NeumorphicButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    padding: EdgeInsets.zero,
+                    style: NeumorphicStyle(
+                      color: AppColorV2.background,
+                      shape: NeumorphicShape.convex,
+                      boxShape: NeumorphicBoxShape.roundRect(
+                        BorderRadius.circular(12),
+                      ),
+                      depth: 3,
+                    ),
+                    child: SizedBox(
                       width: 40,
                       height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.black.withAlpha(10),
-                      ),
                       child: Icon(
                         Icons.close_rounded,
                         size: 18,
@@ -159,7 +164,6 @@ class TransferDetailsModal extends StatelessWidget {
   }
 
   Widget _summaryCard(BuildContext context) {
-    final theme = Theme.of(context);
     final desc = (data["transfer_desc"] ?? "Wallet Transfer").toString();
     final amountStr = _formatMoneySigned(data["amount"]);
     final isIn = _isIncome(data["amount"]);
@@ -168,66 +172,89 @@ class TransferDetailsModal extends StatelessWidget {
     final accent =
         isIn ? Colors.green : (isOut ? Colors.red : AppColorV2.lpBlueBrand);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withAlpha(14)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(10),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
+    final radius = BorderRadius.circular(20);
+
+    return Neumorphic(
+      style: NeumorphicStyle(
+        color: AppColorV2.background,
+        shape: NeumorphicShape.convex,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: 4,
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: accent.withAlpha(18),
-            ),
-            child: Icon(
-              isIn
-                  ? Icons.arrow_downward_rounded
-                  : (isOut
-                      ? Icons.arrow_upward_rounded
-                      : Icons.swap_horiz_rounded),
-              color: accent,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DefaultText(
-                  text: desc,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
                 ),
-                const SizedBox(height: 4),
-                DefaultText(
-                  text: _formatDateTime(data["transfer_date"]),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black.withAlpha(120),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Neumorphic(
+                    style: NeumorphicStyle(
+                      color: AppColorV2.background,
+                      shape: NeumorphicShape.convex,
+                      boxShape: NeumorphicBoxShape.roundRect(
+                        BorderRadius.circular(16),
+                      ),
+                      depth: 3,
+                    ),
+                    child: SizedBox(
+                      width: 46,
+                      height: 46,
+                      child: Center(
+                        child: Icon(
+                          isIn
+                              ? Icons.arrow_downward_rounded
+                              : (isOut
+                                  ? Icons.arrow_upward_rounded
+                                  : Icons.swap_horiz_rounded),
+                          color: accent,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DefaultText(
+                          text: desc,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 4),
+                        DefaultText(
+                          text: _formatDateTime(data["transfer_date"]),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black.withAlpha(120),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  DefaultText(
+                    text: amountStr,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                    color: isIn ? Colors.green : (isOut ? Colors.red : null),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          DefaultText(
-            text: amountStr,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-            color: isIn ? Colors.green : (isOut ? Colors.red : null),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -239,49 +266,64 @@ class TransferDetailsModal extends StatelessWidget {
     Widget? valueWidget,
     Color? valueColor,
   }) {
-    final theme = Theme.of(context);
+    final radius = BorderRadius.circular(18);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withAlpha(14)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: DefaultText(
-              text: title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Colors.black.withAlpha(130),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 220),
-            child:
-                valueWidget ??
-                DefaultText(
-                  text: value ?? "—",
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                  color: valueColor,
-                  textAlign: TextAlign.right,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Neumorphic(
+        style: NeumorphicStyle(
+          color: AppColorV2.background,
+          shape: NeumorphicShape.convex,
+          boxShape: NeumorphicBoxShape.roundRect(radius),
+          depth: 3,
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                  ),
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: DefaultText(
+                        text: title,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black.withAlpha(130),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 220),
+                      child:
+                          valueWidget ??
+                          DefaultText(
+                            text: value ?? "—",
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                            color: valueColor,
+                            textAlign: TextAlign.right,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
