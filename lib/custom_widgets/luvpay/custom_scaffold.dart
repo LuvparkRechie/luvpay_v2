@@ -196,7 +196,7 @@ class CustomScaffoldV2 extends StatelessWidget {
         Positioned.fill(
           child: Container(
             decoration: BoxDecoration(
-              color: AppColorV2.background.withOpacity(0.98),
+              color: backgroundColor ?? AppColorV2.background.withOpacity(0.98),
               borderRadius:
                   removeBorderRadius
                       ? null

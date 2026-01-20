@@ -246,6 +246,16 @@ class ApiKeys {
     luvApi,
   );
 
+  /// API endpoint: /ords/{LUV_API}/wv2/voucher/expired/
+  static final String vouchersExpired = dotenv.env['VOUCHERS_EXPIRED']!
+      .replaceAll('{LUV_API}', luvApi);
+
+  /// API endpoint: /ords/{LUV_API}/wv2/voucher/use/?user_id
+  static final String vouchersUsed = dotenv.env['VOUCHERS_USED']!.replaceAll(
+    '{LUV_API}',
+    luvApi,
+  );
+
   /// API endpoint: /ords/{PARK_SPACE_API}/pv2/reservations/
   static final String putParkingVouchers = dotenv.env['PARKING_VOUCHERS']!
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);

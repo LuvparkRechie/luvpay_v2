@@ -15,6 +15,7 @@ import 'package:luvpay/pages/subwallet/utils/floating_create_subwallet_button.da
 
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
+import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import 'controller.dart';
 import 'utils/add_wallet_modal.dart';
 import 'utils/subwalllet_card.dart';
@@ -162,8 +163,8 @@ Widget buildWalletIcon(Uint8List? bytes) {
     padding: const EdgeInsets.all(5),
     child: Image(
       image: MemoryImage(bytes),
-      width: 30,
-      height: 30,
+      width: 50,
+      height: 50,
       fit: BoxFit.contain,
       gaplessPlayback: true,
       filterQuality: FilterQuality.high,
@@ -222,27 +223,28 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
   late final AnimationController _pulseCtrl = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 400),
+    duration: const Duration(milliseconds: 520),
   );
 
   late final AnimationController _deleteCtrl = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 250),
+    duration: const Duration(milliseconds: 520),
   );
 
   late final Animation<double> _pulseAnim = CurvedAnimation(
     parent: _pulseCtrl,
-    curve: Curves.easeOutCubic,
+    curve: Curves.elasticOut,
   );
   late final Animation<double> _deleteAnim = CurvedAnimation(
     parent: _deleteCtrl,
-    curve: Curves.easeInCubic,
+    curve: Curves.linear,
   );
 
   String? _pulsingWalletId;
   Timer? _pulseTimer;
 
   String? _deletingWalletId;
+  bool isRefreshing = false;
 
   @override
   void initState() {
@@ -301,7 +303,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
               balance: (w['amount'] as num?)?.toDouble() ?? 0.0,
               category: w['category']?.toString() ?? 'Unknown',
               iconBase64: w['image_base64']?.toString(),
-              color: WalletTileTheme.colorFromKey(id),
+              color: AppColorV2.lpBlueBrand,
               createdOn: w['created_on']?.toString() ?? '',
               updatedOn: w['updated_on']?.toString() ?? '',
               isActive: w['is_active']?.toString() ?? 'N',
@@ -320,36 +322,40 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   }
 
   Future<void> _refreshData() async {
-    await Future.wait([
-      controller.getUserSubWallets(),
-      controller.luvpayBalance(),
-    ]);
-    await _loadWalletsFromController();
-    if (!mounted) return;
-    setState(calculateTotalBalance);
+    if (isRefreshing) return;
+
+    if (mounted) setState(() => isRefreshing = true);
+
+    try {
+      await Future.wait([
+        controller.getUserSubWallets(),
+        controller.luvpayBalance(),
+      ]);
+
+      await _loadWalletsFromController();
+      if (!mounted) return;
+      setState(calculateTotalBalance);
+    } finally {
+      if (mounted) setState(() => isRefreshing = false);
+    }
   }
 
-  void _pulseWallet(String walletId) {
+  Future<void> _pulseWallet(String walletId) async {
     _pulseTimer?.cancel();
     setState(() => _pulsingWalletId = walletId);
 
-    _pulseCtrl
-      ..stop()
-      ..reset()
-      ..repeat(reverse: true);
+    await _pulseCtrl.forward(from: 0);
+    if (!mounted) return;
 
-    _pulseTimer = Timer(const Duration(milliseconds: 1200), () {
-      if (!mounted) return;
-      _pulseCtrl.stop();
-      setState(() => _pulsingWalletId = null);
-    });
+    _pulseCtrl.reset();
+    setState(() => _pulsingWalletId = null);
   }
 
   Future<void> _animateDelete(String walletId) async {
     if (_deletingWalletId != null) return;
     setState(() => _deletingWalletId = walletId);
 
-    await _deleteCtrl.forward();
+    await _deleteCtrl.forward(from: 0);
     if (!mounted) return;
 
     setState(() {
@@ -473,14 +479,11 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   }
 
   Widget _buildBalanceHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-      child: _balanceCard(
-        title: 'Subwallet Savings',
-        amount: totalBalance.toStringAsFixed(2),
-        color: AppColorV2.lpBlueBrand,
-        icon: Iconsax.wallet_money,
-      ),
+    return _balanceCard(
+      title: 'Subwallet Savings',
+      amount: totalBalance.toStringAsFixed(2),
+      color: AppColorV2.lpBlueBrand,
+      icon: Iconsax.wallet_money,
     );
   }
 
@@ -490,80 +493,64 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     required Color color,
     required IconData icon,
   }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(22),
-      child: Stack(
-        children: [
-          Positioned.fill(child: Container(decoration: BoxDecoration())),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: const SizedBox(),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColorV2.lpBlueBrand,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(
-                color: const Color(0xFF0F172A).withOpacity(.01),
-              ),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+      decoration: BoxDecoration(
+        color: AppColorV2.lpBlueBrand,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFF0F172A).withOpacity(.01)),
 
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(.18),
-                  blurRadius: 22,
-                  offset: const Offset(0, 12),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(.18),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(.65),
+                  Colors.white.withOpacity(.18),
+                ],
+              ),
+              border: Border.all(
+                color: const Color(0xFF0F172A).withOpacity(.10),
+              ),
             ),
-            child: Row(
+            child: Icon(icon, color: AppColorV2.background),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withOpacity(.65),
-                        Colors.white.withOpacity(.18),
-                      ],
-                    ),
-                    border: Border.all(
-                      color: const Color(0xFF0F172A).withOpacity(.10),
-                    ),
+                DefaultText(
+                  text: title,
+                  maxLines: 1,
+                  style: AppTextStyle.paragraph2.copyWith(
+                    color: AppColorV2.background,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: .2,
                   ),
-                  child: Icon(icon, color: AppColorV2.background),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      DefaultText(
-                        text: title,
-                        maxLines: 1,
-                        style: AppTextStyle.paragraph2.copyWith(
-                          color: AppColorV2.background,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: .2,
-                        ),
-                      ),
-                      DefaultText(
-                        text: "₱ $amount",
-                        maxLines: 1,
-                        minFontSize: 12,
-                        style: AppTextStyle.h3_semibold.copyWith(
-                          fontSize: 24,
-                          color: AppColorV2.background,
-                        ),
-                      ),
-                    ],
+                DefaultText(
+                  text: "₱ $amount",
+                  maxLines: 1,
+                  minFontSize: 12,
+                  style: AppTextStyle.h3_semibold.copyWith(
+                    fontSize: 24,
+                    color: AppColorV2.background,
                   ),
                 ),
               ],
@@ -580,6 +567,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     final hasWallets = wallets.isNotEmpty;
 
     return CustomScaffoldV2(
+      backgroundColor: const Color.fromARGB(255, 250, 251, 251),
       floatingButton:
           ready && hasWallets
               ? FloatingCreateSubwalletButton(
@@ -593,98 +581,101 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       },
       appBarTitle: "Subwallet",
       padding: EdgeInsets.zero,
-      backgroundColor: AppColorV2.background,
-      scaffoldBody:
-          !ready
-              ? Center(
-                child: CircularProgressIndicator(color: AppColorV2.lpBlueBrand),
-              )
-              : !controller.hasNet.value
-              ? NoInternetConnected(onTap: _refreshData)
-              : RefreshIndicator.adaptive(
-                color: AppColorV2.lpBlueBrand,
-                backgroundColor: AppColorV2.background,
-                onRefresh: _refreshData,
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                    parent: BouncingScrollPhysics(),
-                  ),
-                  slivers: [
-                    const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _PinnedHeaderDelegate(
-                        minH: 104,
-                        maxH: 104,
-                        background: AppColorV2.background,
-                        child:
-                            hasWallets
-                                ? _buildBalanceHeader()
-                                : const SizedBox.shrink(),
+      scaffoldBody: PremiumLoaderOverlay(
+        loading: !ready,
+        title: "Loading wallets…",
+        subtitle: "Please wait a moment",
+        accentColor: AppColorV2.lpBlueBrand,
+        glowColor: AppColorV2.lpTealBrand,
+        child:
+            !controller.hasNet.value
+                ? NoInternetConnected(onTap: _refreshData)
+                : PremiumRefreshOverlay(
+                  refreshing: isRefreshing,
+                  label: "Refreshing…",
+                  accentColor: AppColorV2.lpBlueBrand,
+                  glowColor: AppColorV2.lpTealBrand,
+                  child: RefreshIndicator(
+                    elevation: 0,
+                    color: Colors.transparent,
+                    backgroundColor: Colors.transparent,
+                    notificationPredicate: (_) => !isRefreshing,
+                    onRefresh: _refreshData,
+                    child: CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
                       ),
-                    ),
-                    if (hasWallets)
-                      const SliverToBoxAdapter(child: SizedBox(height: 6)),
-                    if (!hasWallets)
-                      SliverToBoxAdapter(child: _emptyState(context))
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        sliver: SliverGrid(
-                          key: ValueKey(wallets.length),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 1,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                                childAspectRatio: 1.35,
-                                mainAxisExtent: 120,
-                              ),
-                          delegate: SliverChildBuilderDelegate((
-                            context,
-                            index,
-                          ) {
-                            final w = wallets[index];
-
-                            final iconBytes =
-                                (w.imageBase64?.isNotEmpty ?? false)
-                                    ? decodeBase64Safe(w.imageBase64!)
-                                    : null;
-
-                            final base = w.color;
-                            final titleColor = WalletTileTheme.darken(
-                              base,
-                              .099,
-                            );
-                            final amountColor = WalletTileTheme.darken(
-                              base,
-                              .099,
-                            );
-                            final categoryLabel =
-                                (w.categoryTitle.trim().isNotEmpty
-                                    ? w.categoryTitle
-                                    : w.category);
-
-                            return SubWalletCard(
-                              wallet: w,
-                              onTap: () => _showWalletDetails(context, w),
-                              iconBytes: iconBytes,
-                              base: base,
-                              titleColor: titleColor,
-                              amountColor: amountColor,
-                              categoryLabel: categoryLabel,
-                              isDeleting: w.id == _deletingWalletId,
-                              isPulsing: w.id == _pulsingWalletId,
-                              deleteAnim: _deleteAnim,
-                              pulseAnim: _pulseAnim,
-                            );
-                          }, childCount: wallets.length),
+                      slivers: [
+                        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                        SliverPersistentHeader(
+                          pinned: true,
+                          delegate: _PinnedHeaderDelegate(
+                            minH: 104,
+                            maxH: 104,
+                            background: Colors.transparent,
+                            child:
+                                hasWallets
+                                    ? Padding(
+                                      padding: const EdgeInsets.all(14.0),
+                                      child: _buildBalanceHeader(),
+                                    )
+                                    : const SizedBox.shrink(),
+                          ),
                         ),
-                      ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 30)),
-                  ],
+                        if (hasWallets)
+                          const SliverToBoxAdapter(child: SizedBox(height: 6)),
+                        if (!hasWallets)
+                          SliverToBoxAdapter(child: _emptyState(context))
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            sliver: SliverGrid(
+                              key: ValueKey(wallets.length),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                    childAspectRatio: 1.35,
+                                    mainAxisExtent: 120,
+                                  ),
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                final w = wallets[index];
+                                final iconBytes =
+                                    (w.imageBase64?.isNotEmpty ?? false)
+                                        ? decodeBase64Safe(w.imageBase64!)
+                                        : null;
+
+                                final categoryLabel =
+                                    (w.categoryTitle.trim().isNotEmpty
+                                        ? w.categoryTitle
+                                        : w.category);
+
+                                return SubWalletCard(
+                                  wallet: w,
+                                  onTap: () => _showWalletDetails(context, w),
+                                  iconBytes: iconBytes,
+                                  base: w.color,
+                                  titleColor: AppColorV2.primaryTextColor,
+                                  amountColor: AppColorV2.bodyTextColor,
+                                  categoryLabel: categoryLabel,
+                                  isDeleting: w.id == _deletingWalletId,
+                                  isPulsing: w.id == _pulsingWalletId,
+                                  deleteAnim: _deleteAnim,
+                                  pulseAnim: _pulseAnim,
+                                );
+                              }, childCount: wallets.length),
+                            ),
+                          ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+      ),
     );
   }
 
@@ -766,44 +757,6 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           ),
     );
   }
-}
-
-class WalletTileTheme {
-  static const List<Color> palette = [
-    Color(0xFF2563EB), // Soft Royal Blue (primary)
-    Color(0xFF1D4ED8), // Deeper Blue
-    Color(0xFF1E40AF), // Navy Blue
-    Color(0xFF0369A1), // Muted Cyan Blue
-    Color(0xFF0284C7), // Calm Sky Blue
-    Color(0xFF0891B2), // Blue-Teal
-    Color(0xFF0E7490), // Deep Teal
-    Color(0xFF0F766E), // Muted Teal
-    Color(0xFF059669), // Soft Emerald
-    Color(0xFF16A34A), // Fresh Green Accent
-    Color(0xFF14B8A6), // Teal Accent
-  ];
-
-  static Color colorFromKey(String key) {
-    if (key.isEmpty) return palette.first;
-    int hash = 0;
-    for (final u in key.codeUnits) {
-      hash = (hash * 31 + u) & 0x7fffffff;
-    }
-    return palette[hash % palette.length];
-  }
-
-  static Color lighten(Color c, [double a = .12]) {
-    final hsl = HSLColor.fromColor(c);
-    return hsl.withLightness((hsl.lightness + a).clamp(0.0, 1.0)).toColor();
-  }
-
-  static Color darken(Color c, [double a = .10]) {
-    final hsl = HSLColor.fromColor(c);
-    return hsl.withLightness((hsl.lightness - a).clamp(0.0, 1.0)).toColor();
-  }
-
-  static const Color savingsBase = Color(0xFF0F766E);
-  static const Color savingsAccent = Color(0xFFBFAE70);
 }
 
 class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {

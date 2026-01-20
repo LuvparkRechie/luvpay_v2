@@ -1,158 +1,112 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/http/api_keys.dart';
+import 'package:luvpay/http/http_request.dart';
 
-class VouchersController extends GetxController
-    with GetSingleTickerProviderStateMixin {
-  late TabController tabController;
-  final List<String> tabTitles = ['Vouchers', 'Used', 'Expired'];
+import '../../auth/authentication.dart';
+import '../../custom_widgets/alert_dialog.dart';
+import '../../custom_widgets/app_color_v2.dart';
+import '../../custom_widgets/floating_toast_manager.dart';
 
-  final RxList<Voucher> availableVouchers =
-      <Voucher>[
-        Voucher(
-          id: '1',
-          title: 'Welcome Bonus',
-          description: 'Get 20% off on your first purchase',
-          code: 'WELCOME20',
-          discount: '20%',
-          expiryDate: DateTime.now().add(const Duration(days: 30)),
-          isUsed: false,
-        ),
-        Voucher(
-          id: '2',
-          title: 'Free Shipping',
-          description: 'Free shipping on orders above \$50',
-          code: 'FREESHIP',
-          discount: 'Free Shipping',
-          expiryDate: DateTime.now().add(const Duration(days: 15)),
-          isUsed: false,
-        ),
-        Voucher(
-          id: '3',
-          title: 'Weekend Special',
-          description: '15% off on weekend purchases',
-          code: 'WEEKEND15',
-          discount: '15%',
-          expiryDate: DateTime.now().add(const Duration(days: 7)),
-          isUsed: false,
-        ),
-      ].obs;
+class VouchersController extends GetxController {
+  RxBool isLoading = true.obs;
+  RxBool isNetConn = true.obs;
 
-  final RxList<Voucher> usedVouchers =
-      <Voucher>[
-        Voucher(
-          id: '4',
-          title: 'Spring Sale',
-          description: '25% off on seasonal items',
-          code: 'SPRING25',
-          discount: '25%',
-          expiryDate: DateTime.now().add(const Duration(days: -10)),
-          isUsed: true,
-          usedDate: DateTime.now().subtract(const Duration(days: 5)),
-        ),
-      ].obs;
+  Future<void> putVoucher(
+    String voucherCode,
+    BuildContext context,
+    GlobalKey textFieldKey, {
+    bool? fromBooking,
+  }) async {
+    try {
+      final item = await Authentication().getUserData();
+      if (item == null) return;
 
-  final RxList<Voucher> expiredVouchers =
-      <Voucher>[
-        Voucher(
-          id: '5',
-          title: 'New Year Sale',
-          description: '30% off on all items',
-          code: 'NEWYEAR30',
-          discount: '30%',
-          expiryDate: DateTime.now().subtract(const Duration(days: 30)),
-          isUsed: false,
-        ),
-        Voucher(
-          id: '6',
-          title: 'Black Friday',
-          description: '40% off on selected items',
-          code: 'BLACK40',
-          discount: '40%',
-          expiryDate: DateTime.now().subtract(const Duration(days: 15)),
-          isUsed: false,
-        ),
-      ].obs;
+      String userId = jsonDecode(item)['user_id'].toString();
+      CustomDialogStack.showLoading(context);
+      final String api = "${ApiKeys.vouchers}/";
+      final dynamic params = {"user_id": userId, "voucher_code": voucherCode};
+      final objKey =
+          await HttpRequestApi(api: api, parameters: params).putBody();
+      if (fromBooking == false) {
+        Get.back(closeOverlays: true);
+      } else {
+        Get.back();
+      }
 
-  @override
-  void onInit() {
-    super.onInit();
-    tabController = TabController(length: tabTitles.length, vsync: this);
-  }
+      if (objKey == "No Internet") {
+        isNetConn.value = false;
+        isLoading.value = false;
+        CustomDialogStack.showConnectionLost(context, () => Get.back());
+        return;
+      }
 
-  @override
-  void onClose() {
-    tabController.dispose();
-    super.onClose();
-  }
+      if (objKey == null) {
+        isNetConn.value = true;
+        isLoading.value = false;
+        CustomDialogStack.showServerError(context, () => Get.back());
+        return;
+      }
 
-  void useVoucher(String voucherId) {
-    final voucher = availableVouchers.firstWhere((v) => v.id == voucherId);
-    voucher.isUsed = true;
-    voucher.usedDate = DateTime.now();
+      isNetConn.value = true;
+      isLoading.value = false;
 
-    availableVouchers.remove(voucher);
-    usedVouchers.insert(0, voucher);
-    update();
-  }
+      if (objKey["success"] == 'Y') {
+        FloatingToastManager(
+          context: context,
+          message: "Voucher successfully claimed!",
+          targetKey: textFieldKey,
+          textColor: AppColorV2.correctState,
+          image: "state_success",
+        );
+      } else {
+        final errorMessage = objKey['msg']?.toString() ?? 'Unknown error';
+        final lowerCaseMessage = errorMessage.toLowerCase();
 
-  void copyToClipboard(String code) {
-    // This would typically use clipboard package
-    Get.snackbar(
-      'Copied!',
-      'Voucher code "$code" copied to clipboard',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-  }
-}
+        String message;
+        Color textColor;
+        String image;
 
-class Voucher {
-  final String id;
-  final String title;
-  final String description;
-  final String code;
-  final String discount;
-  final DateTime expiryDate;
-  bool isUsed;
-  DateTime? usedDate;
+        if (lowerCaseMessage.contains('claimed')) {
+          message = errorMessage;
+          textColor = AppColorV2.lpBlueBrand;
+          image = "state_claimed";
+        } else if (lowerCaseMessage.contains('expired') ||
+            lowerCaseMessage.contains('reached')) {
+          message = errorMessage;
+          textColor = AppColorV2.incorrectState;
+          image = "state_expired";
+        } else if (lowerCaseMessage.contains('invalid')) {
+          message = errorMessage;
+          textColor = AppColorV2.incorrectState;
+          image = "state_invalid";
+        } else {
+          message = errorMessage;
+          textColor = AppColorV2.incorrectState;
+          image = "state_expired";
+        }
 
-  Voucher({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.code,
-    required this.discount,
-    required this.expiryDate,
-    required this.isUsed,
-    this.usedDate,
-  });
+        FloatingToastManager(
+          context: context,
+          message: message,
+          targetKey: textFieldKey,
+          textColor: textColor,
+          image: image,
+        );
+      }
+    } catch (e) {
+      Get.back(closeOverlays: true);
 
-  bool get isExpired => expiryDate.isBefore(DateTime.now());
-
-  String get formattedExpiryDate {
-    final now = DateTime.now();
-    final difference = expiryDate.difference(now);
-
-    if (difference.inDays > 30) {
-      return 'Expires ${expiryDate.day}/${expiryDate.month}/${expiryDate.year}';
-    } else if (difference.inDays > 0) {
-      return 'Expires in ${difference.inDays} days';
-    } else if (difference.inHours > 0) {
-      return 'Expires in ${difference.inHours} hours';
-    } else {
-      return 'Expired';
-    }
-  }
-
-  String get formattedUsedDate {
-    if (usedDate == null) return '';
-    final difference = DateTime.now().difference(usedDate!);
-
-    if (difference.inDays > 0) {
-      return 'Used ${difference.inDays} days ago';
-    } else if (difference.inHours > 0) {
-      return 'Used ${difference.inHours} hours ago';
-    } else {
-      return 'Used recently';
+      CustomDialogStack.showError(
+        context,
+        "luvpay",
+        "An unexpected error occurred. Please try again.",
+        () {},
+      );
     }
   }
 }

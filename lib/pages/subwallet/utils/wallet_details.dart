@@ -613,7 +613,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
               Get.back();
               Get.back();
 
-              await Future.delayed(const Duration(milliseconds: 800));
+              await Future.delayed(const Duration(milliseconds: 200));
               widget.onDelete?.call();
             },
           );
@@ -909,7 +909,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
     showDialog(
       context: context,
-      barrierDismissible: true,
+      barrierDismissible: false,
       builder: (_) {
         return StatefulBuilder(
           builder: (context, setState) {
@@ -937,37 +937,15 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                   ],
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Ink(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.black.withAlpha(10),
-                            ),
-                            child: Icon(
-                              Icons.close_rounded,
-                              size: 18,
-                              color: Colors.black.withAlpha(130),
-                            ),
-                          ),
-                        ),
-                      ],
+                    DefaultText(
+                      text: title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -986,8 +964,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Amount",
+                          DefaultText(
+                            text: "Amount",
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -1069,8 +1047,9 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Obx(
-                        () => Text(
-                          'Available main balance: ${mainController.luvpayBal.value}',
+                        () => DefaultText(
+                          text:
+                              'Available main balance: ${mainController.luvpayBal.value}',
                           style: TextStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
@@ -1100,8 +1079,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                   ),
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    "Cancel",
+                                  child: DefaultText(
+                                    text: "Cancel",
                                     style: TextStyle(
                                       fontWeight: FontWeight.w800,
                                       color: Colors.black.withAlpha(160),
@@ -1149,8 +1128,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                           : [],
                                 ),
                                 child: Center(
-                                  child: Text(
-                                    isAdd ? "Add" : "Confirm",
+                                  child: DefaultText(
+                                    text: isAdd ? "Add" : "Confirm",
                                     style: TextStyle(
                                       fontWeight: FontWeight.w900,
                                       color: AppColorV2.background,

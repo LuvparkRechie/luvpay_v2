@@ -104,8 +104,17 @@ class SubWalletController extends GetxController
             'image_base64': item['image_base64']?.toString() ?? '',
           });
         }
+        userSubWallets.sort((a, b) {
+          final aDate =
+              DateTime.tryParse(a['created_on'] ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0);
 
-        userSubWallets.sort((a, b) => a['name'].compareTo(b['name']));
+          final bDate =
+              DateTime.tryParse(b['created_on'] ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0);
+
+          return bDate.compareTo(aDate);
+        });
       }
 
       hasNet.value = true;
@@ -147,7 +156,6 @@ class SubWalletController extends GetxController
 
       final retValue =
           await HttpRequestApi(api: api, parameters: postParam).postBody();
-      print("api $api retValues $retValue postParam  $postParam");
       if (retValue == "No Internet") {
         return {"success": false, "error": "No Internet"};
       }
@@ -184,7 +192,6 @@ class SubWalletController extends GetxController
       String api = ApiKeys.subWallets;
       final res =
           await HttpRequestApi(api: api, parameters: parameters).putBody();
-      print("parameterss api $api $parameters res $res ");
 
       if (res == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -410,8 +417,6 @@ class SubWalletController extends GetxController
           await HttpRequestApi(api: subApi, parameters: params).deleteData();
 
       if (Get.isDialogOpen == true) Get.back();
-
-      print("deleteSubWallet $subApi $response $params");
 
       if (response == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
