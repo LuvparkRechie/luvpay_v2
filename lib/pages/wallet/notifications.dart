@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/pages/wallet/wallet_screen.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -16,6 +15,7 @@ import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_scrollbar.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/loading.dart';
+import '../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../custom_widgets/no_internet.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
@@ -400,60 +400,53 @@ class _WalletNotificationsState extends State<WalletNotifications> {
           },
           child: Padding(
             padding: const EdgeInsets.only(bottom: 10, top: 10),
-            child: Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(120),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColorV2.background),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SvgPicture.asset("assets/images/$img.svg"),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildNotificationText(notificationMessage),
-                              const SizedBox(height: 8),
-                              DefaultText(
-                                text:
-                                    _formatDate(createdOn) +
-                                    " " +
-                                    _formatTime(createdOn),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelectionMode)
-                          Checkbox.adaptive(
-                            value: selectedIndex.contains(
-                              int.parse(
-                                notifications[index]["notification_id"]
-                                    .toString(),
-                              ),
+            child: LuvNeuPress.rect(
+              radius: BorderRadius.circular(16),
+              onTap: null,
+              borderWidth: 0.8,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SvgPicture.asset("assets/images/$img.svg"),
+                    const SizedBox(width: 10),
+
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildNotificationText(notificationMessage),
+                                const SizedBox(height: 8),
+                                DefaultText(
+                                  text:
+                                      _formatDate(createdOn) +
+                                      " " +
+                                      _formatTime(createdOn),
+                                ),
+                              ],
                             ),
-                            onChanged: (value) {
-                              toggleMark(index);
-                            },
-                            activeColor: AppColorV2.lpBlueBrand,
                           ),
-                      ],
+
+                          if (isSelectionMode)
+                            Checkbox.adaptive(
+                              value: selectedIndex.contains(
+                                int.parse(
+                                  notifications[index]["notification_id"]
+                                      .toString(),
+                                ),
+                              ),
+                              onChanged: (_) => toggleMark(index),
+                              activeColor: AppColorV2.lpBlueBrand,
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

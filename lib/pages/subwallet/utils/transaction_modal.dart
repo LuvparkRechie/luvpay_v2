@@ -1,14 +1,17 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
+import '../../../custom_widgets/luvpay/luv_neumorphic.dart';
 
 class TransferDetailsModal extends StatelessWidget {
   final Map<String, dynamic> data;
 
   const TransferDetailsModal({super.key, required this.data});
+
   @override
   Widget build(BuildContext context) {
     final refNo = (data["ref_no"] ?? "").toString().trim();
@@ -49,26 +52,12 @@ class TransferDetailsModal extends StatelessWidget {
                       ),
                     ),
                   ),
-                  NeumorphicButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    style: NeumorphicStyle(
-                      color: AppColorV2.background,
-                      shape: NeumorphicShape.convex,
-                      boxShape: NeumorphicBoxShape.roundRect(
-                        BorderRadius.circular(12),
-                      ),
-                      depth: 3,
-                    ),
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                        color: Colors.black.withAlpha(130),
-                      ),
-                    ),
+
+                  LuvNeuIconButton(
+                    icon: Icons.close_rounded,
+                    onTap: () => Navigator.of(context).pop(),
+                    size: 40,
+                    iconSize: 18,
                   ),
                 ],
               ),
@@ -174,84 +163,69 @@ class TransferDetailsModal extends StatelessWidget {
 
     final radius = BorderRadius.circular(20);
 
-    return Neumorphic(
-      style: NeumorphicStyle(
-        color: AppColorV2.background,
-        shape: NeumorphicShape.convex,
-        boxShape: NeumorphicBoxShape.roundRect(radius),
-        depth: 4,
-      ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Stack(
+    return LuvNeuPress(
+      radius: radius,
+      onTap: null,
+      depth: 1.8,
+      pressedDepth: -0.8,
+      overlayOpacity: 0.02,
+      borderColor: Colors.black.withAlpha(14),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
+            LuvNeuPress(
+              radius: BorderRadius.circular(16),
+              onTap: null,
+              depth: 1.4,
+              pressedDepth: -0.7,
+              overlayOpacity: 0.015,
+              borderColor: Colors.black.withAlpha(12),
+              child: SizedBox(
+                width: 46,
+                height: 46,
+                child: Center(
+                  child: Icon(
+                    isIn
+                        ? Icons.arrow_downward_rounded
+                        : (isOut
+                            ? Icons.arrow_upward_rounded
+                            : Icons.swap_horiz_rounded),
+                    color: accent,
+                  ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Neumorphic(
-                    style: NeumorphicStyle(
-                      color: AppColorV2.background,
-                      shape: NeumorphicShape.convex,
-                      boxShape: NeumorphicBoxShape.roundRect(
-                        BorderRadius.circular(16),
-                      ),
-                      depth: 3,
-                    ),
-                    child: SizedBox(
-                      width: 46,
-                      height: 46,
-                      child: Center(
-                        child: Icon(
-                          isIn
-                              ? Icons.arrow_downward_rounded
-                              : (isOut
-                                  ? Icons.arrow_upward_rounded
-                                  : Icons.swap_horiz_rounded),
-                          color: accent,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        DefaultText(
-                          text: desc,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                        const SizedBox(height: 4),
-                        DefaultText(
-                          text: _formatDateTime(data["transfer_date"]),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black.withAlpha(120),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
                   DefaultText(
-                    text: amountStr,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
+                    text: desc,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  DefaultText(
+                    text: _formatDateTime(data["transfer_date"]),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black.withAlpha(120),
                     ),
-                    color: isIn ? Colors.green : (isOut ? Colors.red : null),
                   ),
                 ],
               ),
+            ),
+
+            const SizedBox(width: 12),
+
+            DefaultText(
+              text: amountStr,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+              color: isIn ? Colors.green : (isOut ? Colors.red : null),
             ),
           ],
         ),
@@ -270,56 +244,39 @@ class TransferDetailsModal extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Neumorphic(
-        style: NeumorphicStyle(
-          color: AppColorV2.background,
-          shape: NeumorphicShape.convex,
-          boxShape: NeumorphicBoxShape.roundRect(radius),
-          depth: 3,
-        ),
-        child: ClipRRect(
-          borderRadius: radius,
-          child: Stack(
+      child: LuvNeuPress(
+        radius: radius,
+        onTap: null,
+        depth: 1.4,
+        pressedDepth: -0.7,
+        overlayOpacity: 0.02,
+        borderColor: Colors.black.withAlpha(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+              Expanded(
+                child: DefaultText(
+                  text: title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black.withAlpha(130),
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: DefaultText(
-                        text: title,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black.withAlpha(130),
-                        ),
-                      ),
+              const SizedBox(width: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 220),
+                child:
+                    valueWidget ??
+                    DefaultText(
+                      text: value ?? "—",
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                      color: valueColor,
+                      textAlign: TextAlign.right,
                     ),
-                    const SizedBox(width: 12),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 220),
-                      child:
-                          valueWidget ??
-                          DefaultText(
-                            text: value ?? "—",
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                            color: valueColor,
-                            textAlign: TextAlign.right,
-                          ),
-                    ),
-                  ],
-                ),
               ),
             ],
           ),
