@@ -219,7 +219,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 ? LoadingCard()
                 : CustomGradientBackground(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(19, 19, 19, 0),
+                    padding: EdgeInsets.fromLTRB(10, 19, 10, 0),
                     child: CustomScrollView(
                       physics: const BouncingScrollPhysics(),
                       slivers: [
@@ -233,10 +233,20 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             spacing: 14,
                             children: [
                               SizedBox(height: 16),
-                              _profile(),
-                              _helpAndSupport(),
-                              _legal(),
-                              SizedBox(
+                              Container(
+                                margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                child: _profile(),
+                              ),
+                              Container(
+                                margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                child: _helpAndSupport(),
+                              ),
+                              Container(
+                                margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                child: _legal(),
+                              ),
+                              Container(
+                                margin: EdgeInsets.fromLTRB(19, 0, 19, 0),
                                 width: double.infinity,
                                 child: CustomButtons.no(
                                   text: "Logout",

@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
@@ -13,6 +12,7 @@ import 'package:luvpay/custom_widgets/no_internet.dart';
 
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
+import '../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import 'controller.dart';
 import 'utils/add_wallet_modal.dart';
@@ -728,7 +728,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                                 const SliverGridDelegateWithFixedCrossAxisCount(
                                                   crossAxisCount: 2,
                                                   crossAxisSpacing: 15,
-                                                  mainAxisSpacing: 10,
+                                                  mainAxisSpacing: 20,
                                                   childAspectRatio: 1.35,
                                                   mainAxisExtent: 120,
                                                 ),
@@ -837,125 +837,53 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   }
 }
 
-class CreateSubwalletTile extends StatefulWidget {
+class CreateSubwalletTile extends StatelessWidget {
   final VoidCallback onTap;
-
   const CreateSubwalletTile({super.key, required this.onTap});
-
-  @override
-  State<CreateSubwalletTile> createState() => _CreateSubwalletTileState();
-}
-
-class _CreateSubwalletTileState extends State<CreateSubwalletTile> {
-  bool _pressed = false;
-
-  void _setPressed(bool v) {
-    if (!mounted) return;
-    if (_pressed == v) return;
-    setState(() => _pressed = v);
-  }
 
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(24);
 
-    final double scale = _pressed ? 0.965 : 1.0;
-    final double yTranslate = _pressed ? 2.0 : 0.0;
-
-    final style = NeumorphicStyle(
-      color: AppColorV2.background,
-      shape: NeumorphicShape.convex,
-      boxShape: NeumorphicBoxShape.roundRect(radius),
-      depth: _pressed ? -3 : 5,
-      intensity: 0.70,
-      surfaceIntensity: 0.10,
-    );
-
-    final core = Neumorphic(
-      style: style,
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
+    return LuvNeuPress.rect(
+      radius: radius,
+      onTap: onTap,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LuvNeuPress.circle(
+                onTap: onTap,
+                background: AppColorV2.lpBlueBrand.withOpacity(0.10),
+                borderColor: AppColorV2.lpBlueBrand.withOpacity(0.18),
+                child: SizedBox(
+                  width: 58,
+                  height: 58,
+                  child: Center(
+                    child: Icon(
+                      Iconsax.add,
+                      size: 30,
+                      color: AppColorV2.lpBlueBrand,
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Neumorphic(
-                      style: NeumorphicStyle(
-                        color: AppColorV2.lpBlueBrand.withAlpha(100),
-                        shape: NeumorphicShape.convex,
-                        boxShape: const NeumorphicBoxShape.circle(),
-                        depth: _pressed ? -2 : 4,
-                      ),
-                      child: SizedBox(
-                        width: 58,
-                        height: 58,
-                        child: Center(
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColorV2.boxStroke.withAlpha(30),
-                            ),
-                            child: Icon(
-                              Iconsax.add,
-                              size: 30,
-                              color: AppColorV2.lpBlueBrand,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DefaultText(
-                      text: "Add new subwallet",
-                      maxLines: 1,
-                      style: AppTextStyle.paragraph2.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: AppColorV2.primaryTextColor.withOpacity(.70),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 8),
+              Text(
+                "Add new subwallet",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: AppColorV2.primaryTextColor.withOpacity(.70),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _setPressed(true),
-      onTapCancel: () => _setPressed(false),
-      onTapUp: (_) => _setPressed(false),
-      onTap: () {
-        _setPressed(false);
-        widget.onTap();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        transform:
-            Matrix4.identity()
-              ..translate(0.0, yTranslate)
-              ..scale(scale, scale),
-        child: core,
       ),
     );
   }

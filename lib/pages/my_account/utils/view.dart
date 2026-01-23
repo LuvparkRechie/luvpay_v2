@@ -16,6 +16,7 @@ import '../../../custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/custom_textfield.dart';
 import '../../../custom_widgets/loading.dart';
 import '../../../custom_widgets/luvpay/custom_scaffold.dart';
+import '../../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../../custom_widgets/spacing.dart';
 import '../../../custom_widgets/variables.dart';
 
@@ -115,23 +116,49 @@ class UpdateProfile extends GetView<UpdateProfileController> {
                             children: [
                               if (controller.currentIndex.value > 0)
                                 Expanded(
-                                  child: CustomButton(
-                                    text: "Previous",
-                                    textColor: AppColorV2.lpBlueBrand,
-                                    btnColor: AppColorV2.background,
-                                    bordercolor: AppColorV2.lpBlueBrand,
-                                    onPressed: controller.previousPage,
+                                  child: LuvNeuPress.rect(
+                                    radius: BorderRadius.circular(16),
+                                    onTap: controller.previousPage,
+                                    borderColor: AppColorV2.lpBlueBrand
+                                        .withOpacity(0.18),
+                                    child: SizedBox(
+                                      height: 52,
+                                      child: Center(
+                                        child: DefaultText(
+                                          text: "Previous",
+                                          style: AppTextStyle.body1.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                          color: AppColorV2.lpBlueBrand,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               if (controller.currentIndex.value > 0)
                                 spacing(width: 10),
                               Expanded(
-                                child: CustomButton(
-                                  text:
-                                      controller.currentIndex.value == 2
-                                          ? "Submit"
-                                          : "Next",
-                                  onPressed: controller.nextPage,
+                                child: LuvNeuPress.rect(
+                                  radius: BorderRadius.circular(16),
+                                  onTap: controller.nextPage,
+                                  background: AppColorV2.lpBlueBrand,
+                                  borderColor: AppColorV2.lpBlueBrand
+                                      .withOpacity(0.12),
+                                  child: SizedBox(
+                                    height: 52,
+                                    child: Center(
+                                      child: DefaultText(
+                                        text:
+                                            controller.currentIndex.value == 2
+                                                ? "Submit"
+                                                : "Next",
+                                        style: AppTextStyle.body1.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                        color: AppColorV2.background,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -1070,6 +1097,7 @@ class Stepp3 extends StatelessWidget {
               child: StretchingOverscrollIndicator(
                 axisDirection: AxisDirection.down,
                 child: ListView.separated(
+                  physics: BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(5),
                   itemBuilder: (context, index) {
                     return ListTile(

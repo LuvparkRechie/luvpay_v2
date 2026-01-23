@@ -171,31 +171,36 @@ class TransactionDetails extends StatelessWidget {
                 isHistory ? "Balance After" : "Current Balance",
                 toCurrencyString(data[index]["bal_after"].toString()),
               ),
+              if (data[index]["ref_no"] != null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 22),
+                    const MySeparator(color: Color(0xFFE6E6E6)),
+                    const SizedBox(height: 18),
 
-              const SizedBox(height: 22),
-              const MySeparator(color: Color(0xFFE6E6E6)),
-              const SizedBox(height: 18),
-
-              Column(
-                children: [
-                  DefaultText(
-                    text: "Reference Number",
-                    style: AppTextStyle.body1.copyWith(
-                      color: AppColorV2.primaryTextColor.withOpacity(0.6),
-                      fontWeight: FontWeight.w500,
+                    Column(
+                      children: [
+                        DefaultText(
+                          text: "Reference Number",
+                          style: AppTextStyle.body1.copyWith(
+                            color: AppColorV2.primaryTextColor.withOpacity(0.6),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        SelectableText(
+                          data[index]["ref_no"].toString(),
+                          style: GoogleFonts.manrope(
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.4,
+                            color: AppColorV2.lpBlueBrand,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  SelectableText(
-                    data[index]["ref_no"].toString(),
-                    style: GoogleFonts.manrope(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.4,
-                      color: AppColorV2.lpBlueBrand,
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ),

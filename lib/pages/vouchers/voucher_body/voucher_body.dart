@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,13 +8,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/http/http_request.dart';
+import 'package:ticketcher/ticketcher.dart';
 
 import '../../../auth/authentication.dart';
 import '../../../custom_widgets/alert_dialog.dart';
 import '../../../custom_widgets/app_color_v2.dart';
-import '../../../custom_widgets/custom_button.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
-import '../../../custom_widgets/loading.dart';
+import '../../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../../http/api_keys.dart';
 
 class VouchersBody extends StatefulWidget {
@@ -42,7 +44,6 @@ class VouchersBodyState extends State<VouchersBody>
 
   bool isLoading = true;
   bool isNetConn = true;
-  bool isSelected = false;
   int? selectedVoucherId;
 
   bool _isDialogVisible = false;
@@ -51,17 +52,41 @@ class VouchersBodyState extends State<VouchersBody>
   int _savedTabIndex = 0;
 
   bool get _isFromBooking => widget.queryParam?["isFromBooking"] == "true";
-
   int get _tabLength => _isFromBooking ? 1 : 3;
+
+  Color get _base => AppColorV2.background;
+
+  List<BoxShadow> _softShadow() {
+    return [
+      BoxShadow(
+        color: Colors.black.withOpacity(.06),
+        blurRadius: 10,
+        offset: const Offset(3, 4),
+      ),
+    ];
+  }
+
+  BoxDecoration _neo({
+    double radius = 18,
+    Color? color,
+    Border? border,
+    List<BoxShadow>? shadows,
+  }) {
+    return BoxDecoration(
+      color: color ?? _base,
+      borderRadius: BorderRadius.circular(radius),
+      border: border,
+      boxShadow: shadows ?? _softShadow(),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabLength, vsync: this);
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
+      if (!_tabController.indexIsChanging)
         _savedTabIndex = _tabController.index;
-      }
     });
     _getVouchers();
   }
@@ -78,9 +103,8 @@ class VouchersBodyState extends State<VouchersBody>
       _tabController.index = newIndex;
 
       _tabController.addListener(() {
-        if (!_tabController.indexIsChanging) {
+        if (!_tabController.indexIsChanging)
           _savedTabIndex = _tabController.index;
-        }
       });
     } else {
       final fixedIndex = _savedTabIndex.clamp(0, _tabLength - 1);
@@ -124,7 +148,7 @@ class VouchersBodyState extends State<VouchersBody>
         HttpRequestApi(api: usedApi).get(),
         HttpRequestApi(api: expiredApi).get(),
       ]);
-
+      print("results are $results");
       if (!mounted) return;
 
       if (results.contains("No Internet")) {
@@ -168,7 +192,6 @@ class VouchersBodyState extends State<VouchersBody>
           orElse: () => {},
         );
         selectedVoucherId = selectedVoucher["promo_voucher_id"];
-        isSelected = true;
       }
 
       final fixedIndex = _savedTabIndex.clamp(0, _tabLength - 1);
@@ -200,21 +223,202 @@ class VouchersBodyState extends State<VouchersBody>
     );
   }
 
+  Widget _tabBar(List<Tab> tabs) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: _neo(
+        radius: 18,
+        border: Border.all(
+          color: const Color(0xFF0F172A).withOpacity(.06),
+          width: 1,
+        ),
+      ),
+      child: TabBar(
+        physics: const BouncingScrollPhysics(),
+        controller: _tabController,
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        labelPadding: EdgeInsets.zero,
+        labelColor: AppColorV2.lpBlueBrand,
+        unselectedLabelColor: AppColorV2.inactiveState,
+        labelStyle: AppTextStyle.h3,
+        unselectedLabelStyle: AppTextStyle.h3_semibold,
+        indicator: BoxDecoration(
+          color: _base,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF0F172A).withOpacity(.06),
+            width: 1,
+          ),
+          boxShadow: _softShadow(),
+        ),
+        tabs: tabs,
+      ),
+    );
+  }
+
+  Widget _voucherCard({
+    required Map voucher,
+    required bool isFromBooking,
+    required bool isCE,
+    required String voucherDt,
+    required bool isSelectedNow,
+    required VoidCallback? onSelect,
+  }) {
+    final String amt = (voucher["voucher_amt"] ?? "0").toString();
+    final String merchant = (voucher["merchant_name"] ?? "N/A").toString();
+    final String code = (voucher["voucher_code"] ?? "—").toString();
+
+    final Color fadedText = AppColorV2.primaryTextColor.withOpacity(
+      isCE ? .35 : 1,
+    );
+
+    final Color fadedBlue = AppColorV2.lpBlueBrand.withOpacity(isCE ? .45 : 1);
+
+    return GestureDetector(
+      onTap: onSelect,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        alignment: Alignment.centerRight,
+        children: [
+          Ticketcher.horizontal(
+            height: 108,
+            decoration: TicketcherDecoration(
+              backgroundColor: _base,
+
+              border: Border.all(
+                color: const Color(0xFF0F172A).withOpacity(.06),
+                width: 1,
+              ),
+
+              borderRadius: const TicketRadius(radius: 18),
+
+              divider: TicketDivider.dashed(
+                color: const Color(0xFF0F172A).withOpacity(.10),
+                thickness: 1,
+                dashWidth: 10,
+                dashSpace: 7,
+                padding: 10,
+              ),
+
+              shadow: BoxShadow(
+                color: Colors.black.withOpacity(.06),
+                blurRadius: 12,
+                offset: const Offset(3, 4),
+              ),
+            ),
+            sections: [
+              Section(
+                widthFactor: 1,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: DefaultText(
+                      text: "-$amt",
+                      style: AppTextStyle.h2,
+                      color: AppColorV2.lpBlueBrand.withOpacity(isCE ? .45 : 1),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+
+              Section(
+                widthFactor: 3,
+                child: Tooltip(
+                  onTriggered: () {
+                    Clipboard.setData(ClipboardData(text: code));
+                  },
+                  message: code,
+                  waitDuration: const Duration(milliseconds: 500),
+                  showDuration: const Duration(seconds: 2),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 10, 44, 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        DefaultText(
+                          text: merchant,
+                          style: AppTextStyle.h3,
+                          color: fadedText,
+                          maxLines: 1,
+                        ),
+                        const SizedBox(width: 8),
+                        const SizedBox(height: 6),
+                        DefaultText(
+                          text: "Get $amt tokens off your parking",
+                          color: fadedBlue,
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 8),
+                        DefaultText(
+                          text: "Expiry date: $voucherDt",
+                          color:
+                              isCE
+                                  ? AppColorV2.primaryTextColor.withOpacity(.35)
+                                  : AppColorV2.bodyTextColor,
+                          maxFontSize: 10,
+                          minFontSize: 8,
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          if (isFromBooking)
+            Positioned(
+              right: 12,
+              child: GestureDetector(
+                onTap: onSelect,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  curve: Curves.easeOut,
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelectedNow ? AppColorV2.lpBlueBrand : _base,
+                    boxShadow: _softShadow(),
+                    border: Border.all(
+                      color: const Color(0xFF0F172A).withOpacity(.06),
+                      width: 1,
+                    ),
+                  ),
+                  child:
+                      isSelectedNow
+                          ? const Icon(
+                            Icons.check,
+                            size: 16,
+                            color: Colors.white,
+                          )
+                          : const SizedBox.shrink(),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _voucherListView(List list, bool isFromBooking, {bool isCE = false}) {
-    if (list.isEmpty) {
-      return _noVoucherWidget();
-    }
+    if (list.isEmpty) return _noVoucherWidget();
 
     return RefreshIndicator(
       onRefresh: _getVouchers,
       child: ListView.separated(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.only(top: 8, bottom: 18),
         physics: const BouncingScrollPhysics(),
         separatorBuilder: (context, index) => const SizedBox(height: 14),
         itemCount: list.length,
         itemBuilder: (context, index) {
           final voucher = list[index];
-          isSelected = voucher["promo_voucher_id"] == selectedVoucherId;
+          final bool isSelectedNow =
+              voucher["promo_voucher_id"] == selectedVoucherId;
 
           DateTime? expDt =
               voucher["expiry_date"] != null &&
@@ -225,190 +429,29 @@ class VouchersBodyState extends State<VouchersBody>
           String voucherDt =
               expDt != null ? DateFormat('MMM d, yyyy').format(expDt) : "N/A";
 
-          return Stack(
-            alignment: Alignment.centerRight,
-            children: [
-              Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  InkWell(
-                    onTap:
-                        !isFromBooking
-                            ? null
-                            : () {
-                              if (selectedVoucherId ==
-                                  voucher["promo_voucher_id"]) {
-                                selectedVoucherId = null;
-                              } else {
-                                selectedVoucherId = voucher["promo_voucher_id"];
-                              }
-                              setState(() {});
-                              widget.callBack!(selectedVoucherId);
-                            },
-                    child: Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(30),
-                                blurRadius: 6,
-                                offset: const Offset(5, 2),
-                              ),
-                            ],
-                          ),
-                          child:
-                              isCE
-                                  ? ColorFiltered(
-                                    colorFilter: ColorFilter.mode(
-                                      Colors.white.withAlpha(100),
-                                      BlendMode.srcATop,
-                                    ),
-                                    child: Image.asset(
-                                      "assets/images/voucher_ticket.png",
-                                      height: 70,
-                                    ),
-                                  )
-                                  : Image.asset(
-                                    "assets/images/voucher_ticket.png",
-                                    height: 70,
-                                  ),
-                        ),
-                        Expanded(
-                          child: Tooltip(
-                            onTriggered: () {
-                              Clipboard.setData(
-                                ClipboardData(
-                                  text: '${voucher["voucher_code"]}',
-                                ),
-                              );
-                            },
-                            message: '${voucher["voucher_code"]}',
-                            waitDuration: const Duration(milliseconds: 500),
-                            showDuration: const Duration(seconds: 2),
-                            child: Container(
-                              height: 70,
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.only(
-                                  topRight: Radius.circular(10),
-                                  bottomRight: Radius.circular(10),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withAlpha(30),
-                                    blurRadius: 6,
-                                    offset: const Offset(2, 2),
-                                  ),
-                                ],
-                                color: AppColorV2.background,
-                              ),
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  DefaultText(
-                                    text: voucher["merchant_name"] ?? "N/A",
-                                    style: AppTextStyle.h3,
-                                    color:
-                                        isCE
-                                            ? AppColorV2.primaryTextColor
-                                                .withAlpha(50)
-                                            : AppColorV2.primaryTextColor,
-                                  ),
-                                  DefaultText(
-                                    text:
-                                        "Get ${voucher["voucher_amt"]} tokens off your parking",
-                                    color:
-                                        isCE
-                                            ? AppColorV2.lpBlueBrand.withAlpha(
-                                              150,
-                                            )
-                                            : AppColorV2.lpBlueBrand,
-                                  ),
-                                  SizedBox(height: 2),
-                                  Expanded(
-                                    child: DefaultText(
-                                      text: "Expiry date: $voucherDt",
-                                      color:
-                                          isCE
-                                              ? AppColorV2.primaryTextColor
-                                                  .withAlpha(50)
-                                              : AppColorV2.bodyTextColor,
-                                      maxFontSize: 14,
-                                      maxLines: 1,
-                                      minFontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: RotatedBox(
-                      quarterTurns: 3,
-                      child: SizedBox(
-                        width: 50,
-                        child: DefaultText(
-                          textAlign: TextAlign.center,
-                          minFontSize: 12,
-                          maxFontSize: 14,
-                          color: AppColorV2.background,
-                          style: AppTextStyle.h3,
-                          text: "-${voucher["voucher_amt"]}",
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (isFromBooking)
-                InkWell(
-                  onTap: () {
+          VoidCallback? onSelect =
+              !isFromBooking
+                  ? null
+                  : () {
                     if (selectedVoucherId == voucher["promo_voucher_id"]) {
                       selectedVoucherId = null;
                     } else {
                       selectedVoucherId = voucher["promo_voucher_id"];
                     }
-
                     setState(() {});
-                    widget.callBack!(selectedVoucherId);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 10),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        padding: const EdgeInsets.all(1),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColorV2.lpBlueBrand,
-                            width: 2,
-                          ),
-                          color:
-                              isSelected
-                                  ? AppColorV2.lpBlueBrand
-                                  : Colors.transparent,
-                        ),
-                        child:
-                            isSelected
-                                ? const Icon(
-                                  Icons.check,
-                                  size: 15,
-                                  color: Colors.white,
-                                )
-                                : const SizedBox(width: 15, height: 15),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+                    widget.callBack?.call(selectedVoucherId);
+                  };
+
+          return Container(
+            margin: const EdgeInsets.only(left: 10, right: 10),
+            child: _voucherCard(
+              voucher: voucher,
+              isFromBooking: isFromBooking,
+              isCE: isCE,
+              voucherDt: voucherDt,
+              isSelectedNow: isSelectedNow,
+              onSelect: onSelect,
+            ),
           );
         },
       ),
@@ -429,70 +472,29 @@ class VouchersBodyState extends State<VouchersBody>
       if (!_isFromBooking) _voucherListView(expiredList, false, isCE: true),
     ];
 
-    return Column(
-      children: [
-        Expanded(
-          child: Container(
-            color: AppColorV2.background,
-            padding: const EdgeInsets.symmetric(horizontal: 19),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TabBar(
-                  physics: BouncingScrollPhysics(),
-                  controller: _tabController,
-                  indicatorPadding: const EdgeInsets.symmetric(horizontal: 10),
-                  labelPadding: EdgeInsets.zero,
-                  labelColor: AppColorV2.lpBlueBrand,
-                  unselectedLabelColor: AppColorV2.inactiveState,
-                  indicatorColor:
-                      _isFromBooking ? Colors.transparent : Colors.blue,
-                  indicatorWeight: 3,
-                  labelStyle: AppTextStyle.h3,
-                  unselectedLabelStyle: AppTextStyle.h3_semibold,
-                  indicatorSize: TabBarIndicatorSize.label,
-                  tabs: tabs.map((tab) => Center(child: tab)).toList(),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child:
-                      isLoading
-                          ? LoadingCard()
-                          : vouchersList.isEmpty
-                          ? _noVoucherWidget()
-                          : TabBarView(
-                            physics: BouncingScrollPhysics(),
-                            controller: _tabController,
-                            children: tabViews,
-                          ),
-                ),
-              ],
-            ),
+    return Container(
+      color: AppColorV2.background,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          _tabBar(tabs),
+          const SizedBox(height: 14),
+          Expanded(
+            child:
+                isLoading
+                    ? const LuvpayLoading(label: "Loading…")
+                    : vouchersList.isEmpty
+                    ? _noVoucherWidget()
+                    : TabBarView(
+                      physics: const BouncingScrollPhysics(),
+                      controller: _tabController,
+                      children: tabViews,
+                    ),
           ),
-        ),
-        // if (_isFromBooking)
-        // SafeArea(
-        //   child: Container(
-        //     decoration: BoxDecoration(color: AppColorV2.background),
-        //     padding: const EdgeInsets.all(16.0),
-        //     child: CustomButton(
-        //       isInactive: selectedVoucherId == null,
-        //       onPressed: () {
-        //         if (selectedVoucherId == null) return;
-
-        //         final selectedVoucher = vouchersList.firstWhere(
-        //           (voucher) =>
-        //               voucher["promo_voucher_id"] == selectedVoucherId,
-        //           orElse: () => {},
-        //         );
-
-        //         Get.back(result: selectedVoucher);
-        //       },
-        //       text: "Apply voucher",
-        //     ),
-        //   ),
-        // ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
-import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
-import 'package:luvpay/custom_widgets/spacing.dart';
 
 import '../auth/authentication.dart';
 import '../custom_widgets/alert_dialog.dart';
@@ -15,13 +15,13 @@ import '../http/api_keys.dart';
 import '../http/http_request.dart';
 import '../otp_field/view.dart';
 import '../pages/routes/routes.dart';
-import 'package:get_storage/get_storage.dart';
 
 class DeviceRegScreen extends StatefulWidget {
   final String mobileNo;
   final String? userId;
   final String pwd;
   final String? sessionId;
+
   const DeviceRegScreen({
     super.key,
     required this.mobileNo,
@@ -38,25 +38,30 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
   final args = Get.arguments;
   bool isVerifiedOtp = false;
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  Future<void> onRegisterDev() async {
+    final ctx = Get.overlayContext ?? context;
 
-  void onRegisterDev() async {
-    CustomDialogStack.showLoading(context);
-    DateTime timeNow = await Functions.getTimeNow();
-    Get.back();
-    Map<String, String> reqParam = {
+    CustomDialogStack.showLoading(ctx);
+    DateTime timeNow;
+    try {
+      timeNow = await Functions.getTimeNow();
+    } finally {
+      if (Get.isDialogOpen == true) {
+        Navigator.of(ctx, rootNavigator: true).pop();
+      }
+    }
+
+    final reqParam = {
       "mobile_no": widget.mobileNo.toString(),
       "pwd": widget.pwd,
     };
-    // "req_type": "SR",
+
     Functions().requestOtp(reqParam, (obj) async {
-      DateTime timeExp = DateFormat(
+      final timeExp = DateFormat(
         "yyyy-MM-dd hh:mm:ss a",
       ).parse(obj["otp_exp_dt"].toString());
-      DateTime otpExpiry = DateTime(
+
+      final otpExpiry = DateTime(
         timeExp.year,
         timeExp.month,
         timeExp.day,
@@ -65,27 +70,29 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
         timeExp.millisecond,
       );
 
-      // Calculate difference
-      Duration difference = otpExpiry.difference(timeNow);
+      final difference = otpExpiry.difference(timeNow);
 
       if (obj["success"] == "Y" || obj["status"] == "PENDING") {
-        Map<String, String> putParam = {
+        final putParam = {
           "mobile_no": widget.mobileNo.toString(),
           "otp": obj["otp"].toString(),
           "req_type": "SR",
         };
-        Object args = {
+
+        final navArgs = {
           "time_duration": difference,
           "mobile_no": widget.mobileNo,
           "req_otp_param": reqParam,
           "verify_param": putParam,
           "callback": (otp) async {
             final uData = await Authentication().getUserData2();
+
             if (otp != null) {
               if (widget.sessionId == null) {
                 registerDevice();
                 return;
               }
+
               Functions.logoutUser(
                 uData == null
                     ? widget.sessionId.toString()
@@ -101,11 +108,13 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
             }
           },
         };
+
         final response = await Get.to(
-          OtpFieldScreen(arguments: args),
+          OtpFieldScreen(arguments: navArgs),
           transition: Transition.rightToLeftWithFade,
-          duration: Duration(milliseconds: 400),
+          duration: const Duration(milliseconds: 350),
         );
+
         Get.back(result: response);
       }
     });
@@ -120,120 +129,233 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
     isVerifiedOtp = true;
     FocusManager.instance.primaryFocus?.unfocus();
 
-    CustomDialogStack.showLoading(Get.context!);
+    final ctx = Get.overlayContext ?? Get.context!;
+    CustomDialogStack.showLoading(ctx, text: "Registering device...");
 
-    final devKey = await Functions().getUniqueDeviceId();
-    Map<String, String> postParamRegDev = {
-      "user_id": userId.toString(),
-      "device_key": devKey.toString(),
-    };
+    try {
+      final devKey = await Functions().getUniqueDeviceId();
+      final postParamRegDev = {
+        "user_id": userId.toString(),
+        "device_key": devKey.toString(),
+      };
 
-    final response =
-        await HttpRequestApi(
-          api: ApiKeys.postRegDevice,
-          parameters: postParamRegDev,
-        ).postBody();
+      final response =
+          await HttpRequestApi(
+            api: ApiKeys.postRegDevice,
+            parameters: postParamRegDev,
+          ).postBody();
 
-    if (response == "No Internet") {
-      Get.back(result: {"success": false});
-      CustomDialogStack.showConnectionLost(Get.context!, () {
-        Get.back();
-      });
-      return;
-    }
-    if (response == null) {
-      Get.back(result: {"success": false});
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Error while connecting to server, Please try again.",
-        () {
-          Get.back();
-        },
-      );
-      return;
-    }
-    if (response["success"] == 'Y') {
-      final box = GetStorage();
-
-      box.writeIfNull('isFirstLogin', true);
-
-      Get.back(result: {"success": true});
-
-      if (args["cb"] == null) {
-        CustomDialogStack.showSuccess(
-          Get.context!,
-          "Success!",
-          "Device registration complete. Please login to continue.",
-          leftText: "Okay",
-          () {
-            Get.offAndToNamed(Routes.login);
-          },
-        );
-      } else {
-        args["cb"]();
+      if (Get.isDialogOpen == true) {
+        Navigator.of(ctx, rootNavigator: true).pop();
       }
-    } else {
-      Get.back(result: {"success": false});
-      CustomDialogStack.showError(Get.context!, "Error", response["msg"], () {
-        Get.back();
-      });
+
+      if (response == "No Internet") {
+        Get.back(result: {"success": false});
+        CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
+        return;
+      }
+
+      if (response == null) {
+        Get.back(result: {"success": false});
+        CustomDialogStack.showError(
+          Get.context!,
+          "Error",
+          "Error while connecting to server, Please try again.",
+          () => Get.back(),
+        );
+        return;
+      }
+
+      if (response["success"] == 'Y') {
+        final box = GetStorage();
+        box.writeIfNull('isFirstLogin', true);
+
+        Get.back(result: {"success": true});
+
+        if (args["cb"] == null) {
+          CustomDialogStack.showSuccess(
+            Get.context!,
+            "Success!",
+            "Device registration complete. Please login to continue.",
+            () => Get.offAndToNamed(Routes.login),
+            leftText: "Okay",
+          );
+        } else {
+          args["cb"]();
+        }
+      } else {
+        Get.back(result: {"success": false});
+        CustomDialogStack.showError(
+          Get.context!,
+          "Error",
+          response["msg"],
+          () => Get.back(),
+        );
+      }
+    } catch (_) {
+      if (Get.isDialogOpen == true) {
+        Navigator.of(ctx, rootNavigator: true).pop();
+      }
+      CustomDialogStack.showError(
+        ctx,
+        "luvpay",
+        "Something went wrong. Please try again.",
+        () => Get.back(),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffoldV2(
-      canPop: false,
-      enableToolBar: false,
-      padding: EdgeInsets.zero,
-      scaffoldBody: CustomGradientBackground(
-        child: Padding(
-          padding: const EdgeInsets.all(19.0),
-          child: Column(
-            children: [
-              SizedBox(height: 30),
-              Image(image: AssetImage("assets/images/luvpay.png"), height: 60),
-              spacing(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    DefaultText(
-                      maxLines: 1,
-                      text: "New sign-in detected",
-                      textAlign: TextAlign.center,
-                      style: AppTextStyle.h1,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.white,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+
+      child: Scaffold(
+        backgroundColor: AppColorV2.background,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          SvgPicture.asset(
+                            "assets/images/register_device.svg",
+                            height: 180,
+                          ),
+                          const SizedBox(height: 18),
+
+                          DefaultText(
+                            maxLines: 1,
+                            text: "New sign-in detected",
+                            textAlign: TextAlign.center,
+                            style: AppTextStyle.h1,
+                          ),
+                          const SizedBox(height: 8),
+
+                          DefaultText(
+                            maxLines: 3,
+                            text:
+                                "Register this device to keep your account secure.\nYou can always do this later.",
+                            textAlign: TextAlign.center,
+                            style: AppTextStyle.paragraph2.copyWith(
+                              height: 1.35,
+                              color: AppColorV2.bodyTextColor.withOpacity(.75),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(6),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.black.withAlpha(12),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: AppColorV2.lpBlueBrand.withAlpha(14),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Icon(
+                                    Icons.phone_iphone_rounded,
+                                    color: AppColorV2.lpBlueBrand,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Mobile number",
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black.withAlpha(130),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        widget.mobileNo,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          SizedBox(
+                            width: double.infinity,
+                            child: CustomButton(
+                              bordercolor: AppColorV2.bodyTextColor.withAlpha(
+                                40,
+                              ),
+                              text: "Register this device",
+                              onPressed:
+                                  isVerifiedOtp
+                                      ? registerDevice
+                                      : onRegisterDev,
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          SizedBox(
+                            width: double.infinity,
+                            child: CustomButton(
+                              bordercolor: Colors.black.withAlpha(18),
+                              btnColor: Colors.transparent,
+                              text: "Later",
+                              textColor: Colors.black.withAlpha(180),
+                              onPressed: () => Get.back(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    SizedBox(height: 5),
-                    DefaultText(
-                      maxLines: 2,
-                      text:
-                          "Would you like to register your phone\nnumber to this device?",
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              SvgPicture.asset("assets/images/register_device.svg"),
-              spacing(height: 50),
-              CustomButton(
-                text: "Register this device",
-                onPressed: isVerifiedOtp ? registerDevice : onRegisterDev,
-              ),
-              spacing(height: 18),
-              CustomButton(
-                bordercolor: AppColorV2.lpBlueBrand,
-                btnColor: Colors.transparent,
-                text: "Later",
-                textColor: AppColorV2.lpBlueBrand,
-                onPressed: () {
-                  Get.back();
-                },
-              ),
-              spacing(height: 30),
-            ],
+
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    "Tip: Registering helps prevent unauthorized access.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black.withAlpha(110),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

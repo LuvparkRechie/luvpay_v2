@@ -20,7 +20,7 @@ class Security extends GetView<SecuritySettingsController> {
     return CustomScaffoldV2(
       appBarTitle: "Security Settings",
       enableToolBar: true,
-
+      padding: EdgeInsets.only(left: 10, right: 10, top: 10),
       scaffoldBody: Obx(
         () =>
             controller.isLoading.value
@@ -34,7 +34,6 @@ class Security extends GetView<SecuritySettingsController> {
                       child: ListView(
                         padding: EdgeInsets.zero,
                         children: [
-                          SizedBox(height: 14),
                           DefaultContainer(
                             child: Column(
                               spacing: 24,

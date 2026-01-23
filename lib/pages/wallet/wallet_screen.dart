@@ -1,12 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/pages/billers/index.dart';
@@ -19,6 +19,7 @@ import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
+import '../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
@@ -70,6 +71,8 @@ class _WalletScreenState extends State<WalletScreen> {
           );
           if (result != null) {
             _startAutoRefresh();
+            getUserData();
+            getLogs();
           }
         });
       },
@@ -942,107 +945,6 @@ class _WalletScreenState extends State<WalletScreen> {
         return Icons.account_balance_wallet_rounded;
     }
   }
-
-  Widget _buildAmountChip(int amount) {
-    return GestureDetector(
-      onTap: () {
-        _showTopUpBottomSheet('Quick Top Up', amount: amount);
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColorV2.pastelBlueAccent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: DefaultText(
-          text: '₱${amount.toString()}',
-          style: TextStyle(
-            color: AppColorV2.lpBlueBrand,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showTopUpBottomSheet(String method, {int? amount}) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.7,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColorV2.boxStroke,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                DefaultText(
-                  text: 'Top Up via $method',
-                  style: TextStyle(
-                    color: AppColorV2.primaryTextColor,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 8),
-                DefaultText(
-                  text: 'Enter the amount you want to add to your wallet',
-                  style: TextStyle(
-                    color: AppColorV2.bodyTextColor,
-                    fontSize: 14,
-                  ),
-                ),
-                SizedBox(height: 30),
-                Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColorV2.lpBlueBrand,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: DefaultText(
-                      text: 'Continue to Top Up',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
 
 class NoTransactionsWidget extends StatelessWidget {
@@ -1143,117 +1045,125 @@ class TransactionSectionListView extends StatelessWidget {
   ) {
     String formatDate(String dateString) {
       try {
-        DateTime date = DateTime.parse(dateString).toLocal();
+        final date = DateTime.parse(dateString).toLocal();
         return DateFormat('MMM dd, yyyy • HH:mm').format(date);
-      } catch (e) {
+      } catch (_) {
         return dateString;
       }
     }
 
     final amountString = transaction['amount']?.toString() ?? '0';
-    final isPositive = !amountString.contains("-");
+    final amount = double.tryParse(amountString) ?? 0.0;
+    final isPositive = amount >= 0;
 
-    final transactionData = _getTransactionData(
-      transaction['category']?.toString() ?? 'Transaction',
-      isPositive,
-    );
+    final accent = isPositive ? AppColorV2.success : AppColorV2.error;
 
-    return InkWell(
-      onTap: () {
-        Get.to(
-          TransactionDetails(index: 0, data: [transaction], isHistory: true),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 25.0),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: transactionData['color'].withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                transactionData['icon'],
-                color: transactionData['color'],
-                size: 20,
-              ),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DefaultText(
-                    text: transaction['category']?.toString() ?? 'Transaction',
-                    style: AppTextStyle.body1,
-                    color: AppColorV2.primaryTextColor,
+    final radius = BorderRadius.circular(18);
+    final iconRadius = BorderRadius.circular(14);
+    final pillRadius = BorderRadius.circular(14);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: LuvNeuPress.rect(
+        radius: radius,
+        onTap: () {
+          Get.to(
+            TransactionDetails(index: 0, data: [transaction], isHistory: true),
+          );
+        },
+        borderWidth: 0.8,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Neumorphic(
+                style: LuvNeu.icon(
+                  radius: iconRadius,
+                  color: AppColorV2.background,
+                  borderColor: Colors.black.withOpacity(0.25),
+                  borderWidth: 0.8,
+                ),
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    borderRadius: iconRadius,
+                    color: accent.withOpacity(0.02),
                   ),
-                  SizedBox(height: 4),
-                  DefaultText(
-                    text:
-                        transaction['tran_desc']?.toString() ??
-                        'No description',
-                    maxLines: 1,
-                    maxFontSize: 12,
+                  child: Icon(
+                    isPositive
+                        ? Icons.arrow_downward_rounded
+                        : Icons.arrow_upward_rounded,
+                    color: accent,
+                    size: 20,
                   ),
-                  SizedBox(height: 4),
-                  DefaultText(
-                    text: formatDate(
-                      transaction['tran_date']?.toString() ?? '',
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DefaultText(
+                      text:
+                          transaction['category']?.toString() ?? 'Transaction',
+                      style: AppTextStyle.body1,
+                      color: AppColorV2.primaryTextColor,
                     ),
-                    style: AppTextStyle.body1,
-                    maxFontSize: 10,
-                    minFontSize: 8,
+                    const SizedBox(height: 4),
+                    DefaultText(
+                      text:
+                          transaction['tran_desc']?.toString() ??
+                          'No description',
+                      maxLines: 1,
+                      maxFontSize: 12,
+                    ),
+                    const SizedBox(height: 4),
+                    DefaultText(
+                      text: formatDate(
+                        transaction['tran_date']?.toString() ?? '',
+                      ),
+                      style: AppTextStyle.body1,
+                      maxFontSize: 10,
+                      minFontSize: 8,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              Neumorphic(
+                style: NeumorphicStyle(
+                  color: AppColorV2.background,
+                  shape: NeumorphicShape.flat,
+                  boxShape: NeumorphicBoxShape.roundRect(pillRadius),
+                  depth: -1.0,
+                  intensity: LuvNeu.intensity,
+                  surfaceIntensity: LuvNeu.surfaceIntensity,
+                  border: const NeumorphicBorder.none(),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                ],
+                  child: DefaultText(
+                    text: toCurrencyString(amountString),
+                    style: TextStyle(
+                      color: accent,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13.5,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            DefaultText(
-              text: toCurrencyString(amountString),
-              style: TextStyle(
-                color: isPositive ? AppColorV2.success : AppColorV2.error,
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  Map<String, dynamic> _getTransactionData(String category, bool isPositive) {
-    final categoryLower = category.toLowerCase();
-
-    if (isPositive) {
-      return {
-        'icon': Icons.arrow_downward_rounded,
-        'color': AppColorV2.success,
-      };
-    }
-
-    if (categoryLower.contains('electric') ||
-        categoryLower.contains('utility')) {
-      return {'icon': Icons.bolt_rounded, 'color': AppColorV2.warning};
-    } else if (categoryLower.contains('water')) {
-      return {'icon': Icons.water_drop_rounded, 'color': Colors.blue};
-    } else if (categoryLower.contains('internet') ||
-        categoryLower.contains('mobile')) {
-      return {'icon': Icons.wifi_rounded, 'color': Colors.purple};
-    } else if (categoryLower.contains('grocery') ||
-        categoryLower.contains('food')) {
-      return {
-        'icon': Icons.shopping_bag_rounded,
-        'color': AppColorV2.secondary,
-      };
-    } else if (categoryLower.contains('shopping') ||
-        categoryLower.contains('store')) {
-      return {'icon': Icons.shopping_cart_rounded, 'color': Colors.orange};
-    } else {
-      return {'icon': Icons.arrow_upward_rounded, 'color': AppColorV2.error};
-    }
   }
 }

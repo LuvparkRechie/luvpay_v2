@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
+
+import 'luv_neumorphic.dart';
 
 class InfoRowTile extends StatelessWidget {
   final IconData? icon;
@@ -28,46 +31,72 @@ class InfoRowTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      minVerticalPadding: 0,
-      leading:
-          icon != null
-              ? Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColorV2.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
+    final radius = BorderRadius.circular(16);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: LuvNeuPress.rect(
+        radius: radius,
+        onTap: onTap,
+        borderColor: null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                Neumorphic(
+                  style: LuvNeu.icon(
+                    radius: BorderRadius.circular(12),
+                    color: AppColorV2.background,
+                    borderColor: null,
+                  ),
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: Icon(icon, color: AppColorV2.primary, size: 20),
+                    ),
+                  ),
                 ),
-                child: Icon(icon, color: AppColorV2.primary, size: 24),
-              )
-              : const SizedBox.shrink(),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (value != null)
-            DefaultText(text: value!, style: AppTextStyle.body1),
-          DefaultText(
-            maxLines: maxLines ?? 2,
-            text: title,
-            color: AppColorV2.primaryTextColor,
-            style: AppTextStyle.body1,
+                const SizedBox(width: 12),
+              ],
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (value != null)
+                      DefaultText(text: value!, style: AppTextStyle.body1),
+                    DefaultText(
+                      maxLines: maxLines ?? 2,
+                      text: title,
+                      color: AppColorV2.primaryTextColor,
+                      style: AppTextStyle.body1,
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      DefaultText(
+                        text: subtitle!,
+                        maxLines: subtitleMaxlines ?? 1,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              if (trailing != null) ...[
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: trailingOnTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: trailing,
+                ),
+              ],
+            ],
           ),
-        ],
+        ),
       ),
-      subtitle:
-          subtitle != null
-              ? DefaultText(text: subtitle!, maxLines: subtitleMaxlines ?? 1)
-              : null,
-      trailing:
-          trailing != null
-              ? GestureDetector(
-                onTap: trailingOnTap,
-                behavior: HitTestBehavior.opaque,
-                child: trailing,
-              )
-              : null,
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
     );
   }
 }

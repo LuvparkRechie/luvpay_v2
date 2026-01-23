@@ -1,19 +1,21 @@
+// ignore_for_file: unused_element_parameter
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/http/api_keys.dart';
+import 'package:luvpay/http/http_request.dart';
 import 'package:luvpay/pages/merchant/pay_merchant.dart';
 import 'package:luvpay/pages/scanner_screen.dart';
 
 import '../../custom_widgets/alert_dialog.dart';
+import '../../custom_widgets/app_color_v2.dart';
 import '../biller_screen/biller_screen.dart';
 import '../profile/profile_screen.dart';
 import '../wallet/wallet_screen.dart';
 import 'controller.dart';
-import 'package:luvpay/http/http_request.dart';
-
 import 'refresh_wallet.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -32,6 +34,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       case 0:
         return WalletScreen();
       case 1:
+        return const SizedBox();
+      case 2:
         return ProfileSettingsScreen();
       default:
         return const SizedBox();
@@ -39,21 +43,13 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   late final AnimationController _bottomBarController;
-  late final AnimationController _fabController;
 
   @override
   void initState() {
     super.initState();
-
     _bottomBarController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 250),
-      value: 1,
-    );
-
-    _fabController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 240),
       value: 1,
     );
   }
@@ -61,21 +57,18 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void dispose() {
     _bottomBarController.dispose();
-    _fabController.dispose();
     super.dispose();
   }
 
   void _handleScroll(UserScrollNotification n) {
     if (n.direction == ScrollDirection.reverse) {
       _bottomBarController.reverse();
-      _fabController.reverse();
     } else if (n.direction == ScrollDirection.forward) {
       _bottomBarController.forward();
-      _fabController.forward();
     }
   }
 
-  void _onFabPressed() {
+  void _onScanPressed() {
     final result = Get.to(
       ScannerScreenV2(
         onchanged: (args) {
@@ -161,12 +154,10 @@ class _DashboardScreenState extends State<DashboardScreen>
           "Are you sure you want to close application?",
           leftText: "No",
           rightText: "Yes",
+          () => Get.back(),
           () {
             Get.back();
-          },
-          () {
-            Get.back();
-            Future.delayed(Duration(milliseconds: 500), () {
+            Future.delayed(const Duration(milliseconds: 500), () {
               FlutterExitApp.exitApp(iosForceExit: true);
             });
           },
@@ -178,7 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             PageView.builder(
               controller: controller.pageController,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: 2,
+              itemCount: 3,
               itemBuilder: (_, index) {
                 return NotificationListener<UserScrollNotification>(
                   onNotification: (n) {
@@ -193,9 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 );
               },
             ),
-
             _buildBottomNav(),
-            // _buildQrFab(context),
           ],
         ),
       ),
@@ -211,85 +200,172 @@ class _DashboardScreenState extends State<DashboardScreen>
         animation: _bottomBarController,
         builder: (_, child) {
           return Transform.translate(
-            offset: Offset(0, 70 * (1 - _bottomBarController.value)),
+            offset: Offset(0, 80 * (1 - _bottomBarController.value)),
             child: Opacity(opacity: _bottomBarController.value, child: child),
           );
         },
-        child: Obx(
-          () => Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                height: 100,
-                width: 280,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    fit: BoxFit.fill,
-                    image: AssetImage("assets/images/luvpay_bottom_bg.png"),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 30, left: 30, right: 30),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _navIcon(
-                        controller.currentIndex.value == 0
-                            ? "luvpay_home"
-                            : "luvpay_home_inactive",
-                        0,
-                      ),
+        child: Obx(() {
+          final i = controller.currentIndex.value;
 
-                      _navIcon(
-                        controller.currentIndex.value == 1
-                            ? "luvpay_profile"
-                            : "luvpay_profile_inactive",
-                        1,
-                      ),
-                    ],
+          final base = AppColorV2.background;
+          final radius = BorderRadius.circular(28);
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Container(
+              height: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              decoration: BoxDecoration(
+                color: base,
+                borderRadius: radius,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.55),
+                    blurRadius: 10,
+                    offset: const Offset(-4, -4),
                   ),
-                ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 12,
+                    offset: const Offset(5, 5),
+                  ),
+                ],
               ),
-              Positioned(
-                bottom: 15,
-                left: 0,
-                right: 0,
-                child: AnimatedBuilder(
-                  animation: _fabController,
-                  builder: (_, child) {
-                    return Transform.translate(
-                      offset: Offset(0, 70 * (1 - _fabController.value)),
-                      child: Opacity(
-                        opacity: _fabController.value,
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: _onFabPressed,
-                      child: Image.asset(
-                        "assets/images/luvpay_qr_button.png",
-                        height: 75,
-                      ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _NeoNavIcon(
+                      activeIconName: "luvpay_home",
+                      inactiveIconName: "luvpay_home_inactive",
+                      active: i == 0,
+                      onTap: () => controller.changePage(0),
                     ),
                   ),
-                ),
+                  Expanded(
+                    child: _NeoNavIcon(
+                      activeIconName: "luvpay_qr_button",
+                      inactiveIconName: "luvpay_qr_button",
+                      active: false,
+                      height: 40,
+                      width: 40,
+                      onTap: _onScanPressed,
+                    ),
+                  ),
+                  Expanded(
+                    child: _NeoNavIcon(
+                      activeIconName: "luvpay_profile",
+                      inactiveIconName: "luvpay_profile_inactive",
+                      active: i == 2,
+                      onTap: () => controller.changePage(2),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        }),
       ),
     );
   }
+}
 
-  Widget _navIcon(String icon, int index) {
-    return InkWell(
-      onTap: () {
-        controller.changePage(index);
-      },
-      child: Image.asset("assets/images/$icon.png", height: 25),
+class _NeoNavIcon extends StatefulWidget {
+  final String activeIconName;
+  final String inactiveIconName;
+  final bool active;
+  final VoidCallback onTap;
+  final double? width;
+  final double? height;
+
+  const _NeoNavIcon({
+    required this.activeIconName,
+    required this.inactiveIconName,
+    required this.active,
+    required this.onTap,
+    this.width,
+    this.height,
+  });
+
+  @override
+  State<_NeoNavIcon> createState() => _NeoNavIconState();
+}
+
+class _NeoNavIconState extends State<_NeoNavIcon> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = AppColorV2.background;
+    final activeColor = AppColorV2.lpBlueBrand;
+
+    final r = BorderRadius.circular(18);
+
+    final iconName =
+        widget.active ? widget.activeIconName : widget.inactiveIconName;
+
+    final iconW = widget.width ?? 26;
+    final iconH = widget.height ?? 26;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            color: base,
+            borderRadius: r,
+            border: Border.all(
+              color:
+                  widget.active
+                      ? activeColor.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.010),
+            ),
+            boxShadow:
+                widget.active
+                    ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.07),
+                        blurRadius: 6,
+                        offset: const Offset(3, 3),
+                      ),
+                      BoxShadow(
+                        color: Colors.white.withValues(alpha: 0.60),
+                        blurRadius: 6,
+                        offset: const Offset(-3, -3),
+                      ),
+                    ]
+                    : [
+                      BoxShadow(
+                        color: Colors.white.withValues(alpha: 0.60),
+                        blurRadius: 8,
+                        offset: const Offset(-4, -4),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 9,
+                        offset: const Offset(4, 4),
+                      ),
+                    ],
+          ),
+          child: Center(
+            child: Image.asset(
+              "assets/images/$iconName.png",
+              width: iconW,
+              height: iconH,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

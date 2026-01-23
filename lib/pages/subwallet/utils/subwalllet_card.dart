@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
+import 'package:luvpay/custom_widgets/luvpay/luv_neumorphic.dart';
 
 import '../view.dart';
 
@@ -84,16 +85,18 @@ class _SubWalletCardState extends State<SubWalletCard> {
     final bool canPress = !widget.isDeleting;
     final bool pressedVisual = canPress && _pressed;
 
-    final double scale = pressedVisual ? 0.965 : 1.0;
-    final double yTranslate = pressedVisual ? 2.0 : 0.0;
+    final double scale = pressedVisual ? 0.972 : 1.0;
+    final double yTranslate = pressedVisual ? 1.6 : 0.0;
 
-    final NeumorphicStyle neumorphicStyle = NeumorphicStyle(
+    final NeumorphicStyle neumorphicStyle = LuvNeu.card(
+      radius: radius,
+      pressed: pressedVisual,
+      selected: widget.isSelected,
       color: AppColorV2.background,
-      shape: NeumorphicShape.convex,
-      boxShape: NeumorphicBoxShape.roundRect(radius),
-      depth: widget.isSelected ? -1 : (pressedVisual ? -1.5 : 2),
-      intensity: 0.70,
-      surfaceIntensity: 0.10,
+      depth: 1.8,
+      pressedDepth: -0.9,
+      borderColor: Colors.black.withAlpha(14),
+      borderWidth: 1,
     );
 
     final cardCore = Neumorphic(
@@ -106,7 +109,7 @@ class _SubWalletCardState extends State<SubWalletCard> {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(
-                    widget.isSelected ? 0.10 : 0.06,
+                    widget.isSelected ? 0.06 : 0.035,
                   ),
                 ),
               ),
@@ -127,9 +130,9 @@ class _SubWalletCardState extends State<SubWalletCard> {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.transparent,
-                                  const Color(0xFF0F172A).withOpacity(0.08),
+                                  const Color(0xFF0F172A).withOpacity(0.06),
                                 ],
-                                stops: const [0.55, 1.0],
+                                stops: const [0.60, 1.0],
                               ),
                             ),
                           ),
@@ -142,9 +145,9 @@ class _SubWalletCardState extends State<SubWalletCard> {
                                 end: Alignment.centerRight,
                                 colors: [
                                   Colors.transparent,
-                                  const Color(0xFF0F172A).withOpacity(0.06),
+                                  const Color(0xFF0F172A).withOpacity(0.045),
                                 ],
-                                stops: const [0.60, 1.0],
+                                stops: const [0.65, 1.0],
                               ),
                             ),
                           ),
@@ -156,10 +159,10 @@ class _SubWalletCardState extends State<SubWalletCard> {
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
-                                  Colors.white.withOpacity(0.70),
+                                  Colors.white.withOpacity(0.35),
                                   Colors.transparent,
                                 ],
-                                stops: const [0.0, 0.45],
+                                stops: const [0.0, 0.42],
                               ),
                             ),
                           ),
@@ -184,28 +187,22 @@ class _SubWalletCardState extends State<SubWalletCard> {
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: AppColorV2.lpBlueBrand.withOpacity(.45),
+                      color: AppColorV2.lpBlueBrand.withOpacity(.30),
                       blurRadius: 2,
                       spreadRadius: 1,
                       offset: const Offset(0, 0),
                     ),
-                    BoxShadow(
-                      color: AppColorV2.lpBlueBrand.withOpacity(.45),
-                      blurRadius: 2,
-                      spreadRadius: 0,
-                      offset: const Offset(0, 0),
-                    ),
                   ],
-                  color: AppColorV2.lpBlueBrand.withOpacity(.45),
+                  color: AppColorV2.lpBlueBrand.withOpacity(.40),
                   borderRadius: const BorderRadius.only(
                     bottomRight: Radius.circular(12),
                   ),
                   border: Border(
                     bottom: BorderSide(
-                      color: AppColorV2.lpBlueBrand.withOpacity(.20),
+                      color: AppColorV2.lpBlueBrand.withOpacity(.18),
                     ),
                     right: BorderSide(
-                      color: AppColorV2.lpBlueBrand.withOpacity(.20),
+                      color: AppColorV2.lpBlueBrand.withOpacity(.18),
                     ),
                   ),
                 ),
@@ -276,15 +273,15 @@ class _SubWalletCardState extends State<SubWalletCard> {
       builder: (_, child) {
         final t = widget.pulseAnim.value;
         return Transform.scale(
-          scale: 1.0 + (0.06 * t),
+          scale: 1.0 + (0.05 * t),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: radius,
               boxShadow: [
                 BoxShadow(
-                  color: widget.base.withOpacity(0.18 * t),
-                  blurRadius: 28 * t,
-                  spreadRadius: 2 * t,
+                  color: widget.base.withOpacity(0.14 * t),
+                  blurRadius: 26 * t,
+                  spreadRadius: 1.6 * t,
                   offset: const Offset(0, 0),
                 ),
               ],

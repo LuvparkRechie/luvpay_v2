@@ -1,13 +1,17 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_size_text/flutter_auto_size_text.dart'
     show AutoSizeText;
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
-class CustomButton extends StatelessWidget {
+class CustomButton extends StatefulWidget {
   final String text;
-  final Function onPressed;
+  final VoidCallback onPressed;
+
   final Color? btnColor;
   final bool? loading;
   final Color? bordercolor;
@@ -45,79 +49,120 @@ class CustomButton extends StatelessWidget {
     this.trailing,
   });
 
-  //custombutton
+  @override
+  State<CustomButton> createState() => _CustomButtonState();
+}
+
+class _CustomButtonState extends State<CustomButton> {
+  bool _pressed = false;
+
+  void _setPressed(bool v) {
+    if (!mounted) return;
+    if (_pressed == v) return;
+    setState(() => _pressed = v);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap:
-          isInactive
-              ? () {}
-              : () {
-                onPressed();
-              },
-      child: Container(
-        margin: margin,
-        height: btnHeight,
-        width: width ?? MediaQuery.of(context).size.width,
-        decoration: BoxDecoration(
-          color:
-              isInactive
-                  ? AppColorV2.inactiveButton
-                  : btnColor ?? AppColorV2.lpBlueBrand,
-          border: Border.all(
-            width: 2,
-            color: bordercolor ?? Colors.transparent,
-          ),
-          borderRadius: BorderRadius.circular(borderRadius!),
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: verticalPadding ?? 12),
-          child: Center(
-            child:
-                loading == null
-                    ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (leading != null)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 10.0),
-                            child: leading!,
+    final radius = BorderRadius.circular(widget.borderRadius ?? 30);
+    final isDisabled = widget.isInactive == true;
+
+    final bg =
+        isDisabled
+            ? AppColorV2.inactiveButton
+            : (widget.btnColor ?? AppColorV2.lpBlueBrand);
+
+    final fg =
+        widget.textColor ??
+        (isDisabled ? Colors.black.withAlpha(120) : AppColorV2.background);
+
+    final showLoading = (widget.loading ?? false);
+
+    final canPress = !isDisabled && !showLoading;
+    final pressedVisual = canPress && _pressed;
+
+    final scale = pressedVisual ? 0.985 : 1.0;
+    final dy = pressedVisual ? 1.0 : 0.0;
+    final borderCol = (widget.bordercolor ?? Colors.transparent);
+    final effectiveBorder =
+        borderCol == Colors.transparent ? null : borderCol.withOpacity(0.22);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: canPress ? (_) => _setPressed(true) : null,
+      onTapUp: canPress ? (_) => _setPressed(false) : null,
+      onTapCancel: canPress ? () => _setPressed(false) : null,
+      onTap: canPress ? widget.onPressed : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutCubic,
+        transform:
+            Matrix4.identity()
+              ..translate(0.0, dy)
+              ..scale(scale, scale),
+        child: Container(
+          margin: widget.margin,
+          width: widget.width ?? MediaQuery.of(context).size.width,
+          height: widget.btnHeight,
+          child: Neumorphic(
+            style: NeumorphicStyle(
+              color: bg,
+              shape: NeumorphicShape.flat,
+              boxShape: NeumorphicBoxShape.roundRect(radius),
+              depth: isDisabled ? 0 : (pressedVisual ? -1.0 : 1.6),
+              intensity: 0.45,
+              surfaceIntensity: 0.08,
+              border:
+                  effectiveBorder == null
+                      ? const NeumorphicBorder.none()
+                      : NeumorphicBorder(color: effectiveBorder, width: 1),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: widget.verticalPadding ?? 12,
+              ),
+              child: Center(
+                child:
+                    showLoading
+                        ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: fg,
+                            strokeWidth: 2,
                           ),
-                        Flexible(
-                          child: DefaultText(
-                            maxLines: maxLines ?? 1,
-                            text: text,
-                            textAlign: TextAlign.center,
-                            color: textColor ?? AppColorV2.background,
-                            fontSize: fontSize,
-                            style: AppTextStyle.textButton,
-                            fontWeight: fontWeight ?? FontWeight.w600,
-                            height: 20 / 16,
-                          ),
+                        )
+                        : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.leading != null) ...[
+                              Padding(
+                                padding: const EdgeInsets.only(right: 10.0),
+                                child: widget.leading!,
+                              ),
+                            ],
+                            Flexible(
+                              child: DefaultText(
+                                maxLines: widget.maxLines ?? 1,
+                                text: widget.text,
+                                textAlign: TextAlign.center,
+                                color: fg,
+                                fontSize: widget.fontSize,
+                                style: AppTextStyle.textButton,
+                                fontWeight:
+                                    widget.fontWeight ?? FontWeight.w700,
+                                height: 20 / 16,
+                              ),
+                            ),
+                            if (widget.trailing != null) ...[
+                              const SizedBox(width: 10),
+                              widget.trailing!,
+                            ],
+                          ],
                         ),
-                        if (trailing != null) trailing!,
-                      ],
-                    )
-                    : loading!
-                    ? SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: AppColorV2.background,
-                        strokeWidth: 2,
-                      ),
-                    )
-                    : DefaultText(
-                      minFontSize: 8,
-                      maxLines: maxLines ?? 1,
-                      text: text,
-                      textAlign: TextAlign.center,
-                      color: textColor ?? AppColorV2.background,
-                      fontSize: fontSize,
-                      style: AppTextStyle.textButton,
-                      fontWeight: FontWeight.w600,
-                    ),
+              ),
+            ),
           ),
         ),
       ),
@@ -130,7 +175,8 @@ class CustomButtonCancel extends StatefulWidget {
   final Color? color;
   final Color? textColor;
   final Color? borderColor;
-  final Function onPressed;
+  final VoidCallback onPressed;
+
   const CustomButtonCancel({
     super.key,
     required this.text,
@@ -145,33 +191,60 @@ class CustomButtonCancel extends StatefulWidget {
 }
 
 class _CustomButtonCancelState extends State<CustomButtonCancel> {
+  bool _pressed = false;
+
   @override
   Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(14);
+
+    final bg = widget.color ?? AppColorV2.background;
+    final fg = widget.textColor ?? AppColorV2.lpBlueBrand;
+
+    final borderCol = widget.borderColor;
+    final effectiveBorder =
+        borderCol == null ? null : borderCol.withOpacity(0.20);
+
+    final pressedVisual = _pressed;
+    final scale = pressedVisual ? 0.988 : 1.0;
+    final dy = pressedVisual ? 1.0 : 0.0;
+
     return GestureDetector(
-      onTap: () {
-        widget.onPressed();
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: widget.color!,
-          borderRadius: BorderRadius.circular(7),
-          border:
-              widget.borderColor == null
-                  ? null
-                  : Border.all(color: widget.borderColor!),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: AutoSizeText(
-              widget.text,
-              style: GoogleFonts.lato(
-                color: widget.textColor!,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onPressed,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutCubic,
+        transform:
+            Matrix4.identity()
+              ..translate(0.0, dy)
+              ..scale(scale, scale),
+        child: Neumorphic(
+          style: NeumorphicStyle(
+            color: bg,
+            shape: NeumorphicShape.flat,
+            boxShape: NeumorphicBoxShape.roundRect(radius),
+            depth: pressedVisual ? -1.0 : 1.4,
+            intensity: 0.42,
+            surfaceIntensity: 0.07,
+            border:
+                effectiveBorder == null
+                    ? const NeumorphicBorder.none()
+                    : NeumorphicBorder(color: effectiveBorder, width: 1),
+          ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: AutoSizeText(
+                widget.text,
+                style: GoogleFonts.lato(
+                  color: fg,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
               ),
-              maxLines: 1,
             ),
           ),
         ),
@@ -180,12 +253,13 @@ class _CustomButtonCancelState extends State<CustomButtonCancel> {
   }
 }
 
-class CustomDialogButton extends StatelessWidget {
+class CustomDialogButton extends StatefulWidget {
   final String text;
   final Color? borderColor;
   final Color? btnColor;
   final Color? txtColor;
-  final Function onTap;
+  final VoidCallback onTap;
+
   const CustomDialogButton({
     super.key,
     required this.text,
@@ -196,34 +270,70 @@ class CustomDialogButton extends StatelessWidget {
   });
 
   @override
+  State<CustomDialogButton> createState() => _CustomDialogButtonState();
+}
+
+class _CustomDialogButtonState extends State<CustomDialogButton> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        onTap();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-        decoration: ShapeDecoration(
-          color: btnColor ?? Color(0xFFF9FBFC),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(74),
+    final radius = BorderRadius.circular(74);
+    final bg = widget.btnColor ?? const Color(0xFFF9FBFC);
+    final fg = widget.txtColor ?? const Color(0xFF0078FF);
+
+    final borderCol = widget.borderColor;
+    final effectiveBorder =
+        borderCol == null ? null : borderCol.withOpacity(0.20);
+
+    final pressedVisual = _pressed;
+    final scale = pressedVisual ? 0.988 : 1.0;
+    final dy = pressedVisual ? 1.0 : 0.0;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutCubic,
+        transform:
+            Matrix4.identity()
+              ..translate(0.0, dy)
+              ..scale(scale, scale),
+        child: Neumorphic(
+          style: NeumorphicStyle(
+            color: bg,
+            shape: NeumorphicShape.flat,
+            boxShape: NeumorphicBoxShape.roundRect(radius),
+            depth: pressedVisual ? -1.0 : 1.2,
+            intensity: 0.42,
+            surfaceIntensity: 0.07,
+            border:
+                effectiveBorder == null
+                    ? const NeumorphicBorder.none()
+                    : NeumorphicBorder(color: effectiveBorder, width: 1),
           ),
-        ),
-        child: DefaultText(
-          text: text,
-          color: txtColor ?? Color(0xFF0078FF),
-          fontSize: 14,
-          letterSpacing: 0.50,
-          textAlign: TextAlign.center,
-          fontWeight: FontWeight.w500,
-          minFontSize: 8,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+            child: DefaultText(
+              text: widget.text,
+              color: fg,
+              fontSize: 14,
+              letterSpacing: 0.50,
+              textAlign: TextAlign.center,
+              fontWeight: FontWeight.w700,
+              minFontSize: 8,
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class CustomElevatedButton extends StatelessWidget {
+class CustomElevatedButton extends StatefulWidget {
   final String text;
   final VoidCallback? onPressed;
   final Color? btnColor;
@@ -241,7 +351,7 @@ class CustomElevatedButton extends StatelessWidget {
   final double? btnwidth;
 
   const CustomElevatedButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.btnColor,
@@ -257,58 +367,97 @@ class CustomElevatedButton extends StatelessWidget {
     this.iconColor,
     this.spacing = 8.0,
     this.btnwidth,
-  }) : super(key: key);
+  });
+
+  @override
+  State<CustomElevatedButton> createState() => _CustomElevatedButtonState();
+}
+
+class _CustomElevatedButtonState extends State<CustomElevatedButton> {
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: btnHeight ?? 50.0,
-      width: btnwidth,
-      child: ElevatedButton(
-        onPressed: (loading || disabled) ? null : onPressed,
-        style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all<Color>(
-            disabled ? Colors.grey : btnColor ?? Colors.blue,
-          ),
-          foregroundColor: WidgetStateProperty.all<Color>(
-            textColor ?? Colors.white,
-          ),
-          shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(7), // Adjust radius
+    final radius = BorderRadius.circular(widget.borderRadius);
+    final bg =
+        widget.disabled
+            ? Colors.grey
+            : (widget.btnColor ?? AppColorV2.lpBlueBrand);
+    final fg = widget.textColor ?? AppColorV2.background;
+
+    final borderCol = widget.borderColor;
+    final effectiveBorder =
+        borderCol == null ? null : borderCol.withOpacity(0.20);
+
+    final canPress =
+        !(widget.loading || widget.disabled) && widget.onPressed != null;
+    final pressedVisual = canPress && _pressed;
+
+    final scale = pressedVisual ? 0.985 : 1.0;
+    final dy = pressedVisual ? 1.0 : 0.0;
+
+    return GestureDetector(
+      onTapDown: canPress ? (_) => setState(() => _pressed = true) : null,
+      onTapUp: canPress ? (_) => setState(() => _pressed = false) : null,
+      onTapCancel: canPress ? () => setState(() => _pressed = false) : null,
+      onTap: canPress ? widget.onPressed : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOutCubic,
+        transform:
+            Matrix4.identity()
+              ..translate(0.0, dy)
+              ..scale(scale, scale),
+        child: SizedBox(
+          height: widget.btnHeight ?? 50.0,
+          width: widget.btnwidth,
+          child: Neumorphic(
+            style: NeumorphicStyle(
+              color: bg,
+              shape: NeumorphicShape.flat,
+              boxShape: NeumorphicBoxShape.roundRect(radius),
+              depth: widget.disabled ? 0 : (pressedVisual ? -1.0 : 1.6),
+              intensity: 0.45,
+              surfaceIntensity: 0.08,
+              border:
+                  effectiveBorder == null
+                      ? const NeumorphicBorder.none()
+                      : NeumorphicBorder(color: effectiveBorder, width: 1),
+            ),
+            child: Center(
+              child:
+                  widget.loading
+                      ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: fg,
+                          strokeWidth: 2,
+                        ),
+                      )
+                      : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.icon != null) ...[
+                            Icon(
+                              widget.icon,
+                              size: widget.iconSize,
+                              color: widget.iconColor ?? fg,
+                            ),
+                            SizedBox(width: widget.spacing),
+                          ],
+                          DefaultText(
+                            text: widget.text,
+                            fontSize: widget.fontSize,
+                            color: fg,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ],
+                      ),
             ),
           ),
         ),
-        child:
-            loading
-                ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-                : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(
-                        icon,
-                        size: iconSize,
-                        color: iconColor ?? textColor ?? Colors.white,
-                      ),
-                      SizedBox(width: spacing),
-                    ],
-                    DefaultText(
-                      text: text,
-                      fontSize: fontSize,
-                      color: textColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ],
-                ),
       ),
     );
   }

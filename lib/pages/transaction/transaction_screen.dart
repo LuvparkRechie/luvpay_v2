@@ -1,11 +1,10 @@
-// ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages
+// ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages, deprecated_member_use
 
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
@@ -25,6 +24,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 import '../../../auth/authentication.dart';
+import '../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../functions/functions.dart';
 import 'transaction_details.dart';
 
@@ -463,6 +463,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
   @override
   Widget build(BuildContext ctx) {
     return CustomScaffoldV2(
+      padding: EdgeInsets.fromLTRB(10, 8, 10, 19),
       enableToolBar: true,
       appBarTitle: "Transaction History",
       scaffoldBody:
@@ -720,10 +721,26 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                               final desc = tx['tran_desc'].toString();
                               final category = tx['category'].toString();
 
+                              final amount =
+                                  double.tryParse(tx['amount'].toString()) ??
+                                  0.0;
+                              final isDebit = amount < 0;
+
+                              final accent =
+                                  isDebit
+                                      ? AppColorV2.error
+                                      : AppColorV2.success;
+
+                              final radius = BorderRadius.circular(18);
+                              final pillRadius = BorderRadius.circular(14);
+                              final iconRadius = BorderRadius.circular(14);
+
                               return Column(
                                 children: [
-                                  SizedBox(height: 10),
-                                  InkWell(
+                                  const SizedBox(height: 10),
+
+                                  LuvNeuPress.rect(
+                                    radius: radius,
                                     onTap: () {
                                       Get.to(
                                         TransactionDetails(
@@ -733,52 +750,40 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                         ),
                                       );
                                     },
-                                    child: Container(
-                                      padding: EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withAlpha(120),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color: AppColorV2.background,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.03,
-                                            ),
-                                            blurRadius: 8,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
+
+                                    borderWidth: 0.8,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
                                       child: Row(
                                         children: [
-                                          Container(
-                                            width: 44,
-                                            height: 44,
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  double.parse(tx['amount']) < 0
-                                                      ? AppColorV2.error
-                                                          .withOpacity(0.1)
-                                                      : AppColorV2.success
-                                                          .withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
+                                          Neumorphic(
+                                            style: LuvNeu.icon(
+                                              radius: iconRadius,
+                                              color: AppColorV2.background,
+                                              borderColor: Colors.black
+                                                  .withOpacity(0.25),
+                                              borderWidth: 0.8,
                                             ),
-                                            child: Icon(
-                                              double.parse(tx['amount']) < 0
-                                                  ? Icons.arrow_upward_rounded
-                                                  : Icons
-                                                      .arrow_downward_rounded,
-                                              color:
-                                                  double.parse(tx['amount']) < 0
-                                                      ? AppColorV2.error
-                                                      : AppColorV2.success,
-                                              size: 20,
+                                            child: Container(
+                                              width: 46,
+                                              height: 46,
+                                              decoration: BoxDecoration(
+                                                borderRadius: iconRadius,
+                                                color: accent.withOpacity(0.02),
+                                              ),
+                                              child: Icon(
+                                                isDebit
+                                                    ? Icons.arrow_upward_rounded
+                                                    : Icons
+                                                        .arrow_downward_rounded,
+                                                color: accent,
+                                                size: 20,
+                                              ),
                                             ),
                                           ),
-                                          SizedBox(width: 12),
+
+                                          const SizedBox(width: 12),
+
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment:
@@ -791,13 +796,13 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                       AppColorV2
                                                           .primaryTextColor,
                                                 ),
-                                                SizedBox(height: 4),
+                                                const SizedBox(height: 4),
                                                 DefaultText(
                                                   text: desc,
                                                   maxLines: 1,
                                                   maxFontSize: 12,
                                                 ),
-                                                SizedBox(height: 4),
+                                                const SizedBox(height: 4),
                                                 DefaultText(
                                                   text: DateFormat(
                                                     'MMM dd, yyyy • HH:mm',
@@ -813,17 +818,38 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                               ],
                                             ),
                                           ),
-                                          DefaultText(
-                                            text: toCurrencyString(
-                                              tx['amount'],
+
+                                          const SizedBox(width: 10),
+
+                                          Neumorphic(
+                                            style: LuvNeu.card(
+                                              radius: pillRadius,
+                                              pressed: false,
+                                              selected: false,
+                                              color: AppColorV2.background,
+                                              borderColor: Colors.black
+                                                  .withOpacity(0.25),
+                                              borderWidth: 0.8,
+                                              depth: -1.0,
+
+                                              pressedDepth: -1.0,
                                             ),
-                                            style: TextStyle(
-                                              color:
-                                                  double.parse(tx['amount']) < 0
-                                                      ? AppColorV2.error
-                                                      : AppColorV2.success,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 14,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 8,
+                                                  ),
+                                              child: DefaultText(
+                                                text: toCurrencyString(
+                                                  tx['amount'],
+                                                ),
+                                                style: TextStyle(
+                                                  color: accent,
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: 13.5,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ],

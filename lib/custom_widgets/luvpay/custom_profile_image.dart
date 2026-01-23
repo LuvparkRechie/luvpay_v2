@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
+import 'package:luvpay/custom_widgets/luvpay/luv_neumorphic.dart';
 
 class LpProfileAvatar extends StatelessWidget {
   final ImageProvider? imageProvider;
@@ -15,28 +17,30 @@ class LpProfileAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          width: borderWidth,
-          color: AppColorV2.lpBlueBrand.withAlpha(50),
-        ),
+    final borderColor = AppColorV2.lpBlueBrand.withOpacity(0.25);
+
+    return Neumorphic(
+      style: LuvNeu.circle(
+        color: AppColorV2.background,
+        borderColor: borderColor,
+        borderWidth: borderWidth,
       ),
-      child: ClipOval(
-        child:
-            imageProvider == null
-                ? Image.asset(
-                  "assets/images/d_unverified_img.png",
-                  fit: BoxFit.cover,
-                )
-                : Image(
-                  image: imageProvider!,
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                ),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: ClipOval(
+          child:
+              imageProvider == null
+                  ? Image.asset(
+                    "assets/images/d_unverified_img.png",
+                    fit: BoxFit.cover,
+                  )
+                  : Image(
+                    image: imageProvider!,
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                  ),
+        ),
       ),
     );
   }

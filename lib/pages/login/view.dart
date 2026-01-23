@@ -450,6 +450,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                       () => CustomButton(
                         isInactive: !controller.canProceed.value,
                         text: "Log in",
+                        textColor: AppColorV2.background,
                         onPressed: () async {
                           if (controller.password.text.isEmpty) {
                             CustomDialogStack.showSnackBar(

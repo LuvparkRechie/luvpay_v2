@@ -2,19 +2,20 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../../../custom_widgets/alert_dialog.dart';
 import '../../../custom_widgets/app_color_v2.dart';
-import '../../../custom_widgets/custom_button.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/custom_textfield.dart';
 import '../../../custom_widgets/loading.dart';
 import '../../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../../custom_widgets/no_data_found.dart';
 import '../../../custom_widgets/spacing.dart';
+import '../../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../../http/thirdparty.dart';
 import '../../routes/routes.dart';
 import '../controller.dart';
@@ -33,180 +34,253 @@ class Allbillers extends GetView<BillersController> {
         controller.filterBillers('');
         searchController.clear();
       },
+      padding: EdgeInsets.zero,
       appBarTitle: "Billers",
       enableToolBar: true,
-
       scaffoldBody: Obx(
-        () => Column(
-          children: [
-            SizedBox(
-              height: 54,
-              child: Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 3,
-                      offset: Offset(0, 0),
-                    ),
-                  ],
-                  borderRadius: BorderRadius.circular(54),
-                ),
+        () => Padding(
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 5),
+          child: Column(
+            children: [
+              _NeumorphicSearchBar(
+                controller: searchController,
+                onChanged: controller.filterBillers,
+                onClear: () {
+                  searchController.clear();
+                  controller.filterBillers('');
+                },
+              ),
+              Expanded(
+                child:
+                    controller.filteredBillers.isEmpty
+                        ? NoDataFound(text: "No Billers found")
+                        : ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: controller.filteredBillers.length,
+                          itemBuilder: (context, index) {
+                            final biller = controller.filteredBillers[index];
+
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: Container(
+                                margin: EdgeInsets.only(left: 10, right: 10),
+                                child: LuvNeuPress.rect(
+                                  radius: BorderRadius.circular(16),
+                                  borderColor: AppColorV2.lpBlueBrand
+                                      .withOpacity(0.06),
+                                  onTap: () async {
+                                    Map<String, dynamic> billerData = {
+                                      'biller_name':
+                                          biller["biller_name"] ?? "",
+                                      'biller_id': biller["biller_id"] ?? "",
+                                      'biller_code':
+                                          biller["bi)ller_code"] ?? "",
+                                      'biller_address':
+                                          biller["biller_address"] ?? "",
+                                      'service_fee':
+                                          biller["service_fee"] ?? "",
+                                      'posting_period_desc':
+                                          biller["posting_period_desc"] ?? "",
+                                      'source': Get.arguments["source"] ?? "",
+                                      'full_url': biller["full_url"] ?? "",
+                                      "account_name": "",
+                                      'accountno': "",
+                                    };
+
+                                    final res = await Get.toNamed(
+                                      Routes.billsPayment,
+                                      arguments: billerData,
+                                    );
+
+                                    if (res != null) {
+                                      Get.back(result: true);
+                                    }
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 12,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Neumorphic(
+                                          style: NeumorphicStyle(
+                                            color: AppColorV2.background,
+                                            depth: -1.2,
+                                            intensity: LuvNeu.intensity,
+                                            surfaceIntensity:
+                                                LuvNeu.surfaceIntensity,
+                                            boxShape:
+                                                NeumorphicBoxShape.roundRect(
+                                                  BorderRadius.circular(12),
+                                                ),
+                                            border: NeumorphicBorder(
+                                              color: AppColorV2.lpBlueBrand
+                                                  .withOpacity(0.06),
+                                              width: 0.7,
+                                            ),
+                                          ),
+                                          child: SizedBox(
+                                            width: 44,
+                                            height: 44,
+                                            child: Icon(
+                                              LucideIcons.receipt,
+                                              size: 20,
+                                              color: AppColorV2.lpBlueBrand,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              DefaultText(
+                                                style: AppTextStyle.h3,
+                                                text:
+                                                    biller['biller_name'] ??
+                                                    'Unknown',
+                                                maxLines: 1,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              DefaultText(
+                                                maxLines: 1,
+                                                text:
+                                                    biller["biller_address"] ??
+                                                    'Address not specified',
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Icon(
+                                          LucideIcons.chevronRight,
+                                          size: 18,
+                                          color: AppColorV2.bodyTextColor
+                                              .withOpacity(0.7),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NeumorphicSearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  const _NeumorphicSearchBar({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0, right: 8),
+      child: SizedBox(
+        height: 54,
+        child: Neumorphic(
+          style: NeumorphicStyle(
+            color: AppColorV2.background,
+            depth: -2.0,
+            intensity: LuvNeu.intensity,
+            surfaceIntensity: LuvNeu.surfaceIntensity,
+            boxShape: NeumorphicBoxShape.stadium(),
+            border: NeumorphicBorder(
+              color: AppColorV2.lpBlueBrand.withOpacity(0.07),
+              width: 0.8,
+            ),
+          ),
+          child: StatefulBuilder(
+            builder: (context, setLocal) {
+              return Center(
                 child: TextField(
+                  controller: controller,
                   autofocus: false,
                   style: AppTextStyle.paragraph2,
                   maxLines: 1,
-                  textAlign: TextAlign.left,
+                  textAlignVertical: TextAlignVertical.center,
                   decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 10),
+                    isCollapsed: true,
                     hintText: "Search billers",
                     filled: true,
-                    fillColor: Colors.white,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(54),
-                      borderSide: BorderSide(color: AppColorV2.lpBlueBrand),
+                    fillColor: Colors.transparent,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 16,
                     ),
-                    border: const OutlineInputBorder(),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(54),
-                      borderSide: BorderSide(
-                        width: 1,
-                        color: Color(0xFFCECECE),
+
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.only(left: 14, right: 10),
+                      child: Icon(
+                        LucideIcons.search,
+                        size: 20,
+                        color: AppColorV2.bodyTextColor.withOpacity(0.8),
                       ),
                     ),
-                    prefixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(width: 15),
-                        Icon(LucideIcons.search),
-                        Container(width: 10),
-                      ],
+                    prefixIconConstraints: const BoxConstraints(
+                      minWidth: 0,
+                      minHeight: 0,
                     ),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Visibility(
-                          visible: searchController.text.isNotEmpty,
-                          child: InkWell(
-                            onTap: () {
-                              searchController.clear();
-                              controller.filterBillers('');
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(7),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey.shade300,
-                              ),
-                              child: Icon(
-                                LucideIcons.x,
-                                color: AppColorV2.primaryTextColor,
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+
+                    suffixIcon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 150),
+                      child:
+                          controller.text.isNotEmpty
+                              ? Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: LuvNeuPress.circle(
+                                  key: const ValueKey('clear'),
+                                  onTap: () {
+                                    onClear();
+                                    setLocal(() {});
+                                  },
+                                  borderColor: AppColorV2.lpBlueBrand
+                                      .withOpacity(0.06),
+                                  child: const SizedBox(
+                                    width: 34,
+                                    height: 34,
+                                    child: Icon(LucideIcons.x, size: 18),
+                                  ),
+                                ),
+                              )
+                              : const SizedBox(width: 12),
                     ),
-                    hintStyle: AppTextStyle.paragraph2,
-                    labelStyle: AppTextStyle.paragraph2,
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 0,
+                      minHeight: 0,
+                    ),
+
+                    hintStyle: AppTextStyle.paragraph2.copyWith(
+                      color: AppColorV2.bodyTextColor.withOpacity(0.7),
+                    ),
                   ),
                   onChanged: (value) {
-                    controller.filterBillers(value);
+                    onChanged(value);
+                    setLocal(() {});
                   },
                 ),
-              ),
-            ),
-            Expanded(
-              child:
-                  controller.filteredBillers.isEmpty
-                      ? NoDataFound(text: "No Billers found")
-                      : ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: controller.filteredBillers.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 3,
-                                    offset: Offset(0, 0),
-                                  ),
-                                ],
-                              ),
-                              child: ListTile(
-                                onTap: () async {
-                                  // controller.filterBillers('');
-                                  // searchController.clear();
-                                  Map<String, dynamic> billerData = {
-                                    'biller_name':
-                                        controller
-                                            .filteredBillers[index]["biller_name"] ??
-                                        "",
-                                    'biller_id':
-                                        controller
-                                            .filteredBillers[index]["biller_id"] ??
-                                        "",
-                                    'biller_code':
-                                        controller
-                                            .filteredBillers[index]["bi)ller_code"] ??
-                                        "",
-                                    'biller_address':
-                                        controller
-                                            .filteredBillers[index]["biller_address"] ??
-                                        "",
-                                    'service_fee':
-                                        controller
-                                            .filteredBillers[index]["service_fee"] ??
-                                        "",
-                                    'posting_period_desc':
-                                        controller
-                                            .filteredBillers[index]["posting_period_desc"] ??
-                                        "",
-                                    'source': Get.arguments["source"] ?? "",
-                                    'full_url':
-                                        controller
-                                            .filteredBillers[index]["full_url"] ??
-                                        "",
-                                    "account_name": "",
-                                    'accountno': "",
-                                  };
-
-                                  final res = await Get.toNamed(
-                                    Routes.billsPayment,
-                                    arguments: billerData,
-                                  );
-
-                                  if (res != null) {
-                                    Get.back(result: true);
-                                  }
-                                },
-                                title: DefaultText(
-                                  style: AppTextStyle.h3,
-                                  text:
-                                      controller
-                                          .filteredBillers[index]['biller_name'] ??
-                                      'Unknown',
-                                ),
-                                subtitle: DefaultText(
-                                  maxLines: 1,
-                                  text:
-                                      controller
-                                          .filteredBillers[index]["biller_address"] ??
-                                      'Address not specified',
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -301,9 +375,9 @@ class _ValidateAccountState extends State<ValidateAccount> {
       Get.back();
 
       if (inatay == "No Internet") {
-        CustomDialogStack.showConnectionLost(Get.context!, () {
-          Get.back();
-        });
+        CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
+      } else if (inatay == null) {
+        CustomDialogStack.showServerError(Get.context!, () => Get.back());
       } else if (inatay["result"] == "true") {
         Get.back();
         Get.to(
@@ -314,18 +388,12 @@ class _ValidateAccountState extends State<ValidateAccount> {
           },
           const Templ(),
         );
-      } else if (inatay == null) {
-        CustomDialogStack.showServerError(Get.context!, () {
-          Get.back();
-        });
       } else {
         CustomDialogStack.showInfo(
           Get.context!,
           "Invalid request",
           "Please provide the required information or ensure the data entered is valid.",
-          () {
-            Get.back();
-          },
+          () => Get.back(),
         );
       }
     }
@@ -333,154 +401,218 @@ class _ValidateAccountState extends State<ValidateAccount> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(7)),
-        color: Colors.white,
+    return Neumorphic(
+      style: LuvNeu.card(
+        radius: const BorderRadius.vertical(top: Radius.circular(20)),
+        color: AppColorV2.background,
+        borderColor: AppColorV2.lpBlueBrand.withOpacity(0.08),
+        borderWidth: 0.9,
       ),
-      child:
-          tempData.isEmpty
-              ? LoadingCard()
-              : Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    spacing(height: 20),
-                    Center(
-                      child: Container(
-                        width: 71,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(56),
-                          color: const Color(0xffd9d9d9),
-                        ),
-                      ),
-                    ),
-                    spacing(height: 20),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          DefaultText(
-                            text: "Account Verification",
-                            fontSize: 20,
-                          ),
-                          spacing(height: 5),
-                          DefaultText(
-                            text:
-                                "Ensure your account information is accurate.",
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        padding: EdgeInsets.fromLTRB(15, 30, 15, 10),
-                        itemCount: tempData.length,
-                        itemBuilder: (context, i) {
-                          final field = tempData[i];
-
-                          List<TextInputFormatter> inputFormatters = [];
-                          if (field['input_formatter'] != null &&
-                              field['input_formatter'].isNotEmpty) {
-                            String mask = field['input_formatter'];
-                            inputFormatters = [
-                              MaskTextInputFormatter(
-                                mask: mask,
-                                filter: _filter,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.78,
+          child:
+              tempData.isEmpty
+                  ? const LoadingCard()
+                  : Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        spacing(height: 14),
+                        Center(
+                          child: Neumorphic(
+                            style: NeumorphicStyle(
+                              color: AppColorV2.background,
+                              depth: -1.0,
+                              intensity: LuvNeu.intensity,
+                              surfaceIntensity: LuvNeu.surfaceIntensity,
+                              boxShape: NeumorphicBoxShape.roundRect(
+                                BorderRadius.circular(56),
                               ),
-                            ];
-                          }
-
-                          if (field['type'] == 'date') {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                DefaultText(fontSize: 14, text: field['label']),
-                                CustomTextField(
-                                  controller: controllers2[field['key']]!,
-                                  isReadOnly: true,
-                                  isFilled: false,
-                                  suffixIcon: Icons.calendar_today,
-                                  onTap:
-                                      () => _selectDate(context, field['key']),
-                                  validator: (value) {
-                                    if (field['required'] &&
-                                        (value == null || value.isEmpty)) {
-                                      return '${field['label']} is required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ],
-                            );
-                          } else if (field['type'] == 'number') {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                DefaultText(fontSize: 14, text: field['label']),
-                                CustomTextField(
-                                  controller: controllers2[field['key']]!,
-                                  maxLength: field['maxLength'],
-                                  keyboardType: TextInputType.number,
-                                  hintText: "Enter ${field['label']}",
-                                  inputFormatters: inputFormatters,
-                                  validator: (value) {
-                                    if (field['required'] &&
-                                        (value == null || value.isEmpty)) {
-                                      return '${field['label']} is required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ],
-                            );
-                          } else {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                DefaultText(fontSize: 14, text: field['label']),
-                                CustomTextField(
-                                  textCapitalization:
-                                      TextCapitalization.characters,
-                                  controller: controllers2[field['key']]!,
-                                  maxLength: field['maxLength'],
-                                  keyboardType: TextInputType.text,
-                                  validator: (value) {
-                                    if (field['required'] &&
-                                        (value == null || value.isEmpty)) {
-                                      return '${field['label']} is required';
-                                    }
-                                    return null;
-                                  },
-                                  inputFormatters: inputFormatters,
-                                ),
-                              ],
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15),
-                      child: Visibility(
-                        visible: MediaQuery.of(context).viewInsets.bottom == 0,
-                        child: CustomButton(
-                          text: "Proceed",
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              _verifyAccount();
-                            }
-                          },
+                              border: NeumorphicBorder(
+                                color: AppColorV2.lpBlueBrand.withOpacity(0.06),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: const SizedBox(width: 71, height: 6),
+                          ),
                         ),
-                      ),
+                        spacing(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              DefaultText(
+                                text: "Account Verification",
+                                fontSize: 20,
+                              ),
+                              SizedBox(height: 5),
+                              DefaultText(
+                                text:
+                                    "Ensure your account information is accurate.",
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(15, 22, 15, 10),
+                            itemCount: tempData.length,
+                            itemBuilder: (context, i) {
+                              final field = tempData[i];
+
+                              List<TextInputFormatter> inputFormatters = [];
+                              if (field['input_formatter'] != null &&
+                                  field['input_formatter'].isNotEmpty) {
+                                String mask = field['input_formatter'];
+                                inputFormatters = [
+                                  MaskTextInputFormatter(
+                                    mask: mask,
+                                    filter: _filter,
+                                  ),
+                                ];
+                              }
+
+                              Widget fieldWidget;
+
+                              if (field['type'] == 'date') {
+                                fieldWidget = _FieldBlock(
+                                  label: field['label'],
+                                  child: CustomTextField(
+                                    controller: controllers2[field['key']]!,
+                                    isReadOnly: true,
+                                    isFilled: false,
+                                    suffixIcon: Icons.calendar_today,
+                                    onTap:
+                                        () =>
+                                            _selectDate(context, field['key']),
+                                    validator: (value) {
+                                      if (field['required'] &&
+                                          (value == null || value.isEmpty)) {
+                                        return '${field['label']} is required';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                );
+                              } else if (field['type'] == 'number') {
+                                fieldWidget = _FieldBlock(
+                                  label: field['label'],
+                                  child: CustomTextField(
+                                    controller: controllers2[field['key']]!,
+                                    maxLength: field['maxLength'],
+                                    keyboardType: TextInputType.number,
+                                    hintText: "Enter ${field['label']}",
+                                    inputFormatters: inputFormatters,
+                                    validator: (value) {
+                                      if (field['required'] &&
+                                          (value == null || value.isEmpty)) {
+                                        return '${field['label']} is required';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                );
+                              } else {
+                                fieldWidget = _FieldBlock(
+                                  label: field['label'],
+                                  child: CustomTextField(
+                                    textCapitalization:
+                                        TextCapitalization.characters,
+                                    controller: controllers2[field['key']]!,
+                                    maxLength: field['maxLength'],
+                                    keyboardType: TextInputType.text,
+                                    inputFormatters: inputFormatters,
+                                    validator: (value) {
+                                      if (field['required'] &&
+                                          (value == null || value.isEmpty)) {
+                                        return '${field['label']} is required';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                );
+                              }
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 14),
+                                child: Neumorphic(
+                                  style: LuvNeu.card(
+                                    radius: BorderRadius.circular(16),
+                                    borderColor: AppColorV2.lpBlueBrand
+                                        .withOpacity(0.06),
+                                    borderWidth: 0.8,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(14),
+                                    child: fieldWidget,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: Visibility(
+                            visible:
+                                MediaQuery.of(context).viewInsets.bottom == 0,
+                            child: LuvNeuPress.rect(
+                              radius: BorderRadius.circular(16),
+                              background: AppColorV2.lpBlueBrand,
+                              borderColor: AppColorV2.lpBlueBrand.withOpacity(
+                                0.12,
+                              ),
+                              onTap: () {
+                                if (_formKey.currentState!.validate()) {
+                                  _verifyAccount();
+                                }
+                              },
+                              child: SizedBox(
+                                height: 54,
+                                child: Center(
+                                  child: DefaultText(
+                                    text: "Proceed",
+                                    color: Colors.white,
+                                    style: AppTextStyle.h3_semibold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        spacing(height: 20),
+                      ],
                     ),
-                    spacing(height: 30),
-                  ],
-                ),
-              ),
+                  ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FieldBlock extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _FieldBlock({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DefaultText(
+          fontSize: 14,
+          text: label,
+          color: AppColorV2.primaryTextColor,
+        ),
+        const SizedBox(height: 8),
+        child,
+      ],
     );
   }
 }
@@ -493,10 +625,7 @@ class AutoDecimalInputFormatter extends TextInputFormatter {
   ) {
     if (newValue.text.isEmpty) return newValue;
 
-    // Remove non-numeric characters
     final numericValue = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-
-    // Format as decimal (e.g., "123" -> "1.23")
     final value = double.tryParse(numericValue) ?? 0.0;
     final formattedValue = (value / 100).toStringAsFixed(2);
 

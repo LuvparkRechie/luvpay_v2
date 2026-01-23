@@ -1,15 +1,13 @@
 // ignore_for_file: deprecated_member_use
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import '../app_color_v2.dart';
+import '../luvpay/luv_neumorphic.dart';
 
 class CustomButtons extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final Color textColor;
-  final Color borderColor;
   final Color backgroundColor;
   final double borderRadius;
   final EdgeInsetsGeometry padding;
@@ -21,9 +19,8 @@ class CustomButtons extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.textColor = Colors.blue,
-    this.borderColor = Colors.blue,
     this.backgroundColor = Colors.transparent,
-    this.borderRadius = 8.0,
+    this.borderRadius = 12.0,
     this.padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
     this.isActive = true,
     this.icon,
@@ -38,9 +35,8 @@ class CustomButtons extends StatelessWidget {
       text: text,
       onPressed: isActive ? onPressed : null,
       textColor: Colors.white,
-      borderColor: Colors.green,
       backgroundColor: Colors.green,
-      borderRadius: 12.0,
+      borderRadius: 14.0,
       isActive: isActive,
     );
   }
@@ -53,10 +49,9 @@ class CustomButtons extends StatelessWidget {
     return CustomButtons(
       text: text,
       onPressed: isActive ? onPressed : null,
-      textColor: Colors.red,
-      borderColor: Colors.red,
-      backgroundColor: Colors.transparent,
-      borderRadius: 12.0,
+      textColor: AppColorV2.incorrectState,
+      backgroundColor: AppColorV2.background,
+      borderRadius: 14.0,
       isActive: isActive,
     );
   }
@@ -69,10 +64,9 @@ class CustomButtons extends StatelessWidget {
     return CustomButtons(
       text: text,
       onPressed: isActive ? onPressed : null,
-      textColor: isActive ? Colors.white : Colors.grey,
-      borderColor: isActive ? Colors.blue : Colors.grey,
-      backgroundColor: isActive ? Colors.blue : Colors.grey.shade300,
-      borderRadius: 12.0,
+      textColor: Colors.white,
+      backgroundColor: isActive ? AppColorV2.lpBlueBrand : Colors.grey.shade300,
+      borderRadius: 14.0,
       isActive: isActive,
     );
   }
@@ -84,10 +78,9 @@ class CustomButtons extends StatelessWidget {
     return CustomButtons(
       text: "",
       onPressed: isActive ? onPressed : null,
-      textColor: isActive ? Colors.white : Colors.grey,
-      borderColor: isActive ? Colors.blue : Colors.grey,
-      backgroundColor: isActive ? Colors.blue : Colors.grey.shade300,
-      borderRadius: 12.0,
+      textColor: Colors.white,
+      backgroundColor: isActive ? AppColorV2.lpBlueBrand : Colors.grey.shade300,
+      borderRadius: 14.0,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
       isActive: isActive,
       icon: Icons.arrow_forward_ios_rounded,
@@ -107,8 +100,7 @@ class CustomButtons extends StatelessWidget {
       text: "",
       onPressed: isActive ? onPressed : null,
       textColor: isActive ? activeIconColor : inactiveIconColor,
-      borderColor: Colors.transparent,
-      backgroundColor: isActive ? activeColor : inactiveColor.withOpacity(0.4),
+      backgroundColor: isActive ? activeColor : inactiveColor.withOpacity(0.35),
       borderRadius: size / 2,
       padding: EdgeInsets.zero,
       isActive: isActive,
@@ -129,8 +121,7 @@ class CustomButtons extends StatelessWidget {
       text: "",
       onPressed: isActive ? onPressed : null,
       textColor: isActive ? activeIconColor : inactiveIconColor,
-      borderColor: Colors.transparent,
-      backgroundColor: isActive ? activeColor : inactiveColor.withOpacity(0.2),
+      backgroundColor: isActive ? activeColor : inactiveColor.withOpacity(0.25),
       borderRadius: size / 2,
       padding: EdgeInsets.zero,
       isActive: isActive,
@@ -140,41 +131,54 @@ class CustomButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color effectiveTextColor =
-        isActive ? textColor : Colors.grey.shade400;
+    final enabled = isActive && onPressed != null;
 
-    final Color effectiveBorderColor =
-        isActive ? borderColor : Colors.transparent;
+    final Color effectiveTextColor = enabled ? textColor : Colors.grey.shade400;
 
     final Color effectiveBgColor =
-        isActive ? backgroundColor : Colors.grey.shade200;
+        enabled ? backgroundColor : Colors.grey.shade200;
 
-    return OutlinedButton(
-      onPressed: isActive ? onPressed : null,
-      style: OutlinedButton.styleFrom(
-        backgroundColor: effectiveBgColor,
-        foregroundColor: effectiveTextColor,
-        side: BorderSide(color: effectiveBorderColor),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
-        ),
-        padding: padding,
-        minimumSize:
-            padding is EdgeInsets && (padding as EdgeInsets).horizontal == 0
-                ? Size(borderRadius * 2, borderRadius * 2)
-                : null,
-      ),
-      child:
-          text.isEmpty
-              ? Icon(icon ?? Icons.circle, size: 20, color: effectiveTextColor)
-              : Text(
-                text,
-                style: TextStyle(
-                  color: effectiveTextColor,
-                  fontWeight: FontWeight.w600,
-                ),
+    final r = BorderRadius.circular(borderRadius);
+
+    final bool isCircle =
+        padding == EdgeInsets.zero && (text.isEmpty || icon != null);
+
+    final childWidget =
+        text.isEmpty
+            ? Icon(icon ?? Icons.circle, size: 20, color: effectiveTextColor)
+            : Text(
+              text,
+              style: TextStyle(
+                color: effectiveTextColor,
+                fontWeight: FontWeight.w800,
               ),
-    );
+            );
+
+    return isCircle
+        ? LuvNeuPress.circle(
+          onTap: enabled ? onPressed : null,
+          background: effectiveBgColor,
+          borderColor:
+              (textColor == AppColorV2.incorrectState)
+                  ? AppColorV2.incorrectState.withOpacity(0.18)
+                  : null,
+
+          child: SizedBox(
+            width: borderRadius * 2,
+            height: borderRadius * 2,
+            child: Center(child: childWidget),
+          ),
+        )
+        : LuvNeuPress.rect(
+          radius: r,
+          onTap: enabled ? onPressed : null,
+          background: effectiveBgColor,
+          borderColor:
+              (textColor == AppColorV2.incorrectState)
+                  ? AppColorV2.incorrectState.withOpacity(0.18)
+                  : null,
+          child: Padding(padding: padding, child: Center(child: childWidget)),
+        );
   }
 }
 
@@ -184,28 +188,24 @@ Widget iconWithBackground({
   Color? iconColor,
   double? padding,
   double? iconSize,
-  Color? shadowColor,
-  double? blurRadius,
   Function()? onTap,
 }) {
-  return InkWell(
-    highlightColor: Colors.transparent,
-    onTap: onTap,
-    child: Container(
-      padding: EdgeInsets.all(padding ?? 14),
+  final size = ((padding ?? 14) * 2) + (iconSize ?? 24);
 
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: backgroundColor ?? AppColorV2.lpBlueBrand,
-        boxShadow: [
-          BoxShadow(
-            color: (shadowColor ?? Colors.blueAccent).withOpacity(0.5),
-            blurRadius: blurRadius ?? 10,
-            offset: Offset(0, 4),
-          ),
-        ],
+  return LuvNeuPress.circle(
+    onTap: onTap,
+    background: backgroundColor ?? AppColorV2.lpBlueBrand,
+    borderColor: null,
+    child: SizedBox(
+      width: size,
+      height: size,
+      child: Center(
+        child: Icon(
+          icon,
+          color: iconColor ?? Colors.white,
+          size: iconSize ?? 24,
+        ),
       ),
-      child: Icon(icon, color: iconColor ?? Colors.white, size: iconSize ?? 24),
     ),
   );
 }

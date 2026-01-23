@@ -145,7 +145,6 @@ class PremiumLoaderOverlay extends StatelessWidget {
     return Stack(
       children: [
         child,
-
         Positioned(
           top: topInset,
           left: 0,
@@ -245,7 +244,6 @@ class PremiumRefreshOverlay extends StatelessWidget {
     return Stack(
       children: [
         child,
-
         Positioned(
           top: topInset,
           left: 0,
@@ -295,5 +293,76 @@ class PremiumRefreshOverlay extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class LuvpayLoading extends StatelessWidget {
+  final double size;
+  final double strokeWidth;
+  final Color? color;
+  final String? label;
+  final bool center;
+
+  const LuvpayLoading({
+    super.key,
+    this.size = 22,
+    this.strokeWidth = 2.6,
+    this.color,
+    this.label,
+    this.center = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? const Color(0xFF2563EB);
+    final bg = AppColorV2.background;
+
+    final loader = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withOpacity(.75),
+            blurRadius: 14,
+            offset: const Offset(-6, -6),
+          ),
+          BoxShadow(
+            color: const Color(0xFF0F172A).withOpacity(.10),
+            blurRadius: 14,
+            offset: const Offset(6, 6),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFF0F172A).withOpacity(.04)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: size,
+            height: size,
+            child: CircularProgressIndicator(
+              strokeWidth: strokeWidth,
+              valueColor: AlwaysStoppedAnimation(c),
+            ),
+          ),
+          if (label != null) ...[
+            const SizedBox(width: 12),
+            Text(
+              label!,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: .15,
+                color: const Color(0xFF0F172A).withOpacity(.70),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    return center ? Center(child: loader) : loader;
   }
 }

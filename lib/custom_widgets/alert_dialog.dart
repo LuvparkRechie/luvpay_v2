@@ -342,12 +342,59 @@ class CustomDialogStack {
     });
   }
 
-  static void showLoading(BuildContext context) {
+  static void showLoading(BuildContext context, {String text = "Loading..."}) {
     showDialog(
       context: context,
       barrierDismissible: false,
+      barrierColor: AppColorV2.bodyTextColor.withAlpha(50),
       builder: (context) {
-        return PopScope(canPop: false, child: LoadingCard());
+        return Material(
+          color: Colors.transparent,
+          child: PopScope(
+            canPop: false,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColorV2.background,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(.10),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: const Color(0xFF0F172A).withOpacity(.06),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 12),
+                    DefaultText(
+                      text: text,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      color: Colors.black.withOpacity(.70),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
       },
     );
   }

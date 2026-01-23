@@ -56,7 +56,7 @@ class _OTPPreferenceState extends State<OTPPreference> {
     return CustomScaffoldV2(
       appBarTitle: "Security Preference",
       enableToolBar: true,
-
+      padding: EdgeInsets.only(left: 10, right: 10, top: 10),
       scaffoldBody: Column(
         children: [
           Obx(
