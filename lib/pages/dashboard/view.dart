@@ -1,7 +1,7 @@
 // ignore_for_file: unused_element_parameter
 
+import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/auth/authentication.dart';
@@ -12,8 +12,10 @@ import 'package:luvpay/pages/scanner_screen.dart';
 
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
+import '../../custom_widgets/luvpay/dashboard_tab_icons.dart';
 import '../biller_screen/biller_screen.dart';
 import '../profile/profile_screen.dart';
+import '../wallet/notifications.dart';
 import '../wallet/wallet_screen.dart';
 import 'controller.dart';
 import 'refresh_wallet.dart';
@@ -25,8 +27,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin {
+class _DashboardScreenState extends State<DashboardScreen> {
   final DashboardController controller = Get.put(DashboardController());
 
   Widget _buildScreen(int index) {
@@ -34,37 +35,13 @@ class _DashboardScreenState extends State<DashboardScreen>
       case 0:
         return WalletScreen();
       case 1:
-        return const SizedBox();
+        return const WalletNotifications(fromTab: true);
       case 2:
         return ProfileSettingsScreen();
+      case 3:
+        return const SizedBox();
       default:
         return const SizedBox();
-    }
-  }
-
-  late final AnimationController _bottomBarController;
-
-  @override
-  void initState() {
-    super.initState();
-    _bottomBarController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 240),
-      value: 1,
-    );
-  }
-
-  @override
-  void dispose() {
-    _bottomBarController.dispose();
-    super.dispose();
-  }
-
-  void _handleScroll(UserScrollNotification n) {
-    if (n.direction == ScrollDirection.reverse) {
-      _bottomBarController.reverse();
-    } else if (n.direction == ScrollDirection.forward) {
-      _bottomBarController.forward();
     }
   }
 
@@ -164,208 +141,154 @@ class _DashboardScreenState extends State<DashboardScreen>
         );
       },
       child: Scaffold(
-        body: Stack(
-          children: [
-            PageView.builder(
-              controller: controller.pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 3,
-              itemBuilder: (_, index) {
-                return NotificationListener<UserScrollNotification>(
-                  onNotification: (n) {
-                    _handleScroll(n);
-                    return false;
-                  },
-                  child: Obx(() {
-                    return controller.currentIndex.value == index
-                        ? _buildScreen(index)
-                        : const SizedBox();
-                  }),
-                );
-              },
-            ),
-            _buildBottomNav(),
-          ],
+        body: PageView.builder(
+          controller: controller.pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 4,
+          itemBuilder: (_, index) {
+            return Obx(() {
+              return controller.currentIndex.value == index
+                  ? _buildScreen(index)
+                  : const SizedBox();
+            });
+          },
         ),
+
+        persistentFooterDecoration: const BoxDecoration(),
+        persistentFooterButtons: [Obx(() => _buildFooterNav())],
       ),
     );
   }
 
-  Widget _buildBottomNav() {
-    return Positioned(
-      left: 16,
-      right: 16,
-      bottom: 16,
-      child: AnimatedBuilder(
-        animation: _bottomBarController,
-        builder: (_, child) {
-          return Transform.translate(
-            offset: Offset(0, 80 * (1 - _bottomBarController.value)),
-            child: Opacity(opacity: _bottomBarController.value, child: child),
-          );
-        },
-        child: Obx(() {
-          final i = controller.currentIndex.value;
+  Widget _buildFooterNav() {
+    final i = controller.currentIndex.value;
 
-          final base = AppColorV2.background;
-          final radius = BorderRadius.circular(28);
+    final base = AppColorV2.background;
+    final radius = BorderRadius.circular(28);
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Container(
-              height: 72,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              decoration: BoxDecoration(
-                color: base,
-                borderRadius: radius,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.55),
-                    blurRadius: 10,
-                    offset: const Offset(-4, -4),
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 12,
-                    offset: const Offset(5, 5),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _NeoNavIcon(
-                      activeIconName: "luvpay_home",
-                      inactiveIconName: "luvpay_home_inactive",
-                      active: i == 0,
-                      onTap: () => controller.changePage(0),
-                    ),
-                  ),
-                  Expanded(
-                    child: _NeoNavIcon(
-                      activeIconName: "luvpay_qr_button",
-                      inactiveIconName: "luvpay_qr_button",
-                      active: false,
-                      height: 40,
-                      width: 40,
-                      onTap: _onScanPressed,
-                    ),
-                  ),
-                  Expanded(
-                    child: _NeoNavIcon(
-                      activeIconName: "luvpay_profile",
-                      inactiveIconName: "luvpay_profile_inactive",
-                      active: i == 2,
-                      onTap: () => controller.changePage(2),
-                    ),
-                  ),
-                ],
-              ),
+    return SafeArea(
+      top: false,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Container(
+            height: 72,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            decoration: BoxDecoration(
+              color: base,
+              borderRadius: radius,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.55),
+                  blurRadius: 10,
+                  offset: const Offset(-4, -4),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(5, 5),
+                ),
+              ],
             ),
-          );
-        }),
+            child: Row(
+              children: [
+                Expanded(
+                  child: NeoNavIcon.tab(
+                    activeIconData: Icons.home_rounded,
+                    inactiveIconData: Icons.home_outlined,
+                    active: i == 0,
+                    inactiveColor: AppColorV2.bodyTextColor,
+                    onTap: () => controller.changePage(0),
+                  ),
+                ),
+                Expanded(
+                  child: NeoNavIcon.icon(
+                    iconData: Icons.qr_code_scanner_rounded,
+                    iconColor: AppColorV2.bodyTextColor,
+                    width: 30,
+                    height: 30,
+                    buttonSize: 54,
+                    padding: const EdgeInsets.all(10),
+                    borderRadius: BorderRadius.circular(18),
+                    onTap: _onScanPressed,
+                  ),
+                ),
+                Expanded(
+                  child: _NotifNavItem(
+                    active: i == 1,
+                    count: controller.notifCount.value,
+                    onTap: () => controller.changePage(1),
+                    inactiveColor: AppColorV2.bodyTextColor,
+                  ),
+                ),
+                Expanded(
+                  child: NeoNavIcon.tab(
+                    activeIconData: Icons.person_rounded,
+                    inactiveIconData: Icons.person_outline_rounded,
+                    active: i == 2,
+                    inactiveColor: AppColorV2.bodyTextColor,
+                    onTap: () => controller.changePage(2),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _NeoNavIcon extends StatefulWidget {
-  final String activeIconName;
-  final String inactiveIconName;
+class _NotifNavItem extends StatelessWidget {
   final bool active;
+  final int count;
   final VoidCallback onTap;
-  final double? width;
-  final double? height;
+  final Color inactiveColor;
 
-  const _NeoNavIcon({
-    required this.activeIconName,
-    required this.inactiveIconName,
+  const _NotifNavItem({
     required this.active,
+    required this.count,
     required this.onTap,
-    this.width,
-    this.height,
+    required this.inactiveColor,
   });
 
   @override
-  State<_NeoNavIcon> createState() => _NeoNavIconState();
-}
-
-class _NeoNavIconState extends State<_NeoNavIcon> {
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final base = AppColorV2.background;
-    final activeColor = AppColorV2.lpBlueBrand;
-
-    final r = BorderRadius.circular(18);
-
-    final iconName =
-        widget.active ? widget.activeIconName : widget.inactiveIconName;
-
-    final iconW = widget.width ?? 26;
-    final iconH = widget.height ?? 26;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.92 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          margin: const EdgeInsets.symmetric(horizontal: 6),
-          decoration: BoxDecoration(
-            color: base,
-            borderRadius: r,
-            border: Border.all(
-              color:
-                  widget.active
-                      ? activeColor.withValues(alpha: 0.08)
-                      : Colors.black.withValues(alpha: 0.010),
-            ),
-            boxShadow:
-                widget.active
-                    ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.07),
-                        blurRadius: 6,
-                        offset: const Offset(3, 3),
-                      ),
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.60),
-                        blurRadius: 6,
-                        offset: const Offset(-3, -3),
-                      ),
-                    ]
-                    : [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.60),
-                        blurRadius: 8,
-                        offset: const Offset(-4, -4),
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 9,
-                        offset: const Offset(4, 4),
-                      ),
-                    ],
-          ),
-          child: Center(
-            child: Image.asset(
-              "assets/images/$iconName.png",
-              width: iconW,
-              height: iconH,
-              fit: BoxFit.contain,
-            ),
-          ),
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        NeoNavIcon.tab(
+          activeIconData: Icons.notifications_rounded,
+          inactiveIconData: Icons.notifications_none_rounded,
+          active: active,
+          inactiveColor: inactiveColor,
+          onTap: onTap,
         ),
-      ),
+        if (count > 0)
+          Positioned(
+            right: 12,
+            top: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColorV2.error,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              constraints: const BoxConstraints(minWidth: 18),
+              child: Text(
+                count > 99 ? "99+" : "$count",
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

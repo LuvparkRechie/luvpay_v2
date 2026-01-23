@@ -438,7 +438,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             icon: LucideIcons.bell,
             title: 'Notifications',
             onTap: () {
-              Get.to(WalletNotifications());
+              Get.to(WalletNotifications(fromTab: false));
             },
           ),
           InfoRowTile(

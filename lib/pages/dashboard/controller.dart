@@ -9,6 +9,7 @@ class DashboardController extends GetxController {
   final currentIndex = 0.obs;
   final pageController = PageController();
   final box = GetStorage();
+  final notifCount = 0.obs;
 
   @override
   void onInit() {

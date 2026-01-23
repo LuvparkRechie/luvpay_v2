@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/custom_widgets/luvpay/dashboard_tab_icons.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -21,7 +22,8 @@ import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
 
 class WalletNotifications extends StatefulWidget {
-  const WalletNotifications({super.key});
+  final bool? fromTab;
+  const WalletNotifications({super.key, required this.fromTab});
 
   @override
   State<WalletNotifications> createState() => _WalletNotificationsState();
@@ -35,6 +37,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   bool isSelectionMode = false;
   List<int> selectedIndex = [];
   Timer? _timer;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +52,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 3), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
       getNotification(showLoading: false);
     });
   }
@@ -67,6 +70,8 @@ class _WalletNotificationsState extends State<WalletNotifications> {
 
       String subApi = "${ApiKeys.notificationApi}$userId";
       HttpRequestApi(api: subApi).get().then((response) async {
+        if (!mounted) return;
+
         if (response == "No Internet") {
           setState(() {
             isLoading = false;
@@ -104,6 +109,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
         }
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -124,9 +130,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       "Delete selected notification${selectedIndex.length > 1 ? "s" : ""}?",
       leftText: "No",
       rightText: "Yes",
-      () {
-        Get.back();
-      },
+      () => Get.back(),
       () {
         Get.back();
         CustomDialogStack.showLoading(context);
@@ -139,6 +143,8 @@ class _WalletNotificationsState extends State<WalletNotifications> {
         Future.wait(deleteFutures)
             .then((_) {
               Get.back();
+              if (!mounted) return;
+
               setState(() {
                 notifications.removeWhere(
                   (notification) => selectedIndex.contains(
@@ -154,20 +160,18 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                 context,
                 "Success",
                 "Notifications deleted successfully",
-
                 () {
                   Get.back();
                   getNotification(showLoading: true);
                 },
               );
             })
-            .catchError((error) {
+            .catchError((_) {
               Get.back();
               CustomDialogStack.showError(
                 context,
                 "Error",
                 "Failed to delete some notifications",
-
                 () => Get.back(),
               );
             });
@@ -181,16 +185,13 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     String subApi = "${ApiKeys.notificationApi}$userId";
     var params = {"sms_id": smsId};
 
-    try {
-      final response =
-          await HttpRequestApi(api: subApi, parameters: params).deleteData();
-      if (response == "No Internet") {
-        throw Exception("No internet connection");
-      } else if (response["success"] != "Y") {
-        throw Exception("Failed to delete notification");
-      }
-    } catch (e) {
-      rethrow;
+    final response =
+        await HttpRequestApi(api: subApi, parameters: params).deleteData();
+
+    if (response == "No Internet") {
+      throw Exception("No internet connection");
+    } else if (response["success"] != "Y") {
+      throw Exception("Failed to delete notification");
     }
   }
 
@@ -237,6 +238,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     setState(() {
       selectedIndex.clear();
       isSelectionMode = false;
+      allMarked = false;
     });
   }
 
@@ -275,17 +277,10 @@ class _WalletNotificationsState extends State<WalletNotifications> {
 
   @override
   Widget build(BuildContext context) {
+    final bool hideBackBecauseFromTab = widget.fromTab == true;
+
     return CustomScaffoldV2(
       backgroundColor: AppColorV2.background,
-      persistentFooterButtons:
-          !isSelectionMode
-              ? null
-              : [
-                IconButton(
-                  onPressed: deleteSelectedNotifications,
-                  icon: Icon(Icons.delete, color: AppColorV2.incorrectState),
-                ),
-              ],
       drawer: Container(),
       appBarLeadingWidth: isSelectionMode ? 50 : null,
       leading:
@@ -300,22 +295,22 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                 ),
                 onPressed: cancelSelectionMode,
               )
-              : IconButton(
-                onPressed: () {
-                  Get.back();
-                },
-                icon: Row(
-                  children: [
-                    Icon(CupertinoIcons.back, color: AppColorV2.background),
-                    DefaultText(
-                      color: AppColorV2.background,
-                      text: "Back",
-                      style: AppTextStyle.h3_semibold,
-                      height: 20 / 16,
+              : (hideBackBecauseFromTab
+                  ? const SizedBox.shrink()
+                  : IconButton(
+                    onPressed: () => Get.back(),
+                    icon: Row(
+                      children: [
+                        Icon(CupertinoIcons.back, color: AppColorV2.background),
+                        DefaultText(
+                          color: AppColorV2.background,
+                          text: "Back",
+                          style: AppTextStyle.h3_semibold,
+                          height: 20 / 16,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  )),
       enableToolBar: true,
       appBarTitle:
           isSelectionMode
@@ -324,6 +319,17 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       appBarAction:
           isSelectionMode
               ? [
+                Padding(
+                  padding: const EdgeInsets.all(14.0),
+                  child: NeoNavIcon.icon(
+                    flatten: true,
+                    padding: const EdgeInsets.all(8.0),
+                    iconSize: 20,
+                    iconData: Icons.delete,
+                    iconColor: AppColorV2.incorrectState,
+                    onTap: deleteSelectedNotifications,
+                  ),
+                ),
                 IconButton(
                   icon: Icon(
                     allMarked ? Icons.check_box : Icons.check_box_outline_blank,
@@ -335,7 +341,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                 ),
               ]
               : [],
-      padding: EdgeInsets.fromLTRB(19, 20, 19, 0),
+      padding: const EdgeInsets.fromLTRB(19, 20, 19, 0),
       scaffoldBody:
           !isNetConn
               ? NoInternetConnected(
@@ -355,7 +361,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SvgPicture.asset("assets/images/wallet_message-question.svg"),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         DefaultText(
           text: "No notifications yet",
           style: AppTextStyle.h3_semibold,
@@ -369,14 +375,13 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     return ListView.builder(
       padding: EdgeInsets.zero,
       physics: const BouncingScrollPhysics(),
-
       itemCount: notifications.length,
       itemBuilder: (context, index) {
         String img = "";
         String notificationMessage = notifications[index]["notification"];
         DateTime createdOn = DateTime.parse(
           notifications[index]["created_on"],
-        ).toUtc().add(Duration(hours: 8));
+        ).toUtc().add(const Duration(hours: 8));
 
         if (notificationMessage.toLowerCase().contains("share")) {
           img = "wallet_sharetoken";
@@ -411,7 +416,6 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                   children: [
                     SvgPicture.asset("assets/images/$img.svg"),
                     const SizedBox(width: 10),
-
                     Expanded(
                       child: Row(
                         children: [
@@ -430,7 +434,6 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                               ],
                             ),
                           ),
-
                           if (isSelectionMode)
                             Checkbox.adaptive(
                               value: selectedIndex.contains(

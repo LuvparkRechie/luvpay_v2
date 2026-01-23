@@ -481,7 +481,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                     builder:
                         (context, s) => DefaultText(
                           color: AppColorV2.lpBlueBrand,
-                          style: AppTextStyle.h4,
+                          style: AppTextStyle.h3_semibold,
                           text:
                               "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}",
                         ),

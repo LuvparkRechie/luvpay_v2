@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
@@ -122,16 +121,11 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 30),
-                // Image(
-                //   image: AssetImage("assets/images/luvpay_logo.png"),
-                //   width: 200,
-                // ),
-                Lottie.asset(
-                  'assets/lottie/login.json',
-                  width: 200,
-                  height: 200,
-                  fit: BoxFit.contain,
+                Image(
+                  image: AssetImage("assets/images/luvpay_logo.png"),
+                  width: 100,
                 ),
+
                 SizedBox(height: 18),
                 Column(
                   children: [
@@ -152,7 +146,7 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                     ),
                   ],
                 ),
-                VerticalHeight(height: 28),
+                VerticalHeight(height: 50),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -361,11 +355,9 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Lottie.asset(
-                      'assets/lottie/welcome_again.json',
-                      width: 200,
-                      height: 200,
-                      fit: BoxFit.contain,
+                    Image(
+                      image: AssetImage("assets/images/luvpay_logo.png"),
+                      width: 100,
                     ),
                     LayoutBuilder(
                       builder: (context, constraints) {
