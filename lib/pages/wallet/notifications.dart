@@ -17,6 +17,7 @@ import '../../custom_widgets/custom_scrollbar.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/loading.dart';
 import '../../custom_widgets/luvpay/luv_neumorphic.dart';
+import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/no_internet.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
@@ -59,7 +60,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
 
   Future<void> getNotification({required bool showLoading}) async {
     try {
-      if (showLoading) {
+      if (showLoading && mounted) {
         setState(() {
           isLoading = true;
         });
@@ -69,45 +70,46 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       String userId = jsonDecode(item!)['user_id'].toString();
 
       String subApi = "${ApiKeys.notificationApi}$userId";
-      HttpRequestApi(api: subApi).get().then((response) async {
-        if (!mounted) return;
+      final response = await HttpRequestApi(api: subApi).get();
 
-        if (response == "No Internet") {
-          setState(() {
-            isLoading = false;
-            isNetConn = false;
-          });
-          return;
-        }
+      if (!mounted) return;
 
-        if (response == null) {
-          setState(() {
-            isLoading = false;
-            isNetConn = true;
-          });
-          return;
-        }
+      if (response == "No Internet") {
+        setState(() {
+          isLoading = false;
+          isNetConn = false;
+        });
+        return;
+      }
 
-        if (response["items"].isNotEmpty) {
-          setState(() {
-            notifications =
-                response["items"].map<Map<String, dynamic>>((notification) {
-                  return {
-                    "notification_id": notification["sms_id"],
-                    "notification": notification["sms_msg"],
-                    "created_on": notification["created_on"],
-                  };
-                }).toList();
-            isLoading = false;
-            isNetConn = true;
-          });
-        } else {
-          setState(() {
-            isLoading = false;
-            isNetConn = true;
-          });
-        }
-      });
+      if (response == null) {
+        setState(() {
+          isLoading = false;
+          isNetConn = true;
+        });
+        return;
+      }
+
+      if (response["items"] != null && response["items"].isNotEmpty) {
+        setState(() {
+          notifications =
+              response["items"].map<Map<String, dynamic>>((notification) {
+                return {
+                  "notification_id": notification["sms_id"],
+                  "notification": notification["sms_msg"],
+                  "created_on": notification["created_on"],
+                };
+              }).toList();
+          isLoading = false;
+          isNetConn = true;
+        });
+      } else {
+        setState(() {
+          notifications = [];
+          isLoading = false;
+          isNetConn = true;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -117,8 +119,14 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   }
 
   Future<void> deleteNotification(String smsId) async {
-    await deleteSingleNotification(smsId);
-    getNotification(showLoading: true);
+    setState(() => isLoading = true);
+    try {
+      await deleteSingleNotification(smsId);
+      await getNotification(showLoading: false);
+    } finally {
+      if (!mounted) return;
+      setState(() => isLoading = false);
+    }
   }
 
   Future<void> deleteSelectedNotifications() async {
@@ -131,50 +139,54 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       leftText: "No",
       rightText: "Yes",
       () => Get.back(),
-      () {
+      () async {
         Get.back();
-        CustomDialogStack.showLoading(context);
+        if (!mounted) return;
 
-        final deleteFutures =
-            selectedIndex
-                .map((id) => deleteSingleNotification(id.toString()))
-                .toList();
+        setState(() => isLoading = true);
 
-        Future.wait(deleteFutures)
-            .then((_) {
+        try {
+          final deleteFutures =
+              selectedIndex
+                  .map((id) => deleteSingleNotification(id.toString()))
+                  .toList();
+
+          await Future.wait(deleteFutures);
+
+          if (!mounted) return;
+
+          setState(() {
+            notifications.removeWhere(
+              (notification) => selectedIndex.contains(
+                int.parse(notification['notification_id'].toString()),
+              ),
+            );
+            selectedIndex.clear();
+            isSelectionMode = false;
+            allMarked = false;
+          });
+
+          CustomDialogStack.showSuccess(
+            context,
+            "Success",
+            "Notifications deleted successfully",
+            () {
               Get.back();
-              if (!mounted) return;
-
-              setState(() {
-                notifications.removeWhere(
-                  (notification) => selectedIndex.contains(
-                    int.parse(notification['notification_id'].toString()),
-                  ),
-                );
-                selectedIndex.clear();
-                isSelectionMode = false;
-                allMarked = false;
-              });
-
-              CustomDialogStack.showSuccess(
-                context,
-                "Success",
-                "Notifications deleted successfully",
-                () {
-                  Get.back();
-                  getNotification(showLoading: true);
-                },
-              );
-            })
-            .catchError((_) {
-              Get.back();
-              CustomDialogStack.showError(
-                context,
-                "Error",
-                "Failed to delete some notifications",
-                () => Get.back(),
-              );
-            });
+              getNotification(showLoading: false);
+            },
+          );
+        } catch (_) {
+          if (!mounted) return;
+          CustomDialogStack.showError(
+            context,
+            "Error",
+            "Failed to delete some notifications",
+            () => Get.back(),
+          );
+        } finally {
+          if (!mounted) return;
+          setState(() => isLoading = false);
+        }
       },
     );
   }
@@ -190,7 +202,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
 
     if (response == "No Internet") {
       throw Exception("No internet connection");
-    } else if (response["success"] != "Y") {
+    } else if (response == null || response["success"] != "Y") {
       throw Exception("Failed to delete notification");
     }
   }
@@ -279,6 +291,15 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   Widget build(BuildContext context) {
     final bool hideBackBecauseFromTab = widget.fromTab == true;
 
+    final body =
+        !isNetConn
+            ? NoInternetConnected(
+              onTap: () => getNotification(showLoading: true),
+            )
+            : notifications.isEmpty
+            ? Center(child: noDataFound())
+            : CustomScrollbarSingleChild(child: allNotifications());
+
     return CustomScaffoldV2(
       backgroundColor: AppColorV2.background,
       drawer: Container(),
@@ -342,16 +363,12 @@ class _WalletNotificationsState extends State<WalletNotifications> {
               ]
               : [],
       padding: const EdgeInsets.fromLTRB(19, 20, 19, 0),
-      scaffoldBody:
-          !isNetConn
-              ? NoInternetConnected(
-                onTap: () => getNotification(showLoading: true),
-              )
-              : isLoading
-              ? LoadingCard()
-              : notifications.isEmpty
-              ? Center(child: noDataFound())
-              : CustomScrollbarSingleChild(child: allNotifications()),
+      scaffoldBody: PremiumLoaderOverlay(
+        loading: isLoading,
+        accentColor: AppColorV2.lpBlueBrand,
+        glowColor: AppColorV2.lpTealBrand,
+        child: body,
+      ),
     );
   }
 

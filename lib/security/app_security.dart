@@ -32,10 +32,11 @@ class AppSecurity {
     if (devMode || isEmulator) {
       message = 'In developer mode';
       return [
-        {
-          'is_secured': !ApiKeys.isProduction,
-          'msg': !ApiKeys.isProduction ? "" : message,
-        },
+        // {
+        //   'is_secured': !ApiKeys.isProduction,
+        //   'msg': !ApiKeys.isProduction ? "" : message,
+        // },
+        {'is_secured': true, 'msg': ""},
       ];
     } else {
       return [
@@ -76,10 +77,11 @@ class AppSecurity {
         message = 'Running on an emulator';
       }
       return [
-        {
-          'is_secured': !ApiKeys.isProduction,
-          'msg': !ApiKeys.isProduction ? "" : message,
-        },
+        // {
+        //   'is_secured': !ApiKeys.isProduction,
+        //   'msg': !ApiKeys.isProduction ? "" : message,
+        // },
+        {'is_secured': true, 'msg': ""},
       ];
     } else {
       return [
@@ -146,10 +148,9 @@ class AppSecurity {
     bool authenticated = false;
     try {
       authenticated = await auth.authenticate(
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
+        biometricOnly: true,
+        persistAcrossBackgrounding: true,
+
         localizedReason: 'Please authenticate to continue',
         authMessages: const <AuthMessages>[
           AndroidAuthMessages(

@@ -319,11 +319,24 @@ class AddWalletModalState extends State<AddWalletModal> {
       );
     }
 
+    if (!enabled) {
+      return Opacity(
+        opacity: 0.55,
+        child: LuvNeuPillButton(
+          label: text,
+          icon: Iconsax.tick_circle,
+          filled: false,
+          onTap: () {},
+          height: 56,
+        ),
+      );
+    }
+
     return LuvNeuPillButton(
       label: text,
       icon: Iconsax.tick_circle,
       filled: true,
-      onTap: enabled ? onTap : () {},
+      onTap: onTap,
       height: 56,
     );
   }

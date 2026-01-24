@@ -19,6 +19,7 @@ import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
+import '../../custom_widgets/luvpay/dashboard_tab_icons.dart';
 import '../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
@@ -85,19 +86,19 @@ class _WalletScreenState extends State<WalletScreen> {
         showTopUpMethod();
       },
     },
-    {
-      'icon': "assets/images/luvpay_subwallet.png",
-      'label': 'Subwallets',
-      'color': Colors.red,
-      'onTap': () async {
-        final result = await Get.toNamed(Routes.subwallet);
-        if (result == true) {
-          _startAutoRefresh();
-          getUserData();
-          getLogs();
-        }
-      },
-    },
+    // {
+    //   'icon': "assets/images/luvpay_subwallet.png",
+    //   'label': 'Subwallets',
+    //   'color': Colors.red,
+    //   'onTap': () async {
+    //     final result = await Get.toNamed(Routes.subwallet);
+    //     if (result == true) {
+    //       _startAutoRefresh();
+    //       getUserData();
+    //       getLogs();
+    //     }
+    //   },
+    // },
   ];
 
   @override
@@ -574,37 +575,36 @@ class _WalletScreenState extends State<WalletScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(19, 19, 19, 0),
+          padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _buildHeader(),
-              SizedBox(height: 20),
+              SizedBox(height: 10),
               _buildBalanceCard(),
+              SizedBox(height: 5),
               _buildMerchantBillsGrid(),
               SizedBox(height: 25),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  DefaultText(
-                    text: 'Recent Transactions',
-                    style: TextStyle(
-                      color: AppColorV2.primaryTextColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    DefaultText(
+                      text: 'Recent Transactions',
+                      style: AppTextStyle.h3,
                     ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(() => TransactionHistory());
-                    },
-                    child: DefaultText(
-                      text: 'See all',
-                      style: AppTextStyle.textButton,
-                      color: AppColorV2.lpBlueBrand,
+                    GestureDetector(
+                      onTap: () {
+                        Get.to(() => TransactionHistory());
+                      },
+                      child: DefaultText(
+                        text: 'See all',
+                        color: AppColorV2.lpBlueBrand,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               SizedBox(height: 15),
               Expanded(child: _buildTransactionsTab()),
@@ -638,14 +638,20 @@ class _WalletScreenState extends State<WalletScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(item['icon'], width: 55, height: 60),
-            SizedBox(height: 5),
+            NeoNavIcon.icon(
+              assetPath: item['icon'],
+              onTap: item['onTap'],
+              borderRadius: BorderRadius.circular(14),
+            ),
+
+            const SizedBox(height: 6),
             DefaultText(
               text: item['label'],
               textAlign: TextAlign.center,
-              style: AppTextStyle.body1,
-              color: AppColorV2.primaryTextColor,
+              style: AppTextStyle.textbox,
+              color: AppColorV2.bodyTextColor,
               minFontSize: 5,
+              maxFontSize: 10,
               maxLines: 1,
             ),
           ],
@@ -657,46 +663,43 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget _buildHeader() {
     String greeting = _getTimeBasedGreeting();
 
-    return Row(
-      children: [
-        LpProfileAvatar(imageProvider: profileImage, size: 50, borderWidth: 3),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              DefaultText(
-                text: greeting,
-                style: AppTextStyle.body1,
-                color: AppColorV2.primaryTextColor,
-              ),
-              DefaultText(
-                text: Functions().getFirstSurnameLetter(userInfo),
-                style: AppTextStyle.h4,
-                maxLines: 1,
-              ),
-            ],
-          ),
-        ),
-        Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.topRight,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InkWell(
-                  onTap: () {
-                    Get.to(WalletNotifications());
-                  },
-                  child: SvgPicture.asset(
-                    "assets/images/${notifCount != 0 ? "wallet_active_notification" : "wallet_inactive_notification"}.svg",
-                  ),
+                Image.asset("assets/images/luvpay_text.png", height: 30),
+                DefaultText(
+                  text: greeting,
+                  style: AppTextStyle.body1,
+                  color: AppColorV2.primaryTextColor.withAlpha(180),
                 ),
               ],
             ),
-          ],
-        ),
-      ],
+          ),
+          // Row(
+          //   children: [
+          //     Stack(
+          //       clipBehavior: Clip.none,
+          //       alignment: Alignment.topRight,
+          //       children: [
+          //         InkWell(
+          //           onTap: () {
+          //             Get.to(WalletNotifications());
+          //           },
+          //           child: SvgPicture.asset(
+          //             "assets/images/${notifCount != 0 ? "wallet_active_notification" : "wallet_inactive_notification"}.svg",
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ],
+          // ),
+        ],
+      ),
     );
   }
 
@@ -1110,6 +1113,8 @@ class TransactionSectionListView extends StatelessWidget {
                       text:
                           transaction['category']?.toString() ?? 'Transaction',
                       style: AppTextStyle.body1,
+                      maxFontSize: 14,
+                      minFontSize: 8,
                       color: AppColorV2.primaryTextColor,
                     ),
                     const SizedBox(height: 4),

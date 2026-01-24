@@ -15,10 +15,11 @@ import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/luvpay/dashboard_tab_icons.dart';
 import '../biller_screen/biller_screen.dart';
 import '../profile/profile_screen.dart';
+import '../subwallet/controller.dart';
+import '../subwallet/view.dart';
 import '../wallet/notifications.dart';
 import '../wallet/wallet_screen.dart';
 import 'controller.dart';
-import 'refresh_wallet.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -30,33 +31,36 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final DashboardController controller = Get.put(DashboardController());
 
+  @override
+  void initState() {
+    super.initState();
+    Get.lazyPut<SubWalletController>(() => SubWalletController());
+  }
+
   Widget _buildScreen(int index) {
     switch (index) {
       case 0:
         return WalletScreen();
+
       case 1:
-        return const WalletNotifications(fromTab: true);
+        return const SubWalletScreen();
       case 2:
-        return ProfileSettingsScreen();
+        return ScannerScreenV2(
+          onchanged: (args) {
+            if (args.isNotEmpty) {
+              getService(args);
+            }
+          },
+        );
+
       case 3:
-        return const SizedBox();
+        return const WalletNotifications(fromTab: true);
+
+      case 4:
+        return ProfileSettingsScreen();
+
       default:
         return const SizedBox();
-    }
-  }
-
-  void _onScanPressed() {
-    final result = Get.to(
-      ScannerScreenV2(
-        onchanged: (args) {
-          if (args.isNotEmpty) {
-            getService(args);
-          }
-        },
-      ),
-    );
-    if (result != null) {
-      WalletRefreshBus.refresher();
     }
   }
 
@@ -144,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         body: PageView.builder(
           controller: controller.pageController,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: 4,
+          itemCount: 5,
           itemBuilder: (_, index) {
             return Obx(() {
               return controller.currentIndex.value == index
@@ -153,7 +157,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             });
           },
         ),
-
         persistentFooterDecoration: const BoxDecoration(),
         persistentFooterButtons: [Obx(() => _buildFooterNav())],
       ),
@@ -163,75 +166,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildFooterNav() {
     final i = controller.currentIndex.value;
 
-    final base = AppColorV2.background;
-    final radius = BorderRadius.circular(28);
-
     return SafeArea(
       top: false,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
-          child: Container(
-            height: 72,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            decoration: BoxDecoration(
-              color: base,
-              borderRadius: radius,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.55),
-                  blurRadius: 10,
-                  offset: const Offset(-4, -4),
+          child: Row(
+            children: [
+              Expanded(
+                child: NeoNavIcon.tab(
+                  activeIconData: Icons.home,
+                  inactiveIconData: Icons.home_outlined,
+                  active: i == 0,
+                  inactiveColor: AppColorV2.bodyTextColor,
+                  onTap: () => controller.changePage(0),
                 ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 12,
-                  offset: const Offset(5, 5),
+              ),
+              Expanded(
+                child: NeoNavIcon.tab(
+                  activeIconData: Icons.account_balance_wallet_rounded,
+                  inactiveIconData: Icons.account_balance_wallet_outlined,
+                  active: i == 1,
+                  inactiveColor: AppColorV2.bodyTextColor,
+                  onTap: () => controller.changePage(1),
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: NeoNavIcon.tab(
-                    activeIconData: Icons.home_rounded,
-                    inactiveIconData: Icons.home_outlined,
-                    active: i == 0,
-                    inactiveColor: AppColorV2.bodyTextColor,
-                    onTap: () => controller.changePage(0),
-                  ),
+              ),
+
+              Expanded(
+                child: NeoNavIcon.tab(
+                  activeIconData: Icons.qr_code_scanner_rounded,
+                  inactiveIconData: Icons.qr_code_scanner_outlined,
+                  active: i == 2,
+                  inactiveColor: AppColorV2.bodyTextColor,
+                  onTap: () => controller.changePage(2),
                 ),
-                Expanded(
-                  child: NeoNavIcon.icon(
-                    iconData: Icons.qr_code_scanner_rounded,
-                    iconColor: AppColorV2.bodyTextColor,
-                    width: 30,
-                    height: 30,
-                    buttonSize: 54,
-                    padding: const EdgeInsets.all(10),
-                    borderRadius: BorderRadius.circular(18),
-                    onTap: _onScanPressed,
-                  ),
+              ),
+
+              Expanded(
+                child: _NotifNavItem(
+                  active: i == 3,
+                  count: controller.notifCount.value,
+                  onTap: () => controller.changePage(3),
+                  inactiveColor: AppColorV2.bodyTextColor,
                 ),
-                Expanded(
-                  child: _NotifNavItem(
-                    active: i == 1,
-                    count: controller.notifCount.value,
-                    onTap: () => controller.changePage(1),
-                    inactiveColor: AppColorV2.bodyTextColor,
-                  ),
+              ),
+
+              Expanded(
+                child: NeoNavIcon.tab(
+                  activeIconData: Icons.person_rounded,
+                  inactiveIconData: Icons.person_outline_rounded,
+                  active: i == 4,
+                  inactiveColor: AppColorV2.bodyTextColor,
+                  onTap: () => controller.changePage(4),
                 ),
-                Expanded(
-                  child: NeoNavIcon.tab(
-                    activeIconData: Icons.person_rounded,
-                    inactiveIconData: Icons.person_outline_rounded,
-                    active: i == 2,
-                    inactiveColor: AppColorV2.bodyTextColor,
-                    onTap: () => controller.changePage(2),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

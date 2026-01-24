@@ -638,30 +638,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           scrolledUnderElevation: 0,
           backgroundColor: AppColorV2.lpBlueBrand,
           centerTitle: true,
-          leading: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: () => Get.back(result: true),
-                child: Ink(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.16),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withOpacity(.12)),
-                  ),
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 18,
-                    color: Colors.white.withOpacity(.95),
-                  ),
-                ),
-              ),
-            ),
-          ),
+          leadingWidth: 100,
+
           title: DefaultText(
             text: "Subwallets",
             color: Colors.white.withOpacity(.95),
