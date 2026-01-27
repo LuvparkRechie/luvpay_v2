@@ -13,7 +13,6 @@ import 'package:luvpay/pages/vouchers/index.dart';
 import 'package:luvpay/pages/wallet_recharge_load/index.dart';
 
 import '../dashboard/index.dart';
-import '../landing/index.dart';
 import '../loading/index.dart';
 import '../lock_screen/index.dart';
 import '../login/index.dart';
@@ -34,14 +33,6 @@ class AppPages {
       preventDuplicates: true,
     ),
 
-    GetPage(
-      name: Routes.landing,
-      page: () => const LandingScreen(),
-      binding: LandingBinding(),
-      transition: Transition.rightToLeftWithFade,
-      transitionDuration: Duration(milliseconds: 300),
-      preventDuplicates: true,
-    ),
     GetPage(
       name: Routes.billers,
       page: () => Billers(),

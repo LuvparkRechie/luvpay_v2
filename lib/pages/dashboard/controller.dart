@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/luvpay/confetti.dart';
 
 class DashboardController extends GetxController {
@@ -32,12 +33,12 @@ class DashboardController extends GetxController {
     if (!isFirstLogin) return;
     Get.to(
       () => CelebrationScreen(
-        title: "Welcome to LuvPay!",
+        title: "Welcome to luvpay!",
         message:
             "This looks like your first time logging in on this device.\nStart exploring now.",
         buttonText: "Let's Go!",
         icon: Icons.waving_hand_rounded,
-        iconColor: Colors.orange,
+        iconColor: AppColorV2.lpBlueBrand,
         showConfetti: true,
         onButtonPressed: () {
           box.write('isFirstLogin', false);

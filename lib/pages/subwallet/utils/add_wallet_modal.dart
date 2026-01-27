@@ -142,9 +142,9 @@ class AddWalletModalState extends State<AddWalletModal> {
 
   String? _validateName(String value) {
     final raw = value.trim();
-    if (raw.isEmpty) return 'Subwallet name is required';
-    if (raw.length < 3) return 'Subwallet name must be at least 3 characters';
-    if (raw.length > 15) return 'Subwallet name must be 15 characters or less';
+    if (raw.isEmpty) return 'SubWallet name is required';
+    if (raw.length < 3) return 'SubWallet name must be at least 3 characters';
+    if (raw.length > 15) return 'SubWallet name must be 15 characters or less';
 
     final input = _normalizeName(raw);
 
@@ -458,7 +458,7 @@ class AddWalletModalState extends State<AddWalletModal> {
             DefaultText(
               text:
                   widget.mode == WalletModalMode.create
-                      ? 'Create New Wallet'
+                      ? 'Create New SubWallet'
                       : 'Edit Wallet Name',
               style: AppTextStyle.popup,
             ),
@@ -581,10 +581,15 @@ class AddWalletModalState extends State<AddWalletModal> {
                   ),
                 )
               else
-                DefaultText(
-                  text: 'No categories available',
-                  style: AppTextStyle.paragraph2.copyWith(
-                    color: Colors.grey.shade600,
+                GestureDetector(
+                  onTap: () {
+                    controller.refreshAllData();
+                  },
+                  child: DefaultText(
+                    text: 'No categories available',
+                    style: AppTextStyle.paragraph2.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                 ),
 
@@ -676,7 +681,7 @@ class AddWalletModalState extends State<AddWalletModal> {
               maxLength: 15,
               inputFormatters: [UpperCaseTextFormatter()],
               decoration: InputDecoration(
-                labelText: 'Subwallet Name',
+                labelText: 'SubWallet Name',
                 labelStyle: AppTextStyle.paragraph2,
                 filled: true,
                 fillColor: AppColorV2.pastelBlueAccent,
@@ -805,7 +810,7 @@ class AddWalletModalState extends State<AddWalletModal> {
                 loading: _isSubmitting,
                 text:
                     widget.mode == WalletModalMode.create
-                        ? 'Create Wallet'
+                        ? 'Create SubWallet'
                         : 'Save Changes',
                 onTap: _submitForm,
               ),

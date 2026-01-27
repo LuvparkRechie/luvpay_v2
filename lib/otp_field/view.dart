@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' as dtTime;
@@ -80,7 +81,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   String formatDuration(Duration d) {
     String minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     String seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-
     return "$minutes:$seconds";
   }
 
@@ -117,7 +117,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
             Get.back();
           },
         );
-
         return;
       }
       if (returnData == null) {
@@ -135,7 +134,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
             Get.back();
           },
         );
-
         return;
       }
 
@@ -153,7 +151,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
           timeExp.millisecond,
         );
 
-        // Calculate difference
         Duration difference = otpExpiry.difference(timeNow);
 
         setState(() {
@@ -161,7 +158,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
           isNetConn = true;
 
           inputPin = "";
-
           otpCode = int.parse(returnData["otp"].toString());
           isRequested = true;
           paramOtpExp = difference;
@@ -169,7 +165,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         });
 
         startCountdown();
-
         getTmrStat();
       } else {
         setState(() {
@@ -195,6 +190,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   void onInputChanged(String value) {
     inputPin = value;
     _hasError = false;
+
     if (value.isNotEmpty && int.tryParse(value) != null) {
       if (int.parse(value) == otpCode) {
       } else {
@@ -231,6 +227,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       );
       return;
     }
+
     if (widget.arguments["is_forget_vfd_pass"] != null &&
         widget.arguments["is_forget_vfd_pass"]) {
       widget.arguments["callback"](int.parse(pinController.text));
@@ -250,7 +247,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       ).putBody().then((returnData) async {
         if (returnData == "No Internet") {
           Get.back();
-
           CustomDialogStack.showError(
             Get.context!,
             "luvpay",
@@ -259,7 +255,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
               Get.back();
             },
           );
-
           return;
         }
         if (returnData == null) {
@@ -272,7 +267,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
               Get.back();
             },
           );
-
           return;
         }
         if (returnData["success"] == 'Y') {
@@ -292,10 +286,12 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
               !returnData["msg"].toString().toLowerCase().contains("invalid")
                   ? "Code expired"
                   : "Invalid OTP";
+
           Get.back();
           setState(() {
             _hasError = true;
           });
+
           CustomDialogStack.showError(Get.context!, title, subtitle, () {
             setState(() {
               _hasError = true;
@@ -326,21 +322,29 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
 
     PinTheme getDefaultPinTheme({Color? borderColor, Color? textColor}) {
       return PinTheme(
-        width: 50,
-        height: 50,
-        textStyle: TextStyle(
+        width: 52,
+        height: 54,
+        textStyle: GoogleFonts.inter(
           fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           height: 22 / 18,
           color: textColor ?? Colors.black,
         ),
         decoration: BoxDecoration(
+          color: AppColorV2.background,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: borderColor ?? AppColorV2.boxStroke,
-            width: 2,
+            width: 1.8,
           ),
-          borderRadius: BorderRadius.circular(6),
-          color: AppColorV2.background,
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 10,
+              spreadRadius: 0,
+              offset: Offset(0, 6),
+              color: Colors.black.withOpacity(0.05),
+            ),
+          ],
         ),
       );
     }
@@ -363,19 +367,44 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        spacing(height: 20),
+                        spacing(height: 18),
+
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Center(
-                              child: Image.asset(
-                                height: 200,
-                                width: 200,
-                                'assets/gif/registration.gif',
-                                fit: BoxFit.cover,
-                                gaplessPlayback: true,
+                              child: Container(
+                                height: 92,
+                                width: 92,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColorV2.background,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      blurRadius: 18,
+                                      offset: Offset(0, 10),
+                                      color: Colors.black.withOpacity(0.06),
+                                    ),
+                                  ],
+                                  border: Border.all(
+                                    color: AppColorV2.boxStroke.withOpacity(
+                                      0.45,
+                                    ),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    Icons.verified_user_rounded,
+                                    size: 46,
+                                    color: AppColorV2.lpBlueBrand,
+                                  ),
+                                ),
                               ),
                             ),
+
+                            spacing(height: 14),
+
                             Center(
                               child: DefaultText(
                                 text: "OTP Verification",
@@ -383,7 +412,9 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                 height: 28 / 24,
                               ),
                             ),
+
                             SizedBox(height: 8),
+
                             RichText(
                               textAlign: TextAlign.center,
                               text: TextSpan(
@@ -402,9 +433,10 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                         text:
                                             " +${widget.arguments["mobile_no"].toString()}",
                                         style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w800,
                                           color: AppColorV2.lpBlueBrand,
                                           fontSize: 14,
+                                          height: 18 / 14,
                                         ),
                                       ),
                                     ],
@@ -414,62 +446,54 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                             ),
                           ],
                         ),
-                        spacing(height: 28),
+
+                        spacing(height: 26),
+
                         Center(
                           child: Directionality(
                             textDirection: TextDirection.ltr,
-                            child: Center(
-                              child: Directionality(
-                                textDirection: TextDirection.ltr,
-                                child: Pinput(
-                                  length: 6,
-                                  controller: pinController,
-                                  autofocus: true,
-                                  showCursor: true,
-                                  closeKeyboardWhenCompleted: false,
-                                  smsRetriever: null,
-                                  autofillHints: const [],
-
-                                  keyboardType: TextInputType.number,
-                                  textInputAction: TextInputAction.done,
-
-                                  defaultPinTheme: getDefaultPinTheme(
-                                    borderColor: borderColor,
-                                    textColor: textColor,
-                                  ),
-
-                                  hapticFeedbackType:
-                                      HapticFeedbackType.lightImpact,
-
-                                  onChanged: (value) {
-                                    onInputChanged(value);
-                                  },
-
-                                  onCompleted: (pin) {
-                                    onInputChanged(pin);
-                                  },
-
-                                  focusedPinTheme: getDefaultPinTheme(
-                                    borderColor: AppColorV2.lpBlueBrand,
-                                    textColor: textColor,
-                                  ).copyWith(
-                                    decoration: getDefaultPinTheme(
-                                      borderColor: AppColorV2.lpBlueBrand,
-                                      textColor: textColor,
-                                    ).decoration!.copyWith(
-                                      borderRadius: BorderRadius.circular(5),
-                                      border: Border.all(
-                                        color: AppColorV2.lpBlueBrand,
-                                        width: 2,
-                                      ),
-                                    ),
+                            child: Pinput(
+                              length: 6,
+                              controller: pinController,
+                              autofocus: true,
+                              showCursor: true,
+                              closeKeyboardWhenCompleted: false,
+                              smsRetriever: null,
+                              autofillHints: const [],
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.done,
+                              defaultPinTheme: getDefaultPinTheme(
+                                borderColor: borderColor,
+                                textColor: textColor,
+                              ),
+                              hapticFeedbackType:
+                                  HapticFeedbackType.lightImpact,
+                              onChanged: (value) => onInputChanged(value),
+                              onCompleted: (pin) => onInputChanged(pin),
+                              focusedPinTheme: getDefaultPinTheme(
+                                borderColor: AppColorV2.lpBlueBrand,
+                                textColor: textColor,
+                              ).copyWith(
+                                decoration: getDefaultPinTheme(
+                                  borderColor: AppColorV2.lpBlueBrand,
+                                  textColor: textColor,
+                                ).decoration!.copyWith(
+                                  border: Border.all(
+                                    color: AppColorV2.lpBlueBrand,
+                                    width: 2,
                                   ),
                                 ),
+                              ),
+                              errorPinTheme: getDefaultPinTheme(
+                                borderColor: AppColorV2.incorrectState,
+                                textColor: AppColorV2.incorrectState,
                               ),
                             ),
                           ),
                         ),
-                        const VerticalHeight(height: 30),
+
+                        const VerticalHeight(height: 26),
+
                         CustomButton(
                           isInactive:
                               pinController.text.isEmpty ||
@@ -477,7 +501,9 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                           text: "Verify",
                           onPressed: verifyAccount,
                         ),
-                        spacing(height: 40),
+
+                        spacing(height: 34),
+
                         Center(
                           child: DefaultText(
                             text: "Didn’t receive any code?",
@@ -485,38 +511,67 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                             color: AppColorV2.primaryTextColor,
                           ),
                         ),
-                        spacing(height: 2),
-                        InkWell(
-                          onTap:
-                              paramOtpExp.inSeconds <= 0
-                                  ? () {
-                                    restartTimer();
-                                    pinController.clear();
-                                  }
-                                  : null,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              DefaultText(
-                                text:
-                                    paramOtpExp.inSeconds <= 0
-                                        ? "Resend OTP"
-                                        : "Resend OTP in",
-                                color: AppColorV2.lpBlueBrand,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              if (paramOtpExp.inSeconds > 0)
-                                DefaultText(
-                                  text: " (${formatDuration(paramOtpExp)})",
-                                  color: AppColorV2.lpBlueBrand,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
+
+                        spacing(height: 6),
+
+                        Center(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(14),
+                            onTap:
+                                paramOtpExp.inSeconds <= 0
+                                    ? () {
+                                      restartTimer();
+                                      pinController.clear();
+                                    }
+                                    : null,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                color: AppColorV2.background,
+                                border: Border.all(
+                                  color: AppColorV2.boxStroke.withOpacity(0.35),
+                                  width: 1,
                                 ),
-                            ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.refresh_rounded,
+                                      size: 18,
+                                      color:
+                                          paramOtpExp.inSeconds <= 0
+                                              ? AppColorV2.lpBlueBrand
+                                              : AppColorV2.lpBlueBrand
+                                                  .withOpacity(0.55),
+                                    ),
+                                    SizedBox(width: 8),
+                                    DefaultText(
+                                      text:
+                                          paramOtpExp.inSeconds <= 0
+                                              ? "Resend OTP"
+                                              : "Resend in ${formatDuration(paramOtpExp)}",
+                                      color:
+                                          paramOtpExp.inSeconds <= 0
+                                              ? AppColorV2.lpBlueBrand
+                                              : AppColorV2.lpBlueBrand
+                                                  .withOpacity(0.65),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        spacing(height: 39),
+
+                        spacing(height: 34),
                       ],
                     ),
                   ),

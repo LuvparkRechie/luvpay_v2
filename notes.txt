@@ -1,0 +1,46 @@
+!!!!!
+
+submit to playstore or appstore notice
+1. Inform sir bernard for version
+2. Change app version to notify user for new update
+
+to upload in playstore and checking of 16kb : flutter build apk --release --no-tree-shake-icons (recommended) : flutter build appbundle --release --no-tree-shake-icons
+flutter build apk --release
+
+
+------------------------------------------------------------------------------------------
+
+
+FOR 16KB CHECK
+macOS
+~/Library/Android/sdk/build-tools/<YOUR_VERSION>/zipalign -c -v 4 path-to-your-app.apk
+~/Library/Android/sdk/build-tools/2.4.2/zipalign -c -v 4 C:\Users\Mae\Documents\GitHub\luvparkv2\build\app\outputs\flutter-apk\app-release.apk
+
+Windows
+"C:\Users\Mae\AppData\Local\Android\Sdk\build-tools\36.0.0\zipalign.exe" -c -v 4 "C:\Users\Mae\Documents\GitHub\luvparkv2\build\app\outputs\flutter-apk\app-release.apk"
+
+
+------------------------------------------------------------------------------------------
+
+Change the app version in pubspec.yaml if in production
+check env for production
+check security settings. Uncomment for production
+
+FOR PLAYSTORE UPLOAD 
+checking of 16kb (recommended) 
+flutter build apk --release --no-tree-shake-icons
+flutter build appbundle --release --no-tree-shake-icons
+flutter build apk --release
+
+
+
+------------------------------------------------------------------------------------------
+
+flutter build appbundle --release --target-platform android-arm64 --no-tree-shake-icons
+flutter build apk --release --target-platform android-arm64 --no-tree-shake-icons
+flutter build appbudle --release --no-tree-shake-icons --obfuscate -- split-debug-info=debug_info
+
+flutter build appbundle --no-tree-shake-icons --obfuscate --split-debug-info=debug_info
+flutter build apk --release --no-tree-shake-icons --obfuscate --split-debug-info=debug_info
+
+

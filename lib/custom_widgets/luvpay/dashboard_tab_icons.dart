@@ -100,8 +100,8 @@ class _NeoNavIconState extends State<NeoNavIcon> {
     final isTab = widget.mode == NeoNavIconMode.tab;
     final isActive = widget.active ?? false;
 
-    final iconW = widget.width ?? 24;
-    final iconH = widget.height ?? 24;
+    final iconW = widget.width ?? 26;
+    final iconH = widget.height ?? 26;
 
     final activeIconColor = widget.activeColor ?? brand;
     final inactiveIconColor =
@@ -109,7 +109,7 @@ class _NeoNavIconState extends State<NeoNavIcon> {
 
     final iconPadding =
         widget.padding ??
-        const EdgeInsets.symmetric(horizontal: 12, vertical: 12);
+        const EdgeInsets.symmetric(horizontal: 10, vertical: 10);
 
     final bool flatten = widget.flatten == true;
 

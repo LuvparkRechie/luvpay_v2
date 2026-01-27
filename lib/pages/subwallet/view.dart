@@ -329,6 +329,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
     try {
       await Future.wait([
+        controller.getSubWalletCategories(),
         controller.getUserSubWallets(),
         controller.luvpayBalance(),
       ]);
@@ -406,7 +407,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   }
 
   Future<void> returnMoneyToMain(Wallet wallet, double amount) async {
-    if (wallet.balance < amount) return _err("Insufficient wallet balance");
+    if (wallet.balance < amount) return _err("Insufficient subwallet balance");
     await controller.transferSubWallet(
       subwalletId: int.tryParse(wallet.id),
       amount: amount,
@@ -421,7 +422,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       print(
         'Insufficient main balance. Required: ${wallet.balance}, Available: ${controller.numericBalance.value}',
       );
-      return _err("Insufficient main balance to create this wallet.");
+      return _err("Insufficient main balance to create this subwallet.");
     }
 
     try {
@@ -436,14 +437,14 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       if (!mounted) return;
       CustomDialogStack.showSuccess(
         context,
-        'Wallet created successfully!',
+        'SubWallet created successfully!',
         "${wallet.balance.toStringAsFixed(2)} deducted from main balance.",
         () => Get.back(),
       );
     } catch (e) {
       // ignore: avoid_print
-      print('Error creating wallet: $e');
-      if (mounted) _err('Failed to create wallet. Please try again.');
+      print('Error creating subwallet: $e');
+      if (mounted) _err('Failed to create subwallet. Please try again.');
     }
   }
 
@@ -590,7 +591,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
             const SizedBox(height: 14),
 
             DefaultText(
-              text: "No subwallets yet",
+              text: "No SubWallets yet",
               maxLines: 1,
               style: AppTextStyle.h3.copyWith(
                 fontWeight: FontWeight.w900,
@@ -641,7 +642,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           leadingWidth: 100,
 
           title: DefaultText(
-            text: "Subwallets",
+            text: "SubWallets",
             color: Colors.white.withOpacity(.95),
             style: AppTextStyle.h3.copyWith(
               fontWeight: FontWeight.w900,
@@ -656,7 +657,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           child: PremiumLoaderOverlay(
             topInset: headerH,
             loading: !ready,
-            title: "Loading wallets…",
+            title: "Loading subwallets…",
             subtitle: "Please wait a moment",
             accentColor: AppColorV2.lpBlueBrand,
             glowColor: AppColorV2.lpTealBrand,
@@ -850,7 +851,7 @@ class CreateSubwalletTile extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                "Add new subwallet",
+                "Add new SubWallet",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

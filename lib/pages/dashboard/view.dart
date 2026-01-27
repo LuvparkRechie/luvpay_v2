@@ -4,6 +4,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/http/http_request.dart';
@@ -157,8 +158,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             });
           },
         ),
-        persistentFooterDecoration: const BoxDecoration(),
-        persistentFooterButtons: [Obx(() => _buildFooterNav())],
+        persistentFooterDecoration: BoxDecoration(
+          color: AppColorV2.background,
+          boxShadow: [
+            BoxShadow(
+              color: AppColorV2.bodyTextColor.withValues(alpha: 0.1),
+              blurRadius: 5,
+              offset: Offset(0, -1),
+            ),
+          ],
+        ),
+        persistentFooterButtons: [
+          Obx(
+            () => Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: _buildFooterNav(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -184,8 +201,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               Expanded(
                 child: NeoNavIcon.tab(
-                  activeIconData: Icons.account_balance_wallet_rounded,
-                  inactiveIconData: Icons.account_balance_wallet_outlined,
+                  activeIconData: Icons.wallet,
+                  inactiveIconData: Icons.wallet_outlined,
                   active: i == 1,
                   inactiveColor: AppColorV2.bodyTextColor,
                   onTap: () => controller.changePage(1),
@@ -194,8 +211,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               Expanded(
                 child: NeoNavIcon.tab(
-                  activeIconData: Icons.qr_code_scanner_rounded,
-                  inactiveIconData: Icons.qr_code_scanner_outlined,
+                  activeIconData: Icons.qr_code,
+                  inactiveIconData: Icons.qr_code_outlined,
                   active: i == 2,
                   inactiveColor: AppColorV2.bodyTextColor,
                   onTap: () => controller.changePage(2),
@@ -203,9 +220,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
 
               Expanded(
-                child: _NotifNavItem(
+                child: NeoNavIcon.tab(
+                  activeIconData: Icons.notifications,
+                  inactiveIconData: Icons.notifications_outlined,
                   active: i == 3,
-                  count: controller.notifCount.value,
                   onTap: () => controller.changePage(3),
                   inactiveColor: AppColorV2.bodyTextColor,
                 ),
@@ -213,8 +231,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               Expanded(
                 child: NeoNavIcon.tab(
-                  activeIconData: Icons.person_rounded,
-                  inactiveIconData: Icons.person_outline_rounded,
+                  activeIconData: Icons.person,
+                  inactiveIconData: Icons.person_outlined,
                   active: i == 4,
                   inactiveColor: AppColorV2.bodyTextColor,
                   onTap: () => controller.changePage(4),
@@ -224,60 +242,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _NotifNavItem extends StatelessWidget {
-  final bool active;
-  final int count;
-  final VoidCallback onTap;
-  final Color inactiveColor;
-
-  const _NotifNavItem({
-    required this.active,
-    required this.count,
-    required this.onTap,
-    required this.inactiveColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.center,
-      children: [
-        NeoNavIcon.tab(
-          activeIconData: Icons.notifications_rounded,
-          inactiveIconData: Icons.notifications_none_rounded,
-          active: active,
-          inactiveColor: inactiveColor,
-          onTap: onTap,
-        ),
-        if (count > 0)
-          Positioned(
-            right: 12,
-            top: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColorV2.error,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              constraints: const BoxConstraints(minWidth: 18),
-              child: Text(
-                count > 99 ? "99+" : "$count",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  height: 1.0,
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }

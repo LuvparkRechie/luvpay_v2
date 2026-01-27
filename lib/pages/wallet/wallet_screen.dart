@@ -5,10 +5,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/pages/billers/index.dart';
 import 'package:luvpay/pages/billers/utils/allbillers.dart';
 import 'package:luvpay/pages/merchant/pay_merchant.dart';
@@ -27,7 +25,6 @@ import '../../http/http_request.dart';
 import '../dashboard/refresh_wallet.dart';
 import '../transaction/transaction_details.dart';
 import '../transaction/transaction_screen.dart';
-import 'notifications.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});

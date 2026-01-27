@@ -154,6 +154,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
         amount: amount,
         wttarget: target,
       );
+      print("result ${result.toString()}");
+      // if(result == )
     } finally {
       if (Get.isDialogOpen == true) {
         Navigator.of(ctx, rootNavigator: true).pop();
@@ -183,7 +185,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (code == "NO_INTERNET") {
-        CustomDialogStack.showConnectionLost(ctx, () => Get.back());
+        CustomDialogStack.showConnectionLost(ctx, () {
+          Get.back();
+          Get.back();
+        });
       } else {
         CustomDialogStack.showError(ctx, "luvpay", err, () => Get.back());
       }
@@ -586,7 +591,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
   Future<void> _deleteWallet(BuildContext context) async {
     CustomDialogStack.showConfirmation(
       context,
-      "Delete Wallet",
+      "Delete SubWallet",
       'Are you sure you want to delete "${_wallet.name}"?'
           '${_wallet.balance > 0 ? '\n\nBalance of ${_wallet.balance.toStringAsFixed(2)} will be returned to main wallet.' : ''}',
       () => Get.back(),
@@ -602,7 +607,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
           CustomDialogStack.showSuccess(
             overlayCtx,
             "Success",
-            deleteResult["message"] ?? "Wallet deleted successfully!",
+            deleteResult["message"] ?? "SubWallet deleted successfully!",
             () async {
               Get.back();
               Get.back();

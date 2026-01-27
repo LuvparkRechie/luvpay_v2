@@ -42,13 +42,9 @@ class RegistrationPage extends GetView<RegistrationController> {
       removeBorderRadius: true,
       backgroundColor: AppColorV2.background,
       useNormalBody: true,
-      enableToolBar: true,
+      enableToolBar: false,
       canPop: false,
-      onPressedLeading: () {
-        controller.mobileNumber.text = "";
-        controller.password.text = "";
-        Get.back();
-      },
+
       scaffoldBody: SizedBox(
         height: MediaQuery.of(context).size.height,
         child: ScrollConfiguration(
@@ -63,32 +59,17 @@ class RegistrationPage extends GetView<RegistrationController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Center(
-                          child: Image(
-                            image: AssetImage("assets/images/luvpay_logo.png"),
-                            width: 60,
-                            fit: BoxFit.contain,
-                          ),
+                        SizedBox(height: 50),
+                        Image(
+                          image: AssetImage("assets/images/luvpay_text.png"),
+                          height: 30,
+                          fit: BoxFit.contain,
                         ),
-                        SizedBox(height: 10),
-                        Center(
-                          child: DefaultText(
-                            textAlign: TextAlign.center,
-                            text: "Create your LuvPay Wallet account",
-                            style: AppTextStyle.h1,
-                            maxLines: 1,
-                            minFontSize: 18,
-                            height: 32 / 28,
-                          ),
-                        ),
-                        SizedBox(height: 5),
-
                         DefaultText(
                           textAlign: TextAlign.center,
-                          text:
-                              "Quick, secure, and hassle-free setup to access seamless digital payments.",
-                          height: 20 / 16,
+                          text: "Create an account",
                           style: AppTextStyle.paragraph1,
+                          maxLines: 1,
                         ),
 
                         const VerticalHeight(height: 30),

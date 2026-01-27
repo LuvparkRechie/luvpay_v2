@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:math';
 import 'package:confetti/confetti.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
@@ -88,151 +90,123 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
   Widget build(BuildContext context) {
     final bg = AppColorV2.background;
 
-    final radius = BorderRadius.circular(26);
     final btnRadius = BorderRadius.circular(18);
 
     final pressedVisual = _pressed;
     final scale = pressedVisual ? 0.985 : 1.0;
     final dy = pressedVisual ? 1.2 : 0.0;
 
-    final card = Neumorphic(
-      style: NeumorphicStyle(
-        color: bg,
-        shape: NeumorphicShape.convex,
-        boxShape: NeumorphicBoxShape.roundRect(radius),
-        depth: 4,
-        intensity: 0.45,
-        surfaceIntensity: 0.06,
-      ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white.withOpacity(0.10),
-                      Colors.transparent,
-                    ],
-                    stops: const [0.0, 0.55],
-                  ),
-                ),
+    final card = Center(
+      child: Stack(
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white.withOpacity(0.10), Colors.transparent],
+                stops: const [0.0, 0.55],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Neumorphic(
-                    style: NeumorphicStyle(
-                      color: bg,
-                      shape: NeumorphicShape.convex,
-                      boxShape: const NeumorphicBoxShape.circle(),
-                      depth: 3,
-                      intensity: 0.42,
-                      surfaceIntensity: 0.06,
-                    ),
-                    child: SizedBox(
-                      width: 84,
-                      height: 84,
-                      child: Center(
-                        child: Icon(
-                          widget.icon,
-                          color: widget.iconColor,
-                          size: 42,
-                        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Neumorphic(
+                  style: NeumorphicStyle(
+                    color: bg,
+                    shape: NeumorphicShape.convex,
+                    boxShape: const NeumorphicBoxShape.circle(),
+                    depth: 3,
+                    intensity: 0.42,
+                    surfaceIntensity: 0.06,
+                  ),
+                  child: SizedBox(
+                    width: 84,
+                    height: 84,
+                    child: Center(
+                      child: Icon(
+                        widget.icon,
+                        color: widget.iconColor,
+                        size: 42,
                       ),
                     ),
                   ),
+                ),
 
-                  const SizedBox(height: 14),
+                const SizedBox(height: 14),
 
-                  DefaultText(
-                    text: widget.title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.2,
-                    ),
+                DefaultText(
+                  text: widget.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
                   ),
+                ),
 
-                  const SizedBox(height: 6),
+                const SizedBox(height: 6),
 
-                  DefaultText(
-                    text: widget.message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black.withAlpha(125),
-                      height: 1.35,
-                    ),
+                DefaultText(
+                  text: widget.message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black.withAlpha(125),
+                    height: 1.35,
                   ),
+                ),
 
-                  const SizedBox(height: 18),
+                const SizedBox(height: 18),
 
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTapDown: (_) => setState(() => _pressed = true),
-                    onTapCancel: () => setState(() => _pressed = false),
-                    onTapUp: (_) => setState(() => _pressed = false),
-                    onTap: _tapContinue,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 120),
-                      curve: Curves.easeOutCubic,
-                      transform:
-                          Matrix4.identity()
-                            ..translate(0.0, dy)
-                            ..scale(scale, scale),
-                      child: Neumorphic(
-                        style: NeumorphicStyle(
-                          color: AppColorV2.lpBlueBrand,
-                          shape: NeumorphicShape.flat,
-                          boxShape: NeumorphicBoxShape.roundRect(btnRadius),
-                          depth: pressedVisual ? -1.0 : 2.0,
-                          intensity: 0.40,
-                          surfaceIntensity: 0.10,
-                        ),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 54,
-                          child: Center(
-                            child: DefaultText(
-                              text: widget.buttonText,
-                              color: bg,
-                              style: const TextStyle(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.25,
-                              ),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) => setState(() => _pressed = true),
+                  onTapCancel: () => setState(() => _pressed = false),
+                  onTapUp: (_) => setState(() => _pressed = false),
+                  onTap: _tapContinue,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    curve: Curves.easeOutCubic,
+                    transform:
+                        Matrix4.identity()
+                          ..translate(0.0, dy)
+                          ..scale(scale, scale),
+                    child: Neumorphic(
+                      style: NeumorphicStyle(
+                        color: AppColorV2.lpBlueBrand,
+                        shape: NeumorphicShape.flat,
+                        boxShape: NeumorphicBoxShape.roundRect(btnRadius),
+                        depth: pressedVisual ? -1.0 : 2.0,
+                        intensity: 0.40,
+                        surfaceIntensity: 0.10,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: Center(
+                          child: DefaultText(
+                            text: widget.buttonText,
+                            color: bg,
+                            style: const TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.25,
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 6),
-
-                  Text(
-                    "Tap to continue",
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black.withAlpha(95),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
 
@@ -257,17 +231,7 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
               ),
             ),
 
-          SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: card,
-                ),
-              ),
-            ),
-          ),
+          SafeArea(child: card),
         ],
       ),
     );

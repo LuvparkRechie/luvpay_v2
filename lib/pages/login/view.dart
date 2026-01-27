@@ -273,7 +273,7 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                       bordercolor: AppColorV2.lpBlueBrand,
                       textColor: AppColorV2.lpBlueBrand,
                       onPressed: () {
-                        Get.toNamed(Routes.landing);
+                        Get.toNamed(Routes.registration);
                       },
                     ),
                     const SizedBox(height: 14),

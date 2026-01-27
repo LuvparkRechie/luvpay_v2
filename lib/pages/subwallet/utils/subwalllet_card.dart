@@ -187,13 +187,13 @@ class _SubWalletCardState extends State<SubWalletCard> {
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: AppColorV2.lpBlueBrand.withOpacity(.30),
-                      blurRadius: 2,
-                      spreadRadius: 1,
+                      color: AppColorV2.lpBlueBrand.withOpacity(.010),
+                      blurRadius: 5,
+                      spreadRadius: 3,
                       offset: const Offset(0, 0),
                     ),
                   ],
-                  color: AppColorV2.lpBlueBrand.withOpacity(.40),
+                  color: AppColorV2.background,
                   borderRadius: const BorderRadius.only(
                     bottomRight: Radius.circular(12),
                   ),
@@ -207,7 +207,7 @@ class _SubWalletCardState extends State<SubWalletCard> {
                   ),
                 ),
                 child: DefaultText(
-                  color: AppColorV2.background,
+                  color: AppColorV2.lpBlueBrand,
                   text: "₱ ${widget.wallet.balance.toStringAsFixed(2)}",
                   maxLines: 1,
                   maxFontSize: 12,

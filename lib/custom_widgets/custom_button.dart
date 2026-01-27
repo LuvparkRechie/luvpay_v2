@@ -74,7 +74,9 @@ class _CustomButtonState extends State<CustomButton> {
 
     final fg =
         widget.textColor ??
-        (isDisabled ? Colors.black.withAlpha(120) : AppColorV2.background);
+        (isDisabled
+            ? AppColorV2.background.withAlpha(190)
+            : AppColorV2.background);
 
     final showLoading = (widget.loading ?? false);
 

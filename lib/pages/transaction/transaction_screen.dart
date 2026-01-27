@@ -723,7 +723,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                           Container(
                             padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
                             decoration: BoxDecoration(
-                              color: AppColorV2.lpBlueBrand.withAlpha(30),
+                              color: AppColorV2.lpBlueBrand.withAlpha(20),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: DefaultText(

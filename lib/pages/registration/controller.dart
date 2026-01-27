@@ -16,7 +16,6 @@ import '../routes/routes.dart';
 
 class RegistrationController extends GetxController
     with GetSingleTickerProviderStateMixin {
-  final isAgree = Get.arguments;
   RxBool isShowPass = false.obs;
   RxBool isLoading = false.obs;
   RxInt passStrength = 1.obs;
@@ -116,73 +115,63 @@ class RegistrationController extends GetxController
       // "referral_code": referralCode.text,
     };
     print("parameters $parameters");
-    if (isAgree) {
-      CustomDialogStack.showConfirmation(
-        Get.context!,
-        "Create Account",
-        "Are you sure you want to proceed?",
-        leftText: "No",
-        rightText: "Yes",
-        () {
-          Get.back();
-        },
-        () {
-          Get.back();
-          CustomDialogStack.showLoading(Get.context!);
 
-          HttpRequestApi(
-            api: ApiKeys.postUserReg,
-            parameters: parameters,
-          ).postBody().then((returnPost) async {
-            Get.back();
-            if (returnPost == "No Internet") {
-              CustomDialogStack.showConnectionLost(Get.context!, () {
+    CustomDialogStack.showConfirmation(
+      Get.context!,
+      "Create Account",
+      "Are you sure you want to proceed?",
+      leftText: "No",
+      rightText: "Yes",
+      () {
+        Get.back();
+      },
+      () {
+        Get.back();
+        CustomDialogStack.showLoading(Get.context!);
+
+        HttpRequestApi(
+          api: ApiKeys.postUserReg,
+          parameters: parameters,
+        ).postBody().then((returnPost) async {
+          Get.back();
+          if (returnPost == "No Internet") {
+            CustomDialogStack.showConnectionLost(Get.context!, () {
+              Get.back();
+            });
+            return;
+          }
+
+          if (returnPost == null) {
+            CustomDialogStack.showServerError(Get.context!, () {
+              Get.back();
+            });
+            return;
+          }
+          if (returnPost["success"] == "Y") {
+            final prefs = await SharedPreferences.getInstance();
+            prefs.setBool('isLoggedIn', false);
+            final plainText = jsonEncode(parameters);
+            Authentication().encryptData(plainText);
+
+            requestOtp();
+
+            return;
+          } else {
+            CustomDialogStack.showError(
+              // maxLines: 3,
+              Get.context!,
+              "luvpay",
+              returnPost["msg"],
+              () {
                 Get.back();
-              });
-              return;
-            }
-
-            if (returnPost == null) {
-              CustomDialogStack.showServerError(Get.context!, () {
-                Get.back();
-              });
-              return;
-            }
-            if (returnPost["success"] == "Y") {
-              final prefs = await SharedPreferences.getInstance();
-              prefs.setBool('isLoggedIn', false);
-              final plainText = jsonEncode(parameters);
-              Authentication().encryptData(plainText);
-
-              requestOtp();
-
-              return;
-            } else {
-              CustomDialogStack.showError(
-                // maxLines: 3,
-                Get.context!,
-                "luvpay",
-                returnPost["msg"],
-                () {
-                  Get.back();
-                },
-              );
-              // Get.back();
-              return;
-            }
-          });
-        },
-      );
-    } else {
-      CustomDialogStack.showError(
-        Get.context!,
-        "Attention",
-        "Your acknowledgement of our terms & conditions is required before you can continue.",
-        () {
-          Get.back();
-        },
-      );
-    }
+              },
+            );
+            // Get.back();
+            return;
+          }
+        });
+      },
+    );
   }
 
   Future<void> requestOtp() async {

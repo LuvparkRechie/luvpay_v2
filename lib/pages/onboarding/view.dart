@@ -8,6 +8,8 @@ import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/pages/routes/routes.dart';
 
+import '../../web_view/webview.dart';
+
 class MyOnboardingPage extends StatefulWidget {
   const MyOnboardingPage({super.key});
 
@@ -370,6 +372,7 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                                 ),
                                 DefaultText(
                                   text: "Sign In",
+                                  color: AppColorV2.lpBlueBrand,
                                   style: AppTextStyle.paragraph1.copyWith(
                                     color: currentPageColor,
                                     fontWeight: FontWeight.w700,
@@ -379,6 +382,33 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                               ],
                             ),
                           ),
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            DefaultText(text: "By continuing, you accept the "),
+                            InkWell(
+                              onTap: () {
+                                Get.to(
+                                  const WebviewPage(
+                                    bodyPadding: EdgeInsets.all(0),
+                                    urlDirect:
+                                        "https://luvpark.ph/terms-of-use/",
+                                    label: "Terms of Use",
+                                    isBuyToken: false,
+                                  ),
+                                );
+                              },
+                              child: DefaultText(
+                                style: AppTextStyle.paragraph2,
+                                color: AppColorV2.lpBlueBrand,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0,
+                                text: "Terms of Use",
+                              ),
+                            ),
+                          ],
                         ),
                       ],
 
@@ -395,7 +425,7 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
   }
 
   void _completeOnboarding() {
-    Get.offAllNamed(Routes.landing);
+    Get.offAllNamed(Routes.registration);
   }
 }
 
