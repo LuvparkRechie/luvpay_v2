@@ -9,9 +9,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/pages/billers/index.dart';
 import 'package:luvpay/pages/billers/utils/allbillers.dart';
-import 'package:luvpay/pages/merchant/pay_merchant.dart';
 import 'package:luvpay/pages/routes/routes.dart';
-import 'package:luvpay/pages/scanner_screen.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -86,29 +84,28 @@ class _WalletScreenState extends State<WalletScreen> {
     });
     getUserData();
     _loadProfile();
-    getNotificationCount();
+    // getNotificationCount();
+
+    _startAutoRefresh();
 
     ever(WalletRefreshBus.refresh, (_) {
-      _startAutoRefresh();
+      getUserData();
+      getLogs();
+      // getNotificationCount();
     });
   }
 
   void _startAutoRefresh() {
-    _timer?.cancel();
+    if (_timer != null) return;
     _timer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) {
         _timer?.cancel();
+        _timer = null;
         return;
       }
       getUserData();
       getLogs();
-      getNotificationCount();
-      final hour = DateTime.now().hour;
-      if (hour == 12 || hour == 17 || hour == 21) {
-        if (mounted) {
-          setState(() {});
-        }
-      }
+      // getNotificationCount();
     });
   }
 
@@ -118,23 +115,23 @@ class _WalletScreenState extends State<WalletScreen> {
     });
   }
 
-  Future<void> getNotificationCount() async {
-    try {
-      final item = await Authentication().getUserData();
-      String userId = jsonDecode(item!)['user_id'].toString();
+  // Future<void> getNotificationCount() async {
+  //   try {
+  //     final item = await Authentication().getUserData();
+  //     String userId = jsonDecode(item!)['user_id'].toString();
 
-      String subApi = "${ApiKeys.notificationApi}$userId";
-      HttpRequestApi(api: subApi).get().then((response) async {
-        if (response["items"].isNotEmpty) {
-          notifCount = response["items"].length;
-        } else {
-          notifCount = 0;
-        }
-      });
-    } catch (e) {
-      notifCount = 0;
-    }
-  }
+  //     String subApi = "${ApiKeys.notificationApi}$userId";
+  //     HttpRequestApi(api: subApi).get().then((response) async {
+  //       if (response["items"].isNotEmpty) {
+  //         notifCount = response["items"].length;
+  //       } else {
+  //         notifCount = 0;
+  //       }
+  //     });
+  //   } catch (e) {
+  //     notifCount = 0;
+  //   }
+  // }
 
   Future<void> getUserData() async {
     if (isLoading || !mounted) return;
@@ -420,8 +417,8 @@ class _WalletScreenState extends State<WalletScreen> {
               _buildHeader(),
               SizedBox(height: 10),
               _buildBalanceCard(),
-              SizedBox(height: 5),
-              _buildMerchantBillsGrid(),
+              // SizedBox(height: 5),
+              // _buildMerchantBillsGrid(),
               SizedBox(height: 25),
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -457,9 +454,12 @@ class _WalletScreenState extends State<WalletScreen> {
     return GridView.builder(
       padding: EdgeInsets.zero,
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 1,
+        mainAxisSpacing: 10,
+        mainAxisExtent: 50,
       ),
       itemCount: _merchantGridItems.length,
       itemBuilder: (context, index) {
@@ -483,15 +483,15 @@ class _WalletScreenState extends State<WalletScreen> {
             ),
 
             const SizedBox(height: 6),
-            DefaultText(
-              text: item['label'],
-              textAlign: TextAlign.center,
-              style: AppTextStyle.textbox,
-              color: AppColorV2.bodyTextColor,
-              minFontSize: 5,
-              maxFontSize: 10,
-              maxLines: 1,
-            ),
+            // DefaultText(
+            //   text: item['label'],
+            //   textAlign: TextAlign.center,
+            //   style: AppTextStyle.textbox,
+            //   color: AppColorV2.bodyTextColor,
+            //   minFontSize: 5,
+            //   maxFontSize: 10,
+            //   maxLines: 1,
+            // ),
           ],
         ),
       ),
@@ -650,13 +650,14 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    DefaultText(
-                      text: Functions().getFirstSurnameLetter(userInfo),
-                      style: AppTextStyle.h3_semibold,
-                      color: AppColorV2.background,
-                      maxLines: 1,
-                    ),
+                    // DefaultText(
+                    //   text: Functions().getFirstSurnameLetter(userInfo),
+                    //   style: AppTextStyle.h3_semibold,
+                    //   color: AppColorV2.background,
+                    //   maxLines: 1,
+                    // ),
                     Row(
                       children: [
                         Container(
@@ -680,6 +681,14 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                         ),
                       ],
+                    ),
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: SizedBox(
+                        width: 120,
+                        child: _buildMerchantBillsGrid(),
+                      ),
                     ),
                   ],
                 ),

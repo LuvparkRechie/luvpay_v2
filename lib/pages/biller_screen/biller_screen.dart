@@ -2,18 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
+import 'package:luvpay/custom_widgets/custom_body.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/custom_textfield.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
+import 'package:luvpay/custom_widgets/upper_case_formatter.dart';
+import 'package:luvpay/functions/functions.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/http/http_request.dart';
 import 'package:luvpay/pages/biller_screen/bill_receipt.dart';
 
 import 'package:material_symbols_icons/symbols.dart';
+
+import '../../otp_field/view.dart';
 
 class BillerScreen extends StatefulWidget {
   final List data;
@@ -40,6 +47,76 @@ class _BillerScreenState extends State<BillerScreen> {
   void initState() {
     super.initState();
     _initializeData();
+  }
+
+  Future<void> _requestOtpThenPay(VoidCallback onVerified) async {
+    try {
+      final data = await Authentication().getEncryptedKeys();
+      final uData = await Authentication().getUserData2();
+
+      final requestParam = <String, String>{
+        "mobile_no": uData["mobile_no"].toString(),
+        "pwd": data["pwd"],
+      };
+
+      CustomDialogStack.showLoading(Get.context!);
+      final timeNow = await Functions.getTimeNow();
+      Get.back();
+
+      Functions().requestOtp(requestParam, (objData) async {
+        if (objData == null) return;
+
+        final isOk =
+            (objData["success"] == "Y" || objData["status"] == "PENDING");
+        if (!isOk) {
+          CustomDialogStack.showError(
+            Get.context!,
+            "Error",
+            objData["msg"]?.toString() ?? "Failed to request OTP",
+            () => Get.back(),
+          );
+          return;
+        }
+
+        final timeExp = DateFormat(
+          "yyyy-MM-dd hh:mm:ss a",
+        ).parse(objData["otp_exp_dt"].toString());
+
+        final otpExpiry = DateTime(
+          timeExp.year,
+          timeExp.month,
+          timeExp.day,
+          timeExp.hour,
+          timeExp.minute,
+          timeExp.millisecond,
+        );
+
+        final difference = otpExpiry.difference(timeNow);
+
+        final putParam = <String, String>{
+          "mobile_no": uData["mobile_no"].toString(),
+          "otp": objData["otp"].toString(),
+        };
+
+        final args = {
+          "time_duration": difference,
+          "mobile_no": uData["mobile_no"].toString(),
+          "req_otp_param": requestParam,
+          "verify_param": putParam,
+          "callback": (otp) async {
+            if (otp != null) onVerified();
+          },
+        };
+
+        Get.to(
+          OtpFieldScreen(arguments: args),
+          transition: Transition.rightToLeftWithFade,
+          duration: const Duration(milliseconds: 400),
+        );
+      });
+    } catch (e) {
+      CustomDialogStack.showServerError(Get.context!, () => Get.back());
+    }
   }
 
   void _initializeData() {
@@ -149,27 +226,15 @@ class _BillerScreenState extends State<BillerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return CustomScaffoldV2(
+      padding: EdgeInsets.zero,
       backgroundColor: AppColorV2.background,
-      appBar: AppBar(
-        elevation: 1,
-        backgroundColor: AppColorV2.lpBlueBrand,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: AppColorV2.lpBlueBrand,
-          statusBarBrightness: Brightness.dark,
-          statusBarIconBrightness: Brightness.light,
-        ),
-        title: Text("Pay Bill"),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Get.back();
-            Get.back();
-          },
-          icon: Icon(Iconsax.arrow_left, color: Colors.white),
-        ),
-      ),
-      body: Padding(
+      onPressedLeading: () {
+        Get.back();
+        Get.back();
+      },
+      appBarTitle: "Pay Bill",
+      scaffoldBody: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 20),
         child: Column(
           children: [
@@ -196,11 +261,20 @@ class _BillerScreenState extends State<BillerScreen> {
                     ),
 
                     CustomTextField(
+                      keyboardType: TextInputType.number,
                       controller: _billAcctController,
                       hintText: 'Enter bill account number',
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(15),
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter bill account number';
+                          return "Account number is required";
+                        } else if (value.length < 5) {
+                          return "Account number must be at least 5 digits";
+                        } else if (value.length > 15) {
+                          return "Account number must not exceed 15 digits";
                         }
                         return null;
                       },
@@ -213,6 +287,7 @@ class _BillerScreenState extends State<BillerScreen> {
                     CustomTextField(
                       controller: _billNoController,
                       hintText: 'Enter bill number',
+                      inputFormatters: [UpperCaseTextFormatter()],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter bill number';
@@ -228,9 +303,30 @@ class _BillerScreenState extends State<BillerScreen> {
                     CustomTextField(
                       controller: _accountNameController,
                       hintText: 'Enter account name',
+                      keyboardType: TextInputType.name,
+                      textCapitalization: TextCapitalization.characters,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(30),
+                        TextInputFormatter.withFunction((oldValue, newValue) {
+                          final filtered = newValue.text
+                              .toUpperCase()
+                              .replaceAll(RegExp(r'[^A-Z\s]'), '')
+                              .replaceAll(RegExp(r'\s+'), ' ');
+
+                          return TextEditingValue(
+                            text: filtered,
+                            selection: TextSelection.collapsed(
+                              offset: filtered.length,
+                            ),
+                          );
+                        }),
+                      ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter account name';
+                          return "account name is required";
+                        }
+                        if (value.startsWith(' ') || value.endsWith(' ')) {
+                          return "account name cannot start or end with a space";
                         }
                         return null;
                       },
@@ -259,9 +355,15 @@ class _BillerScreenState extends State<BillerScreen> {
                     CustomButton(
                       text: "Pay now",
 
-                      onPressed: () {
+                      onPressed: () async {
                         FocusManager.instance.primaryFocus?.unfocus();
-                        _submitForm();
+
+                        if (!(_formKey.currentState?.validate() ?? false))
+                          return;
+
+                        await _requestOtpThenPay(() {
+                          _submitForm();
+                        });
                       },
                     ),
                     spacing(height: 20),

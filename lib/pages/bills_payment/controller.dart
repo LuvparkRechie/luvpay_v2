@@ -2,11 +2,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
-import 'package:intl/intl.dart';
 import 'package:luvpay/http/http_request.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -19,8 +16,6 @@ import '../../http/api_keys.dart';
 import '../biller_screen/bill_receipt.dart';
 import '../biller_screen/biller_screen.dart';
 import '../merchant/pay_merchant.dart';
-import '../routes/routes.dart';
-import 'view.dart';
 
 class BillsPaymentController extends GetxController {
   final GlobalKey<FormState> confirmFormKey = GlobalKey<FormState>();
@@ -33,11 +28,12 @@ class BillsPaymentController extends GetxController {
   TextEditingController note = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   TextEditingController myPass = TextEditingController();
-
+  List userData = [];
   @override
   void onInit() {
     accNo.text = arguments["accountno"];
     accName.text = arguments["account_name"];
+    getUserBalance();
     super.onInit();
   }
 
@@ -78,6 +74,16 @@ class BillsPaymentController extends GetxController {
 
     if (paymentHk != null) {
       payBills(paymentHk);
+    }
+  }
+
+  void getUserBalance() async {
+    try {
+      final data = await Functions.getUserBalance();
+      userData = data;
+      update();
+    } catch (e) {
+      debugPrint("Error fetching user data: $e");
     }
   }
 

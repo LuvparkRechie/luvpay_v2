@@ -1,26 +1,24 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/otp_field/index.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
-import '../../custom_widgets/confirm_password.dart';
 import '../../custom_widgets/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/custom_textfield.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/spacing.dart';
 import '../../functions/functions.dart';
-import '../../security/app_security.dart';
+import '../biller_screen/biller_screen.dart';
 import '../billers/utils/ticketclipper.dart';
-import '../my_account/utils/view.dart';
 import 'controller.dart';
 
 class BillsPayment extends GetView<BillsPaymentController> {
@@ -29,6 +27,7 @@ class BillsPayment extends GetView<BillsPaymentController> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
+      appBarTitle: "Pay Bill",
       enableToolBar: true,
       scaffoldBody: SafeArea(
         child: SafeArea(
@@ -39,12 +38,8 @@ class BillsPayment extends GetView<BillsPaymentController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  DefaultText(
-                    text: controller.arguments["biller_name"],
-                    color: AppColorV2.lpBlueBrand,
-                    style: AppTextStyle.h3,
-                  ),
-                  spacing(height: 5),
+                  _buildBillerCard(),
+
                   Visibility(
                     visible: controller.arguments["biller_address"] != "",
                     child: DefaultText(
@@ -54,38 +49,21 @@ class BillsPayment extends GetView<BillsPaymentController> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Divider(color: AppColorV2.bodyTextColor),
                   SizedBox(height: 20),
-                  DefaultText(text: "Account Number", style: AppTextStyle.h3),
+                  buildWalletBalance(),
+                  spacing(height: 30),
+                  DefaultText(
+                    text: "Bill Account Number",
+                    style: AppTextStyle.h3,
+                  ),
                   CustomTextField(
                     controller: controller.accNo,
-                    hintText: "Enter Account Number",
-                    inputFormatters: <TextInputFormatter>[
+                    hintText: 'Enter bill account number',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
                       LengthLimitingTextInputFormatter(15),
-                      TextInputFormatter.withFunction((oldValue, newValue) {
-                        final String newText = newValue.text.replaceAll(
-                          RegExp(r'[^0-9-]'),
-                          '',
-                        );
-                        if (newText != oldValue.text) {
-                          return TextEditingValue(
-                            text: newText,
-                            selection: TextSelection.collapsed(
-                              offset: newText.length,
-                            ),
-                          );
-                        }
-
-                        return oldValue;
-                      }),
+                      FilteringTextInputFormatter.digitsOnly,
                     ],
-                    keyboardType:
-                        Platform.isAndroid
-                            ? TextInputType.numberWithOptions(decimal: true)
-                            : const TextInputType.numberWithOptions(
-                              signed: true,
-                              decimal: true,
-                            ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Account number is required";
@@ -97,39 +75,65 @@ class BillsPayment extends GetView<BillsPaymentController> {
                       return null;
                     },
                   ),
+
                   SizedBox(height: 14),
                   DefaultText(text: "Account Name", style: AppTextStyle.h3),
                   CustomTextField(
                     controller: controller.accName,
                     hintText: "Enter account name",
-                    inputFormatters: [
-                      UpperCaseTextFormatter(),
-                      LengthLimitingTextInputFormatter(30),
-                      FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z\s]')),
-                    ],
-                    textCapitalization: TextCapitalization.characters,
                     keyboardType: TextInputType.name,
+                    textCapitalization: TextCapitalization.characters,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(30),
+                      TextInputFormatter.withFunction((oldValue, newValue) {
+                        final filtered = newValue.text
+                            .toUpperCase()
+                            .replaceAll(RegExp(r'[^A-Z\s]'), '')
+                            .replaceAll(RegExp(r'\s+'), ' ');
+
+                        return TextEditingValue(
+                          text: filtered,
+                          selection: TextSelection.collapsed(
+                            offset: filtered.length,
+                          ),
+                        );
+                      }),
+                    ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "account name is required";
                       }
-                      if ((value.startsWith(' ') ||
-                          value.endsWith(' ') ||
-                          value.endsWith('-') ||
-                          value.endsWith('.'))) {
+                      if (value.startsWith(' ') || value.endsWith(' ')) {
                         return "account name cannot start or end with a space";
                       }
-
                       return null;
                     },
                   ),
+
                   SizedBox(height: 14),
                   DefaultText(text: "Reference Number", style: AppTextStyle.h3),
                   CustomTextField(
                     controller: controller.billRefNo,
                     hintText: "Enter reference number",
                     keyboardType: TextInputType.text,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(30),
+                      TextInputFormatter.withFunction((oldValue, newValue) {
+                        final filtered = newValue.text.toUpperCase().replaceAll(
+                          RegExp(r'[^A-Z0-9]'),
+                          '',
+                        );
+
+                        return TextEditingValue(
+                          text: filtered,
+                          selection: TextSelection.collapsed(
+                            offset: filtered.length,
+                          ),
+                        );
+                      }),
+                    ],
                   ),
+
                   SizedBox(height: 14),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -256,6 +260,74 @@ class BillsPayment extends GetView<BillsPaymentController> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBillerCard() {
+    return Row(
+      children: [
+        Icon(Iconsax.receipt_text, color: AppColorV2.lpBlueBrand, size: 24),
+        SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            _capitalize(controller.arguments["biller_name"]),
+            style: TextStyle(
+              color: AppColorV2.lpBlueBrand,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _capitalize(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
+  Widget buildWalletBalance() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DefaultText(text: "luvpay Balance", style: AppTextStyle.h3),
+        spacing(height: 14),
+        Container(
+          height: 50,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(color: AppColorV2.lpBlueBrand.withAlpha(50)),
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              image: AssetImage("assets/images/booking_wallet_bg.png"),
+            ),
+          ),
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Icon(Symbols.wallet, color: AppColorV2.background),
+              Container(width: 10),
+              Expanded(
+                child: DefaultText(
+                  color: AppColorV2.background,
+                  text:
+                      (controller.userData.isNotEmpty &&
+                              controller.userData[0]["items"] != null &&
+                              controller.userData[0]["items"].isNotEmpty)
+                          ? toCurrencyString(
+                            controller.userData[0]["items"][0]["amount_bal"]
+                                .toString(),
+                          )
+                          : "0.00",
+                  style: AppTextStyle.body1,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
