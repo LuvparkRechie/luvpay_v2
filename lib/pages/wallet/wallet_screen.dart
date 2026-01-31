@@ -27,7 +27,8 @@ import '../transaction/transaction_details.dart';
 import '../transaction/transaction_screen.dart';
 
 class WalletScreen extends StatefulWidget {
-  const WalletScreen({super.key});
+  final bool? fromTab;
+  const WalletScreen({super.key, this.fromTab});
 
   @override
   State<WalletScreen> createState() => _WalletScreenState();
@@ -48,14 +49,6 @@ class _WalletScreenState extends State<WalletScreen> {
   bool _isDialogVisible = false;
 
   List<Map<String, dynamic>> get _merchantGridItems => [
-    {
-      'icon': "assets/images/luvpay_merchant.png",
-      'label': 'Merchant',
-      'color': Colors.blue,
-      'onTap': () {
-        scanMerchant();
-      },
-    },
     {
       'icon': "assets/images/luvpay_bills.png",
       'label': 'Bills',
@@ -83,19 +76,6 @@ class _WalletScreenState extends State<WalletScreen> {
         showTopUpMethod();
       },
     },
-    // {
-    //   'icon': "assets/images/luvpay_subwallet.png",
-    //   'label': 'Subwallets',
-    //   'color': Colors.red,
-    //   'onTap': () async {
-    //     final result = await Get.toNamed(Routes.subwallet);
-    //     if (result == true) {
-    //       _startAutoRefresh();
-    //       getUserData();
-    //       getLogs();
-    //     }
-    //   },
-    // },
   ];
 
   @override
@@ -136,145 +116,6 @@ class _WalletScreenState extends State<WalletScreen> {
     setState(() {
       isOpen = !isOpen;
     });
-  }
-
-  Future<void> scanMerchant() async {
-    showDialog(
-      context: Get.context!,
-      builder: (BuildContext context) {
-        return ScannerScreenV2(
-          onchanged: (args) async {
-            if (args.isNotEmpty) {
-              getService(args);
-            }
-          },
-        );
-      },
-    );
-  }
-
-  Future<dynamic> getScannedQr(String apiKey) async {
-    print("Calling API: $apiKey");
-    final response = await HttpRequestApi(api: apiKey).get();
-    return response;
-  }
-
-  void getService(String args) async {
-    CustomDialogStack.showLoading(Get.context!);
-
-    String apiMerchant = "${ApiKeys.getMerchantScan}?merchant_key=$args";
-
-    final merchantResponse = await getScannedQr(apiMerchant);
-    print("apiMerchant $apiMerchant");
-
-    if (merchantResponse == "No Internet") {
-      _showInternetError();
-      return;
-    }
-
-    if (_isValidResponse(merchantResponse)) {
-      String serviceName = merchantResponse["items"][0]["merchant_name"] ?? "";
-      String serviceAddress =
-          merchantResponse["items"][0]["merchant_address"] ?? "";
-      _handleSuccess(
-        args,
-        "merchant",
-        merchantResponse,
-        serviceName,
-        serviceAddress,
-      );
-      return;
-    }
-
-    Get.back();
-    CustomDialogStack.showError(
-      Get.context!,
-      "Invalid QR Code",
-      "This QR code is not registered in the system.",
-      () {
-        Get.back();
-      },
-    );
-  }
-
-  bool _isValidResponse(dynamic res) {
-    if (res == null) return false;
-    if (res == "Error" || res == "Failed") return false;
-    if (res == "" || res == "{}" || res == "[]") return false;
-
-    if (res is Map && res.isNotEmpty) return true;
-    if (res is List && res.isNotEmpty) return true;
-
-    return false;
-  }
-
-  void _handleSuccess(
-    String args,
-    String type,
-    dynamic response,
-    serviceName,
-    serviceAddress,
-  ) async {
-    final paymentHk = await getpaymentHK();
-    Get.back();
-
-    List itemData = [
-      {
-        "data": response["items"][0],
-        'merchant_key': args,
-        "merchant_name": serviceName,
-        'merchant_address': serviceAddress,
-        "payment_key": paymentHk,
-      },
-    ];
-    Get.to(
-      Scaffold(
-        backgroundColor: AppColorV2.background,
-
-        body: PayMerchant(data: itemData),
-      ),
-    );
-  }
-
-  void _showInternetError() {
-    Get.back();
-    CustomDialogStack.showError(
-      Get.context!,
-      "Error",
-      "Please check your internet connection and try again.",
-      () {
-        Get.back();
-      },
-    );
-  }
-
-  Future<dynamic> getpaymentHK() async {
-    final userID = await Authentication().getUserId();
-
-    final paymentKey =
-        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
-    if (paymentKey == "No Internet") {
-      CustomDialogStack.showConnectionLost(Get.context!, () {
-        Get.back();
-      });
-      return null;
-    }
-    if (paymentKey == null) {
-      CustomDialogStack.showServerError(Get.context!, () {
-        Get.back();
-      });
-
-      return null;
-    }
-    if (paymentKey["items"].isNotEmpty) {
-      return paymentKey["items"][0]["payment_hk"].toString();
-    } else {
-      CustomDialogStack.showServerError(Get.context!, () {
-        Get.back();
-      });
-
-      return null;
-    }
   }
 
   Future<void> getNotificationCount() async {

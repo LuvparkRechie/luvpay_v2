@@ -103,33 +103,33 @@ class Allbillers extends GetView<BillersController> {
                                     ),
                                     child: Row(
                                       children: [
-                                        Neumorphic(
-                                          style: NeumorphicStyle(
-                                            color: AppColorV2.background,
-                                            depth: -1.2,
-                                            intensity: LuvNeu.intensity,
-                                            surfaceIntensity:
-                                                LuvNeu.surfaceIntensity,
-                                            boxShape:
-                                                NeumorphicBoxShape.roundRect(
-                                                  BorderRadius.circular(12),
-                                                ),
-                                            border: NeumorphicBorder(
-                                              color: AppColorV2.lpBlueBrand
-                                                  .withOpacity(0.06),
-                                              width: 0.7,
-                                            ),
-                                          ),
-                                          child: SizedBox(
-                                            width: 44,
-                                            height: 44,
-                                            child: Icon(
-                                              LucideIcons.receipt,
-                                              size: 20,
-                                              color: AppColorV2.lpBlueBrand,
-                                            ),
-                                          ),
-                                        ),
+                                        // Neumorphic(
+                                        //   style: NeumorphicStyle(
+                                        //     color: AppColorV2.background,
+                                        //     depth: -1.2,
+                                        //     intensity: LuvNeu.intensity,
+                                        //     surfaceIntensity:
+                                        //         LuvNeu.surfaceIntensity,
+                                        //     boxShape:
+                                        //         NeumorphicBoxShape.roundRect(
+                                        //           BorderRadius.circular(12),
+                                        //         ),
+                                        //     border: NeumorphicBorder(
+                                        //       color: AppColorV2.lpBlueBrand
+                                        //           .withOpacity(0.06),
+                                        //       width: 0.7,
+                                        //     ),
+                                        //   ),
+                                        //   child: SizedBox(
+                                        //     width: 44,
+                                        //     height: 44,
+                                        //     child: Icon(
+                                        //       LucideIcons.receipt,
+                                        //       size: 20,
+                                        //       color: AppColorV2.lpBlueBrand,
+                                        //     ),
+                                        //   ),
+                                        // ),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(

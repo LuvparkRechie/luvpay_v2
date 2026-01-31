@@ -22,8 +22,77 @@ import 'controller.dart';
 
 class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
   const WalletRechargeLoadScreen({super.key});
+
+  BoxDecoration _neoCard({
+    double radius = 12,
+    Color? color,
+    bool inset = false,
+  }) {
+    final base = color ?? AppColorV2.background;
+    final top = Colors.white.withAlpha(180);
+    final bottom = Colors.black.withAlpha(28);
+
+    return BoxDecoration(
+      color: base,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: Colors.black.withAlpha(12)),
+      boxShadow:
+          inset
+              ? [
+                BoxShadow(
+                  color: Colors.black.withAlpha(18),
+                  blurRadius: 10,
+                  offset: Offset(3, 3),
+                ),
+                BoxShadow(
+                  color: Colors.white.withAlpha(210),
+                  blurRadius: 10,
+                  offset: Offset(-3, -3),
+                ),
+              ]
+              : [
+                BoxShadow(color: bottom, blurRadius: 12, offset: Offset(6, 6)),
+                BoxShadow(color: top, blurRadius: 12, offset: Offset(-6, -6)),
+              ],
+    );
+  }
+
+  BoxDecoration _neoChip({double radius = 10, required bool active}) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(radius),
+      color: active ? AppColorV2.lpBlueBrand : AppColorV2.background,
+      border: Border.all(
+        color: active ? Colors.transparent : Colors.black.withAlpha(14),
+        width: 1,
+      ),
+      boxShadow:
+          active
+              ? [
+                BoxShadow(
+                  color: Colors.black.withAlpha(30),
+                  blurRadius: 10,
+                  offset: Offset(4, 4),
+                ),
+              ]
+              : [
+                BoxShadow(
+                  color: Colors.black.withAlpha(20),
+                  blurRadius: 10,
+                  offset: Offset(4, 4),
+                ),
+                BoxShadow(
+                  color: Colors.white.withAlpha(210),
+                  blurRadius: 10,
+                  offset: Offset(-4, -4),
+                ),
+              ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final imgPath = controller.arguments["image"];
+
     return CustomScaffoldV2(
       enableToolBar: true,
       appBarTitle: "Top up",
@@ -31,97 +100,110 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
         controller.mobNum.clear();
         Get.back();
       },
-      scaffoldBody: Obx(
-        () => Form(
-          key: controller.topUpKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 14),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(20),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
+      scaffoldBody: Form(
+        key: controller.topUpKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RepaintBoundary(
+                child: Container(
+                  decoration: _neoCard(
+                    radius: 12,
+                    color: AppColorV2.background,
                   ),
                   height: 70,
-                  padding: EdgeInsets.all(20),
-                  child: Image.asset(controller.arguments["image"]),
+                  width: MediaQuery.of(context).size.width / 2,
+                  padding: EdgeInsets.all(16),
+                  child: Center(
+                    child: Image.asset(
+                      imgPath,
+                      fit: BoxFit.contain,
+                      gaplessPlayback: true,
+                    ),
+                  ),
                 ),
-                SizedBox(height: 10),
-                Divider(),
-                SizedBox(height: 10),
-                topupAccount(),
-                SizedBox(height: 5),
-                SizedBox(height: 14),
-                DefaultText(text: "Amount", style: AppTextStyle.h3),
-                CustomTextField(
-                  controller: controller.amountController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp("[0-9]")),
-                    LengthLimitingTextInputFormatter(5),
-                  ],
-                  keyboardType:
-                      Platform.isAndroid
-                          ? TextInputType.number
-                          : const TextInputType.numberWithOptions(
-                            signed: true,
-                            decimal: false,
-                          ),
-                  onChange: (d) {
-                    controller.onTextChange();
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Amount is required";
-                    }
-                    if (double.parse(value.toString()) <
-                        controller.minTopUp.value) {
-                      return "Minimum of ${controller.minTopUp.value} tokens";
-                    }
+              ),
 
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                for (int i = 0; i < controller.padData.length; i += 3)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      for (
-                        int j = i;
-                        j < i + 3 && j < controller.padData.length;
-                        j++
-                      )
-                        myPads(controller.padData[j], j),
-                    ],
-                  ),
-                const SizedBox(height: 30),
-                if (MediaQuery.of(context).viewInsets.bottom == 0)
-                  CustomButton(
-                    text: "Continue",
-                    btnColor:
-                        !controller.isActiveBtn.value
-                            ? AppColorV2.lpBlueBrand.withValues(alpha: .7)
-                            : AppColorV2.lpBlueBrand,
-                    onPressed:
-                        !controller.isActiveBtn.value
-                            ? () {}
-                            : () {
-                              controller.onPay();
-                            },
-                  ),
-              ],
-            ),
+              SizedBox(height: 10),
+              Divider(color: Colors.black.withAlpha(18)),
+              SizedBox(height: 10),
+
+              Obx(() => topupAccount()),
+
+              SizedBox(height: 14),
+              DefaultText(text: "Amount", style: AppTextStyle.h3),
+              CustomTextField(
+                controller: controller.amountController,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp("[0-9]")),
+                  LengthLimitingTextInputFormatter(5),
+                ],
+                keyboardType:
+                    Platform.isAndroid
+                        ? TextInputType.number
+                        : const TextInputType.numberWithOptions(
+                          signed: true,
+                          decimal: false,
+                        ),
+                onChange: (d) {
+                  controller.onTextChange();
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Amount is required";
+                  }
+                  if (double.parse(value.toString()) <
+                      controller.minTopUp.value) {
+                    return "Minimum of ${controller.minTopUp.value} tokens";
+                  }
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 20),
+
+              Obx(() {
+                return Column(
+                  children: [
+                    for (int i = 0; i < controller.padData.length; i += 3)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          for (
+                            int j = i;
+                            j < i + 3 && j < controller.padData.length;
+                            j++
+                          )
+                            myPads(controller.padData[j], j),
+                        ],
+                      ),
+                  ],
+                );
+              }),
+
+              const SizedBox(height: 30),
+
+              Obx(() {
+                if (MediaQuery.of(context).viewInsets.bottom != 0) {
+                  return SizedBox.shrink();
+                }
+                return CustomButton(
+                  text: "Continue",
+                  btnColor:
+                      !controller.isActiveBtn.value
+                          ? AppColorV2.lpBlueBrand.withValues(alpha: .7)
+                          : AppColorV2.lpBlueBrand,
+                  onPressed:
+                      !controller.isActiveBtn.value
+                          ? () {}
+                          : () {
+                            controller.onPay();
+                          },
+                );
+              }),
+            ],
           ),
         ),
       ),
@@ -129,36 +211,23 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
   }
 
   Widget topupAccount() {
+    final isUnknown = controller.rname.text.toLowerCase().contains("unknown");
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         DefaultText(text: "Top up tokens for", style: AppTextStyle.h3),
         SizedBox(height: 10),
         Container(
-          padding: EdgeInsets.all(10),
+          padding: EdgeInsets.all(12),
           width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color:
-                  controller.rname.text.toLowerCase().contains("unknown")
-                      ? AppColorV2.incorrectState
-                      : Colors.transparent,
-            ),
-            borderRadius: BorderRadius.circular(7),
-            color:
-                controller.rname.text == "Unknown user"
-                    ? Color(0xFFFFDFDF)
-                    : AppColorV2.lpBlueBrand.withValues(alpha: .1),
-          ),
+          decoration: _recipientNeo(isUnknown: isUnknown),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  controller.userImage.value.isEmpty ||
-                          controller.rname.text.toLowerCase().contains(
-                            "unknown",
-                          )
+                  controller.userImage.value.isEmpty || isUnknown
                       ? Image.asset(
                         height: 50,
                         "assets/images/no_whiteborder_person.png",
@@ -186,10 +255,8 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                         DefaultText(
                           maxLines: 1,
                           text: controller.rname.text,
-
                           style: AppTextStyle.h3_f22,
                         ),
-
                         DefaultText(
                           maxLines: 1,
                           text:
@@ -202,30 +269,9 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                     ),
                   ),
                   Container(width: 5),
-                  // InkWell(
-                  //   onTap: () {
-                  //     Get.bottomSheet(
-                  //       UserssBottomsheet(
-                  //         index: 2,
-                  //         cb: (index) {
-                  //           Functions.popPage(index);
-                  //         },
-                  //       ),
-                  //       isDismissible: false,
-                  //     );
-                  //   },
-                  //   child: Icon(
-                  //     LucideIcons.edit,
-                  //     size: 20,
-                  //     color:
-                  //         controller.rname.text == "Unknown user"
-                  //             ? AppColorV2.incorrectState
-                  //             : AppColorV2.lpBlueBrand,
-                  //   ),
-                  // ),
                 ],
               ),
-              Divider(),
+              Divider(color: Colors.black.withAlpha(18)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -244,7 +290,6 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
         ),
         Visibility(
           visible: controller.rname.text == "Unknown user",
-
           child: Padding(
             padding: const EdgeInsets.only(top: 10.0),
             child: DefaultText(
@@ -257,21 +302,61 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
     );
   }
 
+  BoxDecoration _recipientNeo({required bool isUnknown}) {
+    if (isUnknown) {
+      return BoxDecoration(
+        color: Color(0xFFFFDFDF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColorV2.incorrectState.withAlpha(120)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(18),
+            blurRadius: 10,
+            offset: Offset(4, 4),
+          ),
+          BoxShadow(
+            color: Colors.white.withAlpha(210),
+            blurRadius: 10,
+            offset: Offset(-4, -4),
+          ),
+        ],
+      );
+    }
+
+    return BoxDecoration(
+      color: AppColorV2.background,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black.withAlpha(12)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withAlpha(18),
+          blurRadius: 12,
+          offset: Offset(6, 6),
+        ),
+        BoxShadow(
+          color: Colors.white.withAlpha(210),
+          blurRadius: 12,
+          offset: Offset(-6, -6),
+        ),
+      ],
+    );
+  }
+
   Widget myPads(data, int index) {
+    final active = data["is_active"] == true;
+
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(3.0),
         child: InkWell(
+          borderRadius: BorderRadius.circular(10),
           onTap: () {
             controller.pads(data["value"]);
           },
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(22, 10, 22, 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(7),
-              border: Border.all(color: Colors.grey.shade200, width: 1),
-              color: data["is_active"] ? AppColorV2.lpBlueBrand : Colors.white,
-            ),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 160),
+            padding: const EdgeInsets.fromLTRB(22, 12, 22, 12),
+            decoration: _neoChip(active: active),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -282,12 +367,12 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                   minFontSize: 8,
                   text: "${data["value"]}",
                   fontWeight: FontWeight.w700,
-                  color: data["is_active"] ? Colors.white : Colors.black,
+                  color: active ? Colors.white : Colors.black,
                 ),
                 DefaultText(
                   text: "Token",
                   fontWeight: FontWeight.w500,
-                  color: data["is_active"] ? Colors.white : null,
+                  color: active ? Colors.white : null,
                 ),
               ],
             ),
@@ -309,24 +394,56 @@ class PaymentMethodType extends StatelessWidget {
     {"type": "Pay Gate", "value": "paygate"},
   ];
 
+  BoxDecoration _neoSheetTile() {
+    return BoxDecoration(
+      color: AppColorV2.background,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black.withAlpha(10)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withAlpha(16),
+          blurRadius: 10,
+          offset: Offset(5, 5),
+        ),
+        BoxShadow(
+          color: Colors.white.withAlpha(210),
+          blurRadius: 10,
+          offset: Offset(-5, -5),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Wrap(
       children: [
         Container(
           padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-          color: Colors.white,
-
+          color: AppColorV2.background,
           width: double.infinity,
           child: Column(
             children:
                 paymentType.map((e) {
-                  return ListTile(
-                    onTap: () {
-                      Get.back();
-                      cabllBack(e["value"]);
-                    },
-                    title: DefaultText(text: e["type"]),
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        Get.back();
+                        cabllBack(e["value"]);
+                      },
+                      child: Container(
+                        decoration: _neoSheetTile(),
+                        child: ListTile(
+                          title: DefaultText(text: e["type"]),
+                          trailing: Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColorV2.bodyTextColor,
+                          ),
+                        ),
+                      ),
+                    ),
                   );
                 }).toList(),
           ),
@@ -403,6 +520,26 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
     }
   }
 
+  BoxDecoration _neoActionPill() {
+    return BoxDecoration(
+      color: AppColorV2.background,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black.withAlpha(10)),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withAlpha(18),
+          blurRadius: 10,
+          offset: Offset(4, 4),
+        ),
+        BoxShadow(
+          color: Colors.white.withAlpha(210),
+          blurRadius: 10,
+          offset: Offset(-4, -4),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -410,13 +547,20 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
       child: Container(
         padding: EdgeInsets.only(top: 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
           color: AppColorV2.lpBlueBrand,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(35),
+              blurRadius: 14,
+              offset: Offset(0, -2),
+            ),
+          ],
         ),
         child: Wrap(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -436,7 +580,22 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
             ),
             Container(
               padding: const EdgeInsets.all(19),
-              decoration: BoxDecoration(color: AppColorV2.background),
+              decoration: BoxDecoration(
+                color: AppColorV2.background,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withAlpha(220),
+                    blurRadius: 12,
+                    offset: Offset(-6, -6),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withAlpha(16),
+                    blurRadius: 12,
+                    offset: Offset(6, 6),
+                  ),
+                ],
+              ),
               child: Form(
                 key: _formKey,
                 child: SingleChildScrollView(
@@ -468,7 +627,6 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                           if (value.toString().replaceAll(" ", "")[0] == '0') {
                             return 'Invalid mobile number';
                           }
-
                           return null;
                         },
                       ),
@@ -485,9 +643,9 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             InkWell(
+                              borderRadius: BorderRadius.circular(12),
                               onTap: () {
                                 FocusManager.instance.primaryFocus!.unfocus();
-
                                 ct.requestCameraPermission();
                               },
                               child: Container(
@@ -495,14 +653,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                                   horizontal: 14,
                                   vertical: 10,
                                 ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: AppColorV2.bodyTextColor.withAlpha(
-                                      50,
-                                    ),
-                                  ),
-                                ),
+                                decoration: _neoActionPill(),
                                 child: Row(
                                   children: [
                                     Icon(
@@ -520,6 +671,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                             ),
                             SizedBox(width: 8),
                             InkWell(
+                              borderRadius: BorderRadius.circular(12),
                               onTap: () {
                                 selectSingleContact();
                               },
@@ -528,14 +680,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                                   horizontal: 14,
                                   vertical: 10,
                                 ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: AppColorV2.bodyTextColor.withAlpha(
-                                      50,
-                                    ),
-                                  ),
-                                ),
+                                decoration: _neoActionPill(),
                                 child: Row(
                                   children: [
                                     Icon(

@@ -164,6 +164,7 @@ class _BillerScreenState extends State<BillerScreen> {
         leading: IconButton(
           onPressed: () {
             Get.back();
+            Get.back();
           },
           icon: Icon(Iconsax.arrow_left, color: Colors.white),
         ),

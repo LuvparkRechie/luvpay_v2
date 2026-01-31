@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:ticketcher/ticketcher.dart';
@@ -52,7 +53,10 @@ class BillPaymentReceipt extends StatelessWidget {
                   children: [
                     CustomButton(
                       text: "Done",
-                      onPressed: () => Get.back(result: true),
+                      onPressed: () {
+                        Get.back(result: true);
+                        Get.back(result: true);
+                      },
                     ),
                     const SizedBox(height: 10),
                     CustomButton(
@@ -114,16 +118,16 @@ class BillPaymentReceipt extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "AMOUNT PAID",
+                  DefaultText(
+                    text: "AMOUNT PAID",
                     style: TextStyle(
                       color: AppColorV2.bodyTextColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Text(
-                    _formatCurrency(amount),
+                  DefaultText(
+                    text: _formatCurrency(amount),
                     style: TextStyle(
                       color: AppColorV2.lpBlueBrand,
                       fontSize: 18,
@@ -173,46 +177,31 @@ class BillPaymentReceipt extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
           child: Column(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColorV2.pastelBlueAccent.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.favorite_rounded,
-                      color: AppColorV2.lpBlueBrand,
-                      size: 16,
+              Column(
+                children: [
+                  Image.asset("assets/images/logo.png", height: 40),
+                  const SizedBox(height: 8),
+                  DefaultText(
+                    text: 'Thank you for your payment!',
+                    style: TextStyle(
+                      color: AppColorV2.primaryTextColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Thank you for your payment!',
-                      style: TextStyle(
-                        color: AppColorV2.primaryTextColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      textAlign: TextAlign.center,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  DefaultText(
+                    text: 'Keep this receipt for your records',
+                    style: TextStyle(
+                      color: AppColorV2.bodyTextColor,
+                      fontSize: 10,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Keep this receipt for your records',
-                      style: TextStyle(
-                        color: AppColorV2.bodyTextColor,
-                        fontSize: 10,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Container(height: 4, color: AppColorV2.primaryTextColor),
-              ),
             ],
           ),
         ),
@@ -282,8 +271,8 @@ class BillPaymentReceipt extends StatelessWidget {
           child: const Icon(Icons.check_rounded, color: Colors.white, size: 30),
         ),
         const SizedBox(height: 16),
-        Text(
-          'Payment Successful',
+        DefaultText(
+          text: 'Payment Successful',
           style: TextStyle(
             color: AppColorV2.primaryTextColor,
             fontSize: 20,
@@ -300,8 +289,8 @@ class BillPaymentReceipt extends StatelessWidget {
       children: [
         Expanded(
           flex: 4,
-          child: Text(
-            title,
+          child: DefaultText(
+            text: title,
             style: TextStyle(
               color: AppColorV2.bodyTextColor,
               fontSize: 12,
@@ -312,8 +301,8 @@ class BillPaymentReceipt extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           flex: 6,
-          child: Text(
-            value,
+          child: DefaultText(
+            text: value,
             textAlign: TextAlign.right,
             style: TextStyle(
               color: AppColorV2.primaryTextColor,

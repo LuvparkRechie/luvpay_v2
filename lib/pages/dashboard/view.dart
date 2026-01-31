@@ -1,10 +1,8 @@
 // ignore_for_file: unused_element_parameter
 
-import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/http/http_request.dart';
@@ -31,6 +29,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final DashboardController controller = Get.put(DashboardController());
+  bool _serviceBusy = false;
 
   @override
   void initState() {
@@ -41,16 +40,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildScreen(int index) {
     switch (index) {
       case 0:
-        return WalletScreen();
+        return WalletScreen(fromTab: true);
 
       case 1:
         return const SubWalletScreen();
       case 2:
         return ScannerScreenV2(
+          isBack: false,
+          onScanStart: () {
+            controller.changePage(0);
+          },
           onchanged: (args) {
-            if (args.isNotEmpty) {
-              getService(args);
-            }
+            if (args.isNotEmpty) getService(args);
           },
         );
 
@@ -70,59 +71,110 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void getService(String args) async {
+    print(" args: $args");
+    if (_serviceBusy) return;
+    _serviceBusy = true;
+
     CustomDialogStack.showLoading(Get.context!);
 
-    final apiBill = "${ApiKeys.postPayBills}?biller_key=$args";
-    final apiMerchant = "${ApiKeys.getMerchantScan}?merchant_key=$args";
+    try {
+      final apiBill = "${ApiKeys.postPayBills}?biller_key=$args";
+      final billerResponse = await getScannedQr(apiBill);
+      print("apiBill response: $billerResponse");
 
-    final billerResponse = await getScannedQr(apiBill);
-    if (_isValidResponse(billerResponse)) {
-      Get.back();
-      Get.to(
-        BillerScreen(
-          data: billerResponse["items"],
-          paymentHk: await getpaymentHK(),
-        ),
+      if (billerResponse == "No Internet") {
+        _handleScanError(
+          "Error",
+          "Please check your internet connection and try again.",
+        );
+        return;
+      }
+
+      final billerItems =
+          (billerResponse is Map) ? billerResponse["items"] : null;
+      if (billerItems is List && billerItems.isNotEmpty) {
+        _safeCloseLoading();
+        Get.to(
+          BillerScreen(data: billerItems, paymentHk: await getpaymentHK()),
+        );
+        return;
+      }
+
+      final apiMerchant = "${ApiKeys.getMerchantScan}?merchant_key=$args";
+      final merchantResponse = await getScannedQr(apiMerchant);
+      print("merchantResponse response: $merchantResponse");
+      if (merchantResponse == "No Internet") {
+        _handleScanError(
+          "Error",
+          "Please check your internet connection and try again.",
+        );
+        return;
+      }
+
+      final merchantItems =
+          (merchantResponse is Map) ? merchantResponse["items"] : null;
+      if (merchantItems is List && merchantItems.isNotEmpty) {
+        _safeCloseLoading();
+        Get.to(
+          PayMerchant(
+            data: [
+              {
+                "data": merchantItems[0],
+                "merchant_key": args,
+                "payment_key": await getpaymentHK(),
+              },
+            ],
+          ),
+        );
+        return;
+      }
+
+      _handleScanError(
+        "Invalid QR Code",
+        "This QR code is not registered in the system.",
       );
-      return;
+    } catch (e) {
+      debugPrint("getService error: $e");
+      _handleScanError("Scan Error", "Something went wrong. Please try again.");
+    } finally {
+      _serviceBusy = false;
     }
-
-    final merchantResponse = await getScannedQr(apiMerchant);
-
-    if (_isValidResponse(merchantResponse)) {
-      Get.back();
-      Get.to(
-        PayMerchant(
-          data: [
-            {
-              "data": merchantResponse["items"][0],
-              "merchant_key": args,
-              "payment_key": await getpaymentHK(),
-            },
-          ],
-        ),
-      );
-      return;
-    }
-
-    Get.back();
-    CustomDialogStack.showError(
-      Get.context!,
-      "Invalid QR Code",
-      "This QR code is not registered in the system.",
-      () => Get.back(),
-    );
   }
 
-  bool _isValidResponse(dynamic res) {
-    return res != null && res["items"] != null && res["items"].isNotEmpty;
+  void _safeCloseLoading() {
+    while (Get.isDialogOpen == true) {
+      Get.back();
+    }
   }
 
   Future<dynamic> getpaymentHK() async {
     final userID = await Authentication().getUserId();
-    final res =
+    final paymentKey =
         await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
-    return res?["items"]?[0]?["payment_hk"];
+
+    if (paymentKey == "No Internet") {
+      CustomDialogStack.showConnectionLost(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+
+    if (paymentKey == null) {
+      CustomDialogStack.showServerError(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+
+    final items = (paymentKey is Map) ? paymentKey["items"] : null;
+    if (items is List && items.isNotEmpty) {
+      return items[0]["payment_hk"]?.toString();
+    }
+
+    CustomDialogStack.showServerError(Get.context!, () {
+      Get.back();
+    });
+    return null;
   }
 
   @override
@@ -243,5 +295,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  void _goToWalletTab() {
+    controller.changePage(0);
+  }
+
+  void _handleScanError(String title, String message) {
+    _goToWalletTab();
+
+    Future.delayed(const Duration(milliseconds: 30), () {
+      if (!mounted) return;
+
+      _safeCloseLoading();
+
+      CustomDialogStack.showError(Get.context!, title, message, () {
+        Get.back();
+        Get.back();
+      });
+    });
   }
 }

@@ -641,8 +641,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
             ? decodeBase64Safe(_wallet.imageBase64!)
             : null;
 
-    final theme = Theme.of(context);
-
     return SafeArea(
       top: false,
       child: Container(

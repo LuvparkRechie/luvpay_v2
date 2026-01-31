@@ -93,7 +93,10 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
       padding: EdgeInsets.zero,
       canPop: false,
       backgroundColor: Colors.white,
-      onPressedLeading: () => Get.back(result: true),
+      onPressedLeading: () {
+        Get.back(result: true);
+        Get.back(result: true);
+      },
       scaffoldBody: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Padding(

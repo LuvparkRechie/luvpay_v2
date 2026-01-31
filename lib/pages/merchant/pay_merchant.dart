@@ -151,6 +151,10 @@ class _PayMerchantState extends State<PayMerchant> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
+      onPressedLeading: () {
+        Get.back();
+        Get.back();
+      },
       scaffoldBody:
           isLoadingMerch
               ? LoadingCard()

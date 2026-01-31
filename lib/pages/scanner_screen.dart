@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 import 'dart:io';
 
@@ -23,17 +25,20 @@ import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class ScannerScreenV2 extends StatefulWidget {
   final Function(String) onchanged;
-  final Function? onGenerateQR;
-  final bool? isWallet;
+  final VoidCallback? onScanStart;
+  final bool isBack;
+
   const ScannerScreenV2({
     super.key,
     required this.onchanged,
+    this.onScanStart,
     this.isBack = true,
     this.onGenerateQR,
     this.isWallet,
   });
 
-  final bool isBack;
+  final Function? onGenerateQR;
+  final bool? isWallet;
 
   @override
   _ScannerScreenV2State createState() => _ScannerScreenV2State();
@@ -46,8 +51,9 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
   bool isScanning = false;
   bool flashOn = false;
   QRViewController? controller;
-  late AnimationController _animationController;
+  AnimationController? _animationController;
   late Animation<double> _scanAnimation;
+
   StreamSubscription? _scanSubscription;
 
   @override
@@ -68,7 +74,7 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
       _scanAnimation = Tween<double>(
         begin: 0.0,
         end: 1.0,
-      ).animate(_animationController);
+      ).animate(_animationController!);
 
       await checkCameraPermission();
       load();
@@ -123,9 +129,9 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
   }
 
   void _cleanupResources() {
-    _animationController.dispose();
+    _animationController?.dispose();
     _scanSubscription?.cancel();
-    controller?.disposed;
+    controller?.dispose();
     BrightnessSetter.restoreBrightness();
   }
 
@@ -169,7 +175,7 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
           height: double.infinity,
           color: Colors.white,
           child:
-              isLoading
+              (isLoading || _animationController == null)
                   ? _buildLoadingState()
                   : Stack(
                     children: [
@@ -351,39 +357,32 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
     );
   }
 
-  void _handleScannedData(Barcode scanData) {
-    if (!isScanning && scanData.code != null && mounted) {
-      setState(() {
-        isScanning = true;
-      });
+  void _handleScannedData(Barcode scanData) async {
+    if (isScanning || scanData.code == null || !mounted) return;
 
-      // Add haptic feedback
-      HapticFeedback.lightImpact();
+    setState(() => isScanning = true);
 
-      // Use a delay to ensure UI updates before navigation
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) {
-          Navigator.of(context).pop();
-          widget.onchanged(scanData.code!);
-        }
-      });
+    widget.onScanStart?.call();
 
-      // Reset scanning state after delay
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            isScanning = false;
-          });
-        }
-      });
-    }
+    try {
+      await controller?.pauseCamera();
+    } catch (_) {}
+
+    try {
+      await _scanSubscription?.cancel();
+    } catch (_) {}
+
+    _scanSubscription = null;
+
+    HapticFeedback.lightImpact();
+    widget.onchanged(scanData.code!);
   }
 
   Future<void> uploadPhoto(ImageSource source) async {
     try {
       XFile? pickedFile = await _picker.pickImage(
         source: source,
-        imageQuality: 50, // Reduced quality for better performance
+        imageQuality: 50,
         maxWidth: 800,
         requestFullMetadata: false,
       );
@@ -418,9 +417,13 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
 
             // Close scanner and return result
             if (mounted) {
-              Navigator.of(context).pop();
+              if (widget.isBack && Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+              widget.onScanStart?.call();
               widget.onchanged(barcode.displayValue!);
             }
+
             return;
           }
         } else {
