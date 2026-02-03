@@ -14,11 +14,11 @@ import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_textfield.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
-import 'package:luvpay/custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
+import '../../custom_widgets/luvpay/neumorphism.dart';
 import '../../custom_widgets/upper_case_formatter.dart';
 import '../../custom_widgets/variables.dart';
 import '../../functions/functions.dart';
@@ -182,7 +182,7 @@ class _MyProfileState extends State<MyProfile> {
                 ),
               ),
               const SizedBox(height: 8),
-              LuvNeuPress.rect(
+              LuvNeuPress.rectangle(
                 radius: BorderRadius.circular(20),
                 onTap: () => Get.back(),
                 background: AppColorV2.background,
@@ -493,7 +493,7 @@ class _MyProfileState extends State<MyProfile> {
                       ),
                     const SizedBox(height: 16),
 
-                    LuvNeuPress.rect(
+                    LuvNeuPress.rectangle(
                       radius: BorderRadius.circular(999),
                       onTap: () => getRegions(),
                       background: AppColorV2.background,

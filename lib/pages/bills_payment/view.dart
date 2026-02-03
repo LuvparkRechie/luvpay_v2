@@ -5,6 +5,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/otp_field/index.dart';
+import 'package:luvpay/pages/my_account/utils/index.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
@@ -59,10 +60,9 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   CustomTextField(
                     controller: controller.accNo,
                     hintText: 'Enter bill account number',
-                    keyboardType: TextInputType.number,
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(15),
-                      FilteringTextInputFormatter.digitsOnly,
+                      UpperCaseTextFormatter(),
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -77,6 +77,7 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   ),
 
                   SizedBox(height: 14),
+
                   DefaultText(text: "Account Name", style: AppTextStyle.h3),
                   CustomTextField(
                     controller: controller.accName,
@@ -111,10 +112,10 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   ),
 
                   SizedBox(height: 14),
-                  DefaultText(text: "Reference Number", style: AppTextStyle.h3),
+                  DefaultText(text: "Bill Number", style: AppTextStyle.h3),
                   CustomTextField(
-                    controller: controller.billRefNo,
-                    hintText: "Enter reference number",
+                    controller: controller.billNo,
+                    hintText: "Enter bill number",
                     keyboardType: TextInputType.text,
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(30),
@@ -142,7 +143,9 @@ class BillsPayment extends GetView<BillsPaymentController> {
                       Visibility(
                         visible:
                             controller.arguments["service_fee"].toString() !=
-                            "0",
+                                "0" &&
+                            controller.arguments["service_fee"].toString() !=
+                                "",
                         child: DefaultText(
                           text:
                               "+${controller.arguments["service_fee"].toString()} Service Fee",
@@ -156,8 +159,13 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   CustomTextField(
                     controller: controller.billAmount,
                     hintText: "Enter amount",
-
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      AutoDecimalInputFormatter(),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return "Amount is required";
@@ -172,25 +180,7 @@ class BillsPayment extends GetView<BillsPaymentController> {
                       return null;
                     },
                   ),
-                  spacing(height: 14),
-                  Row(
-                    children: [
-                      DefaultText(text: "Note", style: AppTextStyle.h3),
-                      Container(width: 5),
-                      DefaultText(
-                        text: "(Optional)",
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ],
-                  ),
-                  CustomTextField(
-                    inputFormatters: [LengthLimitingTextInputFormatter(30)],
-                    maxLength: 30,
-                    controller: controller.note,
-                    maxLines: 5,
-                    minLines: 3,
-                  ),
+
                   SizedBox(height: 30),
                   CustomButton(
                     text: "Proceed",
@@ -288,46 +278,42 @@ class BillsPayment extends GetView<BillsPaymentController> {
   }
 
   Widget buildWalletBalance() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DefaultText(text: "luvpay Balance", style: AppTextStyle.h3),
-        spacing(height: 14),
-        Container(
-          height: 50,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: AppColorV2.lpBlueBrand.withAlpha(50)),
-            image: DecorationImage(
-              fit: BoxFit.cover,
-              image: AssetImage("assets/images/booking_wallet_bg.png"),
-            ),
-          ),
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Icon(Symbols.wallet, color: AppColorV2.background),
-              Container(width: 10),
-              Expanded(
-                child: DefaultText(
-                  color: AppColorV2.background,
-                  text:
-                      (controller.userData.isNotEmpty &&
-                              controller.userData[0]["items"] != null &&
-                              controller.userData[0]["items"].isNotEmpty)
-                          ? toCurrencyString(
-                            controller.userData[0]["items"][0]["amount_bal"]
-                                .toString(),
-                          )
-                          : "0.00",
-                  style: AppTextStyle.body1,
-                  maxLines: 1,
+    return GetBuilder<BillsPaymentController>(
+      builder: (c) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DefaultText(text: "luvpay Balance", style: AppTextStyle.h3),
+            spacing(height: 14),
+            Container(
+              height: 50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(color: AppColorV2.lpBlueBrand.withAlpha(50)),
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: AssetImage("assets/images/booking_wallet_bg.png"),
                 ),
               ),
-            ],
-          ),
-        ),
-      ],
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Icon(Symbols.wallet, color: AppColorV2.background),
+                  Container(width: 10),
+                  Expanded(
+                    child: DefaultText(
+                      color: AppColorV2.background,
+                      text: toCurrencyString(c.walletBalance.toString()),
+                      style: AppTextStyle.body1,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

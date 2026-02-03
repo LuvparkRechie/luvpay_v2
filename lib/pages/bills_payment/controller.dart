@@ -23,9 +23,8 @@ class BillsPaymentController extends GetxController {
   RxBool isShowPass = false.obs;
   TextEditingController accNo = TextEditingController();
   TextEditingController accName = TextEditingController();
-  TextEditingController billRefNo = TextEditingController();
+  TextEditingController billNo = TextEditingController();
   TextEditingController billAmount = TextEditingController();
-  TextEditingController note = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   TextEditingController myPass = TextEditingController();
   List userData = [];
@@ -35,10 +34,19 @@ class BillsPaymentController extends GetxController {
     accName.text = arguments["account_name"];
     getUserBalance();
     super.onInit();
+    print("arguments : $arguments");
+  }
+
+  @override
+  void dispose() {
+    accNo.dispose();
+    accName.dispose();
+    billNo.dispose();
+    billAmount.dispose();
+    super.dispose();
   }
 
   Future<dynamic> getpaymentHK() async {
-    // CustomDialogStack.showLoading(Get.context!);
     final userID = await Authentication().getUserId();
 
     final paymentKey =
@@ -77,7 +85,7 @@ class BillsPaymentController extends GetxController {
     }
   }
 
-  void getUserBalance() async {
+  Future<void> getUserBalance() async {
     try {
       final data = await Functions.getUserBalance();
       userData = data;
@@ -90,7 +98,7 @@ class BillsPaymentController extends GetxController {
   void payBills(String paymentHk) async {
     CustomDialogStack.showLoading(Get.context!);
     final billAcct = accNo.text;
-    final billNo = billRefNo.text;
+    final billNum = billNo.text;
     final accountName = accName.text;
     final amount = billAmount.text;
 
@@ -106,7 +114,7 @@ class BillsPaymentController extends GetxController {
       "bill_acct_no": billAcct,
       "amount": totalAmount,
       "payment_hk": paymentHk,
-      "bill_no": billNo,
+      "bill_no": billNum,
       "account_name": accountName,
       'original_amount': amount,
     };
@@ -128,7 +136,7 @@ class BillsPaymentController extends GetxController {
         if (returnPost["success"] == 'Y') {
           accNo.clear();
           accName.clear();
-          billRefNo.clear();
+          billNo.clear();
           billAmount.clear();
           final result = await Get.to(
             BillPaymentReceipt(
@@ -288,6 +296,24 @@ class BillsPaymentController extends GetxController {
             );
           });
         });
+  }
+
+  double get walletBalance {
+    if (userData.isEmpty) return 0.0;
+
+    final root = userData[0];
+    if (root is! Map) return 0.0;
+
+    final items = root["items"];
+    if (items is! List || items.isEmpty) return 0.0;
+
+    final first = items[0];
+    if (first is! Map) return 0.0;
+
+    final raw = first["amount_bal"];
+    if (raw is num) return raw.toDouble();
+
+    return double.tryParse(raw?.toString() ?? "") ?? 0.0;
   }
 
   @override

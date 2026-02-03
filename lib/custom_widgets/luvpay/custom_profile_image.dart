@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/luvpay/luv_neumorphic.dart';
+
+import 'neumorphism.dart';
 
 class LpProfileAvatar extends StatelessWidget {
   final ImageProvider? imageProvider;

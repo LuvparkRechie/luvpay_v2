@@ -7,6 +7,7 @@ import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/custom_widgets/no_data_found.dart';
 import 'package:luvpay/pages/billers/index.dart';
 import 'package:luvpay/pages/billers/utils/allbillers.dart';
 import 'package:luvpay/pages/routes/routes.dart';
@@ -15,8 +16,7 @@ import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/luvpay/dashboard_tab_icons.dart';
-import '../../custom_widgets/luvpay/luv_neumorphic.dart';
+import '../../custom_widgets/luvpay/neumorphism.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
@@ -481,17 +481,6 @@ class _WalletScreenState extends State<WalletScreen> {
               onTap: item['onTap'],
               borderRadius: BorderRadius.circular(14),
             ),
-
-            const SizedBox(height: 6),
-            // DefaultText(
-            //   text: item['label'],
-            //   textAlign: TextAlign.center,
-            //   style: AppTextStyle.textbox,
-            //   color: AppColorV2.bodyTextColor,
-            //   minFontSize: 5,
-            //   maxFontSize: 10,
-            //   maxLines: 1,
-            // ),
           ],
         ),
       ),
@@ -670,7 +659,6 @@ class _WalletScreenState extends State<WalletScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: DefaultText(
-                            maxFontSize: 12,
                             minFontSize: 8,
                             text:
                                 userInfo["mobile_no"] != null
@@ -797,57 +785,6 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 }
 
-class NoTransactionsWidget extends StatelessWidget {
-  final String? message;
-  final String? subtitle;
-  final VoidCallback? onActionTap;
-
-  const NoTransactionsWidget({
-    super.key,
-    this.message,
-    this.subtitle,
-    this.onActionTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(40),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColorV2.pastelBlueAccent.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.receipt_long_outlined,
-                size: 50,
-                color: AppColorV2.lpBlueBrand.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 24),
-            DefaultText(
-              text: subtitle ?? 'Your recent transactions will appear here',
-              style: TextStyle(
-                color: AppColorV2.bodyTextColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class ImageCacheHelper {
   static final Map<String, ImageProvider> _cache = {};
 
@@ -871,7 +808,7 @@ class TransactionSectionListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (transactions.isEmpty) {
-      return NoTransactionsWidget();
+      return NoDataFound();
     }
 
     return Container(
@@ -914,7 +851,7 @@ class TransactionSectionListView extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: LuvNeuPress.rect(
+      child: LuvNeuPress.rectangle(
         radius: radius,
         onTap: () {
           Get.to(

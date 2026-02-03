@@ -1,55 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
 class NoDataFound extends StatelessWidget {
-  final double? size;
-  final Function? onTap;
+  final VoidCallback? onTap;
   final String? text;
-  const NoDataFound({super.key, this.size, this.onTap, this.text});
+  final String? subtext;
+  final String? buttonText;
+  final IconData icon;
+  final IconData? buttonIcon;
+
+  const NoDataFound({
+    super.key,
+    this.onTap,
+    this.text,
+    this.subtext,
+    this.icon = Icons.search_off_rounded,
+    this.buttonText,
+    this.buttonIcon,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      child: InkWell(
-        onTap: () {
-          if (onTap != null) {
-            onTap!();
-          }
-        },
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Padding(
-            padding: const EdgeInsets.all(30),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgPicture.asset("assets/images/nodata.svg"),
-                Container(height: 10),
-                DefaultText(
-                  text: text ?? "No data found",
-                  textAlign: TextAlign.center,
-                ),
-                Container(height: 10),
-                onTap != null
-                    ? const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.refresh, size: 17),
-                        DefaultText(
-                          text: " Tap to refresh",
-                          fontWeight: FontWeight.normal,
-                          fontSize: 12,
-                        ),
-                      ],
-                    )
-                    : Container(),
-              ],
-            ),
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: MediaQuery.of(context).size.width * 0.25,
+            color: primary.withOpacity(0.75),
           ),
-        ),
+          const SizedBox(height: 5),
+          DefaultText(
+            text: text ?? "No data found",
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 6),
+          DefaultText(
+            text: subtext ?? "We’ll show items here once available.",
+            fontSize: 12.5,
+            fontWeight: FontWeight.normal,
+            textAlign: TextAlign.center,
+          ),
+          if (onTap != null) ...[
+            TextButton.icon(
+              onPressed: onTap,
+              icon: Icon(buttonIcon ?? Icons.refresh, size: 18),
+              label: DefaultText(text: buttonText ?? "Try again"),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/custom_widgets/luvpay/dashboard_tab_icons.dart';
+import 'package:luvpay/custom_widgets/luvpay/neumorphism.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
@@ -15,7 +15,6 @@ import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_scrollbar.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/no_internet.dart';
 import '../../http/api_keys.dart';
@@ -421,7 +420,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
           },
           child: Padding(
             padding: const EdgeInsets.only(bottom: 10, top: 10),
-            child: LuvNeuPress.rect(
+            child: LuvNeuPress.rectangle(
               radius: BorderRadius.circular(16),
               onTap: null,
               borderWidth: 0.8,

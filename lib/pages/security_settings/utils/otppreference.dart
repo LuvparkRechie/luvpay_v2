@@ -2,11 +2,11 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:luvpay/custom_widgets/luvpay/custom_tile.dart';
 
 import '../../../auth/authentication.dart';
 import '../../../custom_widgets/app_color_v2.dart';
 import '../../../custom_widgets/luvpay/custom_scaffold.dart';
+import '../../../custom_widgets/luvpay/neumorphism.dart';
 import '../../../security/app_security.dart';
 import '../controller.dart';
 

@@ -1,5 +1,416 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
+
 import '../app_color_v2.dart';
+import '../custom_text_v2.dart';
+
+enum NeoNavIconMode { tab, icon }
+
+class NeoNavIcon extends StatelessWidget {
+  final NeoNavIconMode mode;
+
+  final bool? active;
+
+  final String? activeIconName;
+  final String? inactiveIconName;
+  final IconData? activeIconData;
+  final IconData? inactiveIconData;
+
+  final String? assetPath;
+  final String? iconName;
+  final IconData? iconData;
+  final Color? iconColor;
+
+  final VoidCallback onTap;
+
+  final double size;
+  final double iconSize;
+  final EdgeInsets padding;
+  final BorderRadius borderRadius;
+
+  final Color? activeColor;
+  final Color? inactiveColor;
+  final bool flatten;
+
+  final bool showDot;
+  final int? badgeCount;
+  final Alignment badgeAlignment;
+  final Offset badgeOffset;
+  final Color? badgeColor;
+  final Color? badgeTextColor;
+  final double dotSize;
+
+  const NeoNavIcon.tab({
+    super.key,
+    required this.onTap,
+    required this.active,
+    this.activeIconName,
+    this.inactiveIconName,
+    this.activeIconData,
+    this.inactiveIconData,
+    this.size = 48,
+    this.iconSize = 24,
+    this.padding = const EdgeInsets.all(10),
+    this.borderRadius = const BorderRadius.all(Radius.circular(18)),
+    this.activeColor,
+    this.inactiveColor,
+    this.flatten = false,
+    this.showDot = false,
+    this.badgeCount,
+    this.badgeAlignment = Alignment.topRight,
+    this.badgeOffset = const Offset(2, -2),
+    this.badgeColor,
+    this.badgeTextColor,
+    this.dotSize = 9,
+  }) : mode = NeoNavIconMode.tab,
+       assetPath = null,
+       iconName = null,
+       iconData = null,
+       iconColor = null,
+       assert(
+         (activeIconName != null || inactiveIconName != null) ||
+             (activeIconData != null || inactiveIconData != null),
+       );
+
+  const NeoNavIcon.icon({
+    super.key,
+    required this.onTap,
+    this.assetPath,
+    this.iconName,
+    this.iconData,
+    this.iconColor,
+    this.size = 48,
+    this.iconSize = 24,
+    this.padding = const EdgeInsets.all(10),
+    this.borderRadius = const BorderRadius.all(Radius.circular(18)),
+    this.flatten = false,
+    this.showDot = false,
+    this.badgeCount,
+    this.badgeAlignment = Alignment.topRight,
+    this.badgeOffset = const Offset(2, -2),
+    this.badgeColor,
+    this.badgeTextColor,
+    this.dotSize = 9,
+  }) : mode = NeoNavIconMode.icon,
+       active = null,
+       activeIconName = null,
+       inactiveIconName = null,
+       activeIconData = null,
+       inactiveIconData = null,
+       activeColor = null,
+       inactiveColor = null,
+       assert(assetPath != null || iconName != null || iconData != null);
+
+  @override
+  Widget build(BuildContext context) {
+    final isTab = mode == NeoNavIconMode.tab;
+    final isActive = active == true;
+
+    final brand = AppColorV2.lpBlueBrand;
+    final inactive =
+        inactiveColor ?? AppColorV2.primaryTextColor.withValues(alpha: 0.55);
+
+    final badgeBg = badgeColor ?? AppColorV2.incorrectState;
+    final badgeFg = badgeTextColor ?? Colors.white;
+
+    final bool hasCount = (badgeCount != null && badgeCount! > 0);
+    final bool showBadge = hasCount || showDot;
+
+    Widget buildIcon() {
+      if (isTab) {
+        if (activeIconData != null || inactiveIconData != null) {
+          final icon =
+              isActive
+                  ? (activeIconData ?? inactiveIconData!)
+                  : (inactiveIconData ?? activeIconData!);
+
+          return Icon(
+            icon,
+            size: iconSize,
+            color: isActive ? (activeColor ?? brand) : inactive,
+          );
+        }
+
+        final name =
+            isActive
+                ? (activeIconName ?? inactiveIconName!)
+                : (inactiveIconName ?? activeIconName!);
+
+        return Image.asset(
+          "assets/images/$name.png",
+          width: iconSize,
+          height: iconSize,
+          color: isActive ? (activeColor ?? brand) : inactive,
+          colorBlendMode: BlendMode.srcIn,
+        );
+      }
+
+      if (iconData != null) {
+        return Icon(iconData!, size: iconSize, color: iconColor ?? inactive);
+      }
+
+      final path =
+          assetPath ??
+          (iconName != null ? "assets/images/$iconName.png" : null);
+
+      return Image.asset(
+        path!,
+        width: iconSize,
+        height: iconSize,
+        color: iconColor,
+        colorBlendMode: iconColor != null ? BlendMode.srcIn : BlendMode.dst,
+      );
+    }
+
+    Widget buildBadge() {
+      if (hasCount) {
+        final c = badgeCount!;
+        final text = c > 99 ? "99+" : "$c";
+
+        final minW = text.length <= 1 ? 16.0 : 22.0;
+        final h = 16.0;
+
+        return Container(
+          constraints: BoxConstraints(minWidth: minW, minHeight: h),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            color: badgeBg,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: AppColorV2.background.withValues(alpha: 0.9),
+              width: 1.4,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: badgeFg,
+                fontWeight: FontWeight.w900,
+                fontSize: 10.5,
+                height: 1.0,
+              ),
+            ),
+          ),
+        );
+      }
+
+      return Container(
+        width: dotSize,
+        height: dotSize,
+        decoration: BoxDecoration(
+          color: badgeBg,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColorV2.background.withValues(alpha: 0.9),
+            width: 1.4,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return LuvNeuPress.rectangle(
+      radius: borderRadius,
+      onTap: onTap,
+      selected: isTab && isActive,
+      depth: flatten ? 0 : LuvNeu.cardDepth,
+      pressedDepth: flatten ? 0 : LuvNeu.cardPressedDepth,
+      borderColor: flatten ? Colors.transparent : (isActive ? brand : null),
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Padding(padding: padding, child: Center(child: buildIcon())),
+            if (showBadge)
+              Align(
+                alignment: badgeAlignment,
+                child: Transform.translate(
+                  offset: badgeOffset,
+                  child: buildBadge(),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class InfoRowTile extends StatelessWidget {
+  final IconData? icon;
+  final String title;
+  final String? value;
+  final Widget? trailing;
+  final VoidCallback? trailingOnTap;
+  final VoidCallback onTap;
+  final int? maxLines;
+  final String? subtitle;
+  final int? subtitleMaxlines;
+
+  const InfoRowTile({
+    super.key,
+    this.icon,
+    required this.title,
+    this.value,
+    this.subtitle,
+    this.trailing,
+    this.trailingOnTap,
+    required this.onTap,
+    this.maxLines,
+    this.subtitleMaxlines,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(16);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: LuvNeuPress.rectangle(
+        radius: radius,
+        onTap: onTap,
+        borderColor: null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                Neumorphic(
+                  style: LuvNeu.icon(
+                    radius: BorderRadius.circular(12),
+                    color: AppColorV2.background,
+                    borderColor: null,
+                  ),
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: Icon(icon, color: AppColorV2.primary, size: 20),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (value != null)
+                      DefaultText(text: value!, style: AppTextStyle.body1),
+                    DefaultText(
+                      maxLines: maxLines ?? 2,
+                      text: title,
+                      color: AppColorV2.primaryTextColor,
+                      style: AppTextStyle.body1,
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      DefaultText(
+                        text: subtitle!,
+                        maxLines: subtitleMaxlines ?? 1,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: trailingOnTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: trailing,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SectionListView extends StatelessWidget {
+  final String sectionTitle;
+  final List<Map<String, dynamic>> items;
+
+  const SectionListView({
+    super.key,
+    required this.sectionTitle,
+    required this.items,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DefaultText(text: sectionTitle, style: AppTextStyle.h3),
+        const SizedBox(height: 8),
+        ListView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return InfoRowTile(
+              icon: item['icon'],
+              title: item['title'],
+              value: item['value'],
+              trailing: item['trailing'],
+              trailingOnTap: item['trailingOnTap'],
+              onTap: item['onTap'] ?? () {},
+              maxLines: item['maxLines'],
+              subtitle: item['subtitle'],
+              subtitleMaxlines: item['subtitleMaxlines'],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class DefaultContainer extends StatelessWidget {
+  final Widget child;
+  const DefaultContainer({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(19),
+      decoration: BoxDecoration(
+        color: AppColorV2.background,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColorV2.primaryTextColor.withValues(alpha: .05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
 
 class LuvNeu {
   static const double intensity = 0.45;
@@ -172,7 +583,7 @@ class LuvNeuPress extends StatefulWidget {
          'Provide either radius or boxShape.',
        );
 
-  factory LuvNeuPress.rect({
+  factory LuvNeuPress.rectangle({
     Key? key,
     required BorderRadius radius,
     required Widget child,
@@ -297,7 +708,10 @@ class _LuvNeuPressState extends State<LuvNeuPress> {
     final core = Neumorphic(
       style: style.copyWith(boxShape: shape),
       child: ClipRRect(
-        borderRadius: widget.radius ?? BorderRadius.circular(999),
+        borderRadius:
+            isCircle
+                ? BorderRadius.circular(999)
+                : (widget.radius ?? BorderRadius.circular(16)),
         child: Stack(
           children: [
             if (widget.overlayOpacity > 0)
@@ -328,14 +742,17 @@ class _LuvNeuPressState extends State<LuvNeuPress> {
         _set(false);
         widget.onTap?.call();
       },
-      child: AnimatedContainer(
+      child: AnimatedScale(
+        scale: scale,
         duration: widget.duration,
         curve: widget.curve,
-        transform:
-            Matrix4.identity()
-              ..translate(0.0, dy)
-              ..scale(scale, scale),
-        child: core,
+        alignment: Alignment.center,
+        child: AnimatedSlide(
+          duration: widget.duration,
+          curve: widget.curve,
+          offset: Offset(0, dy / 100),
+          child: Center(child: core),
+        ),
       ),
     );
   }

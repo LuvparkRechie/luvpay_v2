@@ -23,8 +23,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 import '../../../auth/authentication.dart';
-import '../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../custom_widgets/luvpay/luvpay_loading.dart';
+import '../../custom_widgets/luvpay/neumorphism.dart';
 import '../../functions/functions.dart';
 import 'transaction_details.dart';
 
@@ -495,7 +495,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
         !isNetConn
             ? NoInternetConnected(onTap: () => fetchLogs(isInitial: true))
             : groupedLogs.isEmpty
-            ? Center(child: NoDataFound(text: "No transaction found"))
+            ? Center(child: NoDataFound())
             : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -750,7 +750,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                             return Column(
                               children: [
                                 const SizedBox(height: 10),
-                                LuvNeuPress.rect(
+                                LuvNeuPress.rectangle(
                                   radius: radius,
                                   onTap: () {
                                     Get.to(
@@ -766,32 +766,23 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                     padding: const EdgeInsets.all(12),
                                     child: Row(
                                       children: [
-                                        Neumorphic(
-                                          style: LuvNeu.icon(
-                                            radius: iconRadius,
-                                            color: AppColorV2.background,
-                                            borderColor: Colors.black
-                                                .withOpacity(0.25),
-                                            borderWidth: 0.8,
+                                        Container(
+                                          width: 46,
+                                          height: 46,
+                                          decoration: BoxDecoration(
+                                            borderRadius: iconRadius,
+                                            color: accent.withOpacity(0.02),
                                           ),
-                                          child: Container(
-                                            width: 46,
-                                            height: 46,
-                                            decoration: BoxDecoration(
-                                              borderRadius: iconRadius,
-                                              color: accent.withOpacity(0.02),
-                                            ),
-                                            child: Icon(
-                                              isDebit
-                                                  ? Icons.arrow_upward_rounded
-                                                  : Icons
-                                                      .arrow_downward_rounded,
-                                              color: accent,
-                                              size: 20,
-                                            ),
+                                          child: Icon(
+                                            isDebit
+                                                ? Icons.arrow_upward_rounded
+                                                : Icons.arrow_downward_rounded,
+                                            color: accent,
+                                            size: 20,
                                           ),
                                         ),
                                         const SizedBox(width: 12),
+
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment:

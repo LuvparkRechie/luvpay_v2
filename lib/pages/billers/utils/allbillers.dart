@@ -13,9 +13,9 @@ import '../../../custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/custom_textfield.dart';
 import '../../../custom_widgets/loading.dart';
 import '../../../custom_widgets/luvpay/custom_scaffold.dart';
+import '../../../custom_widgets/luvpay/neumorphism.dart';
 import '../../../custom_widgets/no_data_found.dart';
 import '../../../custom_widgets/spacing.dart';
-import '../../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../../http/thirdparty.dart';
 import '../../routes/routes.dart';
 import '../controller.dart';
@@ -53,7 +53,7 @@ class Allbillers extends GetView<BillersController> {
               Expanded(
                 child:
                     controller.filteredBillers.isEmpty
-                        ? NoDataFound(text: "No Billers found")
+                        ? NoDataFound()
                         : ListView.builder(
                           physics: const BouncingScrollPhysics(),
                           itemCount: controller.filteredBillers.length,
@@ -64,7 +64,7 @@ class Allbillers extends GetView<BillersController> {
                               padding: const EdgeInsets.only(top: 12),
                               child: Container(
                                 margin: EdgeInsets.only(left: 10, right: 10),
-                                child: LuvNeuPress.rect(
+                                child: LuvNeuPress.rectangle(
                                   radius: BorderRadius.circular(16),
                                   borderColor: AppColorV2.lpBlueBrand
                                       .withOpacity(0.06),
@@ -560,7 +560,7 @@ class _ValidateAccountState extends State<ValidateAccount> {
                           child: Visibility(
                             visible:
                                 MediaQuery.of(context).viewInsets.bottom == 0,
-                            child: LuvNeuPress.rect(
+                            child: LuvNeuPress.rectangle(
                               radius: BorderRadius.circular(16),
                               background: AppColorV2.lpBlueBrand,
                               borderColor: AppColorV2.lpBlueBrand.withOpacity(

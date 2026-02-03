@@ -27,10 +27,8 @@ class DashboardController extends GetxController {
 
   void _checkFirstLogin() {
     final isFirstLogin = box.read('isFirstLogin') ?? true;
-
-    debugPrint('CHECK isFirstLogin = $isFirstLogin');
-
     if (!isFirstLogin) return;
+
     Get.to(
       () => CelebrationScreen(
         title: "Welcome to luvpay!",
@@ -46,6 +44,7 @@ class DashboardController extends GetxController {
         },
       ),
       transition: Transition.fadeIn,
+      duration: const Duration(milliseconds: 260),
     );
   }
 }

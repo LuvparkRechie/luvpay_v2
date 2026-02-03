@@ -1,8 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, deprecated_member_use
 
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
@@ -12,7 +10,7 @@ import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/upper_case_formatter.dart';
 
 import '../../../custom_widgets/app_color_v2.dart';
-import '../../../custom_widgets/luvpay/luv_neumorphic.dart';
+import '../../../custom_widgets/luvpay/neumorphism.dart';
 import '../controller.dart';
 import '../view.dart';
 
@@ -536,7 +534,7 @@ class AddWalletModalState extends State<AddWalletModal> {
                         } else {
                           try {
                             bytes = base64.decode(clean);
-                            _iconCache[categoryId] = bytes!;
+                            _iconCache[categoryId] = bytes;
                           } catch (_) {
                             bytes = null;
                           }

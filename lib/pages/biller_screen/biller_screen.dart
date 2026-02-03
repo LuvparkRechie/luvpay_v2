@@ -38,15 +38,57 @@ class _BillerScreenState extends State<BillerScreen> {
   final TextEditingController _accountNameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _billerNameController = TextEditingController();
-  final TextEditingController _billerAddressController =
-      TextEditingController();
-  List userData = [];
+
+  List userBal = [];
   bool canProceed = false;
+  bool isLoading = false;
+  double _walletBal = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _initializeData();
+    print("data: ${widget.data}");
+    getUserData();
+  }
+
+  Future<void> getUserData() async {
+    if (isLoading || !mounted) return;
+
+    setState(() => isLoading = true);
+
+    try {
+      final data = await Functions.getUserBalance();
+      debugPrint("userBal $data");
+
+      double bal = 0.0;
+
+      if (data.isNotEmpty) {
+        final root = data[0];
+        if (root is Map &&
+            root["items"] is List &&
+            (root["items"] as List).isNotEmpty) {
+          final item0 = (root["items"] as List)[0];
+          if (item0 is Map) {
+            final raw = item0["amount_bal"];
+            bal =
+                raw is num
+                    ? raw.toDouble()
+                    : double.tryParse(raw?.toString() ?? "") ?? 0.0;
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          userBal = data;
+          _walletBal = bal;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching user data: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   Future<void> _requestOtpThenPay(VoidCallback onVerified) async {
@@ -119,39 +161,15 @@ class _BillerScreenState extends State<BillerScreen> {
     }
   }
 
-  void _initializeData() {
-    // Initialize with widget data if available
-    if (widget.data.isNotEmpty) {
-      _billerNameController.text = widget.data[0]["biller_name"] ?? "";
-      _billerAddressController.text = widget.data[0]["biller_address"] ?? "";
-    }
-
-    // Mock user data - replace with actual API call
-    userData = [
-      {"amount_bal": 1500.00},
-    ];
-  }
-
   String? _validateAmount(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter an amount';
-    }
+    if (value == null || value.isEmpty) return 'Please enter an amount';
 
     final amount = double.tryParse(value);
     if (amount == null || amount <= 0) {
       return 'Please enter a valid amount greater than zero';
     }
 
-    final balance = userData[0]["amount_bal"];
-    final balanceAmount =
-        balance is double
-            ? balance
-            : double.tryParse(balance.toString()) ?? 0.0;
-
-    if (amount > balanceAmount) {
-      return 'Insufficient balance';
-    }
-
+    if (amount > _walletBal) return 'Insufficient balance';
     return null;
   }
 
@@ -287,7 +305,10 @@ class _BillerScreenState extends State<BillerScreen> {
                     CustomTextField(
                       controller: _billNoController,
                       hintText: 'Enter bill number',
-                      inputFormatters: [UpperCaseTextFormatter()],
+                      inputFormatters: [
+                        UpperCaseTextFormatter(),
+                        LengthLimitingTextInputFormatter(15),
+                      ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter bill number';
@@ -334,7 +355,24 @@ class _BillerScreenState extends State<BillerScreen> {
 
                     // Amount Field
                     spacing(height: 14),
-                    DefaultText(text: "Amount", style: AppTextStyle.h3),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        DefaultText(text: "Amount", style: AppTextStyle.h3),
+                        Visibility(
+                          visible:
+                              widget.data[0]["service_fee"].toString() != "0" &&
+                              widget.data[0]["service_fee"].toString() != "",
+                          child: DefaultText(
+                            text:
+                                "+${widget.data[0]["service_fee"].toString()} Service Fee",
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
 
                     CustomTextField(
                       controller: _amountController,
@@ -342,7 +380,10 @@ class _BillerScreenState extends State<BillerScreen> {
                       keyboardType: TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      inputFormatters: [AutoDecimalInputFormatter()],
+                      inputFormatters: [
+                        AutoDecimalInputFormatter(),
+                        LengthLimitingTextInputFormatter(10),
+                      ],
                       validator: _validateAmount,
                     ),
 
@@ -401,7 +442,10 @@ class _BillerScreenState extends State<BillerScreen> {
               Expanded(
                 child: DefaultText(
                   color: AppColorV2.background,
-                  text: toCurrencyString(userData[0]["amount_bal"].toString()),
+                  text:
+                      isLoading
+                          ? "Loading..."
+                          : toCurrencyString(_walletBal.toString()),
                   style: AppTextStyle.body1,
                   maxLines: 1,
                 ),
@@ -435,7 +479,6 @@ class _BillerScreenState extends State<BillerScreen> {
   @override
   void dispose() {
     _billerNameController.dispose();
-    _billerAddressController.dispose();
     _billAcctController.dispose();
     _billNoController.dispose();
     _accountNameController.dispose();

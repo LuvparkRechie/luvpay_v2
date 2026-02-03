@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
-import '../../../custom_widgets/luvpay/luv_neumorphic.dart';
+import '../../../custom_widgets/luvpay/neumorphism.dart';
 
 class TransferDetailsModal extends StatelessWidget {
   final Map<String, dynamic> data;

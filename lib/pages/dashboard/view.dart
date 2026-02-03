@@ -11,7 +11,7 @@ import 'package:luvpay/pages/scanner_screen.dart';
 
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
-import '../../custom_widgets/luvpay/dashboard_tab_icons.dart';
+import '../../custom_widgets/luvpay/neumorphism.dart';
 import '../biller_screen/biller_screen.dart';
 import '../profile/profile_screen.dart';
 import '../subwallet/controller.dart';

@@ -9,7 +9,7 @@ import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/pages/subwallet/utils/target_card.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
-import '../../../custom_widgets/luvpay/luv_neumorphic.dart';
+import '../../../custom_widgets/luvpay/neumorphism.dart';
 import '../controller.dart';
 import '../view.dart';
 import 'add_wallet_modal.dart';
@@ -744,7 +744,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                       final isIn = t.amount >= 0;
                       final sign = isIn ? '+' : '-';
 
-                      return LuvNeuPress.rect(
+                      return LuvNeuPress.rectangle(
                         radius: BorderRadius.circular(18),
                         onTap: () {
                           showModalBottomSheet(
@@ -1034,7 +1034,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                     Row(
                       children: [
                         Expanded(
-                          child: LuvNeuPress.rect(
+                          child: LuvNeuPress.rectangle(
                             radius: BorderRadius.circular(16),
                             onTap: () => Navigator.of(context).pop(),
                             depth: 1.4,
@@ -1056,7 +1056,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: LuvNeuPress.rect(
+                          child: LuvNeuPress.rectangle(
                             radius: BorderRadius.circular(16),
                             onTap:
                                 canConfirm
@@ -1150,7 +1150,7 @@ class _HeaderCard extends StatelessWidget {
     final radius = BorderRadius.circular(20);
     final avatarRadius = BorderRadius.circular(18);
 
-    return LuvNeuPress.rect(
+    return LuvNeuPress.rectangle(
       radius: radius,
       onTap: null,
       depth: 1.8,
@@ -1160,7 +1160,7 @@ class _HeaderCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            LuvNeuPress.rect(
+            LuvNeuPress.rectangle(
               radius: avatarRadius,
               onTap: null,
               depth: 1.4,
@@ -1225,7 +1225,7 @@ class _BalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(22);
 
-    return LuvNeuPress.rect(
+    return LuvNeuPress.rectangle(
       radius: radius,
       onTap: null,
       depth: 1.8,
@@ -1293,7 +1293,7 @@ class _EmptyState extends StatelessWidget {
     final radius = BorderRadius.circular(22);
 
     return Center(
-      child: LuvNeuPress.rect(
+      child: LuvNeuPress.rectangle(
         radius: radius,
         onTap: null,
         depth: 1.6,

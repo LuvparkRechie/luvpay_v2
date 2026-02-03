@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../app_color_v2.dart';
-import '../luvpay/luv_neumorphic.dart';
+import 'neumorphism.dart';
 
 class CustomButtons extends StatelessWidget {
   final String text;
@@ -169,7 +169,7 @@ class CustomButtons extends StatelessWidget {
             child: Center(child: childWidget),
           ),
         )
-        : LuvNeuPress.rect(
+        : LuvNeuPress.rectangle(
           radius: r,
           onTap: enabled ? onPressed : null,
           background: effectiveBgColor,

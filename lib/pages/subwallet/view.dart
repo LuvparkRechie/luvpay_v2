@@ -8,12 +8,13 @@ import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
+import 'package:luvpay/custom_widgets/no_data_found.dart';
 import 'package:luvpay/custom_widgets/no_internet.dart';
 
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/luvpay/luv_neumorphic.dart';
 import '../../custom_widgets/luvpay/luvpay_loading.dart';
+import '../../custom_widgets/luvpay/neumorphism.dart';
 import 'controller.dart';
 import 'utils/add_wallet_modal.dart';
 import 'utils/subwalllet_card.dart';
@@ -557,65 +558,6 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 82,
-              height: 82,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColorV2.lpBlueBrand.withOpacity(.10),
-                border: Border.all(
-                  color: AppColorV2.lpBlueBrand.withOpacity(.18),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColorV2.lpBlueBrand.withOpacity(.10),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.add_circle_outlined,
-                size: 80,
-                color: AppColorV2.lpBlueBrand,
-              ),
-            ),
-
-            const SizedBox(height: 14),
-
-            DefaultText(
-              text: "No SubWallets yet",
-              maxLines: 1,
-              style: AppTextStyle.h3.copyWith(
-                fontWeight: FontWeight.w900,
-                color: AppColorV2.primaryTextColor,
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            DefaultText(
-              text: "Create one to start saving and tracking your goals.",
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              style: AppTextStyle.paragraph2.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColorV2.bodyTextColor.withOpacity(.75),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final ready = categoriesLoaded && !isLoading;
@@ -699,7 +641,17 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                                   () => _showAddWalletModal(
                                                     context,
                                                   ),
-                                              child: _buildEmptyState(context),
+                                              child: NoDataFound(
+                                                text: "No SubWallets found",
+                                                subtext:
+                                                    "Add your first subwallet",
+                                                buttonText: "Add SubWallet",
+                                                buttonIcon: Iconsax.add,
+                                                onTap:
+                                                    () => _showAddWalletModal(
+                                                      context,
+                                                    ),
+                                              ),
                                             ),
                                           )
                                           : SliverGrid(
@@ -824,7 +776,7 @@ class CreateSubwalletTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(24);
 
-    return LuvNeuPress.rect(
+    return LuvNeuPress.rectangle(
       radius: radius,
       onTap: onTap,
       child: Center(

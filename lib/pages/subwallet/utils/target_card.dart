@@ -3,7 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/luvpay/luv_neumorphic.dart';
+
+import '../../../custom_widgets/luvpay/neumorphism.dart';
 
 class TargetCard extends StatelessWidget {
   final double balance;
