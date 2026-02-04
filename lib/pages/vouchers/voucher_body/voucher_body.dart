@@ -214,7 +214,7 @@ class VouchersBodyState extends State<VouchersBody>
           const SizedBox(height: 16),
           DefaultText(
             text: "No Vouchers Yet",
-            style: AppTextStyle.h3,
+            style: AppTextStyle.h3(context),
             color: AppColorV2.inactiveState,
             textAlign: TextAlign.center,
           ),
@@ -241,8 +241,8 @@ class VouchersBodyState extends State<VouchersBody>
         labelPadding: EdgeInsets.zero,
         labelColor: AppColorV2.lpBlueBrand,
         unselectedLabelColor: AppColorV2.inactiveState,
-        labelStyle: AppTextStyle.h3,
-        unselectedLabelStyle: AppTextStyle.h3_semibold,
+        labelStyle: AppTextStyle.h3(context),
+        unselectedLabelStyle: AppTextStyle.h3_semibold(context),
         indicator: BoxDecoration(
           color: _base,
           borderRadius: BorderRadius.circular(14),
@@ -315,7 +315,7 @@ class VouchersBodyState extends State<VouchersBody>
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: DefaultText(
                       text: "-$amt",
-                      style: AppTextStyle.h2,
+                      style: AppTextStyle.h2(context),
                       color: AppColorV2.lpBlueBrand.withOpacity(isCE ? .45 : 1),
                       textAlign: TextAlign.center,
                     ),
@@ -340,7 +340,7 @@ class VouchersBodyState extends State<VouchersBody>
                       children: [
                         DefaultText(
                           text: merchant,
-                          style: AppTextStyle.h3,
+                          style: AppTextStyle.h3(context),
                           color: fadedText,
                           maxLines: 1,
                         ),

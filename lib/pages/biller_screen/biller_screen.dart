@@ -275,7 +275,7 @@ class _BillerScreenState extends State<BillerScreen> {
 
                     DefaultText(
                       text: "Bill Account Number",
-                      style: AppTextStyle.h3,
+                      style: AppTextStyle.h3(context),
                     ),
 
                     CustomTextField(
@@ -300,7 +300,10 @@ class _BillerScreenState extends State<BillerScreen> {
 
                     // Bill Number Field
                     spacing(height: 14),
-                    DefaultText(text: "Bill Number", style: AppTextStyle.h3),
+                    DefaultText(
+                      text: "Bill Number",
+                      style: AppTextStyle.h3(context),
+                    ),
 
                     CustomTextField(
                       controller: _billNoController,
@@ -319,7 +322,10 @@ class _BillerScreenState extends State<BillerScreen> {
 
                     // Account Name Field
                     spacing(height: 14),
-                    DefaultText(text: "Account Name", style: AppTextStyle.h3),
+                    DefaultText(
+                      text: "Account Name",
+                      style: AppTextStyle.h3(context),
+                    ),
 
                     CustomTextField(
                       controller: _accountNameController,
@@ -358,7 +364,10 @@ class _BillerScreenState extends State<BillerScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        DefaultText(text: "Amount", style: AppTextStyle.h3),
+                        DefaultText(
+                          text: "Amount",
+                          style: AppTextStyle.h3(context),
+                        ),
                         Visibility(
                           visible:
                               widget.data[0]["service_fee"].toString() != "0" &&
@@ -422,7 +431,7 @@ class _BillerScreenState extends State<BillerScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DefaultText(text: "luvpay Balance", style: AppTextStyle.h3),
+        DefaultText(text: "luvpay Balance", style: AppTextStyle.h3(context)),
         spacing(height: 14),
         Container(
           height: 50,
@@ -446,7 +455,7 @@ class _BillerScreenState extends State<BillerScreen> {
                       isLoading
                           ? "Loading..."
                           : toCurrencyString(_walletBal.toString()),
-                  style: AppTextStyle.body1,
+                  style: AppTextStyle.body1(context),
                   maxLines: 1,
                 ),
               ),

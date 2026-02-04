@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
@@ -10,10 +11,10 @@ import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_textfield.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_profile_image.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
+
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/custom_button.dart';
@@ -47,7 +48,9 @@ class _MyProfileState extends State<MyProfile> {
   bool isNetConn = true;
   ImageProvider? profileImage;
 
-  TextEditingController referralController = TextEditingController();
+  final TextEditingController referralController = TextEditingController();
+
+  bool get _isVerified => userData["is_verified"] == "N";
 
   @override
   void initState() {
@@ -70,13 +73,10 @@ class _MyProfileState extends State<MyProfile> {
 
   Future<void> getUserData() async {
     final data = await Authentication().getUserData2();
-
     if (data == null || data.isEmpty) return;
 
     if (!mounted) return;
-    setState(() {
-      userData = data;
-    });
+    setState(() => userData = data);
   }
 
   String birthday(String rawDate) {
@@ -95,13 +95,24 @@ class _MyProfileState extends State<MyProfile> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (BuildContext cont) {
+        final theme = Theme.of(cont);
+        final cs = theme.colorScheme;
+        final isDark = theme.brightness == Brightness.dark;
+
+        final bg = cs.surface;
+        final surface2 = cs.surfaceContainerHighest;
+        final stroke = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+        final titleColor = cs.onSurface;
+        final bodyColor = cs.onSurface.withOpacity(0.72);
+
         return Container(
           decoration: BoxDecoration(
-            color: AppColorV2.background,
-            borderRadius: BorderRadius.only(
+            color: bg,
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(30),
               topRight: Radius.circular(30),
             ),
+            border: Border.all(color: stroke),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -112,17 +123,19 @@ class _MyProfileState extends State<MyProfile> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColorV2.primaryTextColor.withAlpha(80),
+                    color: cs.onSurface.withOpacity(isDark ? 0.22 : 0.18),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
+
               Neumorphic(
                 style: LuvNeu.card(
                   radius: BorderRadius.circular(20),
-                  color: AppColorV2.background,
-                  borderColor: null,
+                  color: bg,
+                  borderColor: stroke,
+                  borderWidth: 1,
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
@@ -131,14 +144,19 @@ class _MyProfileState extends State<MyProfile> {
                       ListTile(
                         leading: Icon(
                           Icons.camera_alt_rounded,
-                          color: AppColorV2.lpBlueBrand,
+                          color: cs.primary,
                         ),
                         title: DefaultText(
                           text: 'Take Photo',
-                          style: AppTextStyle.body1.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                          color: AppColorV2.primaryTextColor,
+                          style: AppTextStyle.body1(
+                            cont,
+                          ).copyWith(fontWeight: FontWeight.w600),
+                          color: titleColor,
+                        ),
+                        subtitle: DefaultText(
+                          text: 'Use your camera',
+                          style: AppTextStyle.body2(cont),
+                          color: bodyColor,
                         ),
                         onTap: () {
                           Get.back();
@@ -148,25 +166,31 @@ class _MyProfileState extends State<MyProfile> {
                           horizontal: 24,
                           vertical: 12,
                         ),
+                        tileColor: surface2,
                       ),
                       Divider(
                         height: 1,
                         thickness: 1,
                         indent: 24,
                         endIndent: 24,
-                        color: Colors.grey.shade200,
+                        color: stroke.withOpacity(0.8),
                       ),
                       ListTile(
                         leading: Icon(
                           Icons.photo_library_rounded,
-                          color: AppColorV2.lpBlueBrand,
+                          color: cs.primary,
                         ),
                         title: DefaultText(
                           text: 'Choose from Gallery',
-                          style: AppTextStyle.body1.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                          color: AppColorV2.primaryTextColor,
+                          style: AppTextStyle.body1(
+                            cont,
+                          ).copyWith(fontWeight: FontWeight.w600),
+                          color: titleColor,
+                        ),
+                        subtitle: DefaultText(
+                          text: 'Select an existing photo',
+                          style: AppTextStyle.body2(cont),
+                          color: bodyColor,
                         ),
                         onTap: () {
                           Get.back();
@@ -176,17 +200,20 @@ class _MyProfileState extends State<MyProfile> {
                           horizontal: 24,
                           vertical: 12,
                         ),
+                        tileColor: surface2,
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+
+              const SizedBox(height: 10),
+
               LuvNeuPress.rectangle(
                 radius: BorderRadius.circular(20),
                 onTap: () => Get.back(),
-                background: AppColorV2.background,
-                borderColor: null,
+                background: cs.surface,
+                borderColor: stroke,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -194,21 +221,18 @@ class _MyProfileState extends State<MyProfile> {
                   ),
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      Icons.close_rounded,
-                      color: AppColorV2.incorrectState,
-                    ),
+                    leading: Icon(Icons.close_rounded, color: cs.error),
                     title: DefaultText(
                       text: 'Cancel',
-                      style: AppTextStyle.body1.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      color: AppColorV2.incorrectState,
+                      style: AppTextStyle.body1(
+                        cont,
+                      ).copyWith(fontWeight: FontWeight.w700),
+                      color: cs.error,
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+              SizedBox(height: MediaQuery.of(cont).viewInsets.bottom),
             ],
           ),
         );
@@ -233,17 +257,18 @@ class _MyProfileState extends State<MyProfile> {
         submitProfilePic();
       });
     } else {
-      setState(() {
-        imageBase64 = null;
-      });
+      if (!mounted) return;
+      setState(() => imageBase64 = null);
     }
   }
 
   void submitProfilePic() async {
-    CustomDialogStack.showLoading(context);
+    final ctx = Get.overlayContext ?? context;
+    CustomDialogStack.showLoading(ctx);
+
     final myData = await Authentication().getUserData2();
 
-    Map<String, dynamic> parameters = {
+    final Map<String, dynamic> parameters = {
       "mobile_no": myData["mobile_no"],
       "last_name": myData["last_name"],
       "first_name": myData["first_name"],
@@ -275,16 +300,12 @@ class _MyProfileState extends State<MyProfile> {
       Get.back();
 
       if (res == "No Internet") {
-        CustomDialogStack.showConnectionLost(context, () {
-          Get.back();
-        });
+        CustomDialogStack.showConnectionLost(ctx, () => Get.back());
         return;
       }
 
       if (res == null) {
-        CustomDialogStack.showServerError(context, () {
-          Get.back();
-        });
+        CustomDialogStack.showServerError(ctx, () => Get.back());
         return;
       }
 
@@ -299,29 +320,30 @@ class _MyProfileState extends State<MyProfile> {
         if (!mounted) return;
         setState(() {});
       } else {
-        CustomDialogStack.showError(context, "luvpay", res["msg"], () {
-          Get.back();
-        });
+        CustomDialogStack.showError(
+          ctx,
+          "luvpay",
+          res["msg"],
+          () => Get.back(),
+        );
       }
     });
   }
 
   void getRegions() async {
-    CustomDialogStack.showLoading(context);
-    var returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
+    final ctx = Get.overlayContext ?? context;
+    CustomDialogStack.showLoading(ctx);
+
+    final returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
     Get.back();
 
     if (returnData == "No Internet") {
-      CustomDialogStack.showConnectionLost(context, () {
-        Get.back();
-      });
+      CustomDialogStack.showConnectionLost(ctx, () => Get.back());
       return;
     }
 
     if (returnData == null) {
-      CustomDialogStack.showServerError(context, () {
-        Get.back();
-      });
+      CustomDialogStack.showServerError(ctx, () => Get.back());
       return;
     }
 
@@ -329,30 +351,25 @@ class _MyProfileState extends State<MyProfile> {
       regionData = returnData["items"];
       Navigator.pushNamed(context, Routes.updProfile, arguments: regionData);
     } else {
-      CustomDialogStack.showServerError(context, () {
-        Get.back();
-      });
+      CustomDialogStack.showServerError(ctx, () => Get.back());
     }
   }
 
   void getProvince(regionId) async {
-    String params = "${ApiKeys.getProvince}?p_region_id=$regionId";
+    final ctx = Get.overlayContext ?? context;
+    final params = "${ApiKeys.getProvince}?p_region_id=$regionId";
     isLoading = false;
 
-    var returnData = await HttpRequestApi(api: params).get();
+    final returnData = await HttpRequestApi(api: params).get();
 
     if (returnData == "No Internet") {
       isNetConn = false;
-      CustomDialogStack.showConnectionLost(context, () {
-        Get.back();
-      });
+      CustomDialogStack.showConnectionLost(ctx, () => Get.back());
       return;
     }
 
     if (returnData == null) {
-      CustomDialogStack.showServerError(context, () {
-        Get.back();
-      });
+      CustomDialogStack.showServerError(ctx, () => Get.back());
       isNetConn = true;
       return;
     }
@@ -369,9 +386,7 @@ class _MyProfileState extends State<MyProfile> {
     }
 
     isNetConn = true;
-    CustomDialogStack.showServerError(context, () {
-      Get.back();
-    });
+    CustomDialogStack.showServerError(ctx, () => Get.back());
   }
 
   String getCivilStatusLabel(String? value) {
@@ -399,19 +414,24 @@ class _MyProfileState extends State<MyProfile> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isVerified = userData["is_verified"] == "N";
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bg = cs.surface;
+    final surface = cs.surface;
+    final surface2 = cs.surfaceContainerHighest;
+    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+
     final displayName = Functions().getDisplayName(userData);
+    final isVerified = _isVerified;
 
     return CustomScaffoldV2(
       appBarTitle: 'Profile',
-      onPressedLeading: () {
-        Get.back(result: "refresh");
-      },
+      onPressedLeading: () => Get.back(result: "refresh"),
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          Get.back(result: "refresh");
-        }
+        if (!didPop) Get.back(result: "refresh");
       },
       padding: EdgeInsets.zero,
       scaffoldBody: SingleChildScrollView(
@@ -434,12 +454,12 @@ class _MyProfileState extends State<MyProfile> {
                             shape: BoxShape.circle,
                             gradient: LinearGradient(
                               colors: [
-                                AppColorV2.lpBlueBrand.withAlpha(50),
-                                AppColorV2.lpBlueBrand.withAlpha(20),
+                                cs.primary.withOpacity(isDark ? 0.18 : 0.12),
+                                cs.primary.withOpacity(isDark ? 0.08 : 0.06),
                               ],
                             ),
                             border: Border.all(
-                              color: AppColorV2.lpBlueBrand.withAlpha(100),
+                              color: cs.primary.withOpacity(0.30),
                               width: 2,
                             ),
                           ),
@@ -452,21 +472,18 @@ class _MyProfileState extends State<MyProfile> {
                         Positioned(
                           right: 4,
                           bottom: 4,
-                          child: GestureDetector(
-                            onTap: () => showBottomSheetCamera(),
-                            child: LuvNeuPress.circle(
-                              onTap: () => showBottomSheetCamera(),
-                              background: AppColorV2.background,
-                              borderColor: null,
-                              child: SizedBox(
-                                width: 42,
-                                height: 42,
-                                child: Center(
-                                  child: Icon(
-                                    Icons.edit_rounded,
-                                    size: 18,
-                                    color: AppColorV2.lpBlueBrand,
-                                  ),
+                          child: LuvNeuPress.circle(
+                            onTap: showBottomSheetCamera,
+                            background: surface,
+                            borderColor: stroke,
+                            child: SizedBox(
+                              width: 42,
+                              height: 42,
+                              child: Center(
+                                child: Icon(
+                                  Icons.edit_rounded,
+                                  size: 18,
+                                  color: cs.primary,
                                 ),
                               ),
                             ),
@@ -477,18 +494,18 @@ class _MyProfileState extends State<MyProfile> {
                     const SizedBox(height: 20),
                     DefaultText(
                       text: displayName,
-                      style: AppTextStyle.h3_f22,
+                      style: AppTextStyle.h3(context),
                       maxLines: 1,
-                      color: AppColorV2.primaryTextColor,
+                      color: cs.onSurface,
                     ),
                     if (userData["email"] != null && userData["email"] != "")
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: DefaultText(
                           text: userData["email"],
-                          style: AppTextStyle.body1,
+                          style: AppTextStyle.body1(context),
                           maxLines: 1,
-                          color: AppColorV2.bodyTextColor,
+                          color: cs.onSurface.withOpacity(0.70),
                         ),
                       ),
                     const SizedBox(height: 16),
@@ -496,8 +513,8 @@ class _MyProfileState extends State<MyProfile> {
                     LuvNeuPress.rectangle(
                       radius: BorderRadius.circular(999),
                       onTap: () => getRegions(),
-                      background: AppColorV2.background,
-                      borderColor: null,
+                      background: surface,
+                      borderColor: stroke,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -509,10 +526,7 @@ class _MyProfileState extends State<MyProfile> {
                             Icon(
                               Icons.verified_outlined,
                               size: 16,
-                              color:
-                                  !isVerified
-                                      ? AppColorV2.lpBlueBrand
-                                      : Colors.orange.shade600,
+                              color: !isVerified ? cs.primary : cs.tertiary,
                             ),
                             const SizedBox(width: 6),
                             DefaultText(
@@ -520,13 +534,10 @@ class _MyProfileState extends State<MyProfile> {
                                   !isVerified
                                       ? "Edit Profile"
                                       : "Verification Required",
-                              style: AppTextStyle.body1.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              color:
-                                  !isVerified
-                                      ? AppColorV2.lpBlueBrand
-                                      : Colors.orange.shade700,
+                              style: AppTextStyle.body1(
+                                context,
+                              ).copyWith(fontWeight: FontWeight.w700),
+                              color: !isVerified ? cs.primary : cs.tertiary,
                             ),
                           ],
                         ),
@@ -535,24 +546,30 @@ class _MyProfileState extends State<MyProfile> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 32),
+
               Padding(
                 padding: const EdgeInsets.only(bottom: 16, left: 10),
                 child: DefaultText(
                   text: 'Personal Information',
-                  style: AppTextStyle.h4.copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: AppTextStyle.h4(context).copyWith(
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
+                    color: cs.onSurface,
                   ),
-                  color: AppColorV2.primaryTextColor,
+                  color: cs.onSurface,
                 ),
               ),
+
               _buildInfoCard(
+                context,
                 icon: Icons.phone_outlined,
                 title: 'Mobile Number',
                 value: userData["mobile_no"] ?? "Not set",
               ),
               _buildInfoCard(
+                context,
                 icon: Icons.cake_outlined,
                 title: 'Birthday',
                 value:
@@ -561,11 +578,13 @@ class _MyProfileState extends State<MyProfile> {
                         : birthday(userData["birthday"]),
               ),
               _buildInfoCard(
+                context,
                 icon: _civilStatusIcon(userData["civil_status"]),
                 title: 'Civil Status',
                 value: getCivilStatusLabel(userData["civil_status"]),
               ),
               _buildInfoCard(
+                context,
                 icon:
                     userData["gender"]?.toString().toLowerCase() == "m"
                         ? Icons.male_outlined
@@ -577,6 +596,7 @@ class _MyProfileState extends State<MyProfile> {
                         : "Female",
               ),
               _buildInfoCard(
+                context,
                 icon: Icons.location_on_outlined,
                 title: 'Address',
                 value:
@@ -588,16 +608,18 @@ class _MyProfileState extends State<MyProfile> {
                         : "${userData["brgy_name"]}, ${userData["city_name"]}, ${userData["province_name"]}, ${userData["zip_code"]}",
                 isMultiLine: true,
               ),
+
               if (isVerified) ...[
                 const SizedBox(height: 32),
 
                 Container(
-                  margin: EdgeInsets.only(left: 10, right: 10),
+                  margin: const EdgeInsets.only(left: 10, right: 10),
                   child: Neumorphic(
                     style: LuvNeu.card(
                       radius: BorderRadius.circular(18),
-                      color: AppColorV2.background,
-                      borderColor: null,
+                      color: surface,
+                      borderColor: stroke,
+                      borderWidth: 1,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(20),
@@ -608,28 +630,31 @@ class _MyProfileState extends State<MyProfile> {
                             children: [
                               Icon(
                                 Icons.card_giftcard_rounded,
-                                color: AppColorV2.lpBlueBrand,
+                                color: cs.primary,
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
                               DefaultText(
                                 text: 'My Referral Code',
-                                style: AppTextStyle.h3.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                color: AppColorV2.primaryTextColor,
+                                style: AppTextStyle.h3(
+                                  context,
+                                ).copyWith(fontWeight: FontWeight.w800),
+                                color: cs.onSurface,
                               ),
                             ],
                           ),
                           const SizedBox(height: 10),
                           Row(
                             children: [
-                              DefaultText(
-                                text: "CMDSI-RG08099800",
-                                style: AppTextStyle.h3_f22.copyWith(
-                                  letterSpacing: 1.5,
+                              Expanded(
+                                child: DefaultText(
+                                  text: "CMDSI-RG08099800",
+                                  style: AppTextStyle.h3(
+                                    context,
+                                  ).copyWith(letterSpacing: 1.5),
+                                  minFontSize: 8,
+                                  color: cs.primary,
                                 ),
-                                color: AppColorV2.lpBlueBrand,
                               ),
                               const SizedBox(width: 5),
                               GestureDetector(
@@ -642,7 +667,7 @@ class _MyProfileState extends State<MyProfile> {
                                       content: const Text(
                                         'Copied to clipboard',
                                       ),
-                                      backgroundColor: AppColorV2.lpBlueBrand,
+                                      backgroundColor: cs.primary,
                                       behavior: SnackBarBehavior.floating,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
@@ -653,30 +678,29 @@ class _MyProfileState extends State<MyProfile> {
                                 child: Icon(
                                   Iconsax.copy,
                                   size: 22,
-                                  color: AppColorV2.bodyTextColor,
+                                  color: cs.onSurface.withOpacity(0.70),
                                 ),
                               ),
                             ],
                           ),
-
                           const SizedBox(height: 12),
                           DefaultText(
                             text:
                                 "Share your code with friends and earn rewards when they sign up!",
-                            style: AppTextStyle.body1,
-                            color: AppColorV2.bodyTextColor,
+                            style: AppTextStyle.body1(context),
+                            color: cs.onSurface.withOpacity(0.72),
                           ),
                           const SizedBox(height: 8),
                           DefaultText(
                             text: "Terms and conditions Apply",
-                            style: AppTextStyle.body2,
-                            color: AppColorV2.lpBlueBrand,
+                            style: AppTextStyle.body2(context),
+                            color: cs.primary,
                           ),
                           const SizedBox(height: 18),
                           DefaultText(
                             text: "Did someone refer you?",
-                            style: AppTextStyle.body2,
-                            color: AppColorV2.bodyTextColor,
+                            style: AppTextStyle.body2(context),
+                            color: cs.onSurface.withOpacity(0.72),
                           ),
                           CustomTextField(
                             controller: referralController,
@@ -693,12 +717,11 @@ class _MyProfileState extends State<MyProfile> {
                           CustomButton(
                             width: MediaQuery.of(context).size.width / 3,
                             text: "Submit",
-                            onPressed:
-                                () async => {
-                                  CustomDialogStack.showComingSoon(context, () {
-                                    Get.back();
-                                  }),
-                                },
+                            onPressed: () async {
+                              CustomDialogStack.showComingSoon(context, () {
+                                Get.back();
+                              });
+                            },
                           ),
                         ],
                       ),
@@ -706,6 +729,7 @@ class _MyProfileState extends State<MyProfile> {
                   ),
                 ),
               ],
+
               const SizedBox(height: 40),
             ],
           ),
@@ -714,21 +738,30 @@ class _MyProfileState extends State<MyProfile> {
     );
   }
 
-  Widget _buildInfoCard({
+  Widget _buildInfoCard(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String value,
     bool isMultiLine = false,
   }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final surface = cs.surface;
+    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+
     final radius = BorderRadius.circular(18);
 
     return Container(
-      margin: EdgeInsets.fromLTRB(10, 5, 10, 0),
+      margin: const EdgeInsets.fromLTRB(10, 5, 10, 0),
       child: Neumorphic(
         style: LuvNeu.card(
           radius: radius,
-          color: AppColorV2.background,
-          borderColor: null,
+          color: surface,
+          borderColor: stroke,
+          borderWidth: 1,
         ),
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -740,39 +773,36 @@ class _MyProfileState extends State<MyProfile> {
             children: [
               Neumorphic(
                 style: LuvNeu.circle(
-                  color: AppColorV2.background,
-                  borderColor: null,
+                  color: surface,
+                  borderColor: stroke,
+                  borderWidth: 1,
                 ),
                 child: SizedBox(
                   width: 44,
                   height: 44,
-                  child: Center(
-                    child: Icon(icon, color: AppColorV2.lpBlueBrand, size: 20),
-                  ),
+                  child: Center(child: Icon(icon, color: cs.primary, size: 20)),
                 ),
               ),
-
               const SizedBox(width: 14),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DefaultText(
                       text: title,
-                      style: AppTextStyle.body1.copyWith(
-                        fontWeight: FontWeight.w500,
+                      style: AppTextStyle.body1(context).copyWith(
+                        fontWeight: FontWeight.w600,
                         letterSpacing: -0.2,
                       ),
-                      color: AppColorV2.bodyTextColor,
+                      color: cs.onSurface.withOpacity(0.70),
                     ),
                     const SizedBox(height: 4),
                     DefaultText(
                       text: value,
-                      style: AppTextStyle.body1.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                      color: AppColorV2.primaryTextColor,
+                      style: AppTextStyle.body1(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w800),
+                      color: cs.onSurface,
                       maxLines: isMultiLine ? 3 : 2,
                     ),
                   ],

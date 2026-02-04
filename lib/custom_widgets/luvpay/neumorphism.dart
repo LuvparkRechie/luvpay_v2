@@ -1,7 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
-
+import 'package:flutter/material.dart';
 import '../app_color_v2.dart';
 import '../custom_text_v2.dart';
 
@@ -104,12 +104,24 @@ class NeoNavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final isTab = mode == NeoNavIconMode.tab;
     final isActive = active == true;
 
     final brand = AppColorV2.lpBlueBrand;
+
+    final surface = cs.surface;
+    final onSurface = cs.onSurface;
+    final onSurfaceVariant = cs.onSurfaceVariant;
+
     final inactive =
-        inactiveColor ?? AppColorV2.primaryTextColor.withValues(alpha: 0.55);
+        inactiveColor ??
+        (isDark
+            ? onSurface.withOpacity(0.62)
+            : onSurfaceVariant.withOpacity(0.70));
 
     final badgeBg = badgeColor ?? AppColorV2.incorrectState;
     final badgeFg = badgeTextColor ?? Colors.white;
@@ -164,6 +176,8 @@ class NeoNavIcon extends StatelessWidget {
     }
 
     Widget buildBadge() {
+      final borderCutColor = surface.withOpacity(isDark ? 0.95 : 0.98);
+
       if (hasCount) {
         final c = badgeCount!;
         final text = c > 99 ? "99+" : "$c";
@@ -177,14 +191,11 @@ class NeoNavIcon extends StatelessWidget {
           decoration: BoxDecoration(
             color: badgeBg,
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: AppColorV2.background.withValues(alpha: 0.9),
-              width: 1.4,
-            ),
+            border: Border.all(color: borderCutColor, width: 1.4),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 8,
+                color: Colors.black.withOpacity(isDark ? 0.35 : 0.12),
+                blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
             ],
@@ -209,14 +220,11 @@ class NeoNavIcon extends StatelessWidget {
         decoration: BoxDecoration(
           color: badgeBg,
           shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColorV2.background.withValues(alpha: 0.9),
-            width: 1.4,
-          ),
+          border: Border.all(color: borderCutColor, width: 1.4),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 8,
+              color: Colors.black.withOpacity(isDark ? 0.35 : 0.12),
+              blurRadius: 10,
               offset: const Offset(0, 3),
             ),
           ],
@@ -230,6 +238,7 @@ class NeoNavIcon extends StatelessWidget {
       selected: isTab && isActive,
       depth: flatten ? 0 : LuvNeu.cardDepth,
       pressedDepth: flatten ? 0 : LuvNeu.cardPressedDepth,
+      background: surface,
       borderColor: flatten ? Colors.transparent : (isActive ? brand : null),
       child: SizedBox(
         width: size,
@@ -279,7 +288,11 @@ class InfoRowTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final radius = BorderRadius.circular(16);
+
+    final surface = cs.surface;
+    final onSurface = cs.onSurface;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -287,6 +300,7 @@ class InfoRowTile extends StatelessWidget {
         radius: radius,
         onTap: onTap,
         borderColor: null,
+        background: surface,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
@@ -296,14 +310,18 @@ class InfoRowTile extends StatelessWidget {
                 Neumorphic(
                   style: LuvNeu.icon(
                     radius: BorderRadius.circular(12),
-                    color: AppColorV2.background,
+                    color: surface,
                     borderColor: null,
                   ),
                   child: SizedBox(
                     width: 40,
                     height: 40,
                     child: Center(
-                      child: Icon(icon, color: AppColorV2.primary, size: 20),
+                      child: Icon(
+                        icon,
+                        color: onSurface.withOpacity(0.90),
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
@@ -314,18 +332,22 @@ class InfoRowTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (value != null)
-                      DefaultText(text: value!, style: AppTextStyle.body1),
+                      DefaultText(
+                        text: value!,
+                        style: AppTextStyle.body1(context),
+                      ),
                     DefaultText(
                       maxLines: maxLines ?? 2,
                       text: title,
-                      color: AppColorV2.primaryTextColor,
-                      style: AppTextStyle.body1,
+                      color: onSurface,
+                      style: AppTextStyle.body1(context),
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 4),
                       DefaultText(
                         text: subtitle!,
                         maxLines: subtitleMaxlines ?? 1,
+                        color: cs.onSurfaceVariant,
                       ),
                     ],
                   ],
@@ -362,7 +384,7 @@ class SectionListView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DefaultText(text: sectionTitle, style: AppTextStyle.h3),
+        DefaultText(text: sectionTitle, style: AppTextStyle.h3(context)),
         const SizedBox(height: 8),
         ListView.builder(
           physics: const NeverScrollableScrollPhysics(),
@@ -394,20 +416,28 @@ class DefaultContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(19),
       decoration: BoxDecoration(
-        color: AppColorV2.background,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColorV2.primaryTextColor.withValues(alpha: .05),
-            blurRadius: 15,
+            color: Colors.black.withOpacity(isDark ? 0.35 : 0.06),
+            blurRadius: isDark ? 18 : 15,
             offset: const Offset(0, 5),
           ),
         ],
+        border: Border.all(
+          color: (isDark ? Colors.white : Colors.black).withOpacity(0.06),
+          width: 0.8,
+        ),
       ),
-      child: child,
+      child: Stack(children: [child]),
     );
   }
 }
@@ -886,6 +916,116 @@ class _LuvNeuPillButtonState extends State<LuvNeuPillButton> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CustomRowTile extends StatelessWidget {
+  final Widget? leading;
+  final Widget title;
+  final Widget? subtitle;
+
+  final Widget? trailing;
+
+  final VoidCallback? onTap;
+
+  final EdgeInsets padding;
+  final BorderRadius radius;
+
+  final BorderRadius leadingRadius;
+  final double leadingSize;
+
+  final BorderRadius trailingRadius;
+  final EdgeInsets trailingPadding;
+
+  final Color? background;
+  final Color? leadingBackground;
+
+  const CustomRowTile({
+    super.key,
+    this.leading,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+    this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    this.radius = const BorderRadius.all(Radius.circular(16)),
+    this.leadingRadius = const BorderRadius.all(Radius.circular(12)),
+    this.leadingSize = 40,
+    this.trailingRadius = const BorderRadius.all(Radius.circular(14)),
+    this.trailingPadding = const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 8,
+    ),
+    this.background,
+    this.leadingBackground,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final surface = background ?? cs.surface;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: LuvNeuPress.rectangle(
+        radius: radius,
+        onTap: onTap,
+        background: surface,
+        borderColor: null,
+        child: Padding(
+          padding: padding,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (leading != null) ...[
+                Neumorphic(
+                  style: LuvNeu.icon(
+                    radius: leadingRadius,
+                    color: leadingBackground ?? surface,
+                    borderColor: null,
+                  ),
+                  child: SizedBox(
+                    width: leadingSize,
+                    height: leadingSize,
+                    child: Center(child: leading),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    title,
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      subtitle!,
+                    ],
+                  ],
+                ),
+              ),
+
+              if (trailing != null) ...[
+                const SizedBox(width: 10),
+                Neumorphic(
+                  style: NeumorphicStyle(
+                    color: surface,
+                    shape: NeumorphicShape.flat,
+                    boxShape: NeumorphicBoxShape.roundRect(trailingRadius),
+                    depth: -1.0,
+                    intensity: LuvNeu.intensity,
+                    surfaceIntensity: LuvNeu.surfaceIntensity,
+                    border: const NeumorphicBorder.none(),
+                  ),
+                  child: Padding(padding: trailingPadding, child: trailing),
+                ),
+              ],
+            ],
           ),
         ),
       ),

@@ -65,14 +65,14 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                       spacing(height: 10),
                       DefaultText(
                         text: "Reset password ",
-                        style: AppTextStyle.h2,
+                        style: AppTextStyle.h2(context),
                         height: 28 / 24,
                       ),
                       spacing(height: 5),
                       DefaultText(
                         height: 18 / 14,
                         textAlign: TextAlign.center,
-                        style: AppTextStyle.paragraph2,
+                        style: AppTextStyle.paragraph2(context),
                         text:
                             "Your new password must be different from\nany passwords you've used before.",
                       ),
@@ -82,7 +82,10 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      DefaultText(text: "New password", style: AppTextStyle.h3),
+                      DefaultText(
+                        text: "New password",
+                        style: AppTextStyle.h3(context),
+                      ),
                       CustomTextField(
                         hintText: "New password",
                         controller: controller.newPass,
@@ -128,7 +131,7 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                       spacing(height: 14),
                       DefaultText(
                         text: "Confirm password",
-                        style: AppTextStyle.h3,
+                        style: AppTextStyle.h3(context),
                       ),
                       CustomTextField(
                         onChange: (value) {
@@ -318,7 +321,7 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
             SizedBox(width: 8),
             DefaultText(
               text: "Minimum of 8 characters",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),
@@ -335,7 +338,7 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
             SizedBox(width: 8),
             DefaultText(
               text: "At least one uppercase letter",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),
@@ -352,7 +355,7 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
             SizedBox(width: 8),
             DefaultText(
               text: "At least one number",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),

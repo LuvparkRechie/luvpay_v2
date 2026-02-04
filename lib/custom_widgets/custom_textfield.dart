@@ -5,7 +5,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_auto_size_text/flutter_auto_size_text.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
@@ -15,7 +17,6 @@ class CustomTextField extends StatefulWidget {
   const CustomTextField({
     super.key,
     this.title,
-
     this.labelText,
     this.hintText,
     required this.controller,
@@ -48,6 +49,7 @@ class CustomTextField extends StatefulWidget {
     this.suffixBgC,
     this.circularRadius = 7,
   });
+
   final Widget? suffixWidget;
   final TextEditingController controller;
   final String? errorText;
@@ -88,40 +90,50 @@ class CustomTextField extends StatefulWidget {
 class _CustomTextFieldState extends State<CustomTextField> {
   FocusNode focusNode = FocusNode();
 
-  final numericRegex = RegExp(r'[0-9]');
-  final upperCaseRegex = RegExp(r'[A-Z]');
-  @override
-  void initState() {
-    super.initState();
-    // focusNode.addListener(() {
-    //   if (mounted) {
-    //     setState(() {});
-    //   }
-    // });
-
-    // widget.controller.addListener(() {
-    //   if (mounted) {
-    //     setState(() {});
-    //   }
-    // });
-  }
-
   @override
   void dispose() {
     focusNode.dispose();
-    // widget.controller.removeListener(() {});
     super.dispose();
+  }
+
+  OutlineInputBorder _border({
+    required double radius,
+    required Color color,
+    double width = 2,
+  }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(radius)),
+      borderSide: BorderSide(width: width, color: color),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final radius = widget.circularRadius ?? 7;
+
+    final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+    final focused = AppColorV2.lpBlueBrand;
+    final error = AppColorV2.incorrectState;
+
+    final fill =
+        widget.filledColor ??
+        (widget.isFilled ? cs.surface : Colors.transparent);
+
+    final hintColor = cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80);
+    final textColor = cs.onSurface;
+    final iconInactive = cs.onSurfaceVariant.withOpacity(0.70);
+
     return Padding(
       padding:
-          widget.allowFieldPadding!
+          (widget.allowFieldPadding ?? true)
               ? EdgeInsets.only(top: 6.0)
               : EdgeInsets.zero,
       child: TextFormField(
-        keyboardAppearance: Brightness.light,
+        keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
         minLines: widget.minLines,
         maxLines: widget.maxLines,
         maxLength: widget.maxLength,
@@ -132,62 +144,46 @@ class _CustomTextFieldState extends State<CustomTextField> {
         controller: widget.controller,
         textInputAction: widget.textInputAction ?? TextInputAction.done,
         readOnly: widget.isReadOnly ?? false,
-        keyboardType: widget.keyboardType!,
-        textAlign:
-            widget.textAlign != null ? widget.textAlign! : TextAlign.left,
+        keyboardType: widget.keyboardType ?? TextInputType.text,
+        textAlign: widget.textAlign ?? TextAlign.left,
         focusNode: focusNode,
         decoration: InputDecoration(
           errorText: widget.errorText,
           filled: widget.isFilled,
-          fillColor: widget.filledColor ?? Colors.transparent,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(widget.circularRadius!),
-            ),
-            borderSide: BorderSide(width: 2, color: AppColorV2.boxStroke),
-          ),
+          fillColor: fill,
+          enabledBorder: _border(radius: radius, color: stroke),
+          focusedBorder: _border(radius: radius, color: focused),
+          border: _border(radius: radius, color: stroke),
+          errorBorder: _border(radius: radius, color: error),
+          focusedErrorBorder: _border(radius: radius, color: error),
           errorStyle: TextStyle(
-            color: Colors.red,
+            color: error,
             fontWeight: FontWeight.normal,
             fontSize: 11,
           ),
           contentPadding: EdgeInsets.only(top: 15, bottom: 12, left: 11),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(widget.circularRadius!),
-            ),
-            borderSide: BorderSide(width: 2, color: AppColorV2.lpBlueBrand),
+          suffixIcon: _buildSuffixIcon(
+            context: context,
+            activeColor: focused,
+            inactiveColor: iconInactive,
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(widget.circularRadius!),
-            ),
-            borderSide: BorderSide(width: 2, color: AppColorV2.boxStroke),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(widget.circularRadius!),
-            ),
-            borderSide: BorderSide(width: 2, color: AppColorV2.incorrectState),
-          ),
-          suffixIcon: _buildSuffixIcon(),
           prefixIcon:
               widget.prefixIcon != null
-                  ? widget.isPota!
+                  ? (widget.isPota == true
                       ? widget.prefixIcon!
                       : InkWell(
                         onTap: () {
-                          widget.onIconTap!();
+                          if (widget.onIconTap != null) widget.onIconTap!();
                         },
                         child: widget.prefixIcon,
-                      )
+                      ))
                   : null,
           prefix: widget.prefix,
           hintMaxLines: 1,
           maintainHintSize: true,
           hintText: widget.hintText,
           hintStyle: GoogleFonts.manrope(
-            color: AppColorV2.bodyTextColor,
+            color: hintColor,
             fontWeight: FontWeight.w500,
             fontSize: 14,
             height: 18 / 14,
@@ -204,64 +200,65 @@ class _CustomTextFieldState extends State<CustomTextField> {
         style:
             widget.style ??
             GoogleFonts.manrope(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColorV2.primaryTextColor,
+              fontSize: widget.fontsize ?? 14,
+              fontWeight: widget.fontweight ?? FontWeight.w500,
+              color: textColor,
               letterSpacing: 0.0,
               height: 18 / 14,
             ),
         onChanged: (value) {
-          if (widget.onChange != null) {
-            if (mounted) {
-              widget.onChange!(value);
-            }
-          }
+          if (widget.onChange != null && mounted) widget.onChange!(value);
         },
         onTap: () {
-          if (widget.onTap != null) {
-            if (mounted) {
-              widget.onTap!();
-            }
-          }
+          if (widget.onTap != null && mounted) widget.onTap!();
         },
         validator: widget.validator,
       ),
     );
   }
 
-  Widget? _buildSuffixIcon() {
+  Widget? _buildSuffixIcon({
+    required BuildContext context,
+    required Color activeColor,
+    required Color inactiveColor,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cs = theme.colorScheme;
+
     if (widget.suffixWidget != null) {
+      final bg =
+          widget.suffixBgC ??
+          (isDark ? cs.surfaceContainerHighest : cs.surface);
+
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: widget.suffixBgC,
+          color: bg,
           borderRadius: BorderRadius.only(
-            bottomRight: Radius.circular(widget.circularRadius!),
-            topRight: Radius.circular(widget.circularRadius!),
+            bottomRight: Radius.circular(widget.circularRadius ?? 7),
+            topRight: Radius.circular(widget.circularRadius ?? 7),
           ),
         ),
         height: 24,
         width: 60,
         child: Center(child: widget.suffixWidget),
       );
-    } else if (widget.suffixIcon != null) {
+    }
+
+    if (widget.suffixIcon != null) {
+      final canHighlight =
+          focusNode.hasFocus && widget.controller.text.isNotEmpty;
+      final iconColor = canHighlight ? activeColor : inactiveColor;
+
       return InkWell(
         onTap: () {
-          if (widget.onIconTap != null) {
-            widget.onIconTap!();
-          }
+          if (widget.onIconTap != null) widget.onIconTap!();
         },
-        child: Icon(
-          widget.suffixIcon!,
-          color:
-              focusNode.hasFocus
-                  ? (widget.controller.text.isEmpty
-                      ? AppColorV2.inactiveState
-                      : AppColorV2.lpBlueBrand)
-                  : AppColorV2.inactiveState,
-        ),
+        child: Icon(widget.suffixIcon!, color: iconColor),
       );
     }
+
     return null;
   }
 }
@@ -303,17 +300,40 @@ class CustomMobileNumber extends StatefulWidget {
 }
 
 class _CustomMobileNumberState extends State<CustomMobileNumber> {
+  OutlineInputBorder _border({
+    required double radius,
+    required Color color,
+    double width = 2,
+  }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(radius)),
+      borderSide: BorderSide(width: width, color: color),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+    final focused = AppColorV2.lpBlueBrand;
+    final error = AppColorV2.incorrectState;
+
+    final hintColor = cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80);
+    final textColor = cs.onSurface;
+
     return Padding(
       padding: const EdgeInsets.only(top: 6.0),
       child: TextFormField(
+        keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
         maxLines: 1,
         autofocus: false,
-        inputFormatters: [Variables.maskFormatter],
+        inputFormatters: widget.inputFormatters ?? [Variables.maskFormatter],
         controller: widget.controller,
         textInputAction: widget.textInputAction ?? TextInputAction.done,
-        readOnly: !widget.isEnabled || widget.isReadOnly!,
+        readOnly: !widget.isEnabled || (widget.isReadOnly ?? false),
         textAlign: TextAlign.left,
         enabled: widget.isEnabled,
         keyboardType:
@@ -321,34 +341,21 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
                 ? TextInputType.phone
                 : TextInputType.numberWithOptions(signed: true, decimal: false),
         decoration: InputDecoration(
-          errorStyle: TextStyle(color: Colors.red, fontSize: 11),
+          errorStyle: TextStyle(color: error, fontSize: 11),
           isDense: true,
-
           contentPadding: const EdgeInsets.only(top: 15, bottom: 12),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(7)),
-            borderSide: BorderSide(width: 2, color: AppColorV2.boxStroke),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(7)),
-            borderSide: BorderSide(width: 2, color: AppColorV2.lpBlueBrand),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(7)),
-            borderSide: BorderSide(color: AppColorV2.lpBlueBrand),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(7)),
-            borderSide: BorderSide(width: 2, color: AppColorV2.incorrectState),
-          ),
+          enabledBorder: _border(radius: 7, color: stroke),
+          focusedBorder: _border(radius: 7, color: focused),
+          border: _border(radius: 7, color: focused),
+          errorBorder: _border(radius: 7, color: error),
+          focusedErrorBorder: _border(radius: 7, color: error),
           suffixIcon:
               widget.suffixIcon != null
                   ? InkWell(
-                    onLongPress: () {},
                     onTap: () {
-                      widget.onIconTap!();
+                      if (widget.onIconTap != null) widget.onIconTap!();
                     },
-                    child: Icon(widget.suffixIcon!),
+                    child: Icon(widget.suffixIcon!, color: cs.onSurfaceVariant),
                   )
                   : null,
           prefixIcon: Row(
@@ -362,14 +369,14 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
                 style:
                     Platform.isAndroid
                         ? GoogleFonts.manrope(
-                          color: AppColorV2.primaryTextColor,
+                          color: textColor,
                           fontWeight: FontWeight.w700,
                           height: 20 / 14,
                           fontSize: 14,
                         )
                         : TextStyle(
                           fontFamily: "SFProTextReg",
-                          color: AppColorV2.primaryTextColor,
+                          color: textColor,
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                         ),
@@ -380,7 +387,7 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
           maintainHintSize: true,
           hintText: widget.hintText,
           hintStyle: GoogleFonts.manrope(
-            color: AppColorV2.bodyTextColor,
+            color: hintColor,
             fontWeight: FontWeight.w500,
             fontSize: 14,
             height: 18 / 14,
@@ -389,29 +396,22 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
         style: GoogleFonts.manrope(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: AppColorV2.primaryTextColor,
+          color: textColor,
           letterSpacing: 0.0,
           height: 18 / 14,
         ),
         onTap: widget.isEnabled ? widget.onTap : null,
         onChanged: (value) {
-          if (widget.onChange != null) {
-            widget.onChange!(value);
-          }
+          if (widget.onChange != null) widget.onChange!(value);
         },
         validator:
             widget.validator ??
             (value) {
               if (widget.hintText == "10 digit mobile number") {
-                if (value!.isEmpty) {
-                  return 'Field is required';
-                }
-                if (value.toString().replaceAll(" ", "").length < 10) {
-                  return 'Invalid mobile number';
-                }
-                if (value.toString().replaceAll(" ", "")[0] == '0') {
-                  return 'Invalid mobile number';
-                }
+                if (value == null || value.isEmpty) return 'Field is required';
+                final v = value.replaceAll(" ", "");
+                if (v.length < 10) return 'Invalid mobile number';
+                if (v[0] == '0') return 'Invalid mobile number';
               }
               return null;
             },
@@ -432,18 +432,23 @@ class CustomButtonClose extends StatefulWidget {
 class _CustomButtonCloseState extends State<CustomButtonClose> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cs = theme.colorScheme;
+
+    final bg = isDark ? AppColorV2.lpBlueBrand : AppColorV2.lpBlueBrand;
+    final fg = Colors.white;
+
     return InkWell(
-      onTap: () {
-        widget.onTap();
-      },
+      onTap: () => widget.onTap(),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: AppColorV2.lpBlueBrand,
+          color: bg,
         ),
-        child: const Padding(
+        child: Padding(
           padding: EdgeInsets.all(4.0),
-          child: Icon(Icons.close, size: 23, color: Colors.white),
+          child: Icon(Icons.close, size: 23, color: fg),
         ),
       ),
     );
@@ -458,49 +463,65 @@ DropdownButtonFormField<String> customDropdown({
   required ValueChanged<String?> onChanged,
   Widget? prefixIcon,
   String? Function(String?)? validator,
+  BuildContext? context,
 }) {
+  final ctx = context ?? Get.context!;
+  final theme = Theme.of(ctx);
+  final cs = theme.colorScheme;
+  final isDark = theme.brightness == Brightness.dark;
+
+  final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+  final focused = AppColorV2.lpBlueBrand;
+  final error = AppColorV2.incorrectState;
+
   return DropdownButtonFormField<String>(
     decoration: InputDecoration(
       prefixIcon: prefixIcon,
       filled: isDisabled,
-      fillColor: Colors.grey.shade200,
+      fillColor:
+          isDisabled
+              ? (isDark ? cs.surfaceContainerHighest : cs.surface)
+              : null,
       contentPadding: const EdgeInsets.only(top: 15, bottom: 12, left: 11),
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(width: 2, color: AppColorV2.boxStroke),
+        borderSide: BorderSide(width: 2, color: stroke),
         borderRadius: BorderRadius.all(Radius.circular(7)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(7)),
-        borderSide: BorderSide(width: 2, color: AppColorV2.lpBlueBrand),
+        borderSide: BorderSide(width: 2, color: focused),
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(7)),
-        borderSide: BorderSide(width: 2, color: AppColorV2.boxStroke),
+        borderSide: BorderSide(width: 2, color: stroke),
       ),
       hintMaxLines: 1,
       maintainHintSize: true,
       hintText: labelText,
       hintStyle: GoogleFonts.manrope(
-        color: AppColorV2.bodyTextColor,
+        color: cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80),
         fontWeight: FontWeight.w500,
         fontSize: 14,
         height: 18 / 14,
       ),
       errorStyle: TextStyle(
-        color: Colors.red,
+        color: error,
         fontWeight: FontWeight.normal,
         fontSize: 11,
       ),
-
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(7)),
-        borderSide: BorderSide(width: 2, color: AppColorV2.incorrectState),
+        borderSide: BorderSide(width: 2, color: error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(7)),
+        borderSide: BorderSide(width: 2, color: error),
       ),
     ),
     style: GoogleFonts.manrope(
       fontSize: 14,
       fontWeight: FontWeight.w500,
-      color: AppColorV2.primaryTextColor,
+      color: cs.onSurface,
       letterSpacing: 0.0,
       height: 18 / 14,
     ),
@@ -511,7 +532,7 @@ DropdownButtonFormField<String> customDropdown({
             child: AutoSizeText(
               item['text'].toString(),
               style: TextStyle(
-                color: Colors.black,
+                color: cs.onSurface,
                 fontWeight: FontWeight.w500,
               ),
               overflow: TextOverflow.ellipsis,
@@ -527,9 +548,12 @@ DropdownButtonFormField<String> customDropdown({
     focusNode: FocusNode(),
     icon: Icon(
       Icons.arrow_drop_down,
-      color: items.isEmpty || isDisabled ? Colors.grey : Colors.black,
+      color:
+          (items.isEmpty || isDisabled)
+              ? cs.onSurfaceVariant.withOpacity(0.5)
+              : cs.onSurfaceVariant,
     ),
-    dropdownColor: Colors.white,
+    dropdownColor: cs.surface,
     autovalidateMode: AutovalidateMode.onUserInteraction,
   );
 }

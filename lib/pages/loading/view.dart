@@ -36,7 +36,7 @@ class LoadingScreen extends GetView<LoadingController> {
                     child: DefaultText(
                       textAlign: TextAlign.center,
                       text: "Get started with luvpay Parking",
-                      style: AppTextStyle.h1,
+                      style: AppTextStyle.h1(context),
                       height: 32 / 28,
                     ),
                   ),
@@ -45,7 +45,7 @@ class LoadingScreen extends GetView<LoadingController> {
                     text:
                         "Start your journey to hassle-free parking in just a few taps.",
                     textAlign: TextAlign.center,
-                    style: AppTextStyle.paragraph1,
+                    style: AppTextStyle.paragraph1(context),
                     height: 20 / 16,
                   ),
                   Container(height: 24),
@@ -88,7 +88,7 @@ class LoadingScreen extends GetView<LoadingController> {
                                 child: Row(
                                   children: [
                                     DefaultText(
-                                      style: AppTextStyle.paragraph2,
+                                      style: AppTextStyle.paragraph2(context),
                                       text: "Agree with",
                                       letterSpacing: 0,
                                       height: 18 / 14,
@@ -108,7 +108,9 @@ class LoadingScreen extends GetView<LoadingController> {
                                           );
                                         },
                                         child: DefaultText(
-                                          style: AppTextStyle.paragraph2,
+                                          style: AppTextStyle.paragraph2(
+                                            context,
+                                          ),
                                           color: AppColorV2.lpBlueBrand,
                                           fontWeight: FontWeight.w700,
                                           letterSpacing: 0,

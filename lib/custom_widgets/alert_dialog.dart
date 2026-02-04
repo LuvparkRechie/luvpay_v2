@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:flutter_auto_size_text/flutter_auto_size_text.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
@@ -9,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
-import 'package:luvpay/custom_widgets/loading.dart';
 
 class CustomDialogStack {
   static bool _isSnackBarActive = false;
@@ -31,6 +28,10 @@ class CustomDialogStack {
     required bool showRightButton,
     bool isAllBlueColor = false,
   }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -49,8 +50,19 @@ class CustomDialogStack {
                 Container(
                   padding: const EdgeInsets.fromLTRB(19, 30, 19, 19),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cs.surface,
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: cs.onSurface.withOpacity(isDark ? 0.12 : 0.06),
+                      width: 0.8,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
+                        blurRadius: isDark ? 22 : 18,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -58,11 +70,11 @@ class CustomDialogStack {
                       const SizedBox(height: 30),
                       DefaultText(
                         text: title,
-                        style: AppTextStyle.h2,
+                        style: AppTextStyle.h2(context),
                         fontSize: 22,
                         maxLines: 1,
                       ),
-                      SizedBox(height: 5),
+                      const SizedBox(height: 5),
                       AutoSizeText(
                         subtitle,
                         minFontSize: 12,
@@ -71,7 +83,7 @@ class CustomDialogStack {
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           height: 18 / 14,
-                          color: AppColorV2.bodyTextColor,
+                          color: cs.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -79,38 +91,41 @@ class CustomDialogStack {
                         children: [
                           Expanded(
                             child: _dialogNeumorphicButton(
+                              context: context,
                               text: leftText,
                               onPressed: leftButtonAction,
                               fg:
                                   !showRightButton
-                                      ? AppColorV2.background
+                                      ? cs.onPrimary
                                       : (leftTextColor ??
                                           AppColorV2.lpBlueBrand),
                               bg:
                                   !showRightButton
                                       ? AppColorV2.lpBlueBrand
                                       : (leftBtnColor ??
-                                          AppColorV2.lpBlueBrand.withAlpha(20)),
+                                          AppColorV2.lpBlueBrand.withOpacity(
+                                            0.12,
+                                          )),
                             ),
                           ),
                           if (showRightButton) const SizedBox(width: 10),
                           if (showRightButton)
                             Expanded(
                               child: _dialogNeumorphicButton(
+                                context: context,
                                 text: rightText,
                                 onPressed: rightButtonAction!,
                                 fg:
                                     isAllBlueColor
-                                        ? AppColorV2.background
+                                        ? cs.onPrimary
                                         : (rightTextColor ??
                                             AppColorV2.incorrectState),
                                 bg:
                                     isAllBlueColor
                                         ? AppColorV2.lpBlueBrand
                                         : (rightBtnColor ??
-                                            AppColorV2.incorrectState.withAlpha(
-                                              20,
-                                            )),
+                                            AppColorV2.incorrectState
+                                                .withOpacity(0.12)),
                               ),
                             ),
                         ],
@@ -166,7 +181,6 @@ class CustomDialogStack {
     required String subtitle,
     required VoidCallback leftButtonAction,
     required VoidCallback rightButtonAction,
-
     String leftText = "Cancel",
     String rightText = "Confirm",
     TextAlign? textAlign,
@@ -185,7 +199,6 @@ class CustomDialogStack {
       rightButtonAction: rightButtonAction,
       leftText: leftText,
       rightText: rightText,
-
       leftTextColor: leftTextColor,
       rightTextColor: rightTextColor,
       showRightButton: true,
@@ -320,19 +333,18 @@ class CustomDialogStack {
   ) {
     if (_isSnackBarActive) return;
 
+    final cs = Theme.of(context).colorScheme;
     _isSnackBarActive = true;
 
     final snackBar = SnackBar(
-      backgroundColor: color ?? Colors.red,
-      content: Text(text),
+      backgroundColor: color ?? cs.error,
+      content: Text(text, style: TextStyle(color: cs.onError)),
       duration: const Duration(seconds: 1),
       action: SnackBarAction(
-        textColor: Colors.white,
+        textColor: cs.onError,
         label: 'Okay',
         onPressed: () {
-          if (onTap != null) {
-            onTap();
-          }
+          if (onTap != null) onTap();
         },
       ),
     );
@@ -343,10 +355,14 @@ class CustomDialogStack {
   }
 
   static void showLoading(BuildContext context, {String text = "Loading..."}) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: AppColorV2.bodyTextColor.withAlpha(50),
+      barrierColor: Colors.black.withOpacity(isDark ? 0.55 : 0.25),
       builder: (context) {
         return Material(
           color: Colors.transparent,
@@ -359,26 +375,30 @@ class CustomDialogStack {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColorV2.background,
+                  color: cs.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(.10),
+                      color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
                       blurRadius: 18,
                       offset: const Offset(0, 10),
                     ),
                   ],
                   border: Border.all(
-                    color: const Color(0xFF0F172A).withOpacity(.06),
+                    color: cs.onSurface.withOpacity(isDark ? 0.12 : 0.06),
+                    width: 0.8,
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SizedBox(
+                    SizedBox(
                       width: 22,
                       height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: cs.primary,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     DefaultText(
@@ -387,7 +407,7 @@ class CustomDialogStack {
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                       ),
-                      color: Colors.black.withOpacity(.70),
+                      color: cs.onSurface.withOpacity(0.75),
                     ),
                   ],
                 ),
@@ -407,6 +427,10 @@ class CustomDialogStack {
     Color? btnOkBackgroundColor,
     Color? btnOkTextColor,
   }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -425,8 +449,19 @@ class CustomDialogStack {
                 Container(
                   padding: const EdgeInsets.fromLTRB(19, 30, 19, 19),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cs.surface,
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: cs.onSurface.withOpacity(isDark ? 0.12 : 0.06),
+                      width: 0.8,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
+                        blurRadius: isDark ? 22 : 18,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -434,7 +469,7 @@ class CustomDialogStack {
                       const SizedBox(height: 30),
                       DefaultText(
                         text: title,
-                        style: AppTextStyle.h2,
+                        style: AppTextStyle.h2(context),
                         fontSize: 22,
                         maxLines: 1,
                       ),
@@ -447,7 +482,7 @@ class CustomDialogStack {
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           height: 18 / 14,
-                          color: AppColorV2.bodyTextColor,
+                          color: cs.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -458,7 +493,7 @@ class CustomDialogStack {
                           onPressed: onTapConfirm,
                           btnColor:
                               btnOkBackgroundColor ?? AppColorV2.lpBlueBrand,
-                          textColor: btnOkTextColor ?? AppColorV2.background,
+                          textColor: btnOkTextColor ?? cs.onPrimary,
                         ),
                       ),
                     ],
@@ -486,6 +521,10 @@ class CustomDialogStack {
       context: Get.context!,
       barrierDismissible: false,
       builder: (context) {
+        final theme = Theme.of(context);
+        final cs = theme.colorScheme;
+        final isDark = theme.brightness == Brightness.dark;
+
         return PopScope(
           canPop: false,
           child: Dialog(
@@ -527,10 +566,14 @@ class CustomDialogStack {
                     horizontal: 20,
                     vertical: 20,
                   ),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
+                  decoration: BoxDecoration(
+                    color: cs.surface,
+                    borderRadius: const BorderRadius.vertical(
                       bottom: Radius.circular(14),
+                    ),
+                    border: Border.all(
+                      color: cs.onSurface.withOpacity(isDark ? 0.12 : 0.06),
+                      width: 0.8,
                     ),
                   ),
                   width: MediaQuery.of(context).size.width,
@@ -541,7 +584,7 @@ class CustomDialogStack {
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       height: 18 / 14,
-                      color: AppColorV2.bodyTextColor,
+                      color: cs.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -578,12 +621,14 @@ class CustomDialogStack {
   }
 
   static Widget _dialogNeumorphicButton({
+    required BuildContext context,
     required String text,
     required VoidCallback onPressed,
     required Color bg,
     required Color fg,
   }) {
     final radius = BorderRadius.circular(14);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return NeumorphicButton(
       onPressed: onPressed,
@@ -592,9 +637,9 @@ class CustomDialogStack {
         color: bg,
         shape: NeumorphicShape.flat,
         boxShape: NeumorphicBoxShape.roundRect(radius),
-        depth: 1.5,
-        intensity: 0.45,
-        surfaceIntensity: 0.12,
+        depth: isDark ? 0.8 : 1.5,
+        intensity: isDark ? 0.35 : 0.45,
+        surfaceIntensity: isDark ? 0.10 : 0.12,
       ),
       child: SizedBox(
         height: 46,

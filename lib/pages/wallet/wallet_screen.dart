@@ -2,6 +2,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
@@ -84,14 +86,11 @@ class _WalletScreenState extends State<WalletScreen> {
     });
     getUserData();
     _loadProfile();
-    // getNotificationCount();
-
     _startAutoRefresh();
 
     ever(WalletRefreshBus.refresh, (_) {
       getUserData();
       getLogs();
-      // getNotificationCount();
     });
   }
 
@@ -105,7 +104,6 @@ class _WalletScreenState extends State<WalletScreen> {
       }
       getUserData();
       getLogs();
-      // getNotificationCount();
     });
   }
 
@@ -114,24 +112,6 @@ class _WalletScreenState extends State<WalletScreen> {
       isOpen = !isOpen;
     });
   }
-
-  // Future<void> getNotificationCount() async {
-  //   try {
-  //     final item = await Authentication().getUserData();
-  //     String userId = jsonDecode(item!)['user_id'].toString();
-
-  //     String subApi = "${ApiKeys.notificationApi}$userId";
-  //     HttpRequestApi(api: subApi).get().then((response) async {
-  //       if (response["items"].isNotEmpty) {
-  //         notifCount = response["items"].length;
-  //       } else {
-  //         notifCount = 0;
-  //       }
-  //     });
-  //   } catch (e) {
-  //     notifCount = 0;
-  //   }
-  // }
 
   Future<void> getUserData() async {
     if (isLoading || !mounted) return;
@@ -142,7 +122,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
     try {
       final data = await Functions.getUserBalance();
-
       if (mounted) {
         setState(() {
           userData = data;
@@ -251,7 +230,7 @@ class _WalletScreenState extends State<WalletScreen> {
       {
         'name': 'UnionBank',
         'image': 'assets/images/w_unionbank.png',
-        'color': AppColorV2.secondary,
+        'color': AppColorV2.lpTealBrand,
         'onTap': () {
           Get.toNamed(
             Routes.walletrechargeload,
@@ -263,11 +242,10 @@ class _WalletScreenState extends State<WalletScreen> {
           );
         },
       },
-
       {
         'name': 'InstaPay',
         'image': 'assets/images/w_instapay.png',
-        'color': AppColorV2.warning,
+        'color': AppColorV2.partialState,
         'onTap': () {
           Get.toNamed(
             Routes.walletrechargeload,
@@ -279,11 +257,10 @@ class _WalletScreenState extends State<WalletScreen> {
           );
         },
       },
-
       {
         'name': 'Pesonet',
         'image': 'assets/images/w_pesonet.png',
-        'color': AppColorV2.secondary,
+        'color': AppColorV2.lpTealBrand,
         'onTap': () {
           Get.toNamed(
             Routes.walletrechargeload,
@@ -298,7 +275,7 @@ class _WalletScreenState extends State<WalletScreen> {
       {
         'name': 'Landbank',
         'image': 'assets/images/w_landbank.png',
-        'color': AppColorV2.success,
+        'color': AppColorV2.correctState,
         'onTap': () {
           Get.toNamed(
             Routes.walletrechargeload,
@@ -313,7 +290,7 @@ class _WalletScreenState extends State<WalletScreen> {
       {
         'name': 'Maya',
         'image': "assets/images/w_maya.png",
-        'color': AppColorV2.success,
+        'color': AppColorV2.correctState,
         'onTap': () {
           Get.toNamed(
             Routes.walletrechargeload,
@@ -329,44 +306,60 @@ class _WalletScreenState extends State<WalletScreen> {
 
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (BuildContext context) {
+        final theme = Theme.of(context);
+        final cs = theme.colorScheme;
+        final isDark = theme.brightness == Brightness.dark;
+
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            color: cs.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: cs.outlineVariant.withOpacity(isDark ? 0.05 : .01),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.05 : .01),
+                blurRadius: 18,
+                offset: const Offset(0, -8),
+              ),
+            ],
           ),
           child: Column(
             children: [
-              SizedBox(height: 16),
-
+              const SizedBox(height: 16),
               Center(
                 child: Container(
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColorV2.boxStroke,
+                    color: cs.outlineVariant.withOpacity(0.85),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               DefaultText(
                 text: 'Select Top-Up Method',
                 style: TextStyle(
-                  color: AppColorV2.primaryTextColor,
+                  color: cs.onSurface,
                   fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Expanded(
                 child: GridView.builder(
-                  physics: BouncingScrollPhysics(),
-                  padding: EdgeInsets.all(16),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
@@ -396,17 +389,25 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColorV2.background,
+      backgroundColor: cs.surface,
       appBar: AppBar(
         elevation: 0,
         toolbarHeight: 0,
         backgroundColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-        ),
+        systemOverlayStyle: (isDark
+                ? SystemUiOverlayStyle.light
+                : SystemUiOverlayStyle.dark)
+            .copyWith(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness:
+                  isDark ? Brightness.light : Brightness.dark,
+              statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+            ),
       ),
       body: SafeArea(
         child: Padding(
@@ -415,11 +416,9 @@ class _WalletScreenState extends State<WalletScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _buildHeader(),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               _buildBalanceCard(),
-              // SizedBox(height: 5),
-              // _buildMerchantBillsGrid(),
-              SizedBox(height: 25),
+              const SizedBox(height: 25),
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 child: Row(
@@ -427,7 +426,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   children: [
                     DefaultText(
                       text: 'Recent Transactions',
-                      style: AppTextStyle.h3,
+                      style: AppTextStyle.h3(context),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -441,7 +440,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 15),
+              const SizedBox(height: 15),
               Expanded(child: _buildTransactionsTab()),
             ],
           ),
@@ -488,6 +487,9 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildHeader() {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     String greeting = _getTimeBasedGreeting();
 
     return Padding(
@@ -501,30 +503,12 @@ class _WalletScreenState extends State<WalletScreen> {
                 Image.asset("assets/images/luvpay_text.png", height: 30),
                 DefaultText(
                   text: greeting,
-                  style: AppTextStyle.body1,
-                  color: AppColorV2.primaryTextColor.withAlpha(180),
+                  style: AppTextStyle.body1(context),
+                  color: cs.onSurface.withOpacity(0.70),
                 ),
               ],
             ),
           ),
-          // Row(
-          //   children: [
-          //     Stack(
-          //       clipBehavior: Clip.none,
-          //       alignment: Alignment.topRight,
-          //       children: [
-          //         InkWell(
-          //           onTap: () {
-          //             Get.to(WalletNotifications());
-          //           },
-          //           child: SvgPicture.asset(
-          //             "assets/images/${notifCount != 0 ? "wallet_active_notification" : "wallet_inactive_notification"}.svg",
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ],
-          // ),
         ],
       ),
     );
@@ -545,10 +529,13 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildBalanceCard() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       height: 198,
       width: 350,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage("assets/images/luvpay_card.png"),
           fit: BoxFit.fill,
@@ -556,6 +543,14 @@ class _WalletScreenState extends State<WalletScreen> {
       ),
       child: Stack(
         children: [
+          if (isDark)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.12),
+                ),
+              ),
+            ),
           Positioned(
             right: -50,
             top: -50,
@@ -563,7 +558,7 @@ class _WalletScreenState extends State<WalletScreen> {
               width: 150,
               height: 150,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: Colors.white.withValues(alpha: isDark ? 0.06 : 0.10),
                 shape: BoxShape.circle,
               ),
             ),
@@ -575,7 +570,7 @@ class _WalletScreenState extends State<WalletScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: Colors.white.withValues(alpha: isDark ? 0.06 : 0.10),
                 shape: BoxShape.circle,
               ),
             ),
@@ -611,15 +606,15 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         DefaultText(
                           text: 'Available Balance',
-                          style: AppTextStyle.paragraph1,
-                          color: AppColorV2.background,
-                          fontWeight: FontWeight.w600,
+                          style: AppTextStyle.paragraph1(context),
+                          color: Colors.white.withOpacity(0.95),
+                          fontWeight: FontWeight.w700,
                         ),
                       ],
                     ),
@@ -631,31 +626,25 @@ class _WalletScreenState extends State<WalletScreen> {
                               ? "PHP •••••••"
                               : "PHP ${toCurrencyString(userData[0]["items"][0]["amount_bal"])}",
                       fontSize: 32,
-                      style: AppTextStyle.body1,
-                      color: AppColorV2.background,
+                      style: AppTextStyle.body1(context),
+                      color: Colors.white,
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                   ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    // DefaultText(
-                    //   text: Functions().getFirstSurnameLetter(userInfo),
-                    //   style: AppTextStyle.h3_semibold,
-                    //   color: AppColorV2.background,
-                    //   maxLines: 1,
-                    // ),
                     Row(
                       children: [
                         Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withValues(alpha: 0.20),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: DefaultText(
@@ -664,8 +653,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                 userInfo["mobile_no"] != null
                                     ? "•••••••${userInfo["mobile_no"].toString().substring(userInfo["mobile_no"].toString().length - 4)}"
                                     : "•••••••••••",
-                            style: AppTextStyle.body1,
-                            color: AppColorV2.background,
+                            style: AppTextStyle.body1(context),
+                            color: Colors.white,
                           ),
                         ),
                       ],
@@ -690,7 +679,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildTransactionsTab() {
     return SingleChildScrollView(
-      physics: BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       child: TransactionSectionListView(
         transactions: logs.cast<Map<String, dynamic>>(),
       ),
@@ -698,16 +687,22 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildBankCard(Map<String, dynamic> bank, BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColorV2.boxStroke),
+        border: Border.all(
+          color: cs.outlineVariant.withOpacity(isDark ? 0.05 : .01),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -739,7 +734,9 @@ class _WalletScreenState extends State<WalletScreen> {
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           decoration: BoxDecoration(
-                            color: bank['color'].withValues(alpha: 0.1),
+                            color: (bank['color'] as Color).withValues(
+                              alpha: 0.12,
+                            ),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
@@ -751,12 +748,12 @@ class _WalletScreenState extends State<WalletScreen> {
                       },
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   DefaultText(
                     text: bank['name'],
                     style: TextStyle(
-                      color: AppColorV2.primaryTextColor,
-                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w700,
                       fontSize: 12,
                     ),
                   ),
@@ -815,7 +812,7 @@ class TransactionSectionListView extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: ListView.builder(
         padding: EdgeInsets.zero,
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         shrinkWrap: true,
         itemCount: transactions.length,
         itemBuilder: (context, index) {
@@ -830,6 +827,10 @@ class TransactionSectionListView extends StatelessWidget {
     BuildContext context,
     Map<String, dynamic> transaction,
   ) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     String formatDate(String dateString) {
       try {
         final date = DateTime.parse(dateString).toLocal();
@@ -843,116 +844,74 @@ class TransactionSectionListView extends StatelessWidget {
     final amount = double.tryParse(amountString) ?? 0.0;
     final isPositive = amount >= 0;
 
-    final accent = isPositive ? AppColorV2.success : AppColorV2.error;
+    final accent =
+        isPositive ? AppColorV2.correctState : AppColorV2.incorrectState;
 
-    final radius = BorderRadius.circular(18);
-    final iconRadius = BorderRadius.circular(14);
-    final pillRadius = BorderRadius.circular(14);
+    final tileBg = cs.surface;
+    final tileBorder = cs.outlineVariant.withOpacity(isDark ? 0.55 : 1.0);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: LuvNeuPress.rectangle(
-        radius: radius,
-        onTap: () {
-          Get.to(
-            TransactionDetails(index: 0, data: [transaction], isHistory: true),
-          );
-        },
-        borderWidth: 0.8,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Neumorphic(
-                style: LuvNeu.icon(
-                  radius: iconRadius,
-                  color: AppColorV2.background,
-                  borderColor: Colors.black.withOpacity(0.25),
-                  borderWidth: 0.8,
-                ),
-                child: Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    borderRadius: iconRadius,
-                    color: accent.withOpacity(0.02),
-                  ),
-                  child: Icon(
-                    isPositive
-                        ? Icons.arrow_downward_rounded
-                        : Icons.arrow_upward_rounded,
-                    color: accent,
-                    size: 20,
-                  ),
-                ),
-              ),
+    return CustomRowTile(
+      onTap: () {
+        Get.to(
+          TransactionDetails(index: 0, data: [transaction], isHistory: true),
+        );
+      },
 
-              const SizedBox(width: 12),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DefaultText(
-                      text:
-                          transaction['category']?.toString() ?? 'Transaction',
-                      style: AppTextStyle.body1,
-                      maxFontSize: 14,
-                      minFontSize: 8,
-                      color: AppColorV2.primaryTextColor,
-                    ),
-                    const SizedBox(height: 4),
-                    DefaultText(
-                      text:
-                          transaction['tran_desc']?.toString() ??
-                          'No description',
-                      maxLines: 1,
-                      maxFontSize: 12,
-                    ),
-                    const SizedBox(height: 4),
-                    DefaultText(
-                      text: formatDate(
-                        transaction['tran_date']?.toString() ?? '',
-                      ),
-                      style: AppTextStyle.body1,
-                      maxFontSize: 10,
-                      minFontSize: 8,
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 10),
-
-              Neumorphic(
-                style: NeumorphicStyle(
-                  color: AppColorV2.background,
-                  shape: NeumorphicShape.flat,
-                  boxShape: NeumorphicBoxShape.roundRect(pillRadius),
-                  depth: -1.0,
-                  intensity: LuvNeu.intensity,
-                  surfaceIntensity: LuvNeu.surfaceIntensity,
-                  border: const NeumorphicBorder.none(),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: DefaultText(
-                    text: toCurrencyString(amountString),
-                    style: TextStyle(
-                      color: accent,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 13.5,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+      leading: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          color: accent.withOpacity(isDark ? 0.16 : 0.10),
+        ),
+        child: Icon(
+          isPositive
+              ? Icons.arrow_downward_rounded
+              : Icons.arrow_upward_rounded,
+          color: accent,
+          size: 20,
         ),
       ),
+
+      title: DefaultText(
+        text: transaction['category']?.toString() ?? 'Transaction',
+        style: AppTextStyle.body1(context),
+        maxFontSize: 14,
+        minFontSize: 8,
+        color: cs.onSurface,
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DefaultText(
+            text: transaction['tran_desc']?.toString() ?? 'No description',
+            maxLines: 1,
+            maxFontSize: 12,
+            style: AppTextStyle.paragraph2(context),
+            color: cs.onSurfaceVariant.withOpacity(0.85),
+          ),
+          const SizedBox(height: 4),
+          DefaultText(
+            text: formatDate(transaction['tran_date']?.toString() ?? ''),
+            style: AppTextStyle.body1(context),
+            maxFontSize: 10,
+            minFontSize: 8,
+            color: cs.onSurfaceVariant.withOpacity(0.75),
+          ),
+        ],
+      ),
+
+      trailing: DefaultText(
+        text: toCurrencyString(amountString),
+        style: TextStyle(
+          color: accent,
+          fontWeight: FontWeight.w900,
+          fontSize: 13.5,
+        ),
+      ),
+
+      background: tileBg,
+      leadingBackground: tileBg,
     );
   }
 }

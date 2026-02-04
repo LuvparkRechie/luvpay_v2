@@ -26,12 +26,14 @@ class TransactionDetails extends StatelessWidget {
   final List data;
   final int index;
   final bool isHistory;
+
   const TransactionDetails({
     super.key,
     required this.data,
     required this.index,
     required this.isHistory,
   });
+
   Future<void> shareQR(String img) async {
     try {
       String randomNumber = Random().nextInt(10000).toString();
@@ -73,7 +75,11 @@ class TransactionDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String trans = data[index]["tran_desc"].toString().toLowerCase();
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final trans = data[index]["tran_desc"].toString().toLowerCase();
     String img = "";
     if (trans.contains("share")) {
       img = "wallet_sharetoken";
@@ -84,27 +90,37 @@ class TransactionDetails extends StatelessWidget {
     }
 
     return CustomScaffoldV2(
-      bodyColor: Color.fromARGB(255, 245, 252, 252),
+      bodyColor: cs.surface,
       enableToolBar: true,
       appBarTitle: "Transaction Details",
       scaffoldBody: Column(
         children: [
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           ticket(context, img),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           CustomButton(
             text: "Share",
-            onPressed: () {
-              shareQR(img);
-            },
-            leading: Icon(LucideIcons.share2, color: AppColorV2.background),
+            onPressed: () => shareQR(img),
+            leading: Icon(LucideIcons.share2, color: cs.onPrimary),
+            btnColor: AppColorV2.lpBlueBrand,
+            textColor: cs.onPrimary,
           ),
+          if (!isDark) const SizedBox(height: 8),
         ],
       ),
     );
   }
 
   Widget ticket(BuildContext context, String img) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final cardBg = cs.surface;
+    final cardBorder = cs.outlineVariant.withOpacity(isDark ? 0.10 : .01);
+
+    final shadowOpacity = isDark ? 0.24 : 0.06;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -112,12 +128,13 @@ class TransactionDetails extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(20, 40, 20, 28),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardBg,
             borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: cardBorder, width: 0.8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 14,
+                color: Colors.black.withOpacity(shadowOpacity),
+                blurRadius: isDark ? 22 : 14,
                 offset: const Offset(0, 8),
               ),
             ],
@@ -125,36 +142,36 @@ class TransactionDetails extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 20),
-
               DefaultText(
                 textAlign: TextAlign.center,
                 text: data[index]["category"],
-                style: AppTextStyle.h3_semibold.copyWith(fontSize: 20),
-                color: AppColorV2.primaryTextColor,
+                style: AppTextStyle.h3_semibold(context).copyWith(fontSize: 20),
+                color: cs.onSurface,
                 maxLines: 1,
               ),
-
               const SizedBox(height: 6),
-
               DefaultText(
                 textAlign: TextAlign.center,
                 text: data[index]["tran_desc"].toString(),
-                style: AppTextStyle.body1.copyWith(
-                  color: AppColorV2.primaryTextColor.withOpacity(0.75),
-                ),
+                style: AppTextStyle.body1(
+                  context,
+                ).copyWith(color: cs.onSurface.withOpacity(0.75)),
                 maxFontSize: 14,
               ),
-
               const SizedBox(height: 22),
-              const MySeparator(color: Color(0xFFE6E6E6)),
+              MySeparator(
+                color: cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75),
+              ),
               const SizedBox(height: 22),
 
               rowWidget(
+                context,
                 "Transaction Date",
                 Variables.formatDateLocal(data[index]["tran_date"]),
               ),
               const SizedBox(height: 12),
               rowWidget(
+                context,
                 "Amount",
                 toCurrencyString(
                   data[index]["amount"].replaceAll('-', '').toString(),
@@ -163,44 +180,44 @@ class TransactionDetails extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               rowWidget(
+                context,
                 isHistory ? "Balance Before" : "Previous Balance",
                 toCurrencyString(data[index]["bal_before"].toString()),
               ),
               const SizedBox(height: 12),
               rowWidget(
+                context,
                 isHistory ? "Balance After" : "Current Balance",
                 toCurrencyString(data[index]["bal_after"].toString()),
               ),
-              if (data[index]["ref_no"] != null)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 22),
-                    const MySeparator(color: Color(0xFFE6E6E6)),
-                    const SizedBox(height: 18),
 
-                    Column(
-                      children: [
-                        DefaultText(
-                          text: "Reference Number",
-                          style: AppTextStyle.body1.copyWith(
-                            color: AppColorV2.primaryTextColor.withOpacity(0.6),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        SelectableText(
-                          data[index]["ref_no"].toString(),
-                          style: GoogleFonts.manrope(
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.4,
-                            color: AppColorV2.lpBlueBrand,
-                          ),
-                        ),
-                      ],
+              if (data[index]["ref_no"] != null) ...[
+                const SizedBox(height: 22),
+                MySeparator(
+                  color: cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75),
+                ),
+                const SizedBox(height: 18),
+                Column(
+                  children: [
+                    DefaultText(
+                      text: "Reference Number",
+                      style: AppTextStyle.body1(context).copyWith(
+                        color: cs.onSurface.withOpacity(0.6),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    SelectableText(
+                      data[index]["ref_no"].toString(),
+                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.4,
+                        color: AppColorV2.lpBlueBrand,
+                      ),
                     ),
                   ],
                 ),
+              ],
             ],
           ),
         ),
@@ -214,10 +231,11 @@ class TransactionDetails extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
+                color: cardBg,
+                border: Border.all(color: cardBorder, width: 0.8),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: Colors.black.withOpacity(isDark ? 0.22 : 0.06),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -231,14 +249,21 @@ class TransactionDetails extends StatelessWidget {
     );
   }
 
-  Row rowWidget(String label, String value, {bool isEmphasized = false}) {
+  Row rowWidget(
+    BuildContext context,
+    String label,
+    String value, {
+    bool isEmphasized = false,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Expanded(
           child: DefaultText(
             text: label,
-            style: AppTextStyle.body1.copyWith(
-              color: AppColorV2.primaryTextColor.withOpacity(0.65),
+            style: AppTextStyle.body1(context).copyWith(
+              color: cs.onSurface.withOpacity(0.65),
               fontWeight: FontWeight.w500,
             ),
             maxLines: 1,
@@ -246,12 +271,9 @@ class TransactionDetails extends StatelessWidget {
         ),
         DefaultText(
           text: value,
-          style: AppTextStyle.body1.copyWith(
+          style: AppTextStyle.body1(context).copyWith(
             fontWeight: isEmphasized ? FontWeight.w700 : FontWeight.w600,
-            color:
-                isEmphasized
-                    ? AppColorV2.lpBlueBrand
-                    : AppColorV2.bodyTextColor,
+            color: isEmphasized ? AppColorV2.lpBlueBrand : cs.onSurfaceVariant,
           ),
           maxLines: 1,
         ),

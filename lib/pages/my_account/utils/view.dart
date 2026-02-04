@@ -75,19 +75,19 @@ class UpdateProfile extends GetView<UpdateProfileController> {
                               if (controller.currentIndex.value == 0) {
                                 return DefaultText(
                                   maxLines: 1,
-                                  style: AppTextStyle.body1,
+                                  style: AppTextStyle.body1(context),
                                   text:
                                       "Enter accurate details to personalize your experience.",
                                 );
                               } else if (controller.currentIndex.value == 1) {
                                 return DefaultText(
-                                  style: AppTextStyle.body1,
+                                  style: AppTextStyle.body1(context),
                                   text:
                                       "Add your full residential address for verification.",
                                 );
                               } else {
                                 return DefaultText(
-                                  style: AppTextStyle.body1,
+                                  style: AppTextStyle.body1(context),
                                   text:
                                       "Select an answer you can easily recall but that others cannot easily guess.",
                                 );
@@ -126,7 +126,9 @@ class UpdateProfile extends GetView<UpdateProfileController> {
                                       child: Center(
                                         child: DefaultText(
                                           text: "Previous",
-                                          style: AppTextStyle.body1.copyWith(
+                                          style: AppTextStyle.body1(
+                                            context,
+                                          ).copyWith(
                                             fontWeight: FontWeight.w800,
                                           ),
                                           color: AppColorV2.lpBlueBrand,
@@ -152,9 +154,9 @@ class UpdateProfile extends GetView<UpdateProfileController> {
                                             controller.currentIndex.value == 2
                                                 ? "Submit"
                                                 : "Next",
-                                        style: AppTextStyle.body1.copyWith(
-                                          fontWeight: FontWeight.w900,
-                                        ),
+                                        style: AppTextStyle.body1(
+                                          context,
+                                        ).copyWith(fontWeight: FontWeight.w900),
                                         color: AppColorV2.background,
                                       ),
                                     ),
@@ -247,7 +249,7 @@ class UpdateProfile extends GetView<UpdateProfileController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(3, (index) {
               return DefaultText(
-                style: AppTextStyle.body1,
+                style: AppTextStyle.body1(Get.context!),
                 text:
                     index == 0
                         ? "Profile"
@@ -334,7 +336,8 @@ class Stepp1 extends StatelessWidget {
                   Container(height: 20),
                   DefaultText(
                     text: "First Name",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   CustomTextField(
@@ -376,7 +379,8 @@ class Stepp1 extends StatelessWidget {
                   Container(height: 15),
                   DefaultText(
                     text: "Middle Name",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   CustomTextField(
@@ -403,7 +407,8 @@ class Stepp1 extends StatelessWidget {
                   Container(height: 15),
                   DefaultText(
                     text: "Last Name",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   CustomTextField(
@@ -446,7 +451,8 @@ class Stepp1 extends StatelessWidget {
                   Container(height: 15),
                   DefaultText(
                     text: "Email",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
 
@@ -486,7 +492,8 @@ class Stepp1 extends StatelessWidget {
                   Container(height: 15),
                   DefaultText(
                     text: "Birthday",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   CustomTextField(
@@ -539,7 +546,8 @@ class Stepp1 extends StatelessWidget {
                           children: [
                             DefaultText(
                               text: "Gender",
-                              style: AppTextStyle.h3,
+                              style: AppTextStyle.h3(context),
+
                               color: AppColorV2.primaryTextColor,
                             ),
                             SizedBox(height: 5),
@@ -595,7 +603,8 @@ class Stepp1 extends StatelessWidget {
                           children: [
                             DefaultText(
                               text: "Civil status",
-                              style: AppTextStyle.h3,
+                              style: AppTextStyle.h3(context),
+
                               color: AppColorV2.primaryTextColor,
                             ),
                             SizedBox(height: 5),
@@ -653,7 +662,8 @@ class Stepp2 extends StatelessWidget {
                   spacing(height: 20),
                   DefaultText(
                     text: "Region",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   Padding(
@@ -678,7 +688,8 @@ class Stepp2 extends StatelessWidget {
                   ),
                   DefaultText(
                     text: "Province",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   Padding(
@@ -702,7 +713,8 @@ class Stepp2 extends StatelessWidget {
                   ),
                   DefaultText(
                     text: "City",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   Padding(
@@ -726,7 +738,8 @@ class Stepp2 extends StatelessWidget {
                   ),
                   DefaultText(
                     text: "Barangay",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   Padding(
@@ -749,7 +762,8 @@ class Stepp2 extends StatelessWidget {
                   ),
                   DefaultText(
                     text: "Zip Code",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
+
                     color: AppColorV2.primaryTextColor,
                   ),
                   CustomTextField(
@@ -839,7 +853,8 @@ class Stepp3 extends StatelessWidget {
                         Expanded(
                           child: DefaultText(
                             text: controller.question1.value,
-                            style: AppTextStyle.h3,
+                            style: AppTextStyle.h3(context),
+
                             color:
                                 controller.seq1.value == 0
                                     ? AppColorV2.lpBlueBrand
@@ -917,7 +932,8 @@ class Stepp3 extends StatelessWidget {
                             Expanded(
                               child: DefaultText(
                                 text: controller.question2.value,
-                                style: AppTextStyle.h3,
+                                style: AppTextStyle.h3(context),
+
                                 color:
                                     controller.seq2.value == 0
                                         ? AppColorV2.lpBlueBrand
@@ -1000,7 +1016,8 @@ class Stepp3 extends StatelessWidget {
                             Expanded(
                               child: DefaultText(
                                 text: controller.question3.value,
-                                style: AppTextStyle.h3,
+                                style: AppTextStyle.h3(context),
+
                                 color:
                                     controller.seq3.value == 0
                                         ? AppColorV2.lpBlueBrand
@@ -1106,7 +1123,7 @@ class Stepp3 extends StatelessWidget {
                       },
 
                       title: DefaultText(
-                        style: AppTextStyle.paragraph2,
+                        style: AppTextStyle.paragraph2(context),
                         text: data[index]["question"],
                         color: Colors.black,
                       ),

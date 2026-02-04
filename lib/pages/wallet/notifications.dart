@@ -59,9 +59,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   Future<void> getNotification({required bool showLoading}) async {
     try {
       if (showLoading && mounted) {
-        setState(() {
-          isLoading = true;
-        });
+        setState(() => isLoading = true);
       }
 
       final item = await Authentication().getUserData();
@@ -91,11 +89,11 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       if (response["items"] != null && response["items"].isNotEmpty) {
         setState(() {
           notifications =
-              response["items"].map<Map<String, dynamic>>((notification) {
+              response["items"].map<Map<String, dynamic>>((n) {
                 return {
-                  "notification_id": notification["sms_id"],
-                  "notification": notification["sms_msg"],
-                  "created_on": notification["created_on"],
+                  "notification_id": n["sms_id"],
+                  "notification": n["sms_msg"],
+                  "created_on": n["created_on"],
                 };
               }).toList();
           isLoading = false;
@@ -108,20 +106,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
           isNetConn = true;
         });
       }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<void> deleteNotification(String smsId) async {
-    setState(() => isLoading = true);
-    try {
-      await deleteSingleNotification(smsId);
-      await getNotification(showLoading: false);
-    } finally {
+    } catch (_) {
       if (!mounted) return;
       setState(() => isLoading = false);
     }
@@ -155,8 +140,8 @@ class _WalletNotificationsState extends State<WalletNotifications> {
 
           setState(() {
             notifications.removeWhere(
-              (notification) => selectedIndex.contains(
-                int.parse(notification['notification_id'].toString()),
+              (n) => selectedIndex.contains(
+                int.parse(n['notification_id'].toString()),
               ),
             );
             selectedIndex.clear();
@@ -193,7 +178,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     final item = await Authentication().getUserData();
     String userId = jsonDecode(item!)['user_id'].toString();
     String subApi = "${ApiKeys.notificationApi}$userId";
-    var params = {"sms_id": smsId};
+    final params = {"sms_id": smsId};
 
     final response =
         await HttpRequestApi(api: subApi, parameters: params).deleteData();
@@ -206,7 +191,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   }
 
   void enterSelectionMode(int index) {
-    int id = int.parse(notifications[index]["notification_id"].toString());
+    final id = int.parse(notifications[index]["notification_id"].toString());
     setState(() {
       selectedIndex.add(id);
       isSelectionMode = true;
@@ -215,7 +200,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   }
 
   void toggleMark(int index) {
-    int id = int.parse(notifications[index]["notification_id"].toString());
+    final id = int.parse(notifications[index]["notification_id"].toString());
     setState(() {
       if (!selectedIndex.contains(id)) {
         selectedIndex.add(id);
@@ -255,20 +240,20 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   String _formatTime(DateTime date) {
     int hour = date.hour % 12;
     hour = hour == 0 ? 12 : hour;
-    String minute = date.minute.toString().padLeft(2, '0');
-    String period = date.hour >= 12 ? 'PM' : 'AM';
+    final minute = date.minute.toString().padLeft(2, '0');
+    final period = date.hour >= 12 ? 'PM' : 'AM';
     return "$hour:$minute$period";
   }
 
   String _formatDate(DateTime date) {
-    DateTime now = DateTime.now();
+    final now = DateTime.now();
     if (date.year == now.year &&
         date.month == now.month &&
         date.day == now.day) {
       return "Today";
     }
 
-    List<String> months = [
+    const months = [
       'January',
       'February',
       'March',
@@ -287,7 +272,11 @@ class _WalletNotificationsState extends State<WalletNotifications> {
 
   @override
   Widget build(BuildContext context) {
-    final bool hideBackBecauseFromTab = widget.fromTab == true;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final hideBackBecauseFromTab = widget.fromTab == true;
 
     final body =
         !isNetConn
@@ -295,11 +284,11 @@ class _WalletNotificationsState extends State<WalletNotifications> {
               onTap: () => getNotification(showLoading: true),
             )
             : notifications.isEmpty
-            ? Center(child: noDataFound())
+            ? Center(child: _noDataFound(cs))
             : CustomScrollbarSingleChild(child: allNotifications());
 
     return CustomScaffoldV2(
-      backgroundColor: AppColorV2.background,
+      backgroundColor: cs.surface,
       drawer: Container(),
       appBarLeadingWidth: isSelectionMode ? 50 : null,
       leading:
@@ -308,7 +297,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                 padding: EdgeInsets.zero,
                 icon: Icon(
                   Icons.close,
-                  color: AppColorV2.background,
+                  color: cs.onSurface,
                   size: 30,
                   semanticLabel: 'Cancel selection',
                 ),
@@ -320,11 +309,11 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                     onPressed: () => Get.back(),
                     icon: Row(
                       children: [
-                        Icon(CupertinoIcons.back, color: AppColorV2.background),
+                        Icon(CupertinoIcons.back, color: cs.onSurface),
                         DefaultText(
-                          color: AppColorV2.background,
+                          color: cs.onSurface,
                           text: "Back",
-                          style: AppTextStyle.h3_semibold,
+                          style: AppTextStyle.h3_semibold(context),
                           height: 20 / 16,
                         ),
                       ],
@@ -352,7 +341,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                 IconButton(
                   icon: Icon(
                     allMarked ? Icons.check_box : Icons.check_box_outline_blank,
-                    color: AppColorV2.background,
+                    color: cs.onSurface,
                     size: 30,
                     semanticLabel: allMarked ? 'Unmark all' : 'Mark all',
                   ),
@@ -370,7 +359,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     );
   }
 
-  Column noDataFound() {
+  Widget _noDataFound(ColorScheme cs) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -379,44 +368,49 @@ class _WalletNotificationsState extends State<WalletNotifications> {
         const SizedBox(height: 8),
         DefaultText(
           text: "No notifications yet",
-          style: AppTextStyle.h3_semibold,
-          color: AppColorV2.bodyTextColor,
+          style: AppTextStyle.h3_semibold(context),
+          color: cs.onSurfaceVariant,
         ),
       ],
     );
   }
 
   Widget allNotifications() {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return ListView.builder(
       padding: EdgeInsets.zero,
       physics: const BouncingScrollPhysics(),
       itemCount: notifications.length,
       itemBuilder: (context, index) {
         String img = "";
-        String notificationMessage = notifications[index]["notification"];
-        DateTime createdOn = DateTime.parse(
+        final message = notifications[index]["notification"].toString();
+        final createdOn = DateTime.parse(
           notifications[index]["created_on"],
         ).toUtc().add(const Duration(hours: 8));
 
-        if (notificationMessage.toLowerCase().contains("share")) {
+        final lower = message.toLowerCase();
+        if (lower.contains("share")) {
           img = "wallet_sharetoken";
-        } else if (notificationMessage.toLowerCase().contains("received") ||
-            notificationMessage.toLowerCase().contains("credit")) {
+        } else if (lower.contains("received") || lower.contains("credit")) {
           img = "wallet_receivetoken";
         } else {
           img = "wallet_payparking";
         }
 
+        final id = int.parse(
+          notifications[index]["notification_id"].toString(),
+        );
+        final isSelected = selectedIndex.contains(id);
+
         return InkWell(
           onLongPress: () {
-            if (!isSelectionMode) {
-              enterSelectionMode(index);
-            }
+            if (!isSelectionMode) enterSelectionMode(index);
           },
           onTap: () {
-            if (isSelectionMode) {
-              toggleMark(index);
-            }
+            if (isSelectionMode) toggleMark(index);
           },
           child: Padding(
             padding: const EdgeInsets.only(bottom: 10, top: 10),
@@ -424,6 +418,8 @@ class _WalletNotificationsState extends State<WalletNotifications> {
               radius: BorderRadius.circular(16),
               onTap: null,
               borderWidth: 0.8,
+              background: cs.surface,
+              borderColor: cs.outlineVariant.withOpacity(isDark ? 0.55 : 1.0),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
@@ -438,25 +434,21 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildNotificationText(notificationMessage),
+                                _buildNotificationText(message, cs),
                                 const SizedBox(height: 8),
                                 DefaultText(
                                   text:
-                                      _formatDate(createdOn) +
-                                      " " +
-                                      _formatTime(createdOn),
+                                      "${_formatDate(createdOn)} ${_formatTime(createdOn)}",
+                                  color: cs.onSurfaceVariant.withOpacity(
+                                    isDark ? 0.78 : 0.75,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           if (isSelectionMode)
                             Checkbox.adaptive(
-                              value: selectedIndex.contains(
-                                int.parse(
-                                  notifications[index]["notification_id"]
-                                      .toString(),
-                                ),
-                              ),
+                              value: isSelected,
                               onChanged: (_) => toggleMark(index),
                               activeColor: AppColorV2.lpBlueBrand,
                             ),
@@ -473,27 +465,27 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     );
   }
 
-  Widget _buildNotificationText(String text) {
+  Widget _buildNotificationText(String text, ColorScheme cs) {
     final currencyRegExp = RegExp(r'(₱)?\d{1,3}(,\d{3})*\.\d{2}');
-    final List<TextSpan> textSpans = [];
+    final spans = <TextSpan>[];
     int lastEnd = 0;
 
     for (final match in currencyRegExp.allMatches(text)) {
       if (match.start > lastEnd) {
-        textSpans.add(
+        spans.add(
           TextSpan(
             text: text.substring(lastEnd, match.start),
-            style: AppTextStyle.body1.copyWith(
-              color: AppColorV2.primaryTextColor,
-            ),
+            style: AppTextStyle.body1(context).copyWith(color: cs.onSurface),
           ),
         );
       }
 
-      textSpans.add(
+      spans.add(
         TextSpan(
           text: match.group(0),
-          style: AppTextStyle.body1.copyWith(color: AppColorV2.lpBlueBrand),
+          style: AppTextStyle.body1(
+            context,
+          ).copyWith(color: AppColorV2.lpBlueBrand),
         ),
       );
 
@@ -501,21 +493,19 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     }
 
     if (lastEnd < text.length) {
-      textSpans.add(
+      spans.add(
         TextSpan(
           text: text.substring(lastEnd),
-          style: AppTextStyle.body1.copyWith(
-            color: AppColorV2.primaryTextColor,
-          ),
+          style: AppTextStyle.body1(context).copyWith(color: cs.onSurface),
         ),
       );
     }
 
-    if (textSpans.isNotEmpty) {
+    if (spans.isNotEmpty) {
       return RichText(
         maxLines: isSelectionMode ? 6 : 5,
         overflow: TextOverflow.ellipsis,
-        text: TextSpan(children: textSpans),
+        text: TextSpan(children: spans),
       );
     }
 
@@ -523,6 +513,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       minFontSize: 8,
       maxLines: isSelectionMode ? 6 : 5,
       text: text,
+      color: cs.onSurface,
     );
   }
 }

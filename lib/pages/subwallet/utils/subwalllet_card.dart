@@ -1,13 +1,9 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:typed_data';
-import 'dart:ui';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
-import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
+import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/luvpay/neumorphism.dart';
 import '../view.dart';
 
@@ -16,9 +12,12 @@ class SubWalletCard extends StatefulWidget {
   final VoidCallback onTap;
 
   final Uint8List? iconBytes;
+
   final Color base;
+
   final Color titleColor;
   final Color amountColor;
+
   final String categoryLabel;
 
   final bool isDeleting;
@@ -59,6 +58,20 @@ class _SubWalletCardState extends State<SubWalletCard> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final surface = cs.surface;
+    final surfaceAlt = cs.surfaceContainerHighest;
+    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.14 : 0.25);
+
+    final title = cs.onSurface;
+    final body = cs.onSurface.withOpacity(0.72);
+
+    final brand = cs.primary;
+    final brandBorder = cs.primary.withOpacity(0.18);
+
     final radius = BorderRadius.circular(24);
 
     final content = Padding(
@@ -74,8 +87,8 @@ class _SubWalletCardState extends State<SubWalletCard> {
               text: widget.wallet.name,
               maxLines: 1,
               minFontSize: 14,
-              style: AppTextStyle.body2,
-              color: AppColorV2.onSurfaceVariant,
+              style: AppTextStyle.body2(context),
+              color: body,
             ),
           ],
         ),
@@ -92,10 +105,10 @@ class _SubWalletCardState extends State<SubWalletCard> {
       radius: radius,
       pressed: pressedVisual,
       selected: widget.isSelected,
-      color: AppColorV2.background,
+      color: surface,
       depth: 1.8,
       pressedDepth: -0.9,
-      borderColor: Colors.black.withAlpha(14),
+      borderColor: stroke,
       borderWidth: 1,
     );
 
@@ -108,8 +121,8 @@ class _SubWalletCardState extends State<SubWalletCard> {
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(
-                    widget.isSelected ? 0.06 : 0.035,
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(
+                    widget.isSelected ? 0.06 : 0.01,
                   ),
                 ),
               ),
@@ -130,7 +143,9 @@ class _SubWalletCardState extends State<SubWalletCard> {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.transparent,
-                                  const Color(0xFF0F172A).withOpacity(0.06),
+                                  cs.onSurface.withOpacity(
+                                    isDark ? 0.06 : 0.05,
+                                  ),
                                 ],
                                 stops: const [0.60, 1.0],
                               ),
@@ -145,7 +160,9 @@ class _SubWalletCardState extends State<SubWalletCard> {
                                 end: Alignment.centerRight,
                                 colors: [
                                   Colors.transparent,
-                                  const Color(0xFF0F172A).withOpacity(0.045),
+                                  cs.onSurface.withOpacity(
+                                    isDark ? 0.045 : 0.04,
+                                  ),
                                 ],
                                 stops: const [0.65, 1.0],
                               ),
@@ -159,7 +176,9 @@ class _SubWalletCardState extends State<SubWalletCard> {
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
-                                  Colors.white.withOpacity(0.35),
+                                  Colors.white.withOpacity(
+                                    isDark ? 0.10 : 0.28,
+                                  ),
                                   Colors.transparent,
                                 ],
                                 stops: const [0.0, 0.42],
@@ -185,34 +204,32 @@ class _SubWalletCardState extends State<SubWalletCard> {
                   right: 5,
                 ),
                 decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColorV2.lpBlueBrand.withOpacity(.010),
-                      blurRadius: 5,
-                      spreadRadius: 3,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
-                  color: AppColorV2.background,
+                  color: surfaceAlt,
                   borderRadius: const BorderRadius.only(
                     bottomRight: Radius.circular(12),
                   ),
                   border: Border(
-                    bottom: BorderSide(
-                      color: AppColorV2.lpBlueBrand.withOpacity(.18),
-                    ),
-                    right: BorderSide(
-                      color: AppColorV2.lpBlueBrand.withOpacity(.18),
-                    ),
+                    bottom: BorderSide(color: brandBorder),
+                    right: BorderSide(color: brandBorder),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: brand.withOpacity(0.03),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
                 ),
                 child: DefaultText(
-                  color: AppColorV2.lpBlueBrand,
+                  color: brand,
                   text: "₱ ${widget.wallet.balance.toStringAsFixed(2)}",
                   maxLines: 1,
                   maxFontSize: 12,
                   minFontSize: 8,
-                  style: AppTextStyle.body2,
+                  style: AppTextStyle.body2(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.w800, color: brand),
                 ),
               ),
             ),
@@ -272,6 +289,8 @@ class _SubWalletCardState extends State<SubWalletCard> {
       child: card,
       builder: (_, child) {
         final t = widget.pulseAnim.value;
+        final glowColor = widget.base;
+
         return Transform.scale(
           scale: 1.0 + (0.05 * t),
           child: Container(
@@ -279,7 +298,7 @@ class _SubWalletCardState extends State<SubWalletCard> {
               borderRadius: radius,
               boxShadow: [
                 BoxShadow(
-                  color: widget.base.withOpacity(0.14 * t),
+                  color: glowColor.withOpacity((isDark ? 0.10 : 0.14) * t),
                   blurRadius: 26 * t,
                   spreadRadius: 1.6 * t,
                   offset: const Offset(0, 0),

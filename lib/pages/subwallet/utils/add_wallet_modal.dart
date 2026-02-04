@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/upper_case_formatter.dart';
@@ -67,6 +68,7 @@ class AddWalletModalState extends State<AddWalletModal> {
     if (widget.mode == WalletModalMode.edit && widget.wallet != null) {
       final w = widget.wallet!;
       _nameController.text = w.name;
+
       _selectedCategoryId = null;
       _selectedCategoryName = null;
       _selectedColor = null;
@@ -191,8 +193,9 @@ class AddWalletModalState extends State<AddWalletModal> {
 
       if (balance < 0) return 'Balance cannot be negative';
       if (balance > 999999999.99) return 'Balance cannot exceed 999,999,999.99';
-      if (balance > controller.numericBalance.value)
+      if (balance > controller.numericBalance.value) {
         return 'Insufficient main balance';
+      }
       return null;
     } catch (_) {
       return 'Please enter a valid balance';
@@ -209,16 +212,15 @@ class AddWalletModalState extends State<AddWalletModal> {
       case 'lpbluebrand':
         return AppColorV2.lpBlueBrand;
       case 'secondary':
-        return AppColorV2.secondary;
+        return AppColorV2.lpTealBrand;
       case 'accent':
-        return AppColorV2.accent;
       case 'teal':
       case 'lptealbrand':
         return AppColorV2.lpTealBrand;
       case 'success':
-        return AppColorV2.success;
+        return AppColorV2.correctState;
       case 'warning':
-        return AppColorV2.warning;
+        return AppColorV2.partialState;
       case 'correct':
       case 'correctstate':
         return AppColorV2.correctState;
@@ -235,13 +237,19 @@ class AddWalletModalState extends State<AddWalletModal> {
     EdgeInsetsGeometry padding = const EdgeInsets.all(12),
     BorderRadius radius = const BorderRadius.all(Radius.circular(14)),
   }) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final cardColor = cs.surface;
+    final border = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+
     return Neumorphic(
       style: LuvNeu.card(
         radius: radius,
         depth: 1.6,
         pressedDepth: -0.8,
-        color: AppColorV2.background,
-        borderColor: Colors.black.withAlpha(14),
+        color: cardColor,
+        borderColor: border,
         borderWidth: 1,
       ),
       child: Padding(padding: padding, child: child),
@@ -255,14 +263,19 @@ class AddWalletModalState extends State<AddWalletModal> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final radius = BorderRadius.circular(15);
+    final bg = cs.surface;
 
     return LuvNeuPress(
       onTap: onTap,
       radius: radius,
       depth: 1.2,
       pressedDepth: -0.6,
-      background: isSelected ? color.withOpacity(.12) : AppColorV2.background,
+      background: isSelected ? color.withOpacity(isDark ? 0.16 : 0.12) : bg,
+      borderColor: cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35),
       overlayOpacity: 0.03,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -273,10 +286,9 @@ class AddWalletModalState extends State<AddWalletModal> {
             const SizedBox(width: 8),
             DefaultText(
               text: label,
-              style: AppTextStyle.h3.copyWith(
-                color: AppColorV2.primaryTextColor,
-                fontSize: 14,
-              ),
+              style: AppTextStyle.h3(
+                context,
+              ).copyWith(color: cs.onSurface, fontSize: 14),
             ),
           ],
         ),
@@ -290,7 +302,11 @@ class AddWalletModalState extends State<AddWalletModal> {
     required String text,
     required VoidCallback onTap,
   }) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final radius = BorderRadius.circular(16);
+    final disabledBg = cs.surfaceContainerHighest;
 
     if (loading) {
       return LuvNeuPress(
@@ -298,7 +314,8 @@ class AddWalletModalState extends State<AddWalletModal> {
         radius: radius,
         depth: 1.2,
         pressedDepth: -0.7,
-        background: AppColorV2.lpBlueBrand,
+        background: cs.primary,
+        borderColor: cs.primary.withOpacity(0.22),
         overlayOpacity: 0.02,
         child: SizedBox(
           width: double.infinity,
@@ -319,13 +336,34 @@ class AddWalletModalState extends State<AddWalletModal> {
 
     if (!enabled) {
       return Opacity(
-        opacity: 0.55,
-        child: LuvNeuPillButton(
-          label: text,
-          icon: Iconsax.tick_circle,
-          filled: false,
+        opacity: isDark ? 0.58 : 0.55,
+        child: LuvNeuPress(
           onTap: () {},
-          height: 56,
+          radius: radius,
+          depth: 1.0,
+          pressedDepth: -0.6,
+          background: disabledBg,
+          borderColor: cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35),
+          overlayOpacity: 0.02,
+          child: SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Iconsax.tick_circle, color: cs.onSurface, size: 20),
+                  const SizedBox(width: 8),
+                  DefaultText(
+                    text: text,
+                    style: AppTextStyle.h3(
+                      context,
+                    ).copyWith(color: cs.onSurface, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       );
     }
@@ -336,6 +374,7 @@ class AddWalletModalState extends State<AddWalletModal> {
       filled: true,
       onTap: onTap,
       height: 56,
+      filledColor: cs.primary,
     );
   }
 
@@ -421,6 +460,15 @@ class AddWalletModalState extends State<AddWalletModal> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bg = cs.surface;
+    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+    final titleColor = cs.onSurface;
+    final bodyColor = cs.onSurface.withOpacity(0.72);
+
     final nameOk = _validateName(_nameController.text) == null;
 
     final canSubmit =
@@ -433,6 +481,7 @@ class AddWalletModalState extends State<AddWalletModal> {
 
     return Container(
       padding: const EdgeInsets.all(20),
+      color: bg,
       child: SingleChildScrollView(
         reverse: true,
         padding: EdgeInsets.only(
@@ -447,7 +496,7 @@ class AddWalletModalState extends State<AddWalletModal> {
                 width: 60,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColorV2.boxStroke,
+                  color: stroke,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -458,7 +507,7 @@ class AddWalletModalState extends State<AddWalletModal> {
                   widget.mode == WalletModalMode.create
                       ? 'Create New SubWallet'
                       : 'Edit Wallet Name',
-              style: AppTextStyle.popup,
+              style: AppTextStyle.popup(context).copyWith(color: titleColor),
             ),
             const SizedBox(height: 10),
 
@@ -468,19 +517,15 @@ class AddWalletModalState extends State<AddWalletModal> {
                   radius: BorderRadius.circular(14),
                   child: Row(
                     children: [
-                      Icon(
-                        Iconsax.wallet_money,
-                        color: AppColorV2.lpBlueBrand,
-                        size: 20,
-                      ),
+                      Icon(Iconsax.wallet_money, color: cs.primary, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: DefaultText(
                           text:
                               'Available Main Balance: ${controller.luvpayBal.value}',
-                          style: AppTextStyle.paragraph1.copyWith(
-                            color: AppColorV2.lpBlueBrand,
-                            fontWeight: FontWeight.w600,
+                          style: AppTextStyle.paragraph1(context).copyWith(
+                            color: cs.primary,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -492,9 +537,7 @@ class AddWalletModalState extends State<AddWalletModal> {
 
               DefaultText(
                 text: 'Select Category',
-                style: AppTextStyle.h3.copyWith(
-                  color: AppColorV2.primaryTextColor,
-                ),
+                style: AppTextStyle.h3(context).copyWith(color: titleColor),
               ),
               const SizedBox(height: 10),
 
@@ -522,7 +565,7 @@ class AddWalletModalState extends State<AddWalletModal> {
                       } else if (category['color'] is String) {
                         color = _getColorFromString(category['color']);
                       } else {
-                        color = AppColorV2.lpBlueBrand;
+                        color = cs.primary;
                       }
 
                       Widget iconWidget;
@@ -552,9 +595,17 @@ class AddWalletModalState extends State<AddWalletModal> {
                                     gaplessPlayback: true,
                                   ),
                                 )
-                                : const Icon(Iconsax.wallet, size: 30);
+                                : Icon(
+                                  Iconsax.wallet,
+                                  size: 30,
+                                  color: cs.onSurface,
+                                );
                       } else {
-                        iconWidget = const Icon(Iconsax.wallet, size: 30);
+                        iconWidget = Icon(
+                          Iconsax.wallet,
+                          size: 30,
+                          color: cs.onSurface,
+                        );
                       }
 
                       return Padding(
@@ -580,14 +631,12 @@ class AddWalletModalState extends State<AddWalletModal> {
                 )
               else
                 GestureDetector(
-                  onTap: () {
-                    controller.refreshAllData();
-                  },
+                  onTap: () => controller.refreshAllData(),
                   child: DefaultText(
                     text: 'No categories available',
-                    style: AppTextStyle.paragraph2.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
+                    style: AppTextStyle.paragraph2(
+                      context,
+                    ).copyWith(color: bodyColor),
                   ),
                 ),
 
@@ -595,8 +644,8 @@ class AddWalletModalState extends State<AddWalletModal> {
                 const SizedBox(height: 8),
                 DefaultText(
                   text: _categoryError!,
-                  style: AppTextStyle.paragraph2.copyWith(
-                    color: AppColorV2.incorrectState,
+                  style: AppTextStyle.paragraph2(context).copyWith(
+                    color: cs.error,
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                   ),
@@ -618,7 +667,10 @@ class AddWalletModalState extends State<AddWalletModal> {
                       depth: 1.2,
                       pressedDepth: -0.6,
                       onTap: null,
-                      background: widget.wallet!.color.withOpacity(0.10),
+                      background: widget.wallet!.color.withOpacity(
+                        isDark ? 0.14 : 0.10,
+                      ),
+                      borderColor: stroke,
                       overlayOpacity: 0.02,
                       child: SizedBox(
                         width: 52,
@@ -648,16 +700,16 @@ class AddWalletModalState extends State<AddWalletModal> {
                         children: [
                           DefaultText(
                             text: 'Current Category',
-                            style: AppTextStyle.paragraph2.copyWith(
-                              color: AppColorV2.bodyTextColor.withOpacity(.65),
+                            style: AppTextStyle.paragraph2(context).copyWith(
+                              color: bodyColor,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 2),
                           DefaultText(
                             text: widget.wallet!.categoryTitle,
-                            style: AppTextStyle.h3.copyWith(
-                              color: AppColorV2.primaryTextColor,
+                            style: AppTextStyle.h3(context).copyWith(
+                              color: titleColor,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -673,37 +725,36 @@ class AddWalletModalState extends State<AddWalletModal> {
             TextField(
               controller: _nameController,
               onChanged: _validateNameOnChange,
-              style: AppTextStyle.h3.copyWith(
-                color: AppColorV2.primaryTextColor,
-              ),
+              style: AppTextStyle.h3(context).copyWith(color: titleColor),
               maxLength: 15,
               inputFormatters: [UpperCaseTextFormatter()],
               decoration: InputDecoration(
                 labelText: 'SubWallet Name',
-                labelStyle: AppTextStyle.paragraph2,
+                labelStyle: AppTextStyle.paragraph2(
+                  context,
+                ).copyWith(color: bodyColor),
                 filled: true,
-                fillColor: AppColorV2.pastelBlueAccent,
+                fillColor: cs.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: AppColorV2.boxStroke),
+                  borderSide: BorderSide(color: stroke),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: AppColorV2.boxStroke),
+                  borderSide: BorderSide(color: stroke),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: AppColorV2.lpBlueBrand),
+                  borderSide: BorderSide(color: cs.primary),
                 ),
-                prefixIcon: Icon(Iconsax.wallet, color: AppColorV2.lpBlueBrand),
+                prefixIcon: Icon(Iconsax.wallet, color: cs.primary),
                 counterText: '',
                 hintText: 'Max 15 characters',
-                hintStyle: AppTextStyle.paragraph2.copyWith(fontSize: 12),
+                hintStyle: AppTextStyle.paragraph2(
+                  context,
+                ).copyWith(fontSize: 12, color: bodyColor.withOpacity(0.75)),
                 errorText: _nameError,
-                errorStyle: TextStyle(
-                  color: AppColorV2.incorrectState,
-                  fontSize: 12,
-                ),
+                errorStyle: TextStyle(color: cs.error, fontSize: 12),
               ),
             ),
             const SizedBox(height: 16),
@@ -713,9 +764,7 @@ class AddWalletModalState extends State<AddWalletModal> {
                 controller: _balanceController,
                 focusNode: _balanceFocusNode,
                 onChanged: _validateBalanceOnChange,
-                style: AppTextStyle.h3.copyWith(
-                  color: AppColorV2.primaryTextColor,
-                ),
+                style: AppTextStyle.h3(context).copyWith(color: titleColor),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -727,35 +776,35 @@ class AddWalletModalState extends State<AddWalletModal> {
                 ],
                 decoration: InputDecoration(
                   prefixText: '₱ ',
-                  prefixStyle: AppTextStyle.h3_semibold,
+                  prefixStyle: AppTextStyle.h3_semibold(
+                    context,
+                  ).copyWith(color: titleColor),
                   labelText: 'Amount',
-                  labelStyle: AppTextStyle.paragraph2,
+                  labelStyle: AppTextStyle.paragraph2(
+                    context,
+                  ).copyWith(color: bodyColor),
                   filled: true,
-                  fillColor: AppColorV2.pastelBlueAccent,
+                  fillColor: cs.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(color: AppColorV2.boxStroke),
+                    borderSide: BorderSide(color: stroke),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(color: AppColorV2.boxStroke),
+                    borderSide: BorderSide(color: stroke),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(color: AppColorV2.lpBlueBrand),
+                    borderSide: BorderSide(color: cs.primary),
                   ),
-                  prefixIcon: Icon(
-                    Iconsax.money_3,
-                    color: AppColorV2.lpBlueBrand,
-                  ),
+                  prefixIcon: Icon(Iconsax.money_3, color: cs.primary),
                   counterText: '',
                   hintText: 'Optional (defaults to 0)',
-                  hintStyle: AppTextStyle.paragraph2.copyWith(fontSize: 12),
+                  hintStyle: AppTextStyle.paragraph2(
+                    context,
+                  ).copyWith(fontSize: 12, color: bodyColor.withOpacity(0.75)),
                   errorText: _balanceError,
-                  errorStyle: TextStyle(
-                    color: AppColorV2.incorrectState,
-                    fontSize: 12,
-                  ),
+                  errorStyle: TextStyle(color: cs.error, fontSize: 12),
                   suffixIcon:
                       _balanceError != null &&
                               _balanceError!.contains(
@@ -765,7 +814,7 @@ class AddWalletModalState extends State<AddWalletModal> {
                             padding: const EdgeInsets.only(right: 12),
                             child: Icon(
                               Iconsax.warning_2,
-                              color: AppColorV2.incorrectState,
+                              color: cs.error,
                               size: 20,
                             ),
                           )
@@ -778,19 +827,14 @@ class AddWalletModalState extends State<AddWalletModal> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(
-                      Iconsax.info_circle,
-                      color: AppColorV2.incorrectState,
-                      size: 14,
-                    ),
+                    Icon(Iconsax.info_circle, color: cs.error, size: 14),
                     const SizedBox(width: 6),
                     Expanded(
                       child: DefaultText(
                         text: 'Available: ${controller.luvpayBal.value}',
-                        style: AppTextStyle.paragraph2.copyWith(
-                          color: AppColorV2.incorrectState,
-                          fontSize: 11,
-                        ),
+                        style: AppTextStyle.paragraph2(
+                          context,
+                        ).copyWith(color: cs.error, fontSize: 11),
                       ),
                     ),
                   ],
@@ -820,19 +864,15 @@ class AddWalletModalState extends State<AddWalletModal> {
                 radius: BorderRadius.circular(14),
                 child: Row(
                   children: [
-                    Icon(
-                      Iconsax.info_circle,
-                      color: AppColorV2.lpBlueBrand,
-                      size: 20,
-                    ),
+                    Icon(Iconsax.info_circle, color: cs.primary, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: DefaultText(
                         text:
                             'Funds will be deducted from your main LuvPay balance',
-                        style: AppTextStyle.paragraph2.copyWith(
-                          color: AppColorV2.bodyTextColor,
-                        ),
+                        style: AppTextStyle.paragraph2(
+                          context,
+                        ).copyWith(color: bodyColor),
                       ),
                     ),
                   ],

@@ -141,7 +141,7 @@ class _QRState extends State<QR> {
                               text:
                                   "Align the QR code within the frame to proceed ${!myQR ? "with payment" : ""}",
                               textAlign: TextAlign.center,
-                              style: AppTextStyle.paragraph1,
+                              style: AppTextStyle.paragraph1(context),
                             ),
                             SizedBox(height: 40),
                             if (!myQR)

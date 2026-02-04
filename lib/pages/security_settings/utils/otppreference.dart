@@ -142,7 +142,7 @@ class _OTPPreferenceState extends State<OTPPreference> {
           //             children: [
           //               DefaultText(
           //                 text: "Transaction Security",
-          //                 style: AppTextStyle.h3,
+          //                 style: AppTextStyle.h3(context),(context),
           //               ),
           //               SizedBox(height: 4),
           //               DefaultText(

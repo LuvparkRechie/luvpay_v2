@@ -57,7 +57,7 @@ class FaqPage extends GetView<FaqPageController> {
                             DefaultText(
                               color: AppColorV2.background,
                               text: "Back",
-                              style: AppTextStyle.h3_semibold,
+                              style: AppTextStyle.h3_semibold(context),
                               height: 20 / 16,
                             ),
                           ],
@@ -65,7 +65,7 @@ class FaqPage extends GetView<FaqPageController> {
                       ),
                       DefaultText(
                         text: "FAQs",
-                        style: AppTextStyle.h3,
+                        style: AppTextStyle.h3(context),
                         color: AppColorV2.background,
                         maxLines: 1,
                       ),
@@ -77,7 +77,7 @@ class FaqPage extends GetView<FaqPageController> {
                     padding: const EdgeInsets.only(left: 9),
                     child: DefaultText(
                       text: "How can we help you?",
-                      style: AppTextStyle.h3_f22,
+                      style: AppTextStyle.h3_f22(context),
                       color: AppColorV2.background,
                     ),
                   ),
@@ -137,7 +137,7 @@ class FaqPage extends GetView<FaqPageController> {
                                                 faq['faq_text'] ??
                                                 'No text available',
                                             color: Colors.black,
-                                            style: AppTextStyle.h3,
+                                            style: AppTextStyle.h3(context),
                                           ),
                                           trailing: Icon(
                                             controller.expandedIndexes.contains(

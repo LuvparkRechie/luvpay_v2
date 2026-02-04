@@ -227,7 +227,7 @@ class _VouchersState extends State<Vouchers> {
                 child: Center(
                   child: DefaultText(
                     text: "CLAIM",
-                    style: AppTextStyle.h3_semibold,
+                    style: AppTextStyle.h3_semibold(context),
                     color:
                         enabled
                             ? AppColorV2.lpBlueBrand

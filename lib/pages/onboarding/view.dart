@@ -9,6 +9,7 @@ import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/pages/routes/routes.dart';
 
 import '../../web_view/webview.dart';
+import '../../custom_widgets/luvpay/custom_buttons.dart';
 
 class MyOnboardingPage extends StatefulWidget {
   const MyOnboardingPage({super.key});
@@ -23,35 +24,38 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
   double _backgroundOffset = 0.0;
   double _titleOffset = 0.0;
 
-  final List<OnboardingPage> _pages = [
-    OnboardingPage(
-      title: "Secure & Smart",
-      description:
-          "Bank-level security meets intelligent finance management. Your money stays safe while growing smarter.",
-      imagePath: "assets/svg/wallet_secure.svg",
-      primaryColor: AppColorV2.lpBlueBrand,
-      accentColor: AppColorV2.lpTealBrand,
-      iconData: Icons.shield_outlined,
-    ),
-    OnboardingPage(
-      title: "Lightning Fast",
-      description:
-          "Transactions that happen in a blink. Send, receive, and pay instantly across the globe.",
-      imagePath: "assets/svg/instant_pay.svg",
-      primaryColor: AppColorV2.primary,
-      accentColor: AppColorV2.secondary,
-      iconData: Icons.bolt_outlined,
-    ),
-    OnboardingPage(
-      title: "Your Financial AI",
-      description:
-          "Get personalized insights, smart budgets, and investment suggestions tailored just for you.",
-      imagePath: "assets/svg/budget.svg",
-      primaryColor: AppColorV2.primaryTextColor,
-      accentColor: AppColorV2.accent,
-      iconData: Icons.psychology_outlined,
-    ),
-  ];
+  List<OnboardingPage> _buildPages(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return [
+      OnboardingPage(
+        title: "Secure & Smart",
+        description:
+            "Bank-level security meets intelligent finance management. Your money stays safe while growing smarter.",
+        imagePath: "assets/svg/wallet_secure.svg",
+        primaryColor: AppColorV2.lpBlueBrand,
+        accentColor: AppColorV2.lpTealBrand,
+        iconData: Icons.shield_outlined,
+      ),
+      OnboardingPage(
+        title: "Lightning Fast",
+        description:
+            "Transactions that happen in a blink. Send, receive, and pay instantly across the globe.",
+        imagePath: "assets/svg/instant_pay.svg",
+        primaryColor: cs.primary,
+        accentColor: cs.secondary,
+        iconData: Icons.bolt_outlined,
+      ),
+      OnboardingPage(
+        title: "Your Financial AI",
+        description:
+            "Get personalized insights, smart budgets, and investment suggestions tailored just for you.",
+        imagePath: "assets/svg/budget.svg",
+        primaryColor: cs.onSurface,
+        accentColor: AppColorV2.lpTealBrand,
+        iconData: Icons.psychology_outlined,
+      ),
+    ];
+  }
 
   @override
   void initState() {
@@ -77,17 +81,29 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentPageColor = _pages[_currentPage].primaryColor;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    final bg = theme.scaffoldBackgroundColor;
+    final surface = cs.surface;
+
+    final isDark = theme.brightness == Brightness.dark;
+    final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+
+    final pages = _buildPages(context);
+    final currentPageColor = pages[_currentPage].primaryColor;
     final screenWidth = MediaQuery.of(context).size.width;
+
+    final isLast = _currentPage == pages.length - 1;
 
     return CustomScaffoldV2(
       padding: EdgeInsets.zero,
       enableToolBar: false,
-      backgroundColor: AppColorV2.background,
+      backgroundColor: bg,
       scaffoldBody: Stack(
         children: [
           AnimatedPositioned(
-            duration: Duration(milliseconds: 1000),
+            duration: const Duration(milliseconds: 1000),
             curve: Curves.easeInOutCubic,
             left: _backgroundOffset,
             child: Container(
@@ -98,16 +114,15 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    _pages[0].primaryColor.withOpacity(0.03),
-                    _pages[1].primaryColor.withOpacity(0.03),
-                    _pages[2].primaryColor.withOpacity(0.03),
+                    pages[0].primaryColor.withOpacity(isDark ? 0.06 : 0.03),
+                    pages[1].primaryColor.withOpacity(isDark ? 0.06 : 0.03),
+                    pages[2].primaryColor.withOpacity(isDark ? 0.06 : 0.03),
                   ],
-                  stops: [0.0, 0.5, 1.0],
+                  stops: const [0.0, 0.5, 1.0],
                 ),
               ),
             ),
           ),
-
           Positioned(
             top: 100,
             left: screenWidth / 3,
@@ -118,14 +133,13 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    currentPageColor.withOpacity(0.08),
+                    currentPageColor.withOpacity(isDark ? 0.12 : 0.08),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-
           Positioned(
             bottom: 200,
             right: 50,
@@ -136,14 +150,15 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                 borderRadius: BorderRadius.circular(20),
                 gradient: LinearGradient(
                   colors: [
-                    _pages[_currentPage].accentColor.withOpacity(0.05),
+                    pages[_currentPage].accentColor.withOpacity(
+                      isDark ? 0.10 : 0.05,
+                    ),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -157,14 +172,14 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       AnimatedContainer(
-                        duration: Duration(milliseconds: 500),
+                        duration: const Duration(milliseconds: 500),
                         width: 52,
                         height: 52,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
                               currentPageColor,
-                              _pages[_currentPage].accentColor,
+                              pages[_currentPage].accentColor,
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -172,9 +187,11 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: currentPageColor.withOpacity(0.3),
+                              color: currentPageColor.withOpacity(
+                                isDark ? 0.18 : 0.30,
+                              ),
                               blurRadius: 15,
-                              offset: Offset(0, 5),
+                              offset: const Offset(0, 5),
                               spreadRadius: -5,
                             ),
                           ],
@@ -182,44 +199,44 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                         child: Center(
                           child: Icon(
                             Icons.account_balance_wallet_rounded,
-                            color: AppColorV2.background,
+                            color: cs.onPrimary,
                             size: 26,
                           ),
                         ),
                       ),
-
                       AnimatedOpacity(
-                        duration: Duration(milliseconds: 300),
+                        duration: const Duration(milliseconds: 300),
                         opacity: _currentPage == 0 ? 1.0 : 0.0,
                         child: IgnorePointer(
                           ignoring: _currentPage != 0,
                           child: InkWell(
                             onTap: () {
                               _pageController.animateToPage(
-                                _pages.length - 1,
-                                duration: Duration(milliseconds: 600),
+                                pages.length - 1,
+                                duration: const Duration(milliseconds: 600),
                                 curve: Curves.easeInOutCubic,
                               );
                             },
                             borderRadius: BorderRadius.circular(20),
                             child: Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 10,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColorV2.background.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: AppColorV2.boxStroke,
-                                  width: 1.5,
+                                color: surface.withOpacity(
+                                  isDark ? 0.65 : 0.90,
                                 ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: stroke, width: 1.5),
                               ),
                               child: DefaultText(
                                 text: "Skip",
-                                style: AppTextStyle.paragraph1.copyWith(
+                                style: AppTextStyle.paragraph1(
+                                  context,
+                                ).copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: AppColorV2.onSurfaceVariant,
+                                  color: cs.onSurfaceVariant,
                                   fontSize: 14,
                                 ),
                               ),
@@ -230,19 +247,16 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
-                    itemCount: _pages.length,
+                    itemCount: pages.length,
                     onPageChanged: (index) {
-                      setState(() {
-                        _currentPage = index;
-                      });
+                      setState(() => _currentPage = index);
                     },
                     itemBuilder: (context, index) {
                       return ModernOnboardingPageWidget(
-                        page: _pages[index],
+                        page: pages[index],
                         isActive: index == _currentPage,
                         titleOffset: _titleOffset,
                         index: index,
@@ -250,7 +264,6 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                     },
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -260,35 +273,36 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_pages.length, (index) {
+                        children: List.generate(pages.length, (index) {
                           return GestureDetector(
-                            onTap:
-                                () => _pageController.animateToPage(
-                                  index,
-                                  duration: Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                ),
+                            onTap: () {
+                              _pageController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                              );
+                            },
                             child: AnimatedContainer(
-                              duration: Duration(milliseconds: 400),
+                              duration: const Duration(milliseconds: 400),
                               curve: Curves.easeInOut,
-                              margin: EdgeInsets.symmetric(horizontal: 4),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
                               width: index == _currentPage ? 40 : 12,
                               height: 6,
                               decoration: BoxDecoration(
                                 color:
                                     index == _currentPage
                                         ? currentPageColor
-                                        : AppColorV2.boxStroke,
+                                        : stroke,
                                 borderRadius: BorderRadius.circular(3),
                                 boxShadow:
                                     index == _currentPage
                                         ? [
                                           BoxShadow(
                                             color: currentPageColor.withOpacity(
-                                              0.3,
+                                              isDark ? 0.18 : 0.30,
                                             ),
                                             blurRadius: 8,
-                                            offset: Offset(0, 3),
+                                            offset: const Offset(0, 3),
                                           ),
                                         ]
                                         : [],
@@ -297,83 +311,60 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                           );
                         }),
                       ),
-
-                      SizedBox(height: 48),
-
-                      FloatingActionButton.extended(
+                      const SizedBox(height: 48),
+                      CustomButtons.cta(
+                        text: isLast ? "Get Started" : "Continue",
+                        icon:
+                            isLast
+                                ? Icons.check_rounded
+                                : Icons.arrow_forward_rounded,
                         onPressed: () {
-                          if (_currentPage < _pages.length - 1) {
+                          if (!isLast) {
                             _pageController.nextPage(
-                              duration: Duration(milliseconds: 600),
+                              duration: const Duration(milliseconds: 600),
                               curve: Curves.easeInOutCubic,
                             );
                           } else {
                             _completeOnboarding();
                           }
                         },
-                        backgroundColor: currentPageColor,
-                        foregroundColor: AppColorV2.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 12,
-                        highlightElevation: 16,
-                        icon: AnimatedSwitcher(
-                          duration: Duration(milliseconds: 400),
-                          child: Icon(
-                            _currentPage == _pages.length - 1
-                                ? Icons.check_rounded
-                                : Icons.arrow_forward_rounded,
-                            key: ValueKey(_currentPage),
-                          ),
-                        ),
-                        label: AnimatedSwitcher(
-                          duration: Duration(milliseconds: 400),
-                          child: DefaultText(
-                            key: ValueKey(_currentPage),
-                            text:
-                                _currentPage == _pages.length - 1
-                                    ? "Get Started"
-                                    : "Continue",
-                            style: AppTextStyle.textButton.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+
+                        lightBg: currentPageColor,
+                        lightFg: cs.onPrimary,
+                        darkBg:
+                            isLast ? AppColorV2.background : currentPageColor,
+                        darkFg: isLast ? AppColorV2.lpBlueBrand : cs.onPrimary,
                       ),
 
-                      if (_currentPage == _pages.length - 1) ...[
-                        SizedBox(height: 24),
+                      if (isLast) ...[
+                        const SizedBox(height: 24),
                         InkWell(
-                          onTap: () {
-                            Get.toNamed(Routes.login);
-                          },
+                          onTap: () => Get.toNamed(Routes.login),
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: AppColorV2.background.withOpacity(0.8),
+                              color: surface.withOpacity(isDark ? 0.65 : 0.80),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: AppColorV2.boxStroke,
-                                width: 1.5,
-                              ),
+                              border: Border.all(color: stroke, width: 1.5),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 DefaultText(
                                   text: "Already have an account? ",
-                                  style: AppTextStyle.paragraph1.copyWith(
-                                    color: AppColorV2.onSurfaceVariant,
+                                  style: AppTextStyle.paragraph1(
+                                    context,
+                                  ).copyWith(
+                                    color: cs.onSurfaceVariant,
                                     fontSize: 15,
                                   ),
                                 ),
                                 DefaultText(
                                   text: "Sign In",
-                                  color: AppColorV2.lpBlueBrand,
-                                  style: AppTextStyle.paragraph1.copyWith(
+                                  style: AppTextStyle.paragraph1(
+                                    context,
+                                  ).copyWith(
                                     color: currentPageColor,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 15,
@@ -383,11 +374,16 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            DefaultText(text: "By continuing, you accept the "),
+                            DefaultText(
+                              text: "By continuing, you accept the ",
+                              style: AppTextStyle.paragraph2(
+                                context,
+                              ).copyWith(color: cs.onSurfaceVariant),
+                            ),
                             InkWell(
                               onTap: () {
                                 Get.to(
@@ -401,7 +397,7 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                                 );
                               },
                               child: DefaultText(
-                                style: AppTextStyle.paragraph2,
+                                style: AppTextStyle.paragraph2(context),
                                 color: AppColorV2.lpBlueBrand,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0,
@@ -411,7 +407,6 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                           ],
                         ),
                       ],
-
                       SizedBox(height: MediaQuery.of(context).padding.bottom),
                     ],
                   ),
@@ -463,20 +458,24 @@ class ModernOnboardingPageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
-              duration: Duration(milliseconds: 800),
+              duration: const Duration(milliseconds: 800),
               curve: Curves.easeOutBack,
               transform: Matrix4.translationValues(0, isActive ? 0 : 60, 0)
                 ..scale(isActive ? 1.0 : 0.9),
               child: Container(
-                margin: EdgeInsets.only(top: 30),
+                margin: const EdgeInsets.only(top: 30),
                 width: 200,
                 height: 200,
                 decoration: BoxDecoration(
@@ -485,15 +484,17 @@ class ModernOnboardingPageWidget extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      page.primaryColor.withOpacity(0.15),
-                      page.accentColor.withOpacity(0.08),
+                      page.primaryColor.withOpacity(isDark ? 0.22 : 0.15),
+                      page.accentColor.withOpacity(isDark ? 0.14 : 0.08),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: page.primaryColor.withOpacity(0.15),
+                      color: page.primaryColor.withOpacity(
+                        isDark ? 0.12 : 0.15,
+                      ),
                       blurRadius: 40,
-                      offset: Offset(0, 25),
+                      offset: const Offset(0, 25),
                       spreadRadius: -15,
                     ),
                   ],
@@ -505,50 +506,54 @@ class ModernOnboardingPageWidget extends StatelessWidget {
                       top: -20,
                       right: -20,
                       child: AnimatedContainer(
-                        duration: Duration(milliseconds: 600),
+                        duration: const Duration(milliseconds: 600),
                         width: isActive ? 64 : 48,
                         height: isActive ? 64 : 48,
                         decoration: BoxDecoration(
-                          color: page.accentColor.withOpacity(0.12),
+                          color: page.accentColor.withOpacity(
+                            isDark ? 0.18 : 0.12,
+                          ),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: page.accentColor.withOpacity(0.2),
+                              color: page.accentColor.withOpacity(
+                                isDark ? 0.18 : 0.20,
+                              ),
                               blurRadius: 15,
-                              offset: Offset(0, 5),
+                              offset: const Offset(0, 5),
                             ),
                           ],
                         ),
                         child: Icon(
                           page.iconData,
                           size: 24,
-                          color: AppColorV2.background,
+                          color: cs.onPrimary,
                         ),
                       ),
                     ),
-
                     Positioned(
                       bottom: -30,
                       left: -20,
                       child: AnimatedContainer(
-                        duration: Duration(milliseconds: 800),
+                        duration: const Duration(milliseconds: 800),
                         width: isActive ? 100 : 80,
                         height: isActive ? 100 : 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              page.primaryColor.withOpacity(0.1),
+                              page.primaryColor.withOpacity(
+                                isDark ? 0.16 : 0.10,
+                              ),
                               Colors.transparent,
                             ],
                           ),
                         ),
                       ),
                     ),
-
                     Center(
                       child: AnimatedContainer(
-                        duration: Duration(milliseconds: 600),
+                        duration: const Duration(milliseconds: 600),
                         transform:
                             Matrix4.identity()..scale(isActive ? 1.0 : 0.9),
                         child: SvgPicture.asset(
@@ -563,11 +568,9 @@ class ModernOnboardingPageWidget extends StatelessWidget {
                 ),
               ),
             ),
-
-            SizedBox(height: 15),
-
+            const SizedBox(height: 15),
             AnimatedOpacity(
-              duration: Duration(milliseconds: 600),
+              duration: const Duration(milliseconds: 600),
               opacity: isActive ? 1 : 0.3,
               child: Transform.translate(
                 offset: Offset(titleOffset + (index * 50), 0),
@@ -586,19 +589,18 @@ class ModernOnboardingPageWidget extends StatelessWidget {
                           },
                           child: DefaultText(
                             text: page.title,
-                            style: AppTextStyle.h4,
-                            color: AppColorV2.background,
+                            style: AppTextStyle.h4(context),
+                            color: Colors.white,
                             textAlign: TextAlign.center,
                           ),
                         ),
-
                         Positioned(
                           bottom: -12,
                           left: 0,
                           right: 0,
                           child: Center(
                             child: AnimatedContainer(
-                              duration: Duration(milliseconds: 800),
+                              duration: const Duration(milliseconds: 800),
                               width: isActive ? 80 : 0,
                               height: 4,
                               decoration: BoxDecoration(
@@ -608,9 +610,11 @@ class ModernOnboardingPageWidget extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(2),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: page.accentColor.withOpacity(0.5),
+                                    color: page.accentColor.withOpacity(
+                                      isDark ? 0.30 : 0.50,
+                                    ),
                                     blurRadius: 8,
-                                    offset: Offset(0, 2),
+                                    offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
@@ -619,12 +623,12 @@ class ModernOnboardingPageWidget extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 20),
-
+                    const SizedBox(height: 20),
                     DefaultText(
                       text: page.description,
-                      style: AppTextStyle.body1,
+                      style: AppTextStyle.body1(
+                        context,
+                      ).copyWith(color: cs.onSurfaceVariant),
                       textAlign: TextAlign.center,
                       maxLines: 3,
                     ),

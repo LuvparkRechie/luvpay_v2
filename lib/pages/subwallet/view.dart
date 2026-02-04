@@ -3,10 +3,12 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/no_data_found.dart';
 import 'package:luvpay/custom_widgets/no_internet.dart';
@@ -370,31 +372,6 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     _deleteCtrl.reset();
   }
 
-  Future<bool> transferFunds({
-    required Wallet wallet,
-    required double amount,
-    required TransferType type,
-  }) async {
-    if (amount <= 0) return false;
-
-    if (type == TransferType.toSubwallet &&
-        controller.numericBalance.value < amount) {
-      return false;
-    }
-    if (type == TransferType.toMain && wallet.balance < amount) return false;
-
-    try {
-      await controller.getUserSubWallets();
-      await controller.luvpayBalance();
-      await _loadWalletsFromController();
-      return true;
-    } catch (e) {
-      // ignore: avoid_print
-      print('Error transferring funds: $e');
-      return false;
-    }
-  }
-
   Future<void> addMoneyToWallet(Wallet wallet, double amount) async {
     if (controller.numericBalance.value < amount) {
       return _err("Insufficient main balance");
@@ -419,10 +396,6 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
   Future<void> addWallet(Wallet wallet) async {
     if (controller.numericBalance.value < wallet.balance) {
-      // ignore: avoid_print
-      print(
-        'Insufficient main balance. Required: ${wallet.balance}, Available: ${controller.numericBalance.value}',
-      );
       return _err("Insufficient main balance to create this subwallet.");
     }
 
@@ -452,10 +425,13 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   void _showAddWalletModal(BuildContext context) {
     final beforeIds = wallets.map((w) => w.id).toSet();
 
+    final cs = Theme.of(context).colorScheme;
+    final sheetBg = cs.surface;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColorV2.background,
+      backgroundColor: sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
@@ -482,11 +458,15 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   }
 
   Widget _buildBalanceHeader() {
-    final masked = isRefreshing;
+    final cs = Theme.of(context).colorScheme;
 
+    final masked = isRefreshing;
     final walletCountText = masked ? "******" : "${wallets.length} wallets";
     final totalText =
         masked ? "₱ *******" : "₱ ${totalBalance.toStringAsFixed(2)}";
+
+    final headerBg = cs.primary;
+    final headerFg = cs.onPrimary;
 
     return ClipRRect(
       borderRadius: const BorderRadius.only(
@@ -495,7 +475,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       ),
       child: Container(
         width: double.infinity,
-        color: AppColorV2.lpBlueBrand,
+        color: headerBg,
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -506,19 +486,19 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                   child: DefaultText(
                     text: "Subwallet Savings",
                     maxLines: 1,
-                    style: AppTextStyle.paragraph2.copyWith(
+                    style: AppTextStyle.paragraph2(context).copyWith(
                       fontWeight: FontWeight.w800,
-                      color: AppColorV2.background,
+                      color: headerFg.withOpacity(0.95),
                     ),
                   ),
                 ),
                 DefaultText(
                   text: walletCountText,
                   maxLines: 1,
-                  style: AppTextStyle.paragraph2.copyWith(
+                  style: AppTextStyle.paragraph2(context).copyWith(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: AppColorV2.background,
+                    color: headerFg.withOpacity(0.95),
                   ),
                 ),
               ],
@@ -530,10 +510,10 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                 DefaultText(
                   text: totalText,
                   maxLines: 1,
-                  style: AppTextStyle.h3_semibold.copyWith(
+                  style: AppTextStyle.h3(context).copyWith(
                     fontSize: 26,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: headerFg,
                     letterSpacing: .2,
                   ),
                 ),
@@ -543,10 +523,10 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                   child: DefaultText(
                     text: "total",
                     maxLines: 1,
-                    style: AppTextStyle.paragraph2.copyWith(
+                    style: AppTextStyle.paragraph2(context).copyWith(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      color: AppColorV2.background,
+                      color: headerFg.withOpacity(0.95),
                     ),
                   ),
                 ),
@@ -560,6 +540,15 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bg = cs.surface;
+    final sheetBg = cs.surface;
+
+    final accent = cs.primary;
+    final glow = cs.secondary;
+
     final ready = categoriesLoaded && !isLoading;
     final hasWallets = wallets.isNotEmpty;
     final headerH = hasWallets && _pinHeader ? 104.0 : 0.0;
@@ -570,26 +559,26 @@ class _SubWalletScreenState extends State<SubWalletScreen>
         if (didPop) Get.back(result: true);
       },
       child: Scaffold(
-        backgroundColor: AppColorV2.background,
+        backgroundColor: bg,
+
         appBar: AppBar(
           systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: AppColorV2.lpBlueBrand,
-            statusBarIconBrightness: Brightness.light,
-            statusBarBrightness: Brightness.light,
+            statusBarColor: cs.primary,
+            statusBarIconBrightness:
+                isDark ? Brightness.light : Brightness.light,
+            statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
           ),
           elevation: 0,
           scrolledUnderElevation: 0,
-          backgroundColor: AppColorV2.lpBlueBrand,
+          backgroundColor: cs.primary,
           centerTitle: true,
           leadingWidth: 100,
-
           title: DefaultText(
             text: "SubWallets",
-            color: Colors.white.withOpacity(.95),
-            style: AppTextStyle.h3.copyWith(
-              fontWeight: FontWeight.w900,
-              letterSpacing: .2,
-            ),
+            color: cs.onPrimary.withOpacity(.95),
+            style: AppTextStyle.h3(
+              context,
+            ).copyWith(fontWeight: FontWeight.w900, letterSpacing: .2),
           ),
         ),
 
@@ -601,8 +590,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
             loading: !ready,
             title: "Loading subwallets…",
             subtitle: "Please wait a moment",
-            accentColor: AppColorV2.lpBlueBrand,
-            glowColor: AppColorV2.lpTealBrand,
+            accentColor: accent,
+            glowColor: glow,
             child:
                 !controller.hasNet.value
                     ? NoInternetConnected(onTap: _refreshData)
@@ -610,8 +599,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                       topInset: headerH,
                       refreshing: isRefreshing,
                       label: "Refreshing…",
-                      accentColor: AppColorV2.lpBlueBrand,
-                      glowColor: AppColorV2.lpTealBrand,
+                      accentColor: accent,
+                      glowColor: glow,
                       child: Stack(
                         children: [
                           RefreshIndicator.noSpinner(
@@ -628,6 +617,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                     height: hasWallets ? 104 : 10,
                                   ),
                                 ),
+
                                 SliverPadding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 14,
@@ -702,14 +692,15 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                                       () => _showWalletDetails(
                                                         context,
                                                         w,
+                                                        sheetBg,
                                                       ),
                                                   iconBytes: iconBytes,
                                                   base: w.color,
-                                                  titleColor:
-                                                      AppColorV2
-                                                          .primaryTextColor,
-                                                  amountColor:
-                                                      AppColorV2.bodyTextColor,
+
+                                                  titleColor: cs.onSurface,
+                                                  amountColor: cs.onSurface
+                                                      .withOpacity(0.72),
+
                                                   categoryLabel: categoryLabel,
                                                   isDeleting:
                                                       w.id == _deletingWalletId,
@@ -747,11 +738,11 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     );
   }
 
-  void _showWalletDetails(BuildContext context, Wallet wallet) {
+  void _showWalletDetails(BuildContext context, Wallet wallet, Color sheetBg) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColorV2.background,
+      backgroundColor: sheetBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
@@ -774,10 +765,18 @@ class CreateSubwalletTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    final base = cs.surface;
+    final brand = cs.primary;
+    final titleColor = cs.onSurface.withOpacity(0.70);
+
     final radius = BorderRadius.circular(24);
 
     return LuvNeuPress.rectangle(
       radius: radius,
+      background: base,
+      borderColor: cs.outlineVariant.withOpacity(0.25),
       onTap: onTap,
       child: Center(
         child: Padding(
@@ -787,17 +786,13 @@ class CreateSubwalletTile extends StatelessWidget {
             children: [
               LuvNeuPress.circle(
                 onTap: onTap,
-                background: AppColorV2.lpBlueBrand.withOpacity(0.10),
-                borderColor: AppColorV2.lpBlueBrand.withOpacity(0.18),
+                background: brand.withOpacity(0.10),
+                borderColor: brand.withOpacity(0.18),
                 child: SizedBox(
                   width: 58,
                   height: 58,
                   child: Center(
-                    child: Icon(
-                      Iconsax.add,
-                      size: 30,
-                      color: AppColorV2.lpBlueBrand,
-                    ),
+                    child: Icon(Iconsax.add, size: 30, color: brand),
                   ),
                 ),
               ),
@@ -809,7 +804,16 @@ class CreateSubwalletTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
-                  color: AppColorV2.primaryTextColor.withOpacity(.70),
+                  color: titleColor,
+                ),
+              ),
+              const SizedBox(height: 0),
+              IgnorePointer(
+                ignoring: true,
+                child: SizedBox(
+                  width: 0,
+                  height: 0,
+                  child: DecoratedBox(decoration: BoxDecoration(color: base)),
                 ),
               ),
             ],

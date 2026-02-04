@@ -2,19 +2,20 @@
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:luvpay/custom_widgets/app_color_v2.dart';
 
 class PremiumSpinner extends StatefulWidget {
   final double size;
   final double strokeWidth;
-  final Color color;
+
+  final Color? color;
+
   final Color? glowColor;
 
   const PremiumSpinner({
     super.key,
     this.size = 18,
     this.strokeWidth = 2.3,
-    required this.color,
+    this.color,
     this.glowColor,
   });
 
@@ -37,7 +38,10 @@ class _PremiumSpinnerState extends State<PremiumSpinner>
 
   @override
   Widget build(BuildContext context) {
-    final glow = widget.glowColor ?? widget.color;
+    final cs = Theme.of(context).colorScheme;
+
+    final spinnerColor = widget.color ?? cs.primary;
+    final glow = widget.glowColor ?? spinnerColor;
 
     return SizedBox(
       width: widget.size,
@@ -66,7 +70,7 @@ class _PremiumSpinnerState extends State<PremiumSpinner>
                 ),
                 CircularProgressIndicator(
                   strokeWidth: widget.strokeWidth,
-                  valueColor: AlwaysStoppedAnimation(widget.color),
+                  valueColor: AlwaysStoppedAnimation(spinnerColor),
                 ),
               ],
             ),
@@ -82,15 +86,25 @@ class PremiumFrostCard extends StatelessWidget {
   final EdgeInsets padding;
   final double radius;
 
+  final Color? frostColor;
+
   const PremiumFrostCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
     this.radius = 18,
+    this.frostColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final base = frostColor ?? cs.surface;
+    final glass = Color.lerp(base, cs.background, isDark ? 0.12 : 0.06) ?? base;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: BackdropFilter(
@@ -98,12 +112,15 @@ class PremiumFrostCard extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(.72),
+            color: glass.withOpacity(isDark ? .62 : .78),
             borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: const Color(0xFF0F172A).withOpacity(.08)),
+            border: Border.all(
+              color: cs.outlineVariant.withOpacity(isDark ? .05 : .01),
+              width: 0.9,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(.10),
+                color: Colors.black.withOpacity(isDark ? .35 : .10),
                 blurRadius: 22,
                 offset: const Offset(0, 12),
               ),
@@ -123,7 +140,7 @@ class PremiumLoaderOverlay extends StatelessWidget {
   final String title;
   final String? subtitle;
 
-  final Color accentColor;
+  final Color? accentColor;
   final Color? glowColor;
 
   final bool barrierDismissible;
@@ -136,7 +153,7 @@ class PremiumLoaderOverlay extends StatelessWidget {
     required this.child,
     this.title = "Loading…",
     this.subtitle,
-    required this.accentColor,
+    this.accentColor,
     this.glowColor,
     this.barrierDismissible = false,
     this.topInset = 0,
@@ -144,6 +161,12 @@ class PremiumLoaderOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final spinnerColor = accentColor ?? cs.primary;
+
     return Stack(
       children: [
         child,
@@ -165,7 +188,7 @@ class PremiumLoaderOverlay extends StatelessWidget {
                       ? const SizedBox.shrink(key: ValueKey("loader_off"))
                       : Container(
                         key: const ValueKey("loader_on"),
-                        color: AppColorV2.background,
+                        color: cs.scrim.withOpacity(isDark ? 0.05 : 0.01),
                         alignment: Alignment.center,
                         child: PremiumFrostCard(
                           child: Row(
@@ -174,7 +197,7 @@ class PremiumLoaderOverlay extends StatelessWidget {
                               PremiumSpinner(
                                 size: 20,
                                 strokeWidth: 2.4,
-                                color: accentColor,
+                                color: spinnerColor,
                                 glowColor: glowColor,
                               ),
                               const SizedBox(width: 12),
@@ -184,11 +207,11 @@ class PremiumLoaderOverlay extends StatelessWidget {
                                 children: [
                                   Text(
                                     title,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: .2,
-                                      color: Color(0xFF0F172A),
+                                      color: cs.onSurface,
                                     ),
                                   ),
                                   if (subtitle != null) ...[
@@ -198,9 +221,7 @@ class PremiumLoaderOverlay extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 12.5,
                                         fontWeight: FontWeight.w600,
-                                        color: const Color(
-                                          0xFF0F172A,
-                                        ).withOpacity(.62),
+                                        color: cs.onSurface.withOpacity(.70),
                                       ),
                                     ),
                                   ],
@@ -223,7 +244,7 @@ class PremiumRefreshOverlay extends StatelessWidget {
   final Widget child;
 
   final String label;
-  final Color accentColor;
+  final Color? accentColor;
   final Color? glowColor;
 
   final bool blockTouches;
@@ -235,7 +256,7 @@ class PremiumRefreshOverlay extends StatelessWidget {
     required this.refreshing,
     required this.child,
     this.label = "Refreshing…",
-    required this.accentColor,
+    this.accentColor,
     this.glowColor,
     this.blockTouches = true,
     this.topInset = 0,
@@ -243,6 +264,12 @@ class PremiumRefreshOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final spinnerColor = accentColor ?? cs.primary;
+
     return Stack(
       children: [
         child,
@@ -264,7 +291,7 @@ class PremiumRefreshOverlay extends StatelessWidget {
                       ? const SizedBox.shrink(key: ValueKey("refresh_off"))
                       : Container(
                         key: const ValueKey("refresh_on"),
-                        color: AppColorV2.background,
+                        color: cs.scrim.withOpacity(isDark ? 0.55 : 0.35),
                         alignment: Alignment.center,
                         child: PremiumFrostCard(
                           child: Row(
@@ -273,17 +300,17 @@ class PremiumRefreshOverlay extends StatelessWidget {
                               PremiumSpinner(
                                 size: 18,
                                 strokeWidth: 2.2,
-                                color: accentColor,
+                                color: spinnerColor,
                                 glowColor: glowColor,
                               ),
                               const SizedBox(width: 10),
                               Text(
                                 label,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: .2,
-                                  color: Color(0xFF0F172A),
+                                  color: cs.onSurface,
                                 ),
                               ),
                             ],
@@ -316,27 +343,34 @@ class LuvpayLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? const Color(0xFF2563EB);
-    final bg = AppColorV2.background;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final c = color ?? cs.primary;
+    final bg = cs.surface;
 
     final loader = Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: cs.outlineVariant.withOpacity(isDark ? .05 : .01),
+          width: 0.8,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withOpacity(.75),
+            color: Colors.white.withOpacity(isDark ? 0.00 : .75),
             blurRadius: 14,
             offset: const Offset(-6, -6),
           ),
           BoxShadow(
-            color: const Color(0xFF0F172A).withOpacity(.10),
+            color: Colors.black.withOpacity(isDark ? .35 : .10),
             blurRadius: 14,
             offset: const Offset(6, 6),
           ),
         ],
-        border: Border.all(color: const Color(0xFF0F172A).withOpacity(.04)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -357,7 +391,7 @@ class LuvpayLoading extends StatelessWidget {
                 fontSize: 13.5,
                 fontWeight: FontWeight.w800,
                 letterSpacing: .15,
-                color: const Color(0xFF0F172A).withOpacity(.70),
+                color: cs.onSurface.withOpacity(.75),
               ),
             ),
           ],

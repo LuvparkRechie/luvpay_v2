@@ -1,16 +1,17 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:ui';
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import '../custom_text_v2.dart';
 
 class CustomGradientBackground extends StatelessWidget {
   final Widget? child;
-  final List<Color> gradientColors;
+  final List<Color>? gradientColors;
   final BorderRadius? borderRadius;
   final EdgeInsetsGeometry? padding;
   final double blurSigma;
@@ -19,17 +20,7 @@ class CustomGradientBackground extends StatelessWidget {
   const CustomGradientBackground({
     super.key,
     this.child,
-    this.gradientColors = const [
-      Color(0xFF0078FF),
-      Color(0xFFFFFFFF),
-      Color(0xFFFFFFFF),
-      Color(0xFFFFFFFF),
-      Color(0xFFFFFFFF),
-      Color(0xFFFFFFFF),
-      Color(0xFFFFFFFF),
-      Color(0xFFFFFFFF),
-      Color(0xFFFFFFFF),
-    ],
+    this.gradientColors,
     this.borderRadius,
     this.padding,
     this.blurSigma = 0,
@@ -38,6 +29,34 @@ class CustomGradientBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final fallbackGradient =
+        isDark
+            ? <Color>[
+              cs.primary.withOpacity(0.25),
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+            ]
+            : <Color>[
+              AppColorV2.lpBlueBrand,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+              cs.surface,
+            ];
+
     Widget content = Container(
       width: double.infinity,
       height: double.infinity,
@@ -66,7 +85,7 @@ class CustomGradientBackground extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: gradientColors,
+          colors: gradientColors ?? fallbackGradient,
         ),
       ),
       child: content,
@@ -140,6 +159,8 @@ class CustomScaffoldV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return PopScope(
       onPopInvokedWithResult: onPopInvokedWithResult,
       canPop: canPop,
@@ -147,7 +168,7 @@ class CustomScaffoldV2 extends StatelessWidget {
         key: scaffKey,
         extendBodyBehindAppBar: extendBodyBehindAppbar,
         drawerEnableOpenDragGesture: false,
-        backgroundColor: backgroundColor ?? Colors.transparent,
+        backgroundColor: backgroundColor ?? cs.surface,
         drawer: drawer,
         resizeToAvoidBottomInset: resizeToAvoidBottomInset,
         bottomNavigationBar: bottomNavigationBar,
@@ -160,6 +181,9 @@ class CustomScaffoldV2 extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (useNormalBody) {
       return SafeArea(
         bottom: false,
@@ -170,43 +194,38 @@ class CustomScaffoldV2 extends StatelessWidget {
       );
     }
 
+    final radius =
+        removeBorderRadius
+            ? null
+            : const BorderRadius.only(
+              topLeft: Radius.circular(28),
+              topRight: Radius.circular(28),
+            );
+
     return Stack(
       children: [
         CustomGradientBackground(
           blurSigma: 40,
           gradientColors: [
-            AppColorV2.lpBlueBrand.withAlpha(40),
-            AppColorV2.background,
-            AppColorV2.background,
-            AppColorV2.background,
-            AppColorV2.background,
-            AppColorV2.background,
+            cs.primary.withOpacity(isDark ? 0.18 : 0.12),
+            cs.surface,
+            cs.surface,
+            cs.surface,
+            cs.surface,
+            cs.surface,
           ],
           bodyColor: Colors.transparent,
-          borderRadius:
-              removeBorderRadius
-                  ? null
-                  : const BorderRadius.only(
-                    topLeft: Radius.circular(28),
-                    topRight: Radius.circular(28),
-                  ),
+          borderRadius: radius,
           padding: EdgeInsets.zero,
         ),
-
         Positioned.fill(
           child: Container(
             decoration: BoxDecoration(
-              color: backgroundColor ?? AppColorV2.background.withOpacity(0.98),
-              borderRadius:
-                  removeBorderRadius
-                      ? null
-                      : const BorderRadius.only(
-                        topLeft: Radius.circular(28),
-                        topRight: Radius.circular(28),
-                      ),
+              color: (backgroundColor ?? cs.surface).withOpacity(0.98),
+              borderRadius: radius,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: cs.shadow.withOpacity(isDark ? 0.25 : 0.08),
                   blurRadius: 20,
                   spreadRadius: 0,
                   offset: const Offset(0, -2),
@@ -215,7 +234,6 @@ class CustomScaffoldV2 extends StatelessWidget {
             ),
           ),
         ),
-
         SafeArea(
           bottom: false,
           child: Padding(
@@ -228,21 +246,26 @@ class CustomScaffoldV2 extends StatelessWidget {
   }
 
   AppBar _buildModernAppBar(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    final bg = appBarBackgroundColor ?? cs.primary;
+    final fg = cs.onPrimary;
+
     return AppBar(
       bottom: bottom,
-      backgroundColor: appBarBackgroundColor ?? AppColorV2.lpBlueBrand,
+      backgroundColor: bg,
       centerTitle: centerTitle ?? true,
       title: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: DefaultText(
           key: ValueKey(appBarTitle ?? ""),
           text: appBarTitle ?? "",
-          style: AppTextStyle.h3.copyWith(
+          style: AppTextStyle.h3(context).copyWith(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             letterSpacing: -0.3,
           ),
-          color: AppColorV2.background,
+          color: fg,
           maxLines: 1,
         ),
       ),
@@ -259,22 +282,24 @@ class CustomScaffoldV2 extends StatelessWidget {
                 ),
               ]
               : null,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
+
+      shape: null,
+
       systemOverlayStyle:
           systemOverlayStyle ??
           SystemUiOverlayStyle.light.copyWith(
-            statusBarColor: AppColorV2.lpBlueBrand,
+            statusBarColor: bg,
             statusBarIconBrightness: Brightness.light,
           ),
     );
   }
 
   Widget _buildModernLeading(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    final bg = appBarBackgroundColor ?? cs.primary;
+    final fg = cs.onPrimary;
+
     return Padding(
       padding: const EdgeInsets.only(left: 16.0),
       child: Row(
@@ -283,12 +308,9 @@ class CustomScaffoldV2 extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: fg.withOpacity(0.15),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1,
-              ),
+              border: Border.all(color: fg.withOpacity(0.20), width: 1),
             ),
             child: Material(
               color: Colors.transparent,
@@ -300,7 +322,7 @@ class CustomScaffoldV2 extends StatelessWidget {
                   child: Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 20,
-                    color: AppColorV2.background,
+                    color: fg,
                   ),
                 ),
               ),
@@ -310,12 +332,11 @@ class CustomScaffoldV2 extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(left: 12.0),
               child: DefaultText(
-                color: AppColorV2.background,
+                color: fg,
                 text: leadingText!,
-                style: AppTextStyle.h3_semibold.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: AppTextStyle.h3_semibold(
+                  context,
+                ).copyWith(fontSize: 16, fontWeight: FontWeight.w500),
               ),
             ),
         ],
@@ -382,13 +403,15 @@ class CustomSliverScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return PopScope(
       onPopInvokedWithResult: onPopInvokedWithResult,
       canPop: canPop,
       child: Scaffold(
         key: scaffKey,
         drawerEnableOpenDragGesture: false,
-        backgroundColor: backgroundColor ?? Colors.white,
+        backgroundColor: backgroundColor ?? cs.surface,
         drawer: drawer,
         bottomNavigationBar: bottomNavigationBar,
         floatingActionButton: floatingButton,
@@ -404,12 +427,11 @@ class CustomSliverScaffold extends StatelessWidget {
                   stretch: stretch,
                   expandedHeight: expandedHeight,
                   toolbarHeight: toolbarHeight,
-                  backgroundColor:
-                      appBarBackgroundColor ?? AppColorV2.lpBlueBrand,
+                  backgroundColor: appBarBackgroundColor ?? cs.primary,
                   leading: _buildSliverLeading(context),
                   leadingWidth: appBarLeadingWidth ?? 80,
                   title:
-                      centerTitle ?? true
+                      (centerTitle ?? true)
                           ? AnimatedSwitcher(
                             duration: const Duration(milliseconds: 300),
                             child:
@@ -417,12 +439,12 @@ class CustomSliverScaffold extends StatelessWidget {
                                     ? DefaultText(
                                       key: ValueKey(appBarTitle ?? ""),
                                       text: appBarTitle ?? "",
-                                      style: AppTextStyle.h3.copyWith(
+                                      style: AppTextStyle.h3(context).copyWith(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: -0.3,
                                       ),
-                                      color: AppColorV2.background,
+                                      color: cs.onPrimary,
                                       maxLines: 1,
                                     )
                                     : const SizedBox.shrink(),
@@ -440,16 +462,12 @@ class CustomSliverScaffold extends StatelessWidget {
                           : null,
                   flexibleSpace: flexibleSpace,
                   elevation: 0,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                      bottomRight: Radius.circular(24),
-                    ),
-                  ),
+                  shape: null,
+
                   systemOverlayStyle:
                       systemOverlayStyle ??
                       SystemUiOverlayStyle.light.copyWith(
-                        statusBarColor: AppColorV2.lpBlueBrand,
+                        statusBarColor: appBarBackgroundColor ?? cs.primary,
                         statusBarIconBrightness: Brightness.light,
                       ),
                 ),
@@ -457,14 +475,18 @@ class CustomSliverScaffold extends StatelessWidget {
           },
           body: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cs.surface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(24),
                 topRight: Radius.circular(24),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: cs.shadow.withOpacity(
+                    Theme.of(context).brightness == Brightness.dark
+                        ? 0.25
+                        : 0.10,
+                  ),
                   blurRadius: 30,
                   spreadRadius: 0,
                   offset: const Offset(0, -4),
@@ -479,7 +501,7 @@ class CustomSliverScaffold extends StatelessWidget {
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  SliverPadding(padding: const EdgeInsets.only(top: 16)),
+                  const SliverPadding(padding: EdgeInsets.only(top: 16)),
                   ...slivers,
                   SliverPadding(
                     padding: EdgeInsets.only(
@@ -496,15 +518,18 @@ class CustomSliverScaffold extends StatelessWidget {
   }
 
   Widget _buildSliverLeading(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final fg = cs.onPrimary;
+
     return Padding(
       padding: const EdgeInsets.only(left: 16.0),
       child: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: fg.withOpacity(0.15),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+          border: Border.all(color: fg.withOpacity(0.20), width: 1),
         ),
         child: Material(
           color: Colors.transparent,
@@ -513,10 +538,7 @@ class CustomSliverScaffold extends StatelessWidget {
             onTap: onPressedLeading ?? () => canPop ? Get.back() : null,
             borderRadius: BorderRadius.circular(12),
             child: Center(
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppColorV2.background,
-              ),
+              child: Icon(Icons.arrow_back_ios_new_rounded, color: fg),
             ),
           ),
         ),
@@ -543,19 +565,26 @@ class CozyModalOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: margin ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.white,
+        color: backgroundColor ?? cs.surface,
         borderRadius: borderRadius ?? BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColorV2.primaryTextColor.withAlpha(20),
+            color: cs.shadow.withOpacity(isDark ? 0.28 : 0.12),
             blurRadius: 40,
             spreadRadius: 0,
             offset: const Offset(0, 8),
           ),
         ],
+        border: Border.all(
+          color: cs.onSurface.withOpacity(isDark ? 0.12 : 0.06),
+          width: 1,
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -567,7 +596,7 @@ class CozyModalOverlay extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: cs.onSurface.withOpacity(isDark ? 0.25 : 0.15),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

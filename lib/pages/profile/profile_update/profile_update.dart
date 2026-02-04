@@ -293,9 +293,9 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
       context: context,
       initialDate:
           _selectedBirthday ??
-          DateTime.now().subtract(Duration(days: 365 * 18)),
+          DateTime.now().subtract(const Duration(days: 365 * 18)),
       firstDate: DateTime(1900),
-      lastDate: DateTime.now().subtract(Duration(days: 365 * 18)),
+      lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
     );
     if (picked != null && picked != _selectedBirthday) {
       setState(() {
@@ -312,7 +312,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
     if (_currentPage < 2) {
       _pageController.nextPage(
-        duration: Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     } else {
@@ -323,7 +323,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
   void _previousPage() {
     if (_currentPage > 0) {
       _pageController.previousPage(
-        duration: Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     }
@@ -331,10 +331,11 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
   bool _validateProfilePage() {
     if (_firstNameController.text.isEmpty || _lastNameController.text.isEmpty) {
+      final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: AppColorV2.error,
-          content: Text('Please fill in required fields'),
+          backgroundColor: cs.error,
+          content: const Text('Please fill in required fields'),
         ),
       );
       return false;
@@ -345,10 +346,11 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
   bool _validateSecurityQuestions() {
     Set<String?> selectedSet = _selectedQuestions.toSet();
     if (selectedSet.length < 3 || selectedSet.contains(null)) {
+      final cs = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: AppColorV2.error,
-          content: Text('Please select 3 unique security questions'),
+          backgroundColor: cs.error,
+          content: const Text('Please select 3 unique security questions'),
         ),
       );
       return false;
@@ -356,10 +358,13 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
     for (int i = 0; i < 3; i++) {
       if (_answerControllers[i].text.isEmpty ||
           _answerControllers[i].text.length < 2) {
+        final cs = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: AppColorV2.error,
-            content: Text('Please provide valid answers for all questions'),
+            backgroundColor: cs.error,
+            content: const Text(
+              'Please provide valid answers for all questions',
+            ),
           ),
         );
         return false;
@@ -392,28 +397,39 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
   }
 
   Widget _buildProgressIndicator() {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+    final inactiveText =
+        isDark ? AppColorV2.darkBodyText : AppColorV2.bodyTextColor;
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
       child: Column(
         children: [
           // Progress Bar
           Container(
             height: 6,
             decoration: BoxDecoration(
-              color: AppColorV2.boxStroke,
+              color: stroke,
               borderRadius: BorderRadius.circular(3),
             ),
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              width: MediaQuery.of(context).size.width * (_currentPage + 1) / 3,
-              decoration: BoxDecoration(
-                gradient: AppColorV2.primaryGradient,
-                borderRadius: BorderRadius.circular(3),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+                width:
+                    MediaQuery.of(context).size.width * (_currentPage + 1) / 3,
+                decoration: BoxDecoration(
+                  gradient: AppColorV2.primaryGradient,
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           // Progress Text
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -424,10 +440,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                   fontSize: 12,
                   fontWeight:
                       _currentPage == 0 ? FontWeight.w600 : FontWeight.w400,
-                  color:
-                      _currentPage == 0
-                          ? AppColorV2.lpBlueBrand
-                          : AppColorV2.onSurfaceVariant,
+                  color: _currentPage == 0 ? cs.primary : inactiveText,
                 ),
               ),
               Text(
@@ -436,10 +449,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                   fontSize: 12,
                   fontWeight:
                       _currentPage == 1 ? FontWeight.w600 : FontWeight.w400,
-                  color:
-                      _currentPage == 1
-                          ? AppColorV2.lpBlueBrand
-                          : AppColorV2.onSurfaceVariant,
+                  color: _currentPage == 1 ? cs.primary : inactiveText,
                 ),
               ),
               Text(
@@ -448,10 +458,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                   fontSize: 12,
                   fontWeight:
                       _currentPage == 2 ? FontWeight.w600 : FontWeight.w400,
-                  color:
-                      _currentPage == 2
-                          ? AppColorV2.lpBlueBrand
-                          : AppColorV2.onSurfaceVariant,
+                  color: _currentPage == 2 ? cs.primary : inactiveText,
                 ),
               ),
             ],
@@ -462,18 +469,29 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
   }
 
   Widget _buildQuestionCard(int index) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+    final cardBg = cs.surface;
+    final fieldBg = isDark ? AppColorV2.darkSurface2 : AppColorV2.background;
+    final hintText =
+        isDark ? AppColorV2.darkBodyText : AppColorV2.bodyTextColor;
+
     return Container(
-      margin: EdgeInsets.only(bottom: 20),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColorV2.boxStroke),
+        border: Border.all(color: stroke),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: (isDark ? Colors.black : Colors.black).withValues(
+              alpha: isDark ? 0.35 : 0.05,
+            ),
             blurRadius: 10,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -482,9 +500,9 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
         children: [
           // Question Number Indicator
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColorV2.lpBlueBrand.withValues(alpha: 0.1),
+              color: cs.primary.withValues(alpha: isDark ? 0.18 : 0.10),
               borderRadius: BorderRadius.circular(20),
             ),
             child: DefaultText(
@@ -492,18 +510,16 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColorV2.lpBlueBrand,
+                color: cs.primary,
               ),
             ),
           ),
-          SizedBox(height: 12),
-
+          const SizedBox(height: 12),
           customDropdown(
             isDisabled: false,
             labelText: "Select a question",
             items: _securityQuestions,
             selectedValue: _selectedQuestions[index],
-
             onChanged: (value) {
               FocusManager.instance.primaryFocus!.unfocus();
               setState(() {
@@ -517,40 +533,35 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
               return null;
             },
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
 
           // Answer Input
           Container(
             decoration: BoxDecoration(
-              color: AppColorV2.background,
+              color: fieldBg,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColorV2.boxStroke),
+              border: Border.all(color: stroke),
             ),
             child: TextFormField(
               controller: _answerControllers[index],
               decoration: InputDecoration(
-                contentPadding: EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
                 ),
                 border: InputBorder.none,
-                prefixIcon: Icon(
-                  Icons.lock_outline_rounded,
-                  color: AppColorV2.lpBlueBrand,
-                ),
+                prefixIcon: Icon(Icons.lock_outline_rounded, color: cs.primary),
                 hintText: 'Enter your answer',
-                hintStyle: GoogleFonts.inter(
-                  color: AppColorV2.onSurfaceVariant,
-                ),
+                hintStyle: GoogleFonts.inter(color: hintText),
                 suffixIcon:
                     _answerControllers[index].text.isNotEmpty
                         ? Icon(
                           Icons.check_circle_rounded,
-                          color: AppColorV2.success,
+                          color: AppColorV2.correctState,
                         )
                         : null,
               ),
-              style: GoogleFonts.inter(fontSize: 14),
+              style: GoogleFonts.inter(fontSize: 14, color: cs.onSurface),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter an answer';
@@ -570,7 +581,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
   Widget _buildProfilePage() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(25),
+      padding: const EdgeInsets.all(25),
       child: Column(
         children: [
           _buildEnhancedSectionHeader(
@@ -581,7 +592,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             title: 'First Name',
             controller: _firstNameController,
             hintText: "First Name",
-            prefixIcon: Icon(Icons.person),
+            prefixIcon: const Icon(Icons.person),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'First Name is required';
@@ -589,12 +600,12 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
               return null;
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CustomTextField(
             title: 'Last Name',
             controller: _lastNameController,
             hintText: "Last Name",
-            prefixIcon: Icon(Icons.person),
+            prefixIcon: const Icon(Icons.person),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Last Name is required';
@@ -602,20 +613,19 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
               return null;
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CustomTextField(
             title: 'Middle Name',
             controller: _middleNameController,
             hintText: "Middle Name",
-            prefixIcon: Icon(Icons.person),
+            prefixIcon: const Icon(Icons.person),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CustomTextField(
             title: 'Email',
             controller: _emailController,
             hintText: "Email",
-            prefixIcon: Icon(Icons.email),
-
+            prefixIcon: const Icon(Icons.email),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Email Name is required';
@@ -633,7 +643,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             title: 'Birthday',
             controller: _birthdayController,
             hintText: "Birthday",
-            prefixIcon: Icon(Icons.calendar_today),
+            prefixIcon: const Icon(Icons.calendar_today),
             suffixIcon: Icons.calendar_month,
             onIconTap: _selectBirthday,
             validator: (value) {
@@ -643,17 +653,16 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
               return null;
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: Icon(Icons.transgender),
+            prefixIcon: const Icon(Icons.transgender),
             isDisabled: false,
             labelText: "Select gender",
-            items: [
+            items: const [
               {"text": "Female", "value": "F"},
               {"text": "Male", "value": "M"},
             ],
             selectedValue: _selectedGender,
-
             onChanged: (value) {
               FocusManager.instance.primaryFocus!.unfocus();
 
@@ -668,14 +677,13 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
               return null;
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: Icon(Icons.transgender),
+            prefixIcon: const Icon(Icons.transgender),
             isDisabled: false,
             labelText: "Civil Status",
             items: Variables.civilStatusData,
             selectedValue: _selectedCivilStatus,
-
             onChanged: (value) {
               FocusManager.instance.primaryFocus!.unfocus();
               setState(() {
@@ -690,11 +698,11 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             },
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           _buildEnhancedSectionHeader('Address', Icons.home_outlined),
           customDropdown(
-            prefixIcon: Icon(Icons.location_on),
+            prefixIcon: const Icon(Icons.location_on),
             isDisabled: false,
             labelText: "Region",
             items:
@@ -704,7 +712,6 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                   return e;
                 }).toList(),
             selectedValue: _regionId,
-
             onChanged: (value) async {
               List respo = await getAddressData(
                 "${ApiKeys.getProvince}?p_region_id=${value!}",
@@ -726,14 +733,13 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             },
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: Icon(Icons.location_on),
+            prefixIcon: const Icon(Icons.location_on),
             isDisabled: false,
             labelText: "Province",
             items: widget.provinceData,
             selectedValue: _provinceId,
-
             onChanged: (value) async {
               List respo = await getAddressData(
                 "${ApiKeys.getCity}?p_province_id=${value!}",
@@ -755,14 +761,13 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             },
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: Icon(Icons.location_on),
+            prefixIcon: const Icon(Icons.location_on),
             isDisabled: false,
             labelText: "City",
             items: widget.cityData,
             selectedValue: _cityId,
-
             onChanged: (value) async {
               List respo = await getAddressData(
                 "${ApiKeys.getBrgy}?p_city_id=$value",
@@ -783,14 +788,13 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
               return null;
             },
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: Icon(Icons.location_on),
+            prefixIcon: const Icon(Icons.location_on),
             isDisabled: false,
             labelText: "Brgy",
             items: widget.brgyData,
             selectedValue: _brgyId,
-
             onChanged: (value) async {
               setState(() {
                 _brgyId = value;
@@ -805,58 +809,60 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             },
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CustomTextField(
             title: 'Address Line 1',
             controller: _address1Controller,
             hintText: "Address Line 1",
-            prefixIcon: Icon(Icons.location_on),
+            prefixIcon: const Icon(Icons.location_on),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CustomTextField(
             title: 'Address Line 2',
             controller: _address2Controller,
             hintText: "Address Line 2",
-            prefixIcon: Icon(Icons.location_on),
+            prefixIcon: const Icon(Icons.location_on),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CustomTextField(
             title: 'ZIP Code',
             controller: _zipCodeController,
             hintText: "ZIP Code",
-            prefixIcon: Icon(Icons.numbers),
+            prefixIcon: const Icon(Icons.numbers),
           ),
 
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
         ],
       ),
     );
   }
 
   Widget _buildSecurityQuestionsPage() {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+    final tipBg = cs.primary.withValues(alpha: isDark ? 0.12 : 0.08);
+
     return SingleChildScrollView(
-      padding: EdgeInsets.all(25),
+      padding: const EdgeInsets.all(25),
       child: Column(
         children: [
           // Security Tips
           Container(
-            margin: EdgeInsets.only(bottom: 20),
-            padding: EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColorV2.pastelBlueAccent,
+              color: tipBg,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColorV2.lpBlueBrand.withValues(alpha: 0.2),
+                color: cs.primary.withValues(alpha: isDark ? 0.22 : 0.20),
               ),
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.security_rounded,
-                  color: AppColorV2.lpBlueBrand,
-                  size: 24,
-                ),
-                SizedBox(width: 12),
+                Icon(Icons.security_rounded, color: cs.primary, size: 24),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -866,15 +872,18 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColorV2.primaryTextColor,
+                          color: cs.onSurface,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         'Choose 3 unique security questions and provide answers that are memorable but hard to guess.',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: AppColorV2.onSurfaceVariant,
+                          color:
+                              isDark
+                                  ? AppColorV2.darkBodyText
+                                  : AppColorV2.bodyTextColor,
                         ),
                       ),
                     ],
@@ -889,35 +898,39 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
           _buildQuestionCard(1),
           _buildQuestionCard(2),
 
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
         ],
       ),
     );
   }
 
   Widget _buildEnhancedSectionHeader(String title, IconData icon) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.only(bottom: 16, top: 8),
-      padding: EdgeInsets.symmetric(vertical: 12),
+      margin: const EdgeInsets.only(bottom: 16, top: 8),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: AppColorV2.lpBlueBrand.withValues(alpha: 0.3),
+            color: cs.primary.withValues(alpha: isDark ? 0.25 : 0.30),
             width: 1,
           ),
         ),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColorV2.lpBlueBrand, size: 20),
-          SizedBox(width: 8),
+          Icon(icon, color: cs.primary, size: 20),
+          const SizedBox(width: 8),
           Text(
             title,
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColorV2.primaryTextColor,
+              color: cs.onSurface,
             ),
           ),
         ],
@@ -927,13 +940,19 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final bg = theme.scaffoldBackgroundColor;
+    final surface = cs.surface;
+
     return Scaffold(
-      backgroundColor: AppColorV2.background,
+      backgroundColor: bg,
 
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColorV2.lpBlueBrand),
+          icon: Icon(Icons.arrow_back, color: cs.primary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -941,15 +960,15 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppColorV2.primaryTextColor,
+            color: cs.onSurface,
           ),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: AppColorV2.background,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
+          statusBarColor: bg,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         ),
       ),
       body: Form(
@@ -959,7 +978,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             _buildProgressIndicator(),
             Expanded(
               child: PageView(
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 controller: _pageController,
                 onPageChanged: (page) {
                   setState(() {
@@ -975,14 +994,14 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             ),
             // Navigation Buttons
             Container(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColorV2.background,
+                color: surface,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.10),
                     blurRadius: 10,
-                    offset: Offset(0, -2),
+                    offset: const Offset(0, -2),
                   ),
                 ],
               ),
@@ -993,23 +1012,23 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                       child: OutlinedButton(
                         onPressed: _previousPage,
                         style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          side: BorderSide(color: AppColorV2.lpBlueBrand),
+                          side: BorderSide(color: cs.primary),
                         ),
                         child: Text(
                           'Back',
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: AppColorV2.lpBlueBrand,
+                            color: cs.primary,
                           ),
                         ),
                       ),
                     ),
-                  if (_currentPage > 0) SizedBox(width: 12),
+                  if (_currentPage > 0) const SizedBox(width: 12),
                   Expanded(
                     flex: _currentPage == 0 ? 1 : 2,
                     child: Container(
@@ -1018,11 +1037,11 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColorV2.lpBlueBrand.withValues(
-                              alpha: 0.3,
+                            color: cs.primary.withValues(
+                              alpha: isDark ? 0.22 : 0.30,
                             ),
                             blurRadius: 10,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -1031,7 +1050,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
-                          padding: EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -1045,7 +1064,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: cs.onPrimary,
                           ),
                         ),
                       ),

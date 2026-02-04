@@ -10,6 +10,7 @@ import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/loading.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
 import 'package:luvpay/custom_widgets/variables.dart';
+
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
@@ -51,7 +52,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   checkIfEnabledBio() async {
     final usd = await Authentication().getUserLogin();
-
     bool? isEnabledBio = await Authentication().getBiometricStatus();
 
     isEnabledBioLogin = isEnabledBio!;
@@ -65,7 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (userData.isNotEmpty) {
       setState(() {
         screen = UsePasswordScreen(isAllowBio: isEnabledBioLogin);
-
         isLoadingPage = false;
       });
       return;
@@ -84,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(left: 8.0),
         child: DefaultText(
-          style: AppTextStyle.textbox,
+          style: AppTextStyle.textbox(context),
           text: 'V${Variables.version}',
         ),
       ),
@@ -92,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
       enableToolBar: false,
       canPop: false,
       appBar: null,
-      backgroundColor: AppColorV2.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
 
       scaffoldBody: isLoadingPage ? LoadingCard() : screen!,
     );
@@ -108,9 +107,11 @@ class DefaultLoginScreen extends StatefulWidget {
 
 class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
   final box = GetStorage();
+
   @override
   Widget build(BuildContext context) {
     final LoginScreenController controller = Get.put(LoginScreenController());
+
     return Obx(
       () => StretchingOverscrollIndicator(
         axisDirection: AxisDirection.down,
@@ -125,13 +126,12 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                   image: AssetImage("assets/images/luvpay_logo.png"),
                   width: 100,
                 ),
-
                 SizedBox(height: 18),
                 Column(
                   children: [
                     DefaultText(
                       text: "Welcome to luvpay!",
-                      style: AppTextStyle.h1,
+                      style: AppTextStyle.h1(context),
                       color: AppColorV2.lpBlueBrand,
                       maxLines: 1,
                     ),
@@ -141,7 +141,7 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                       child: DefaultText(
                         maxLines: 1,
                         text: "Enter your number and password to log in",
-                        style: AppTextStyle.paragraph1,
+                        style: AppTextStyle.paragraph1(context),
                       ),
                     ),
                   ],
@@ -152,7 +152,8 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                   children: [
                     DefaultText(
                       text: "Mobile Number",
-                      style: AppTextStyle.h3,
+                      style: AppTextStyle.h3(context),
+
                       height: 20 / 16,
                     ),
                     CustomMobileNumber(
@@ -162,7 +163,10 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                       inputFormatters: [Variables.maskFormatter],
                     ),
                     spacing(height: 14),
-                    DefaultText(text: "Password", style: AppTextStyle.h3),
+                    DefaultText(
+                      text: "Password",
+                      style: AppTextStyle.h3(context),
+                    ),
                     CustomTextField(
                       hintText: "Enter your password",
                       controller: controller.password,
@@ -199,13 +203,13 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                               );
                             },
                     child: DefaultText(
-                      style: AppTextStyle.body1,
+                      style: AppTextStyle.body1(context),
                       text: "Forgot Password?",
                       color: AppColorV2.lpBlueBrand,
                     ),
                   ),
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 30),
                 Column(
                   children: [
                     CustomButton(
@@ -233,6 +237,7 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                           );
                           return;
                         }
+
                         if (controller.password.text.isEmpty) {
                           Get.back();
                           CustomDialogStack.showSnackBar(
@@ -252,6 +257,7 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                           "pwd": controller.password.text,
                           "device_key": devKey.toString(),
                         };
+
                         controller.postLogin(Get.context!, postParam, (
                           data,
                         ) async {
@@ -266,7 +272,7 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     CustomButton(
                       text: "Create account",
                       btnColor: AppColorV2.background,
@@ -276,7 +282,7 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                         Get.toNamed(Routes.registration);
                       },
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                   ],
                 ),
               ],
@@ -291,6 +297,7 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
 class UsePasswordScreen extends StatefulWidget {
   final Widget? appbar;
   final bool isAllowBio;
+
   const UsePasswordScreen({super.key, this.appbar, required this.isAllowBio});
 
   @override
@@ -299,10 +306,10 @@ class UsePasswordScreen extends StatefulWidget {
 
 class _UsePasswordScreenState extends State<UsePasswordScreen> {
   List userData = [];
+
   @override
   void initState() {
     super.initState();
-
     getUserData();
   }
 
@@ -347,6 +354,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
 
   Widget bodyWidget() {
     final LoginScreenController controller = Get.put(LoginScreenController());
+
     return Center(
       child:
           userData.isEmpty
@@ -376,12 +384,12 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                         return DefaultText(
                           text:
                               "Welcome, ${userData[0]["first_name"].toString()}!",
-                          style: AppTextStyle.h1,
+                          style: AppTextStyle.h1(context),
                           maxLines: 1,
                         );
                       },
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     DefaultText(
                       maxLines: 1,
                       text:
@@ -389,7 +397,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                                   userData[0]["first_name"].toString().isEmpty
                               ? ""
                               : "+63 ${controller.mobnum.substring(2, 5)} ${controller.mobnum.substring(5, 8)} ${controller.mobnum.substring(8)}",
-                      style: AppTextStyle.paragraph1,
+                      style: AppTextStyle.paragraph1(context),
                     ),
 
                     spacing(height: 48),
@@ -397,7 +405,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                       alignment: Alignment.centerLeft,
                       child: DefaultText(
                         text: "Password",
-                        style: AppTextStyle.h3,
+                        style: AppTextStyle.h3(context),
                       ),
                     ),
                     spacing(height: 8),
@@ -431,7 +439,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                           Get.toNamed(Routes.forgotPass);
                         },
                         child: DefaultText(
-                          style: AppTextStyle.body1,
+                          style: AppTextStyle.body1(context),
                           text: "Forgot Password?",
                           color: AppColorV2.lpBlueBrand,
                         ),
@@ -453,6 +461,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                             );
                             return;
                           }
+
                           final userData =
                               await Authentication().getUserData2();
 
@@ -474,7 +483,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    SizedBox(height: 18),
                     if (widget.isAllowBio)
                       CustomButton(
                         textColor: AppColorV2.lpBlueBrand,
@@ -509,14 +518,14 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                           }
                         },
                       ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     Visibility(
                       visible: widget.appbar == null,
                       child: InkWell(
                         onTap: controller.switchAccount,
                         child: DefaultText(
                           text: "Switch account",
-                          style: AppTextStyle.paragraph1,
+                          style: AppTextStyle.paragraph1(context),
                           color: AppColorV2.lpBlueBrand,
                         ),
                       ),

@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, deprecated_member_use
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +24,10 @@ class RegistrationPage extends GetView<RegistrationController> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     Color getColorForStrength(int strength) {
       switch (strength) {
         case 1:
@@ -38,13 +42,14 @@ class RegistrationPage extends GetView<RegistrationController> {
       }
     }
 
+    final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+
     return CustomScaffoldV2(
       removeBorderRadius: true,
-      backgroundColor: AppColorV2.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       useNormalBody: true,
       enableToolBar: false,
       canPop: false,
-
       scaffoldBody: SizedBox(
         height: MediaQuery.of(context).size.height,
         child: ScrollConfiguration(
@@ -68,16 +73,18 @@ class RegistrationPage extends GetView<RegistrationController> {
                         DefaultText(
                           textAlign: TextAlign.center,
                           text: "Create an account",
-                          style: AppTextStyle.paragraph1,
+                          style: AppTextStyle.paragraph1(context),
                           maxLines: 1,
+                          color: cs.onBackground,
                         ),
 
                         const VerticalHeight(height: 30),
 
                         DefaultText(
                           text: "Mobile Number",
-                          style: AppTextStyle.h3,
+                          style: AppTextStyle.h3(context),
                           height: 20 / 16,
+                          color: cs.onBackground,
                         ),
                         CustomMobileNumber(
                           hintText: "10 digit mobile number",
@@ -92,8 +99,9 @@ class RegistrationPage extends GetView<RegistrationController> {
 
                         DefaultText(
                           text: "Password",
-                          style: AppTextStyle.h3,
+                          style: AppTextStyle.h3(context),
                           height: 20 / 16,
+                          color: cs.onBackground,
                         ),
                         Obx(
                           () => CustomTextField(
@@ -134,20 +142,28 @@ class RegistrationPage extends GetView<RegistrationController> {
                           () => Container(
                             padding: const EdgeInsets.all(10),
                             clipBehavior: Clip.antiAlias,
-                            decoration: ShapeDecoration(
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  width: 1,
-                                  color: Colors.black.withValues(alpha: 0.06),
-                                ),
-                                borderRadius: BorderRadius.circular(5),
+                            decoration: BoxDecoration(
+                              color: cs.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: stroke.withOpacity(isDark ? 0.55 : 1.0),
+                                width: 0.9,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(
+                                    isDark ? 0.35 : 0.06,
+                                  ),
+                                  blurRadius: isDark ? 18 : 14,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
                             ),
                             child: passwordStrength(getColorForStrength),
                           ),
                         ),
-                        spacing(height: 14),
 
+                        spacing(height: 14),
                         const SizedBox(height: 46.0),
 
                         CustomButton(
@@ -182,7 +198,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                             }
                           },
                         ),
-                        // referral(context),
+
                         spacing(height: 30),
 
                         Center(
@@ -190,8 +206,8 @@ class RegistrationPage extends GetView<RegistrationController> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               DefaultText(
-                                style: AppTextStyle.paragraph2,
-                                color: AppColorV2.primaryTextColor,
+                                style: AppTextStyle.paragraph2(context),
+                                color: cs.onSurfaceVariant,
                                 text: "Already have a LuvPay Wallet account?",
                                 height: 18 / 14,
                               ),
@@ -242,16 +258,26 @@ class RegistrationPage extends GetView<RegistrationController> {
                 backgroundColor: Colors.transparent,
                 isScrollControlled: true,
                 builder: (context) {
+                  final theme = Theme.of(context);
+                  final cs = theme.colorScheme;
+                  final isDark = theme.brightness == Brightness.dark;
+                  final stroke =
+                      isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
+
                   final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
                   return Padding(
                     padding: EdgeInsets.only(bottom: bottomInset),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColorV2.background,
+                        color: cs.surface,
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(20),
                           topRight: Radius.circular(20),
+                        ),
+                        border: Border.all(
+                          color: stroke.withOpacity(isDark ? 0.55 : 1.0),
+                          width: 0.9,
                         ),
                       ),
                       padding: const EdgeInsets.all(20),
@@ -262,13 +288,15 @@ class RegistrationPage extends GetView<RegistrationController> {
                           children: [
                             DefaultText(
                               text: "Referral Code",
-                              style: AppTextStyle.h2,
+                              style: AppTextStyle.h2(context),
+                              color: cs.onSurface,
                             ),
                             const SizedBox(height: 10),
                             DefaultText(
                               text:
                                   "A code is not necessary to continue, but if you have one, please enter it here.",
                               maxLines: 3,
+                              color: cs.onSurfaceVariant,
                             ),
                             const SizedBox(height: 10),
                             CustomTextField(
@@ -302,7 +330,7 @@ class RegistrationPage extends GetView<RegistrationController> {
             },
             child: DefaultText(
               text: "Have a referral code?",
-              style: AppTextStyle.body2,
+              style: AppTextStyle.body2(context),
               color: AppColorV2.lpBlueBrand,
               height: 20 / 16,
             ),
@@ -408,7 +436,7 @@ class RegistrationPage extends GetView<RegistrationController> {
             DefaultText(
               height: 18 / 14,
               text: "Minimum of 8 characters",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(Get.context!),
             ),
           ],
         ),
@@ -426,7 +454,7 @@ class RegistrationPage extends GetView<RegistrationController> {
             DefaultText(
               height: 18 / 14,
               text: "At least one uppercase letter",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(Get.context!),
             ),
           ],
         ),
@@ -444,7 +472,7 @@ class RegistrationPage extends GetView<RegistrationController> {
             DefaultText(
               height: 18 / 14,
               text: "At least one number",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(Get.context!),
             ),
           ],
         ),

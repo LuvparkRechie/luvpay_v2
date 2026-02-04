@@ -11,11 +11,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
-/// ✅ Impeller-safe Celebration Screen
-/// - NO BackdropFilter
-/// - NO Opacity widgets
-/// - Uses gradients + shadows + transforms only
-/// - Animated background blobs (modern, subtle)
 class CelebrationScreen extends StatefulWidget {
   final IconData icon;
   final Color iconColor;
@@ -106,7 +101,15 @@ class _CelebrationScreenState extends State<CelebrationScreen>
 
   @override
   Widget build(BuildContext context) {
-    final bg = AppColorV2.background;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final surface = cs.surface;
+    final onSurface = cs.onSurface;
+    final onSurfaceVar = cs.onSurfaceVariant;
+
+    final brand = AppColorV2.lpBlueBrand;
     final btnRadius = BorderRadius.circular(18);
 
     final pressed = _pressed;
@@ -132,12 +135,16 @@ class _CelebrationScreenState extends State<CelebrationScreen>
             padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Neumorphic(
               style: NeumorphicStyle(
-                color: bg,
-                depth: 7,
-                intensity: 0.55,
-                surfaceIntensity: 0.10,
-                shadowLightColorEmboss: Colors.white.withOpacity(0.7),
-                shadowDarkColorEmboss: Colors.black.withOpacity(0.06),
+                color: surface,
+                depth: isDark ? 4 : 7,
+                intensity: isDark ? 0.35 : 0.55,
+                surfaceIntensity: isDark ? 0.06 : 0.10,
+                shadowLightColorEmboss:
+                    (isDark ? Colors.white10 : Colors.white.withOpacity(0.7)),
+                shadowDarkColorEmboss:
+                    (isDark
+                        ? Colors.black.withOpacity(0.55)
+                        : Colors.black.withOpacity(0.06)),
                 boxShape: NeumorphicBoxShape.roundRect(
                   BorderRadius.circular(26),
                 ),
@@ -146,7 +153,6 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                 borderRadius: BorderRadius.circular(26),
                 child: Stack(
                   children: [
-                    // ✅ "Glass-ish" look without blur: gradient + subtle noise-ish overlay
                     Positioned.fill(
                       child: DecoratedBox(
                         decoration: BoxDecoration(
@@ -154,8 +160,12 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Colors.white.withOpacity(0.22),
-                              Colors.white.withOpacity(0.06),
+                              (isDark
+                                  ? Colors.white.withOpacity(0.10)
+                                  : Colors.white.withOpacity(0.22)),
+                              (isDark
+                                  ? Colors.white.withOpacity(0.05)
+                                  : Colors.white.withOpacity(0.06)),
                               Colors.transparent,
                             ],
                             stops: const [0.0, 0.45, 1.0],
@@ -164,7 +174,6 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                       ),
                     ),
 
-                    // ✅ extra highlight corner
                     Positioned(
                       left: -60,
                       top: -60,
@@ -175,8 +184,10 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              Colors.white.withOpacity(0.22),
-                              Colors.white.withOpacity(0.0),
+                              (isDark
+                                  ? Colors.white.withOpacity(0.10)
+                                  : Colors.white.withOpacity(0.22)),
+                              Colors.transparent,
                             ],
                           ),
                         ),
@@ -189,11 +200,12 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _IconHalo(
-                            bg: bg,
+                            bg: surface,
                             icon: widget.icon,
                             iconColor: widget.iconColor,
                           ),
                           const SizedBox(height: 14),
+
                           DefaultText(
                             text: widget.title,
                             textAlign: TextAlign.center,
@@ -202,18 +214,22 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.15,
                             ),
+                            color: onSurface,
                           ),
+
                           const SizedBox(height: 8),
+
                           DefaultText(
                             text: widget.message,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13.6,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black.withOpacity(0.55),
+                              color: onSurfaceVar.withOpacity(0.82),
                               height: 1.35,
                             ),
                           ),
+
                           const SizedBox(height: 18),
 
                           Container(
@@ -223,7 +239,7 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                               gradient: LinearGradient(
                                 colors: [
                                   Colors.transparent,
-                                  Colors.black.withOpacity(0.07),
+                                  onSurface.withOpacity(isDark ? 0.16 : 0.07),
                                   Colors.transparent,
                                 ],
                               ),
@@ -248,10 +264,11 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                               child: Container(
                                 decoration: BoxDecoration(
                                   borderRadius: btnRadius,
-                                  // ✅ glow without Opacity widget (alpha only)
                                   boxShadow: [
                                     BoxShadow(
-                                      color: widget.iconColor.withOpacity(0.18),
+                                      color: widget.iconColor.withOpacity(
+                                        isDark ? 0.12 : 0.18,
+                                      ),
                                       blurRadius: 22,
                                       spreadRadius: 2,
                                       offset: const Offset(0, 10),
@@ -260,14 +277,15 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                                 ),
                                 child: Neumorphic(
                                   style: NeumorphicStyle(
-                                    color: AppColorV2.lpBlueBrand,
+                                    color: brand,
                                     shape: NeumorphicShape.flat,
                                     boxShape: NeumorphicBoxShape.roundRect(
                                       btnRadius,
                                     ),
-                                    depth: pressed ? -1.2 : 3.2,
-                                    intensity: 0.48,
-                                    surfaceIntensity: 0.12,
+                                    depth:
+                                        pressed ? -1.2 : (isDark ? 2.0 : 3.2),
+                                    intensity: isDark ? 0.40 : 0.48,
+                                    surfaceIntensity: isDark ? 0.08 : 0.12,
                                   ),
                                   child: SizedBox(
                                     width: double.infinity,
@@ -275,7 +293,7 @@ class _CelebrationScreenState extends State<CelebrationScreen>
                                     child: Center(
                                       child: DefaultText(
                                         text: widget.buttonText,
-                                        color: bg,
+                                        color: cs.onPrimary,
                                         style: const TextStyle(
                                           fontSize: 14.5,
                                           fontWeight: FontWeight.w900,
@@ -303,10 +321,10 @@ class _CelebrationScreenState extends State<CelebrationScreen>
     );
 
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: surface,
       body: Stack(
         children: [
-          const _AestheticBackdropAnimated(),
+          _AestheticBackdropAnimated(tint: brand, isDark: isDark),
 
           if (widget.showConfetti)
             Align(
@@ -345,6 +363,8 @@ class _IconHalo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -355,7 +375,7 @@ class _IconHalo extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: iconColor.withOpacity(0.18),
+                color: iconColor.withOpacity(isDark ? 0.12 : 0.18),
                 blurRadius: 26,
                 spreadRadius: 2,
                 offset: const Offset(0, 10),
@@ -368,9 +388,9 @@ class _IconHalo extends StatelessWidget {
             color: bg,
             shape: NeumorphicShape.convex,
             boxShape: const NeumorphicBoxShape.circle(),
-            depth: 4,
-            intensity: 0.55,
-            surfaceIntensity: 0.08,
+            depth: isDark ? 3 : 4,
+            intensity: isDark ? 0.42 : 0.55,
+            surfaceIntensity: isDark ? 0.06 : 0.08,
           ),
           child: SizedBox(
             width: 86,
@@ -383,9 +403,11 @@ class _IconHalo extends StatelessWidget {
   }
 }
 
-/// ✅ Animated blobs (modern + subtle) — no BackdropFilter, no Opacity widget
 class _AestheticBackdropAnimated extends StatefulWidget {
-  const _AestheticBackdropAnimated();
+  final Color tint;
+  final bool isDark;
+
+  const _AestheticBackdropAnimated({required this.tint, required this.isDark});
 
   @override
   State<_AestheticBackdropAnimated> createState() =>
@@ -413,21 +435,25 @@ class _AestheticBackdropAnimatedState extends State<_AestheticBackdropAnimated>
 
   @override
   Widget build(BuildContext context) {
+    final a1 = widget.isDark ? 0.10 : 0.18;
+    final a2 = widget.isDark ? 0.08 : 0.26;
+    final a3 = widget.isDark ? 0.08 : 0.14;
+
     return IgnorePointer(
       child: Stack(
         children: [
           _AnimatedBlob(
             controller: _ctrl,
             size: 240,
-            color: AppColorV2.lpBlueBrand.withOpacity(0.18),
+            color: widget.tint.withOpacity(a1),
             begin: const Offset(-80, -80),
-            floatOffset: const Offset(16, 18), // x,y drift
+            floatOffset: const Offset(16, 18),
             phase: 0.0,
           ),
           _AnimatedBlob(
             controller: _ctrl,
             size: 220,
-            color: Colors.white.withOpacity(0.26),
+            color: Colors.white.withOpacity(a2),
             begin: const Offset(280, 140),
             floatOffset: const Offset(-12, -14),
             phase: 0.35,
@@ -435,7 +461,7 @@ class _AestheticBackdropAnimatedState extends State<_AestheticBackdropAnimated>
           _AnimatedBlob(
             controller: _ctrl,
             size: 320,
-            color: AppColorV2.lpBlueBrand.withOpacity(0.14),
+            color: widget.tint.withOpacity(a3),
             begin: const Offset(20, 520),
             floatOffset: const Offset(10, 22),
             phase: 0.7,
@@ -502,7 +528,6 @@ class _AnimatedBlob extends StatelessWidget {
   }
 }
 
-/// ✅ Soft blob using radial gradient (modern)
 class _Blob extends StatelessWidget {
   final double size;
   final Color color;
@@ -520,7 +545,7 @@ class _Blob extends StatelessWidget {
           colors: [
             color.withOpacity(0.85),
             color.withOpacity(0.12),
-            color.withOpacity(0.0),
+            Colors.transparent,
           ],
           stops: const [0.0, 0.55, 1.0],
         ),
@@ -529,9 +554,6 @@ class _Blob extends StatelessWidget {
   }
 }
 
-/// ------------------------------
-/// DashboardController usage
-/// ------------------------------
 class DashboardController extends GetxController {
   final currentIndex = 0.obs;
   final pageController = PageController();

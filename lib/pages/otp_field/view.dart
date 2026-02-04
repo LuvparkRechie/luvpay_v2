@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' as dtTime;
 import 'package:luvpay/http/http_request.dart';
-import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_button.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_text_v2.dart';
@@ -81,7 +80,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   String formatDuration(Duration d) {
     String minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     String seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-
     return "$minutes:$seconds";
   }
 
@@ -154,15 +152,12 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
           timeExp.millisecond,
         );
 
-        // Calculate difference
         Duration difference = otpExpiry.difference(timeNow);
 
         setState(() {
           isLoadingPage = false;
           isNetConn = true;
-
           inputPin = "";
-
           otpCode = int.parse(returnData["otp"].toString());
           isRequested = true;
           paramOtpExp = difference;
@@ -170,7 +165,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         });
 
         startCountdown();
-
         getTmrStat();
       } else {
         setState(() {
@@ -251,7 +245,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       ).putBody().then((returnData) async {
         if (returnData == "No Internet") {
           Get.back();
-
           CustomDialogStack.showError(
             Get.context!,
             "luvpay",
@@ -260,7 +253,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
               Get.back();
             },
           );
-
           return;
         }
         if (returnData == null) {
@@ -273,7 +265,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
               Get.back();
             },
           );
-
           return;
         }
         if (returnData["success"] == 'Y') {
@@ -311,19 +302,25 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final brand = cs.primary;
+    final danger = cs.error;
+    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.70);
+
     Color borderColor;
     if (_hasError) {
-      borderColor = AppColorV2.incorrectState;
+      borderColor = danger;
     } else if (inputPin.length == 6) {
-      borderColor = AppColorV2.lpBlueBrand;
+      borderColor = brand;
     } else {
-      borderColor = AppColorV2.boxStroke;
+      borderColor = stroke;
     }
 
-    Color textColor =
-        _hasError
-            ? AppColorV2.incorrectState
-            : (inputPin.length == 6 ? AppColorV2.lpBlueBrand : Colors.black);
+    Color pinTextColor =
+        _hasError ? danger : (inputPin.length == 6 ? brand : cs.onSurface);
 
     PinTheme getDefaultPinTheme({Color? borderColor, Color? textColor}) {
       return PinTheme(
@@ -333,21 +330,19 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
           fontSize: 18,
           fontWeight: FontWeight.w600,
           height: 22 / 18,
-          color: textColor ?? Colors.black,
+          color: textColor ?? cs.onSurface,
         ),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: borderColor ?? AppColorV2.boxStroke,
-            width: 2,
-          ),
+          border: Border.all(color: borderColor ?? stroke, width: 2),
           borderRadius: BorderRadius.circular(6),
-          color: AppColorV2.background,
+          color: cs.surface,
         ),
       );
     }
 
     return CustomScaffoldV2(
       enableToolBar: true,
+      backgroundColor: cs.surface,
       scaffoldBody:
           isLoading
               ? LoadingCard()
@@ -379,7 +374,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                             Center(
                               child: DefaultText(
                                 text: "OTP Verification",
-                                style: AppTextStyle.h2,
+                                style: AppTextStyle.h2(context),
                                 height: 28 / 24,
                               ),
                             ),
@@ -395,7 +390,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                       fontWeight: FontWeight.w500,
                                       fontSize: 14,
                                       height: 18 / 14,
-                                      color: AppColorV2.bodyTextColor,
+                                      color: cs.onSurfaceVariant,
                                     ),
                                     children: <TextSpan>[
                                       TextSpan(
@@ -403,8 +398,9 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                             " +${widget.arguments["mobile_no"].toString()}",
                                         style: GoogleFonts.inter(
                                           fontWeight: FontWeight.w700,
-                                          color: AppColorV2.lpBlueBrand,
+                                          color: brand,
                                           fontSize: 14,
+                                          height: 18 / 14,
                                         ),
                                       ),
                                     ],
@@ -425,7 +421,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                               keyboardType:
                                   Platform.isAndroid
                                       ? TextInputType.phone
-                                      : TextInputType.numberWithOptions(
+                                      : const TextInputType.numberWithOptions(
                                         signed: true,
                                         decimal: false,
                                       ),
@@ -434,36 +430,29 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                               controller: pinController,
                               defaultPinTheme: getDefaultPinTheme(
                                 borderColor: borderColor,
-                                textColor: textColor,
+                                textColor: pinTextColor,
                               ),
                               hapticFeedbackType:
                                   HapticFeedbackType.lightImpact,
                               onCompleted: (pin) {
-                                if (pin.length == 6) {
-                                  onInputChanged(pin);
-                                }
+                                if (pin.length == 6) onInputChanged(pin);
                               },
-                              onChanged: (value) {
-                                if (value.isEmpty) {
-                                  onInputChanged(value);
-                                } else {
-                                  onInputChanged(value);
-                                }
-                              },
+                              onChanged: (value) => onInputChanged(value),
                               focusedPinTheme: getDefaultPinTheme(
-                                borderColor: AppColorV2.lpBlueBrand,
-                                textColor: textColor,
+                                borderColor: brand,
+                                textColor: pinTextColor,
                               ).copyWith(
                                 decoration: getDefaultPinTheme(
-                                  borderColor: AppColorV2.lpBlueBrand,
-                                  textColor: textColor,
+                                  borderColor: brand,
+                                  textColor: pinTextColor,
                                 ).decoration!.copyWith(
                                   borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(
-                                    color: AppColorV2.lpBlueBrand,
-                                    width: 2,
-                                  ),
+                                  border: Border.all(color: brand, width: 2),
                                 ),
+                              ),
+                              errorPinTheme: getDefaultPinTheme(
+                                borderColor: danger,
+                                textColor: danger,
                               ),
                             ),
                           ),
@@ -480,8 +469,8 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                         Center(
                           child: DefaultText(
                             text: "Didn’t receive any code?",
-                            style: AppTextStyle.paragraph2,
-                            color: AppColorV2.primaryTextColor,
+                            style: AppTextStyle.paragraph2(context),
+                            color: cs.onSurface,
                           ),
                         ),
                         spacing(height: 2),
@@ -501,14 +490,14 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                     paramOtpExp.inSeconds <= 0
                                         ? "Resend OTP"
                                         : "Resend OTP in",
-                                color: AppColorV2.lpBlueBrand,
+                                color: brand,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                               ),
                               if (paramOtpExp.inSeconds > 0)
                                 DefaultText(
                                   text: " (${formatDuration(paramOtpExp)})",
-                                  color: AppColorV2.lpBlueBrand,
+                                  color: brand,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
                                 ),

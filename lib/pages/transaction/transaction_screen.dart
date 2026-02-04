@@ -3,8 +3,8 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
-import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
@@ -41,7 +41,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
   bool isLoadingPage = true;
   bool isNetConn = true;
 
-  DateTime fromDate = DateTime.now().subtract(Duration(days: 15));
+  DateTime fromDate = DateTime.now().subtract(const Duration(days: 15));
   DateTime toDate = DateTime.now();
 
   String randomNumber = Random().nextInt(100000).toString();
@@ -144,7 +144,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
   }
 
   DateTime _startOfWeekSunday(DateTime date) {
-    int daysToSubtract = date.weekday % 7;
+    final daysToSubtract = date.weekday % 7;
     return DateTime(
       date.year,
       date.month,
@@ -155,10 +155,10 @@ class _TransactionHistoryState extends State<TransactionHistory> {
   String _getGroupKey(DateTime dt) {
     final today = DateTime.now();
     final dayStart = DateTime(today.year, today.month, today.day);
-    final yesterday = dayStart.subtract(Duration(days: 1));
+    final yesterday = dayStart.subtract(const Duration(days: 1));
     final thisWeekStart = _startOfWeekSunday(dayStart);
-    final lastWeekStart = thisWeekStart.subtract(Duration(days: 7));
-    final lastWeekEnd = thisWeekStart.subtract(Duration(seconds: 1));
+    final lastWeekStart = thisWeekStart.subtract(const Duration(days: 7));
+    final lastWeekEnd = thisWeekStart.subtract(const Duration(seconds: 1));
     final previousMonth = DateTime(today.year, today.month - 1);
 
     if (_isSameDay(dt, dayStart)) return 'Today';
@@ -205,7 +205,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
         }
         return dir?.path;
       } catch (e) {
-        print("Error accessing external storage: $e");
+        debugPrint("Error accessing external storage: $e");
       }
     } else if (Platform.isIOS) {
       final dir = await getApplicationDocumentsDirectory();
@@ -222,6 +222,17 @@ class _TransactionHistoryState extends State<TransactionHistory> {
       initialDateRange: DateTimeRange(start: fromDate, end: toDate),
       saveText: "Download",
       helpText: "Select Date Range",
+      builder: (context, child) {
+        final theme = Theme.of(context);
+        final cs = theme.colorScheme;
+
+        return Theme(
+          data: theme.copyWith(
+            colorScheme: cs.copyWith(primary: AppColorV2.lpBlueBrand),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked == null) return;
@@ -318,7 +329,6 @@ class _TransactionHistoryState extends State<TransactionHistory> {
       totalCredit.toStringAsFixed(2),
       '',
     ]);
-
     rows.add([
       '',
       '',
@@ -450,7 +460,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
       if (!mounted) return;
 
       CustomDialogStack.showLoading(Get.context!);
-      await Future.delayed(Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 3));
       Get.back();
       CustomDialogStack.showConfirmation(
         context,
@@ -458,11 +468,9 @@ class _TransactionHistoryState extends State<TransactionHistory> {
         "PDF saved to:\n${_simplifyPathForDisplay(filePath)}\n\nDo you want to open the file now?",
         leftText: "Back",
         rightText: "Open File",
-        rightTextColor: AppColorV2.background,
+        rightTextColor: Theme.of(context).colorScheme.onPrimary,
         rightBtnColor: AppColorV2.lpBlueBrand,
-        () {
-          Get.back();
-        },
+        () => Get.back(),
         () {
           Get.back();
           OpenFile.open(filePath);
@@ -491,6 +499,10 @@ class _TransactionHistoryState extends State<TransactionHistory> {
 
   @override
   Widget build(BuildContext ctx) {
+    final theme = Theme.of(ctx);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final body =
         !isNetConn
             ? NoInternetConnected(onTap: () => fetchLogs(isInitial: true))
@@ -504,22 +516,22 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                   builder:
                       (context, s) => DefaultText(
                         color: AppColorV2.lpBlueBrand,
-                        style: AppTextStyle.h3_semibold,
+                        style: AppTextStyle.h3(ctx),
                         text:
                             "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}",
                       ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Expanded(
                   child: ListView.builder(
-                    physics: BouncingScrollPhysics(),
+                    physics: const BouncingScrollPhysics(),
                     padding: EdgeInsets.zero,
                     itemCount: groupedLogs.length + 1,
                     itemBuilder: (c, idx) {
                       if (idx == groupedLogs.length) {
                         return Column(
                           children: [
-                            SizedBox(height: 20),
+                            const SizedBox(height: 20),
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -528,7 +540,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                 text: "Download Transactions",
                                 onPressed: () async {
                                   final result = await showDialog(
-                                    context: context,
+                                    context: ctx,
                                     builder: (BuildContext context) {
                                       bool dialogIsShowPass = isShowPass;
 
@@ -548,9 +560,25 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                       19,
                                                     ),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white,
+                                                  color: cs.surface,
                                                   borderRadius:
                                                       BorderRadius.circular(20),
+
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withOpacity(
+                                                            isDark
+                                                                ? 0.35
+                                                                : 0.08,
+                                                          ),
+                                                      blurRadius: 18,
+                                                      offset: const Offset(
+                                                        0,
+                                                        8,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                                 child: Column(
                                                   crossAxisAlignment:
@@ -563,13 +591,14 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                         fontSize: 18,
                                                         fontWeight:
                                                             FontWeight.bold,
+                                                        color: cs.onSurface,
                                                       ),
                                                       textAlign:
                                                           TextAlign.start,
                                                       text:
                                                           "Create File Password",
                                                     ),
-                                                    SizedBox(height: 10),
+                                                    const SizedBox(height: 10),
                                                     CustomTextField(
                                                       hintText:
                                                           "Enter PDF password",
@@ -589,16 +618,17 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                         });
                                                       },
                                                     ),
-                                                    SizedBox(height: 10),
+                                                    const SizedBox(height: 10),
                                                     DefaultText(
                                                       text:
                                                           "Note: Password must be 8-15 characters long",
                                                       style: TextStyle(
                                                         fontSize: 12,
-                                                        color: Colors.grey,
+                                                        color:
+                                                            cs.onSurfaceVariant,
                                                       ),
                                                     ),
-                                                    SizedBox(height: 20),
+                                                    const SizedBox(height: 20),
                                                     Row(
                                                       children: [
                                                         Expanded(
@@ -610,15 +640,16 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                                 AppColorV2
                                                                     .lpBlueBrand,
                                                             btnColor:
-                                                                AppColorV2
-                                                                    .background,
+                                                                cs.surface,
                                                             text: "Cancel",
-                                                            onPressed: () {
-                                                              Get.back();
-                                                            },
+                                                            onPressed:
+                                                                () =>
+                                                                    Get.back(),
                                                           ),
                                                         ),
-                                                        SizedBox(width: 10),
+                                                        const SizedBox(
+                                                          width: 10,
+                                                        ),
                                                         Expanded(
                                                           child: CustomButton(
                                                             text: "Confirm",
@@ -629,9 +660,10 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                               if (enteredPassword
                                                                   .isEmpty) {
                                                                 CustomDialogStack.showSnackBar(
-                                                                  context,
+                                                                  ctx,
                                                                   "Please enter a password",
-                                                                  Colors.red,
+                                                                  AppColorV2
+                                                                      .error,
                                                                   () {},
                                                                 );
                                                                 return;
@@ -641,9 +673,10 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                                       .length <
                                                                   8) {
                                                                 CustomDialogStack.showSnackBar(
-                                                                  context,
+                                                                  ctx,
                                                                   "Password must be at least 8 characters long",
-                                                                  Colors.red,
+                                                                  AppColorV2
+                                                                      .error,
                                                                   () {},
                                                                 );
                                                                 return;
@@ -653,21 +686,22 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                                                       .length >
                                                                   15) {
                                                                 CustomDialogStack.showSnackBar(
-                                                                  context,
+                                                                  ctx,
                                                                   "Password cannot exceed 15 characters",
-                                                                  Colors.red,
+                                                                  AppColorV2
+                                                                      .error,
                                                                   () {},
                                                                 );
                                                                 return;
                                                               }
 
-                                                              setState(() {
-                                                                isShowPass =
-                                                                    dialogIsShowPass;
-                                                              });
-
+                                                              setState(
+                                                                () =>
+                                                                    isShowPass =
+                                                                        dialogIsShowPass,
+                                                              );
                                                               Navigator.pop(
-                                                                context,
+                                                                ctx,
                                                                 true,
                                                               );
                                                             },
@@ -685,9 +719,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                     },
                                   );
 
-                                  setState(() {
-                                    isShowPass = false;
-                                  });
+                                  setState(() => isShowPass = false);
 
                                   if (result == true) {
                                     await selectDateRange(ctx);
@@ -707,9 +739,12 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                 maxLines: 3,
                                 textAlign: TextAlign.center,
                                 text: 'Select transactions by date range',
+                                style: AppTextStyle.paragraph2(
+                                  ctx,
+                                ).copyWith(color: cs.onSurfaceVariant),
                               ),
                             ),
-                            SizedBox(height: 20),
+                            const SizedBox(height: 20),
                           ],
                         );
                       }
@@ -721,15 +756,23 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: EdgeInsets.fromLTRB(8, 2, 8, 2),
+                            padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
                             decoration: BoxDecoration(
-                              color: AppColorV2.lpBlueBrand.withAlpha(20),
+                              color: AppColorV2.lpBlueBrand.withOpacity(
+                                isDark ? 0.18 : 0.10,
+                              ),
                               borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: cs.outlineVariant.withOpacity(
+                                  isDark ? 0.05 : 0.01,
+                                ),
+                                width: 0.8,
+                              ),
                             ),
                             child: DefaultText(
                               text: key,
                               color: AppColorV2.lpBlueBrand,
-                              style: AppTextStyle.body1,
+                              style: AppTextStyle.body1(ctx),
                             ),
                           ),
                           ...list.map((tx) {
@@ -743,117 +786,94 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                             final accent =
                                 isDebit ? AppColorV2.error : AppColorV2.success;
 
-                            final radius = BorderRadius.circular(18);
-                            final pillRadius = BorderRadius.circular(14);
-                            final iconRadius = BorderRadius.circular(14);
+                            String formatDate(String dateString) {
+                              try {
+                                final date =
+                                    DateTime.parse(dateString).toLocal();
+                                return DateFormat(
+                                  'MMM dd, yyyy • HH:mm',
+                                ).format(date);
+                              } catch (_) {
+                                return dateString;
+                              }
+                            }
 
-                            return Column(
-                              children: [
-                                const SizedBox(height: 10),
-                                LuvNeuPress.rectangle(
-                                  radius: radius,
-                                  onTap: () {
-                                    Get.to(
-                                      TransactionDetails(
-                                        index: 0,
-                                        data: [tx],
-                                        isHistory: true,
-                                      ),
-                                    );
-                                  },
-                                  borderWidth: 0.8,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 46,
-                                          height: 46,
-                                          decoration: BoxDecoration(
-                                            borderRadius: iconRadius,
-                                            color: accent.withOpacity(0.02),
-                                          ),
-                                          child: Icon(
-                                            isDebit
-                                                ? Icons.arrow_upward_rounded
-                                                : Icons.arrow_downward_rounded,
-                                            color: accent,
-                                            size: 20,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              DefaultText(
-                                                text: category,
-                                                style: AppTextStyle.body1,
-                                                color:
-                                                    AppColorV2.primaryTextColor,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              DefaultText(
-                                                text: desc,
-                                                maxLines: 1,
-                                                maxFontSize: 12,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              DefaultText(
-                                                text: DateFormat(
-                                                  'MMM dd, yyyy • HH:mm',
-                                                ).format(
-                                                  DateTime.parse(
-                                                    tx['tran_date'],
-                                                  ),
-                                                ),
-                                                style: AppTextStyle.body1,
-                                                maxFontSize: 10,
-                                                minFontSize: 8,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Neumorphic(
-                                          style: LuvNeu.card(
-                                            radius: pillRadius,
-                                            pressed: false,
-                                            selected: false,
-                                            color: AppColorV2.background,
-                                            borderColor: Colors.black
-                                                .withOpacity(0.25),
-                                            borderWidth: 0.8,
-                                            depth: -1.0,
-                                            pressedDepth: -1.0,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 8,
-                                            ),
-                                            child: DefaultText(
-                                              text: toCurrencyString(
-                                                tx['amount'],
-                                              ),
-                                              style: TextStyle(
-                                                color: accent,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 13.5,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: CustomRowTile(
+                                onTap: () {
+                                  Get.to(
+                                    TransactionDetails(
+                                      index: 0,
+                                      data: [tx],
+                                      isHistory: true,
                                     ),
+                                  );
+                                },
+                                background: cs.surface,
+                                leadingBackground: cs.surface,
+                                leadingSize: 46,
+                                leadingRadius: const BorderRadius.all(
+                                  Radius.circular(14),
+                                ),
+                                radius: const BorderRadius.all(
+                                  Radius.circular(18),
+                                ),
+                                padding: const EdgeInsets.all(12),
+
+                                leading: Icon(
+                                  isDebit
+                                      ? Icons.arrow_upward_rounded
+                                      : Icons.arrow_downward_rounded,
+                                  color: accent,
+                                  size: 20,
+                                ),
+
+                                title: DefaultText(
+                                  text: category,
+                                  style: AppTextStyle.body1(ctx),
+                                  color: cs.onSurface,
+                                ),
+
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    DefaultText(
+                                      text: desc,
+                                      maxLines: 1,
+                                      maxFontSize: 12,
+                                      style: AppTextStyle.paragraph2(ctx),
+                                      color: cs.onSurfaceVariant.withOpacity(
+                                        isDark ? 0.78 : 0.75,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    DefaultText(
+                                      text: formatDate(
+                                        tx['tran_date'].toString(),
+                                      ),
+                                      style: AppTextStyle.body1(ctx),
+                                      maxFontSize: 10,
+                                      minFontSize: 8,
+                                      color: cs.onSurfaceVariant.withOpacity(
+                                        isDark ? 0.72 : 0.70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                trailing: DefaultText(
+                                  text: toCurrencyString(tx['amount']),
+                                  style: TextStyle(
+                                    color: accent,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 13.5,
                                   ),
                                 ),
-                              ],
+                              ),
                             );
                           }),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                         ],
                       );
                     },
@@ -863,14 +883,18 @@ class _TransactionHistoryState extends State<TransactionHistory> {
             );
 
     return CustomScaffoldV2(
-      padding: EdgeInsets.fromLTRB(10, 8, 10, 19),
+      backgroundColor: cs.surface,
+      padding: EdgeInsets.zero,
       enableToolBar: true,
       appBarTitle: "Transaction History",
       scaffoldBody: PremiumLoaderOverlay(
         accentColor: AppColorV2.lpBlueBrand,
         glowColor: AppColorV2.lpTealBrand,
         loading: isLoadingPage || isDownloading,
-        child: body,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 10, 19),
+          child: body,
+        ),
       ),
     );
   }

@@ -55,7 +55,7 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   spacing(height: 30),
                   DefaultText(
                     text: "Bill Account Number",
-                    style: AppTextStyle.h3,
+                    style: AppTextStyle.h3(context),
                   ),
                   CustomTextField(
                     controller: controller.accNo,
@@ -78,7 +78,10 @@ class BillsPayment extends GetView<BillsPaymentController> {
 
                   SizedBox(height: 14),
 
-                  DefaultText(text: "Account Name", style: AppTextStyle.h3),
+                  DefaultText(
+                    text: "Account Name",
+                    style: AppTextStyle.h3(context),
+                  ),
                   CustomTextField(
                     controller: controller.accName,
                     hintText: "Enter account name",
@@ -112,7 +115,10 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   ),
 
                   SizedBox(height: 14),
-                  DefaultText(text: "Bill Number", style: AppTextStyle.h3),
+                  DefaultText(
+                    text: "Bill Number",
+                    style: AppTextStyle.h3(context),
+                  ),
                   CustomTextField(
                     controller: controller.billNo,
                     hintText: "Enter bill number",
@@ -139,7 +145,10 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      DefaultText(text: "Amount", style: AppTextStyle.h3),
+                      DefaultText(
+                        text: "Amount",
+                        style: AppTextStyle.h3(context),
+                      ),
                       Visibility(
                         visible:
                             controller.arguments["service_fee"].toString() !=
@@ -283,7 +292,10 @@ class BillsPayment extends GetView<BillsPaymentController> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DefaultText(text: "luvpay Balance", style: AppTextStyle.h3),
+            DefaultText(
+              text: "luvpay Balance",
+              style: AppTextStyle.h3(Get.context!),
+            ),
             spacing(height: 14),
             Container(
               height: 50,
@@ -304,7 +316,7 @@ class BillsPayment extends GetView<BillsPaymentController> {
                     child: DefaultText(
                       color: AppColorV2.background,
                       text: toCurrencyString(c.walletBalance.toString()),
-                      style: AppTextStyle.body1,
+                      style: AppTextStyle.body1(Get.context!),
                       maxLines: 1,
                     ),
                   ),
@@ -472,7 +484,7 @@ class DownloadTicket extends GetView<BillsPaymentController> {
                             DefaultText(
                               text: "Congrats",
                               fontSize: 20,
-                              style: AppTextStyle.h2,
+                              style: AppTextStyle.h2(context),
                               color: AppColorV2.lpBlueBrand,
                             ),
                             SizedBox(height: 5),
@@ -508,14 +520,14 @@ class DownloadTicket extends GetView<BillsPaymentController> {
                                   children: [
                                     DefaultText(
                                       text: "${e.key} :",
-                                      style: AppTextStyle.paragraph1,
+                                      style: AppTextStyle.paragraph1(context),
                                       maxLines: 1,
                                     ),
                                     DefaultText(
                                       minFontSize: 14,
                                       text: e.value.toString(),
                                       maxLines: 1,
-                                      style: AppTextStyle.h3,
+                                      style: AppTextStyle.h3(context),
                                       color: AppColorV2.bodyTextColor,
                                     ),
                                   ],
@@ -582,12 +594,12 @@ class DownloadTicket extends GetView<BillsPaymentController> {
     return Column(
       children: [
         DefaultText(
-          style: AppTextStyle.h3,
+          style: AppTextStyle.h3(Get.context!),
           text: refEntry.value,
           fontWeight: FontWeight.w700,
         ),
         DefaultText(
-          style: AppTextStyle.paragraph2,
+          style: AppTextStyle.paragraph2(Get.context!),
           text: refEntry.key.replaceAll('.', ''),
         ),
       ],

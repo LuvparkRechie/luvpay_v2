@@ -44,17 +44,23 @@ class _CustomConfirmPasswordState<T extends GetxController>
           SizedBox(height: 20),
           SvgPicture.asset("assets/images/dialog_success.svg"),
           SizedBox(height: 14),
-          DefaultText(text: "Password Required", style: AppTextStyle.h2),
+          DefaultText(
+            text: "Password Required",
+            style: AppTextStyle.h2(context),
+          ),
           SizedBox(height: 8),
           DefaultText(
             text: "Please enter password to continue",
-            style: AppTextStyle.paragraph2,
+            style: AppTextStyle.paragraph2(context),
             height: 20 / 16,
           ),
           SizedBox(height: 30),
           Align(
             alignment: Alignment.centerLeft,
-            child: DefaultText(text: "Password", style: AppTextStyle.h3),
+            child: DefaultText(
+              text: "Password",
+              style: AppTextStyle.h3(context),
+            ),
           ),
           CustomTextField(
             hintText: "Enter your password",

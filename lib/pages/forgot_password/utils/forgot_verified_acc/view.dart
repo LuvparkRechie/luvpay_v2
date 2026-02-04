@@ -67,7 +67,7 @@ class _ForgotVerifiedAcctState extends State<ForgotVerifiedAcct> {
                       spacing(height: 20),
                       DefaultText(
                         text: controller.questionData[0]["question"],
-                        style: AppTextStyle.h3,
+                        style: AppTextStyle.h3(context),
                       ),
                       CustomTextField(
                         title: "Answer",
@@ -82,7 +82,7 @@ class _ForgotVerifiedAcctState extends State<ForgotVerifiedAcct> {
                         children: [
                           DefaultText(
                             text: "New Password",
-                            style: AppTextStyle.h3,
+                            style: AppTextStyle.h3(context),
                           ),
                           CustomTextField(
                             title: "Password",
@@ -280,7 +280,7 @@ class _ForgotVerifiedAcctState extends State<ForgotVerifiedAcct> {
             DefaultText(
               height: 18 / 14,
               text: "Minimum of 8 characters",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),
@@ -298,7 +298,7 @@ class _ForgotVerifiedAcctState extends State<ForgotVerifiedAcct> {
             DefaultText(
               height: 18 / 14,
               text: "At least one uppercase letter",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),
@@ -316,7 +316,7 @@ class _ForgotVerifiedAcctState extends State<ForgotVerifiedAcct> {
             DefaultText(
               height: 18 / 14,
               text: "At least one number",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),

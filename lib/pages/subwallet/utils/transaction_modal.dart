@@ -12,9 +12,19 @@ class TransferDetailsModal extends StatelessWidget {
 
   const TransferDetailsModal({super.key, required this.data});
 
+  Color _border(ColorScheme cs, bool isDark, [double? o]) =>
+      cs.outlineVariant.withOpacity(o ?? (isDark ? 0.22 : 0.35));
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final refNo = (data["ref_no"] ?? "").toString().trim();
+
+    final bg = cs.surface;
+    final stroke = _border(cs, isDark);
 
     return SafeArea(
       top: false,
@@ -25,8 +35,8 @@ class TransferDetailsModal extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
           decoration: BoxDecoration(
-            color: AppColorV2.background,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            color: bg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -36,23 +46,23 @@ class TransferDetailsModal extends StatelessWidget {
                 height: 5,
                 margin: const EdgeInsets.only(bottom: 14),
                 decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(25),
+                  color: cs.onSurface.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
 
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: DefaultText(
                       text: "Transfer details",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
+                        color: cs.onSurface,
                       ),
                     ),
                   ),
-
                   LuvNeuIconButton(
                     icon: Icons.close_rounded,
                     onTap: () => Navigator.of(context).pop(),
@@ -112,7 +122,7 @@ class TransferDetailsModal extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           DefaultText(
-                            color: AppColorV2.lpBlueBrand,
+                            color: cs.primary,
                             text: refNo.isEmpty ? "—" : refNo,
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
@@ -121,7 +131,7 @@ class TransferDetailsModal extends StatelessWidget {
                             Icon(
                               Icons.copy_rounded,
                               size: 16,
-                              color: AppColorV2.lpBlueBrand.withAlpha(180),
+                              color: cs.primary.withOpacity(0.80),
                             ),
                           ],
                         ],
@@ -138,7 +148,7 @@ class TransferDetailsModal extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black.withAlpha(110),
+                          color: cs.onSurface.withOpacity(0.60),
                         ),
                       ),
                     ),
@@ -153,15 +163,20 @@ class TransferDetailsModal extends StatelessWidget {
   }
 
   Widget _summaryCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final desc = (data["transfer_desc"] ?? "Wallet Transfer").toString();
     final amountStr = _formatMoneySigned(data["amount"]);
     final isIn = _isIncome(data["amount"]);
     final isOut = _isExpense(data["amount"]);
 
-    final accent =
-        isIn ? Colors.green : (isOut ? Colors.red : AppColorV2.lpBlueBrand);
+    // Use themed colors; keep green/red for semantic but align opacity with theme.
+    final accent = isIn ? cs.tertiary : (isOut ? cs.error : cs.primary);
 
     final radius = BorderRadius.circular(20);
+    final stroke = _border(cs, isDark);
 
     return LuvNeuPress(
       radius: radius,
@@ -169,7 +184,8 @@ class TransferDetailsModal extends StatelessWidget {
       depth: 1.8,
       pressedDepth: -0.8,
       overlayOpacity: 0.02,
-      borderColor: Colors.black.withAlpha(14),
+      background: cs.surfaceContainerHighest,
+      borderColor: stroke,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -180,7 +196,8 @@ class TransferDetailsModal extends StatelessWidget {
               depth: 1.4,
               pressedDepth: -0.7,
               overlayOpacity: 0.015,
-              borderColor: Colors.black.withAlpha(12),
+              background: cs.surfaceContainerHigh,
+              borderColor: stroke.withOpacity(0.90),
               child: SizedBox(
                 width: 46,
                 height: 46,
@@ -196,7 +213,6 @@ class TransferDetailsModal extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(width: 12),
 
             Expanded(
@@ -205,15 +221,18 @@ class TransferDetailsModal extends StatelessWidget {
                 children: [
                   DefaultText(
                     text: desc,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: cs.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   DefaultText(
                     text: _formatDateTime(data["transfer_date"]),
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black.withAlpha(120),
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurface.withOpacity(0.65),
                     ),
                   ),
                 ],
@@ -225,7 +244,7 @@ class TransferDetailsModal extends StatelessWidget {
             DefaultText(
               text: amountStr,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
-              color: isIn ? Colors.green : (isOut ? Colors.red : null),
+              color: isIn ? cs.tertiary : (isOut ? cs.error : cs.onSurface),
             ),
           ],
         ),
@@ -240,7 +259,12 @@ class TransferDetailsModal extends StatelessWidget {
     Widget? valueWidget,
     Color? valueColor,
   }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final radius = BorderRadius.circular(18);
+    final stroke = _border(cs, isDark);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -250,7 +274,8 @@ class TransferDetailsModal extends StatelessWidget {
         depth: 1.4,
         pressedDepth: -0.7,
         overlayOpacity: 0.02,
-        borderColor: Colors.black.withAlpha(12),
+        background: cs.surfaceContainerHighest,
+        borderColor: stroke,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           child: Row(
@@ -261,8 +286,8 @@ class TransferDetailsModal extends StatelessWidget {
                   text: title,
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black.withAlpha(130),
+                    fontWeight: FontWeight.w800,
+                    color: cs.onSurface.withOpacity(0.70),
                   ),
                 ),
               ),
@@ -273,8 +298,10 @@ class TransferDetailsModal extends StatelessWidget {
                     valueWidget ??
                     DefaultText(
                       text: value ?? "—",
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                      color: valueColor,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: valueColor ?? cs.onSurface,
+                      ),
                       textAlign: TextAlign.right,
                     ),
               ),

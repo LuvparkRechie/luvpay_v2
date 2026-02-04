@@ -1,8 +1,9 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, unreachable_switch_default
 
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -20,6 +21,7 @@ import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/loading.dart';
 import '../../custom_widgets/luvpay/neumorphism.dart';
 import '../../custom_widgets/luvpay/statusbar_manager.dart';
+import '../../custom_widgets/luvpay/theme_mode_controller.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
 import '../../web_view/webview.dart';
@@ -40,7 +42,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Map<String, dynamic> userData = {};
   bool isLoading = true;
-  bool isLoadingExec = false;
+
   List provinceData = [];
   String myprofile = "";
   List cityData = [];
@@ -66,6 +68,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final profilepic = await Authentication().getUserProfilePic();
     myprofile = profilepic;
     userData = objData;
+
     if (objData["created_on"] != null) {
       try {
         if (objData["created_on"] is String) {
@@ -76,7 +79,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           );
         }
       } catch (e) {
-        print("Invalid date format for created_on: $e");
+        debugPrint("Invalid date format for created_on: $e");
       }
     }
 
@@ -85,9 +88,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ? "No address"
             : "Province of ${objData["province_name"]} brgy ${objData["brgy_name"]}, ${objData["city_name"]} ";
 
-    setState(() {
-      isLoading = false;
-    });
+    if (!mounted) return;
+    setState(() => isLoading = false);
   }
 
   Future<void> executeAddressFlow() async {
@@ -98,25 +100,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         regionId: userData['region_id'].toString(),
         provinceId: userData['province_id'].toString(),
         cityId: userData['city_id'].toString(),
-        onProgress: (progress) {
-          if (mounted) {
-            _updateLoadingMessage(progress);
-          }
-        },
+        onProgress: (_) {},
         onSuccess: (provinceData, cityData, brgyData) {
-          if (mounted) {
-            setState(() {
-              provinceData = provinceData;
-              cityData = cityData;
-              brgyData = brgyData;
-            });
-            _showMinimalSuccess(context, "Address data loaded!");
-          }
+          if (!mounted) return;
+          setState(() {
+            this.provinceData = provinceData;
+            this.cityData = cityData;
+            this.brgyData = brgyData;
+          });
+          _showMinimalSuccess(context, "Address data loaded!");
         },
         onError: (error) {
-          if (mounted) {
-            _handleAddressError(error);
-          }
+          if (mounted) _handleAddressError(error);
         },
       );
 
@@ -127,42 +122,32 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     getRegions();
   }
 
-  void _updateLoadingMessage(String progress) {}
-
   void _handleAddressError(String error) {
     Navigator.of(context, rootNavigator: true).pop();
 
     if (error.contains("Internet")) {
-      CustomDialogStack.showConnectionLost(Get.context!, () {
-        Get.back();
-      });
+      CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
     } else {
-      CustomDialogStack.showServerError(Get.context!, () {
-        Get.back();
-      });
+      CustomDialogStack.showServerError(Get.context!, () => Get.back());
     }
   }
 
   void getRegions() async {
     CustomDialogStack.showLoading(Get.context!);
-    var returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
+    final returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
     Get.back();
 
     if (returnData == "No Internet") {
-      CustomDialogStack.showConnectionLost(Get.context!, () {
-        Get.back();
-      });
+      CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
       return;
     }
     if (returnData == null) {
-      CustomDialogStack.showServerError(Get.context!, () {
-        Get.back();
-      });
+      CustomDialogStack.showServerError(Get.context!, () => Get.back());
       return;
     }
+
     if (returnData["items"].isNotEmpty) {
       SmoothRoute(
-        // ignore: use_build_context_synchronously
         context: context,
         child: ProfileUpdateScreen(
           userData: userData,
@@ -173,11 +158,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ),
       ).route();
       return;
-    } else {
-      CustomDialogStack.showServerError(Get.context!, () {
-        Get.back();
-      });
     }
+
+    CustomDialogStack.showServerError(Get.context!, () => Get.back());
   }
 
   void _showMinimalLoading(BuildContext context, String message) {
@@ -205,48 +188,52 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryBlue = const Color(0xFF2196F3);
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     final bool isVerified = userData["is_verified"] == "N";
-    final Color secondaryTeal = const Color(0xFF009688);
+    final themeCtrl = Get.find<ThemeModeController>();
+
     return ConsistentStatusBarWrapper(
       child: CustomScaffoldV2(
-        leading: SizedBox.shrink(),
+        leading: const SizedBox.shrink(),
         canPop: false,
         showAppBar: false,
         padding: EdgeInsets.zero,
+        backgroundColor: cs.surface,
         scaffoldBody:
             isLoading
-                ? LoadingCard()
+                ? const LoadingCard()
                 : CustomGradientBackground(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(10, 19, 10, 0),
+                    padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
                     child: CustomScrollView(
                       physics: const BouncingScrollPhysics(),
                       slivers: [
-                        headerProfile(primaryBlue, secondaryTeal, isVerified),
-                        SliverToBoxAdapter(child: SizedBox(height: 20)),
+                        headerProfile(isVerified),
+                        const SliverToBoxAdapter(child: SizedBox(height: 20)),
                         !isVerified
-                            ? SliverToBoxAdapter(child: SizedBox.shrink())
+                            ? const SliverToBoxAdapter(child: SizedBox.shrink())
                             : VerifiedWidget(isVerified: isVerified),
                         SliverToBoxAdapter(
                           child: Column(
                             spacing: 14,
                             children: [
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               Container(
-                                margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                child: _profile(),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                child: _profile(themeCtrl),
                               ),
                               Container(
-                                margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
                                 child: _helpAndSupport(),
                               ),
                               Container(
-                                margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
                                 child: _legal(),
                               ),
                               Container(
-                                margin: EdgeInsets.fromLTRB(19, 0, 19, 0),
+                                margin: const EdgeInsets.fromLTRB(19, 0, 19, 0),
                                 width: double.infinity,
                                 child: CustomButtons.no(
                                   text: "Logout",
@@ -258,9 +245,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                       "Are you sure you want to logout?",
                                       leftText: "No",
                                       rightText: "Yes",
-                                      () {
-                                        Get.back();
-                                      },
+                                      () => Get.back(),
                                       () async {
                                         Get.back();
                                         final uData =
@@ -295,11 +280,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     );
   }
 
-  SliverAppBar headerProfile(
-    Color primaryBlue,
-    Color secondaryTeal,
-    isVerified,
-  ) {
+  SliverAppBar headerProfile(bool isVerified) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return SliverAppBar(
       pinned: true,
       floating: true,
@@ -309,7 +294,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       expandedHeight: 80,
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
-          final double maxHeight = 100;
+          const double maxHeight = 100;
           final double minHeight = kToolbarHeight;
           final double currentHeight = constraints.biggest.height;
 
@@ -326,27 +311,39 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             background: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: AppColorV2.background,
+                color: cs.surface,
+                border: Border.all(
+                  color: cs.outlineVariant.withOpacity(isDark ? 0.05 : 0.01),
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.25 : 0.07),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
               padding: EdgeInsets.all(horizontalPadding),
               child: Row(
                 children: [
                   AnimatedContainer(
-                    duration: Duration(milliseconds: 120),
+                    duration: const Duration(milliseconds: 120),
                     width: avatarSize,
                     height: avatarSize,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
                         width: 3,
-                        color: AppColorV2.lpBlueBrand.withAlpha(50),
+                        color: AppColorV2.lpBlueBrand.withOpacity(
+                          isDark ? 0.22 : 0.16,
+                        ),
                       ),
                     ),
                     child: ClipOval(
-                      child: Container(
+                      child: SizedBox(
                         height: 130,
                         width: 130,
-                        decoration: const BoxDecoration(shape: BoxShape.circle),
                         child:
                             myprofile.isEmpty
                                 ? Image.asset(
@@ -360,9 +357,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                     ),
                   ),
-
                   SizedBox(width: 10 * t + 4 * (1 - t)),
-
                   Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -371,25 +366,25 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         DefaultText(
                           text: Functions().getDisplayName(userData),
                           maxLines: 1,
-                          style: AppTextStyle.h3_semibold.copyWith(
-                            fontSize: nameFont,
-                          ),
+                          style: AppTextStyle.h3(
+                            context,
+                          ).copyWith(fontSize: nameFont, color: cs.onSurface),
                         ),
                         DefaultText(
                           text: userData["email"] ?? "No email",
-                          style: AppTextStyle.textbox.copyWith(
+                          style: AppTextStyle.textbox(context).copyWith(
                             fontSize: emailFont,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   Transform.scale(
                     scale: 0.8 + (0.2 * t),
                     child: CustomButtons.nextCircle(
                       onPressed: () {
-                        Get.to(() => MyProfile())!.then((value) {
+                        Get.to(() => const MyProfile())?.then((value) {
                           if (value == "refresh") initialize();
                         });
                       },
@@ -407,7 +402,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     );
   }
 
-  Widget _profile() {
+  Widget _profile(ThemeModeController themeCtrl) {
     return DefaultContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,55 +413,280 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             onTap: () {
               showDialog(
                 context: context,
-                builder: (context) {
-                  return QR(qrCode: userData["mobile_no"]);
-                },
+                builder: (context) => QR(qrCode: userData["mobile_no"]),
               );
             },
           ),
           InfoRowTile(
             icon: LucideIcons.ticket,
             title: 'Vouchers',
-            onTap: () {
-              // CustomDialogStack.showUnderDevelopment(context, () {
-              //   Get.back();
-              // });
-              Get.toNamed(Routes.vouchers);
-            },
+            onTap: () => Get.toNamed(Routes.vouchers),
           ),
           InfoRowTile(
             icon: LucideIcons.bell,
             title: 'Notifications',
-            onTap: () {
-              Get.to(WalletNotifications(fromTab: false));
-            },
+            onTap: () => Get.to(WalletNotifications(fromTab: false)),
           ),
           InfoRowTile(
             icon: LucideIcons.history,
             title: 'Transaction History',
-            onTap: () {
-              Get.to(TransactionHistory());
-            },
+            onTap: () => Get.to(const TransactionHistory()),
           ),
+
           InfoRowTile(
             icon: LucideIcons.lock,
             title: 'App Security',
-            onTap: () {
-              Get.toNamed(Routes.securitySettings);
-            },
+            onTap: () => Get.toNamed(Routes.securitySettings),
+          ),
+          const SizedBox(height: 10),
+
+          Obx(
+            () => InfoRowTile(
+              icon: themeCtrl.iconOf(themeCtrl.mode.value),
+              title: "Theme",
+              subtitle:
+                  "Choose light, dark, or system (${themeCtrl.labelOf(themeCtrl.mode.value)}).",
+              subtitleMaxlines: 2,
+              onTap: () => _showThemePopup(context),
+            ),
           ),
         ],
       ),
     );
   }
 
+  void _showThemePopup(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final themeCtrl = Get.find<ThemeModeController>();
+
+    // Theme-aware base colors
+    final cardColor = cs.surface;
+    final subtleBorder = cs.outlineVariant.withOpacity(
+      isDark ? 0.35 : 0.55,
+    ); // soft outline
+    final closeColor = cs.onSurfaceVariant.withOpacity(0.75);
+    final titleColor = cs.onSurface;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(isDark ? 0.55 : 0.35),
+      builder: (_) {
+        final radius = BorderRadius.circular(18);
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Neumorphic(
+            style: LuvNeu.card(
+              radius: radius,
+              depth: isDark ? 1.2 : 2.0,
+              pressedDepth: -1.0,
+              color: cardColor,
+              borderColor: subtleBorder,
+              borderWidth: 0.8,
+            ),
+            child: ClipRRect(
+              borderRadius: radius,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                child: Obx(
+                  () => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            LucideIcons.palette,
+                            size: 18,
+                            color: AppColorV2.lpBlueBrand,
+                          ),
+                          const SizedBox(width: 10),
+                          DefaultText(
+                            text: "Choose Theme",
+                            style: AppTextStyle.h3(context).copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: titleColor,
+                            ),
+                          ),
+                          const Spacer(),
+                          InkWell(
+                            onTap: () => Navigator.pop(context),
+                            child: Icon(
+                              LucideIcons.x,
+                              size: 18,
+                              color: closeColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      _themeRadioTile(
+                        context: context,
+                        cs: cs,
+                        isDark: isDark,
+                        title: "System",
+                        subtitle: "Follow device settings",
+                        icon: LucideIcons.monitor,
+                        value: ThemeMode.system,
+                        groupValue: themeCtrl.mode.value,
+                        onChanged: (v) {
+                          themeCtrl.setMode(v);
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _themeRadioTile(
+                        context: context,
+                        cs: cs,
+                        isDark: isDark,
+                        title: "Light",
+                        subtitle: "Always light mode",
+                        icon: LucideIcons.sun,
+                        value: ThemeMode.light,
+                        groupValue: themeCtrl.mode.value,
+                        onChanged: (v) {
+                          themeCtrl.setMode(v);
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _themeRadioTile(
+                        context: context,
+                        cs: cs,
+                        isDark: isDark,
+                        title: "Dark",
+                        subtitle: "Always dark mode",
+                        icon: LucideIcons.moon,
+                        value: ThemeMode.dark,
+                        groupValue: themeCtrl.mode.value,
+                        onChanged: (v) {
+                          themeCtrl.setMode(v);
+                          Navigator.pop(context);
+                        },
+                      ),
+
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _themeRadioTile({
+    required BuildContext context,
+    required ColorScheme cs,
+    required bool isDark,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required ThemeMode value,
+    required ThemeMode groupValue,
+    required ValueChanged<ThemeMode> onChanged,
+  }) {
+    final selected = value == groupValue;
+    final r = BorderRadius.circular(14);
+
+    final base = cs.surface;
+    final onBase = cs.onSurface;
+    final sub = cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80);
+
+    final selectedBg = AppColorV2.lpBlueBrand.withOpacity(isDark ? 0.18 : 0.10);
+
+    final tileBg = selected ? selectedBg : base;
+    final tileBorder = cs.outlineVariant.withOpacity(isDark ? 0.30 : 0.45);
+
+    return LuvNeuPress(
+      onTap: () => onChanged(value),
+      radius: r,
+      depth: isDark ? 0.9 : 1.2,
+      pressedDepth: -0.6,
+      background: tileBg,
+      overlayOpacity: isDark ? 0.03 : 0.02,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(
+          children: [
+            Neumorphic(
+              style: LuvNeu.icon(
+                radius: BorderRadius.circular(12),
+                color: base,
+                borderColor: tileBorder,
+                borderWidth: 0.8,
+              ),
+              child: SizedBox(
+                width: 44,
+                height: 44,
+                child: Center(
+                  child: Icon(
+                    icon,
+                    size: 18,
+                    color:
+                        selected
+                            ? AppColorV2.lpBlueBrand
+                            : sub.withOpacity(.95),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DefaultText(
+                    text: title,
+                    style: AppTextStyle.body1(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.w900, color: onBase),
+                  ),
+                  const SizedBox(height: 2),
+                  DefaultText(
+                    text: subtitle,
+                    style: AppTextStyle.paragraph2(
+                      context,
+                    ).copyWith(color: sub),
+                    maxLines: 1,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Icon(
+              selected ? LucideIcons.checkCircle2 : LucideIcons.circle,
+              size: 18,
+              color:
+                  selected
+                      ? AppColorV2.lpBlueBrand
+                      : cs.onSurfaceVariant.withOpacity(isDark ? 0.40 : 0.35),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _helpAndSupport() {
+    final cs = Theme.of(context).colorScheme;
+
     return DefaultContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DefaultText(text: 'Help & Support', style: AppTextStyle.h3),
-          SizedBox(height: 8),
+          DefaultText(
+            text: 'Help & Support',
+            style: AppTextStyle.h3(context).copyWith(color: cs.onSurface),
+          ),
+          const SizedBox(height: 10),
           InfoRowTile(
             icon: Icons.info_outline,
             title: 'About Us',
@@ -474,6 +694,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               CustomDialogStack.showLoading(context);
               final response = await HttpRequestApi(api: "").linkToPage();
               Get.back();
+
               if (response == "Success") {
                 Get.to(
                   const WebviewPage(
@@ -487,18 +708,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   ),
                 );
               } else {
-                CustomDialogStack.showConnectionLost(context, () {
-                  Get.back();
-                });
+                CustomDialogStack.showConnectionLost(context, () => Get.back());
               }
             },
           ),
           InfoRowTile(
             icon: LucideIcons.messageCircle,
             title: 'FAQs',
-            onTap: () {
-              Get.toNamed(Routes.faqpage);
-            },
+            onTap: () => Get.toNamed(Routes.faqpage),
           ),
         ],
       ),
@@ -506,13 +723,17 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   Widget _legal() {
+    final cs = Theme.of(context).colorScheme;
+
     return DefaultContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DefaultText(text: 'Legal', style: AppTextStyle.h3),
-          SizedBox(height: 8),
-
+          DefaultText(
+            text: 'Legal',
+            style: AppTextStyle.h3(context).copyWith(color: cs.onSurface),
+          ),
+          const SizedBox(height: 10),
           InfoRowTile(
             icon: LucideIcons.bookmark,
             title: 'Terms of Use',
@@ -520,6 +741,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               CustomDialogStack.showLoading(context);
               final response = await HttpRequestApi(api: "").linkToPage();
               Get.back();
+
               if (response == "Success") {
                 Get.to(
                   const WebviewPage(
@@ -533,13 +755,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   ),
                 );
               } else {
-                CustomDialogStack.showConnectionLost(context, () {
-                  Get.back();
-                });
+                CustomDialogStack.showConnectionLost(context, () => Get.back());
               }
-              // CustomDialogStack.showUnderDevelopment(context, () {
-              //   Get.back();
-              // });
             },
           ),
           InfoRowTile(
@@ -549,6 +766,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               CustomDialogStack.showLoading(context);
               final response = await HttpRequestApi(api: "").linkToPage();
               Get.back();
+
               if (response == "Success") {
                 Get.to(
                   const WebviewPage(
@@ -562,9 +780,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   ),
                 );
               } else {
-                CustomDialogStack.showConnectionLost(context, () {
-                  Get.back();
-                });
+                CustomDialogStack.showConnectionLost(context, () => Get.back());
               }
             },
           ),
@@ -580,35 +796,47 @@ class VerifiedWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bg = AppColorV2.lpBlueBrand.withOpacity(isDark ? 0.85 : 0.92);
+
     return SliverToBoxAdapter(
       child: Container(
         height: 80,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: AppColorV2.lpBlueBrand.withAlpha(200),
+          color: bg,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.25 : 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        padding: EdgeInsets.all(19),
+        padding: const EdgeInsets.all(19),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
-              padding: EdgeInsets.all(6),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppColorV2.background.withAlpha(50),
+                color: cs.onPrimary.withOpacity(isDark ? 0.10 : 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(LucideIcons.crown, color: AppColorV2.lpBlueBrand),
+              child: Icon(LucideIcons.crown, color: cs.onPrimary),
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: DefaultText(
                 text:
                     !isVerified
                         ? "Verified Account\nEnjoy all features available!"
                         : "Verify your account\nto unlock more features!",
-
-                style: AppTextStyle.body1,
-                color: AppColorV2.background,
+                style: AppTextStyle.body1(context),
+                color: cs.onPrimary,
               ),
             ),
           ],
@@ -744,18 +972,25 @@ class _ModernMinimalLoadingState extends State<ModernMinimalLoading>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
-
       child: Container(
         padding: const EdgeInsets.all(25),
         decoration: BoxDecoration(
-          color: AppColorV2.background,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: cs.outlineVariant.withOpacity(isDark ? 0.45 : 0.70),
+            width: 0.8,
+          ),
           boxShadow: [
             BoxShadow(
-              color: AppColorV2.primaryTextColor.withOpacity(0.1),
+              color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -773,9 +1008,9 @@ class _ModernMinimalLoadingState extends State<ModernMinimalLoading>
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(
-                        0xFF0078FF,
-                      ).withOpacity(0.6 + _animation.value * 0.4),
+                      AppColorV2.lpBlueBrand.withOpacity(
+                        0.55 + _animation.value * 0.45,
+                      ),
                     ),
                   ),
                 );
@@ -787,7 +1022,7 @@ class _ModernMinimalLoadingState extends State<ModernMinimalLoading>
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppColorV2.primaryTextColor,
+                color: cs.onSurface,
               ),
             ),
           ],
@@ -804,17 +1039,25 @@ class ModernMinimalSuccess extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
       child: Container(
         padding: const EdgeInsets.all(25),
         decoration: BoxDecoration(
-          color: AppColorV2.background,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: cs.outlineVariant.withOpacity(isDark ? 0.45 : 0.70),
+            width: 0.8,
+          ),
           boxShadow: [
             BoxShadow(
-              color: AppColorV2.primaryTextColor.withOpacity(0.1),
+              color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -823,14 +1066,14 @@ class ModernMinimalSuccess extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle, color: AppColorV2.bodyTextColor, size: 24),
+            Icon(Icons.check_circle, color: AppColorV2.success, size: 24),
             const SizedBox(width: 15),
             DefaultText(
               text: message,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppColorV2.primaryTextColor,
+                color: cs.onSurface,
               ),
             ),
           ],

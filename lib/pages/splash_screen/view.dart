@@ -1,7 +1,8 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:luvpay/custom_widgets/app_color_v2.dart';
 
 import 'index.dart';
 
@@ -10,7 +11,11 @@ class SplashScreen extends GetView<SplashController> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: ScaleTransition(
         scale: controller.animation,
         child: Center(
@@ -24,7 +29,7 @@ class SplashScreen extends GetView<SplashController> {
                 style: GoogleFonts.inter(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
-                  color: AppColorV2.primaryTextColor,
+                  color: cs.onBackground,
                 ),
               ),
               const SizedBox(height: 4),
@@ -32,7 +37,7 @@ class SplashScreen extends GetView<SplashController> {
                 "Your digital wallet is ready to use",
                 style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: AppColorV2.bodyTextColor,
+                  color: cs.onBackground.withOpacity(0.75),
                 ),
               ),
             ],

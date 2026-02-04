@@ -8,7 +8,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 import '../../../custom_widgets/alert_dialog.dart';
-import '../../../custom_widgets/app_color_v2.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/custom_textfield.dart';
 import '../../../custom_widgets/loading.dart';
@@ -26,7 +25,19 @@ class Allbillers extends GetView<BillersController> {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController searchController = TextEditingController();
+    final searchController = TextEditingController();
+
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final base = cs.surface;
+    final surface2 = cs.surfaceContainerHighest;
+    final brand = cs.primary;
+    final onBase = cs.onSurface;
+    final muted = cs.onSurface.withOpacity(0.70);
+    final outline = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+
+    Color line([double o = 0.10]) => brand.withOpacity(o);
 
     return CustomScaffoldV2(
       onPressedLeading: () {
@@ -54,115 +65,122 @@ class Allbillers extends GetView<BillersController> {
                 child:
                     controller.filteredBillers.isEmpty
                         ? NoDataFound()
-                        : ListView.builder(
+                        : ListView.separated(
                           physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(10, 12, 10, 18),
                           itemCount: controller.filteredBillers.length,
+                          separatorBuilder:
+                              (_, __) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final biller = controller.filteredBillers[index];
 
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: Container(
-                                margin: EdgeInsets.only(left: 10, right: 10),
-                                child: LuvNeuPress.rectangle(
-                                  radius: BorderRadius.circular(16),
-                                  borderColor: AppColorV2.lpBlueBrand
-                                      .withOpacity(0.06),
-                                  onTap: () async {
-                                    Map<String, dynamic> billerData = {
-                                      'biller_name':
-                                          biller["biller_name"] ?? "",
-                                      'biller_id': biller["biller_id"] ?? "",
-                                      'biller_code':
-                                          biller["bi)ller_code"] ?? "",
-                                      'biller_address':
-                                          biller["biller_address"] ?? "",
-                                      'service_fee':
-                                          biller["service_fee"] ?? "",
-                                      'posting_period_desc':
-                                          biller["posting_period_desc"] ?? "",
-                                      'source': Get.arguments["source"] ?? "",
-                                      'full_url': biller["full_url"] ?? "",
-                                      "account_name": "",
-                                      'accountno': "",
-                                    };
+                            return LuvNeuPress.rectangle(
+                              radius: BorderRadius.circular(16),
+                              background: base,
+                              borderColor: line(0.10),
+                              onTap: () async {
+                                final billerData = <String, dynamic>{
+                                  'biller_name': biller["biller_name"] ?? "",
+                                  'biller_id': biller["biller_id"] ?? "",
+                                  'biller_code': biller["biller_code"] ?? "",
+                                  'biller_address':
+                                      biller["biller_address"] ?? "",
+                                  'service_fee': biller["service_fee"] ?? "",
+                                  'posting_period_desc':
+                                      biller["posting_period_desc"] ?? "",
+                                  'source': Get.arguments["source"] ?? "",
+                                  'full_url': biller["full_url"] ?? "",
+                                  "account_name": "",
+                                  'accountno': "",
+                                };
 
-                                    final res = await Get.toNamed(
-                                      Routes.billsPayment,
-                                      arguments: billerData,
-                                    );
+                                final res = await Get.toNamed(
+                                  Routes.billsPayment,
+                                  arguments: billerData,
+                                );
 
-                                    if (res != null) {
-                                      Get.back(result: true);
-                                    }
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 12,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        // Neumorphic(
-                                        //   style: NeumorphicStyle(
-                                        //     color: AppColorV2.background,
-                                        //     depth: -1.2,
-                                        //     intensity: LuvNeu.intensity,
-                                        //     surfaceIntensity:
-                                        //         LuvNeu.surfaceIntensity,
-                                        //     boxShape:
-                                        //         NeumorphicBoxShape.roundRect(
-                                        //           BorderRadius.circular(12),
-                                        //         ),
-                                        //     border: NeumorphicBorder(
-                                        //       color: AppColorV2.lpBlueBrand
-                                        //           .withOpacity(0.06),
-                                        //       width: 0.7,
-                                        //     ),
-                                        //   ),
-                                        //   child: SizedBox(
-                                        //     width: 44,
-                                        //     height: 44,
-                                        //     child: Icon(
-                                        //       LucideIcons.receipt,
-                                        //       size: 20,
-                                        //       color: AppColorV2.lpBlueBrand,
-                                        //     ),
-                                        //   ),
-                                        // ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              DefaultText(
-                                                style: AppTextStyle.h3,
-                                                text:
-                                                    biller['biller_name'] ??
-                                                    'Unknown',
-                                                maxLines: 1,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              DefaultText(
-                                                maxLines: 1,
-                                                text:
-                                                    biller["biller_address"] ??
-                                                    'Address not specified',
-                                              ),
-                                            ],
+                                if (res != null) Get.back(result: true);
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Neumorphic(
+                                      style: LuvNeu.card(
+                                        radius: BorderRadius.circular(14),
+                                        color: surface2,
+                                        borderColor: outline,
+                                        borderWidth: 0.8,
+                                      ),
+                                      child: SizedBox(
+                                        width: 44,
+                                        height: 44,
+                                        child: Center(
+                                          child: Icon(
+                                            LucideIcons.receipt,
+                                            size: 20,
+                                            color: brand,
                                           ),
                                         ),
-                                        const SizedBox(width: 10),
-                                        Icon(
-                                          LucideIcons.chevronRight,
-                                          size: 18,
-                                          color: AppColorV2.bodyTextColor
-                                              .withOpacity(0.7),
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
+
+                                    const SizedBox(width: 12),
+
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          DefaultText(
+                                            style: AppTextStyle.h3(context),
+                                            text:
+                                                biller['biller_name'] ??
+                                                'Unknown',
+                                            maxLines: 1,
+                                            color: onBase,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          DefaultText(
+                                            style: AppTextStyle.paragraph2(
+                                              context,
+                                            ).copyWith(color: muted),
+                                            maxLines: 1,
+                                            text:
+                                                biller["biller_address"] ??
+                                                'Address not specified',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 10),
+
+                                    Neumorphic(
+                                      style: LuvNeu.card(
+                                        radius: BorderRadius.circular(12),
+                                        color: base,
+                                        borderColor: line(0.08),
+                                        borderWidth: 0.8,
+                                      ),
+                                      child: SizedBox(
+                                        width: 34,
+                                        height: 34,
+                                        child: Center(
+                                          child: Icon(
+                                            LucideIcons.chevronRight,
+                                            size: 18,
+                                            color: cs.onSurface.withOpacity(
+                                              0.80,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
@@ -190,93 +208,105 @@ class _NeumorphicSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final base = cs.surface;
+    final outline = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+    final icon = cs.onSurface.withOpacity(0.75);
+    final hint = cs.onSurface.withOpacity(0.55);
+
     return Padding(
-      padding: const EdgeInsets.only(left: 8.0, right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: SizedBox(
         height: 54,
         child: Neumorphic(
-          style: NeumorphicStyle(
-            color: AppColorV2.background,
-            depth: -2.0,
-            intensity: LuvNeu.intensity,
-            surfaceIntensity: LuvNeu.surfaceIntensity,
-            boxShape: NeumorphicBoxShape.stadium(),
-            border: NeumorphicBorder(
-              color: AppColorV2.lpBlueBrand.withOpacity(0.07),
-              width: 0.8,
-            ),
+          style: LuvNeu.card(
+            radius: const BorderRadius.all(Radius.circular(999)),
+            color: base,
+            borderColor: outline,
+            borderWidth: 0.8,
           ),
           child: StatefulBuilder(
             builder: (context, setLocal) {
-              return Center(
-                child: TextField(
-                  controller: controller,
-                  autofocus: false,
-                  style: AppTextStyle.paragraph2,
-                  maxLines: 1,
-                  textAlignVertical: TextAlignVertical.center,
-                  decoration: InputDecoration(
-                    isCollapsed: true,
-                    hintText: "Search billers",
-                    filled: true,
-                    fillColor: Colors.transparent,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 16,
-                    ),
+              final hasText = controller.text.trim().isNotEmpty;
 
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.only(left: 14, right: 10),
-                      child: Icon(
-                        LucideIcons.search,
-                        size: 20,
-                        color: AppColorV2.bodyTextColor.withOpacity(0.8),
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 40,
+                      child: Center(
+                        child: Icon(LucideIcons.search, size: 20, color: icon),
                       ),
                     ),
-                    prefixIconConstraints: const BoxConstraints(
-                      minWidth: 0,
-                      minHeight: 0,
-                    ),
 
-                    suffixIcon: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 150),
-                      child:
-                          controller.text.isNotEmpty
-                              ? Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: LuvNeuPress.circle(
-                                  key: const ValueKey('clear'),
-                                  onTap: () {
-                                    onClear();
-                                    setLocal(() {});
-                                  },
-                                  borderColor: AppColorV2.lpBlueBrand
-                                      .withOpacity(0.06),
-                                  child: const SizedBox(
-                                    width: 34,
-                                    height: 34,
-                                    child: Icon(LucideIcons.x, size: 18),
+                    Expanded(
+                      child: TextField(
+                        controller: controller,
+                        autofocus: false,
+                        maxLines: 1,
+                        cursorColor: cs.primary,
+                        style: AppTextStyle.paragraph2(
+                          context,
+                        ).copyWith(color: cs.onSurface),
+                        decoration: InputDecoration(
+                          hintText: "Search billers",
+                          hintStyle: AppTextStyle.paragraph2(
+                            context,
+                          ).copyWith(color: hint),
+                          border: InputBorder.none,
+                          isCollapsed: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                        ),
+                        onChanged: (v) {
+                          onChanged(v);
+                          setLocal(() {});
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      width: 44,
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 150),
+                        switchInCurve: Curves.easeOut,
+                        switchOutCurve: Curves.easeIn,
+                        child:
+                            hasText
+                                ? Align(
+                                  key: const ValueKey('x'),
+                                  alignment: Alignment.centerRight,
+                                  child: LuvNeuPress.circle(
+                                    onTap: () {
+                                      onClear();
+                                      setLocal(() {});
+                                    },
+                                    background: base,
+                                    borderColor: cs.primary.withOpacity(0.10),
+                                    child: SizedBox(
+                                      width: 34,
+                                      height: 34,
+                                      child: Center(
+                                        child: Icon(
+                                          LucideIcons.x,
+                                          size: 18,
+                                          color: cs.onSurface.withOpacity(0.90),
+                                        ),
+                                      ),
+                                    ),
                                   ),
+                                )
+                                : const SizedBox(
+                                  key: ValueKey('empty'),
+                                  width: 34,
+                                  height: 34,
                                 ),
-                              )
-                              : const SizedBox(width: 12),
+                      ),
                     ),
-                    suffixIconConstraints: const BoxConstraints(
-                      minWidth: 0,
-                      minHeight: 0,
-                    ),
-
-                    hintStyle: AppTextStyle.paragraph2.copyWith(
-                      color: AppColorV2.bodyTextColor.withOpacity(0.7),
-                    ),
-                  ),
-                  onChanged: (value) {
-                    onChanged(value);
-                    setLocal(() {});
-                  },
+                  ],
                 ),
               );
             },
@@ -329,10 +359,7 @@ class _ValidateAccountState extends State<ValidateAccount> {
     List fieldData = widget.billerData["field"];
     setState(() {
       controllers2.clear();
-      tempData =
-          fieldData
-              .where((element) => element["is_validation"] == "Y")
-              .toList();
+      tempData = fieldData.where((e) => e["is_validation"] == "Y").toList();
     });
 
     for (var field in tempData) {
@@ -356,15 +383,11 @@ class _ValidateAccountState extends State<ValidateAccount> {
       Map<String, dynamic> validateParam = {};
       for (var field in tempData) {
         String key = field["key"];
-        if (formData.containsKey(key)) {
-          field["value"] = formData[key];
-        }
+        if (formData.containsKey(key)) field["value"] = formData[key];
       }
 
       for (var field in tempData) {
-        String key = field["key"];
-        String value = field["value"];
-        validateParam[key] = value;
+        validateParam[field["key"]] = field["value"];
       }
 
       Uri fullUri = Uri.parse(paramUrl).replace(queryParameters: validateParam);
@@ -401,11 +424,19 @@ class _ValidateAccountState extends State<ValidateAccount> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final base = cs.surface;
+    final surface2 = cs.surfaceContainerHighest;
+    final brand = cs.primary;
+    final outline = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+
     return Neumorphic(
       style: LuvNeu.card(
         radius: const BorderRadius.vertical(top: Radius.circular(20)),
-        color: AppColorV2.background,
-        borderColor: AppColorV2.lpBlueBrand.withOpacity(0.08),
+        color: base,
+        borderColor: outline,
         borderWidth: 0.9,
       ),
       child: SafeArea(
@@ -421,10 +452,11 @@ class _ValidateAccountState extends State<ValidateAccount> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         spacing(height: 14),
+
                         Center(
                           child: Neumorphic(
                             style: NeumorphicStyle(
-                              color: AppColorV2.background,
+                              color: base,
                               depth: -1.0,
                               intensity: LuvNeu.intensity,
                               surfaceIntensity: LuvNeu.surfaceIntensity,
@@ -432,31 +464,36 @@ class _ValidateAccountState extends State<ValidateAccount> {
                                 BorderRadius.circular(56),
                               ),
                               border: NeumorphicBorder(
-                                color: AppColorV2.lpBlueBrand.withOpacity(0.06),
+                                color: brand.withOpacity(0.10),
                                 width: 0.8,
                               ),
                             ),
                             child: const SizedBox(width: 71, height: 6),
                           ),
                         ),
+
                         spacing(height: 16),
+
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               DefaultText(
                                 text: "Account Verification",
                                 fontSize: 20,
+                                color: cs.onSurface,
                               ),
-                              SizedBox(height: 5),
+                              const SizedBox(height: 5),
                               DefaultText(
                                 text:
                                     "Ensure your account information is accurate.",
+                                color: cs.onSurface.withOpacity(0.80),
                               ),
                             ],
                           ),
                         ),
+
                         Expanded(
                           child: ListView.builder(
                             padding: const EdgeInsets.fromLTRB(15, 22, 15, 10),
@@ -467,7 +504,7 @@ class _ValidateAccountState extends State<ValidateAccount> {
                               List<TextInputFormatter> inputFormatters = [];
                               if (field['input_formatter'] != null &&
                                   field['input_formatter'].isNotEmpty) {
-                                String mask = field['input_formatter'];
+                                final mask = field['input_formatter'];
                                 inputFormatters = [
                                   MaskTextInputFormatter(
                                     mask: mask,
@@ -542,8 +579,8 @@ class _ValidateAccountState extends State<ValidateAccount> {
                                 child: Neumorphic(
                                   style: LuvNeu.card(
                                     radius: BorderRadius.circular(16),
-                                    borderColor: AppColorV2.lpBlueBrand
-                                        .withOpacity(0.06),
+                                    color: surface2,
+                                    borderColor: outline,
                                     borderWidth: 0.8,
                                   ),
                                   child: Padding(
@@ -555,6 +592,7 @@ class _ValidateAccountState extends State<ValidateAccount> {
                             },
                           ),
                         ),
+
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15),
                           child: Visibility(
@@ -562,10 +600,8 @@ class _ValidateAccountState extends State<ValidateAccount> {
                                 MediaQuery.of(context).viewInsets.bottom == 0,
                             child: LuvNeuPress.rectangle(
                               radius: BorderRadius.circular(16),
-                              background: AppColorV2.lpBlueBrand,
-                              borderColor: AppColorV2.lpBlueBrand.withOpacity(
-                                0.12,
-                              ),
+                              background: brand,
+                              borderColor: brand.withOpacity(0.12),
                               onTap: () {
                                 if (_formKey.currentState!.validate()) {
                                   _verifyAccount();
@@ -576,14 +612,15 @@ class _ValidateAccountState extends State<ValidateAccount> {
                                 child: Center(
                                   child: DefaultText(
                                     text: "Proceed",
-                                    color: Colors.white,
-                                    style: AppTextStyle.h3_semibold,
+                                    color: cs.onPrimary,
+                                    style: AppTextStyle.h3_semibold(context),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
+
                         spacing(height: 20),
                       ],
                     ),
@@ -602,14 +639,12 @@ class _FieldBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DefaultText(
-          fontSize: 14,
-          text: label,
-          color: AppColorV2.primaryTextColor,
-        ),
+        DefaultText(fontSize: 14, text: label, color: cs.onSurface),
         const SizedBox(height: 8),
         child,
       ],

@@ -151,7 +151,7 @@ class _CustomButtonState extends State<CustomButton> {
                                 textAlign: TextAlign.center,
                                 color: fg,
                                 fontSize: widget.fontSize,
-                                style: AppTextStyle.textButton,
+                                style: AppTextStyle.textButton(context),
                                 fontWeight:
                                     widget.fontWeight ?? FontWeight.w700,
                                 height: 20 / 16,

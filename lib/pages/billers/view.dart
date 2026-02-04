@@ -39,7 +39,10 @@ class Billers extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      DefaultText(style: AppTextStyle.h3, text: "Pay Bills"),
+                      DefaultText(
+                        style: AppTextStyle.h3(context),
+                        text: "Pay Bills",
+                      ),
                       SizedBox(height: 14),
                       InkWell(
                         onTap: () {
@@ -93,7 +96,7 @@ class Billers extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           DefaultText(
-                            style: AppTextStyle.h3,
+                            style: AppTextStyle.h3(context),
                             text: "Favorites",
                           ),
                           controller.favBillers.isEmpty

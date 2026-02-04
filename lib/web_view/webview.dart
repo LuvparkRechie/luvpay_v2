@@ -125,12 +125,12 @@ class _WebviewPageState extends State<WebviewPage> {
                   children: [
                     DefaultText(
                       text: "Transfer fees may apply",
-                      style: AppTextStyle.body1,
+                      style: AppTextStyle.body1(context),
                     ),
                     SizedBox(height: 15),
                     DefaultText(
                       text: "${widget.userData?["name"] ?? ""}",
-                      style: AppTextStyle.h2,
+                      style: AppTextStyle.h2(context),
                       color: AppColorV2.lpBlueBrand,
                     ),
                     Row(
@@ -150,7 +150,7 @@ class _WebviewPageState extends State<WebviewPage> {
                                       "••••",
                                     );
                               })(),
-                          style: AppTextStyle.body1,
+                          style: AppTextStyle.body1(context),
                         ),
                       ],
                     ),
@@ -169,14 +169,14 @@ class _WebviewPageState extends State<WebviewPage> {
                                     ? "•" * n.length
                                     : n.replaceRange(0, 10, "•" * 10);
                               })(),
-                          style: AppTextStyle.body1,
+                          style: AppTextStyle.body1(context),
                         ),
                       ],
                     ),
                     SizedBox(height: 15),
                     DefaultText(
                       text: "${widget.lbReturn?["amount"] ?? ""}",
-                      style: AppTextStyle.h2,
+                      style: AppTextStyle.h2(context),
                     ),
                     if (widget.lbReturn?["service_fee"] != null &&
                         widget.lbReturn!["service_fee"] != "0")
@@ -186,7 +186,7 @@ class _WebviewPageState extends State<WebviewPage> {
                           DefaultText(text: "Service Fee: "),
                           DefaultText(
                             text: "${widget.lbReturn?["service_fee"]}",
-                            style: AppTextStyle.body1,
+                            style: AppTextStyle.body1(context),
                           ),
                         ],
                       ),

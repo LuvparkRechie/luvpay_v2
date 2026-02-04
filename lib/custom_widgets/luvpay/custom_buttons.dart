@@ -7,12 +7,21 @@ import 'neumorphism.dart';
 class CustomButtons extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
+
   final Color textColor;
   final Color backgroundColor;
+
+  final Color? darkTextColor;
+  final Color? darkBackgroundColor;
+
   final double borderRadius;
   final EdgeInsetsGeometry padding;
   final bool isActive;
   final IconData? icon;
+  final double iconSize;
+  final double gap;
+
+  final bool adaptive;
 
   const CustomButtons({
     super.key,
@@ -20,10 +29,15 @@ class CustomButtons extends StatelessWidget {
     required this.onPressed,
     this.textColor = Colors.blue,
     this.backgroundColor = Colors.transparent,
+    this.darkTextColor,
+    this.darkBackgroundColor,
     this.borderRadius = 12.0,
     this.padding = const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
     this.isActive = true,
     this.icon,
+    this.iconSize = 18,
+    this.gap = 10,
+    this.adaptive = true,
   });
 
   factory CustomButtons.yes({
@@ -38,6 +52,9 @@ class CustomButtons extends StatelessWidget {
       backgroundColor: Colors.green,
       borderRadius: 14.0,
       isActive: isActive,
+      adaptive: true,
+      darkTextColor: Colors.white,
+      darkBackgroundColor: Colors.green,
     );
   }
 
@@ -53,6 +70,9 @@ class CustomButtons extends StatelessWidget {
       backgroundColor: AppColorV2.background,
       borderRadius: 14.0,
       isActive: isActive,
+      adaptive: true,
+      darkTextColor: AppColorV2.incorrectState,
+      darkBackgroundColor: AppColorV2.background,
     );
   }
 
@@ -68,6 +88,10 @@ class CustomButtons extends StatelessWidget {
       backgroundColor: isActive ? AppColorV2.lpBlueBrand : Colors.grey.shade300,
       borderRadius: 14.0,
       isActive: isActive,
+      adaptive: true,
+      darkTextColor: Colors.white,
+      darkBackgroundColor:
+          isActive ? AppColorV2.lpBlueBrand : Colors.grey.shade600,
     );
   }
 
@@ -84,6 +108,10 @@ class CustomButtons extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
       isActive: isActive,
       icon: Icons.arrow_forward_ios_rounded,
+      adaptive: true,
+      darkTextColor: Colors.white,
+      darkBackgroundColor:
+          isActive ? AppColorV2.lpBlueBrand : Colors.grey.shade600,
     );
   }
 
@@ -105,6 +133,10 @@ class CustomButtons extends StatelessWidget {
       padding: EdgeInsets.zero,
       isActive: isActive,
       icon: Icons.arrow_forward_ios_rounded,
+      adaptive: true,
+      darkTextColor: isActive ? activeIconColor : inactiveIconColor,
+      darkBackgroundColor:
+          isActive ? activeColor : inactiveColor.withOpacity(0.35),
     );
   }
 
@@ -126,17 +158,61 @@ class CustomButtons extends StatelessWidget {
       padding: EdgeInsets.zero,
       isActive: isActive,
       icon: Icons.arrow_back_ios_new_rounded,
+      adaptive: true,
+      darkTextColor: isActive ? activeIconColor : inactiveIconColor,
+      darkBackgroundColor:
+          isActive ? activeColor : inactiveColor.withOpacity(0.25),
+    );
+  }
+  factory CustomButtons.cta({
+    required String text,
+    required IconData icon,
+    required VoidCallback onPressed,
+
+    required Color lightBg,
+    required Color lightFg,
+
+    required Color darkBg,
+    required Color darkFg,
+
+    bool isActive = true,
+    double borderRadius = 30,
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      horizontal: 18,
+      vertical: 14,
+    ),
+    double iconSize = 20,
+    double gap = 10,
+  }) {
+    return CustomButtons(
+      text: text,
+      icon: icon,
+      onPressed: isActive ? onPressed : null,
+      isActive: isActive,
+      backgroundColor: lightBg,
+      textColor: lightFg,
+      darkBackgroundColor: darkBg,
+      darkTextColor: darkFg,
+      borderRadius: borderRadius,
+      padding: padding,
+      iconSize: iconSize,
+      gap: gap,
+      adaptive: true,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final enabled = isActive && onPressed != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final Color effectiveTextColor = enabled ? textColor : Colors.grey.shade400;
+    Color bg = enabled ? backgroundColor : Colors.grey.shade200;
+    Color fg = enabled ? textColor : Colors.grey.shade400;
 
-    final Color effectiveBgColor =
-        enabled ? backgroundColor : Colors.grey.shade200;
+    if (adaptive && isDark) {
+      if (darkBackgroundColor != null) bg = enabled ? darkBackgroundColor! : bg;
+      if (darkTextColor != null) fg = enabled ? darkTextColor! : fg;
+    }
 
     final r = BorderRadius.circular(borderRadius);
 
@@ -145,24 +221,29 @@ class CustomButtons extends StatelessWidget {
 
     final childWidget =
         text.isEmpty
-            ? Icon(icon ?? Icons.circle, size: 20, color: effectiveTextColor)
-            : Text(
-              text,
-              style: TextStyle(
-                color: effectiveTextColor,
-                fontWeight: FontWeight.w800,
-              ),
+            ? Icon(icon ?? Icons.circle, size: iconSize, color: fg)
+            : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: iconSize, color: fg),
+                  SizedBox(width: gap),
+                ],
+                Text(
+                  text,
+                  style: TextStyle(color: fg, fontWeight: FontWeight.w800),
+                ),
+              ],
             );
 
     return isCircle
         ? LuvNeuPress.circle(
           onTap: enabled ? onPressed : null,
-          background: effectiveBgColor,
+          background: bg,
           borderColor:
               (textColor == AppColorV2.incorrectState)
                   ? AppColorV2.incorrectState.withOpacity(0.18)
                   : null,
-
           child: SizedBox(
             width: borderRadius * 2,
             height: borderRadius * 2,
@@ -172,7 +253,7 @@ class CustomButtons extends StatelessWidget {
         : LuvNeuPress.rectangle(
           radius: r,
           onTap: enabled ? onPressed : null,
-          background: effectiveBgColor,
+          background: bg,
           borderColor:
               (textColor == AppColorV2.incorrectState)
                   ? AppColorV2.incorrectState.withOpacity(0.18)

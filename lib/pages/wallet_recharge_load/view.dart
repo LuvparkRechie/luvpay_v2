@@ -133,7 +133,7 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
               Obx(() => topupAccount()),
 
               SizedBox(height: 14),
-              DefaultText(text: "Amount", style: AppTextStyle.h3),
+              DefaultText(text: "Amount", style: AppTextStyle.h3(context)),
               CustomTextField(
                 controller: controller.amountController,
                 inputFormatters: [
@@ -216,7 +216,10 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DefaultText(text: "Top up tokens for", style: AppTextStyle.h3),
+        DefaultText(
+          text: "Top up tokens for",
+          style: AppTextStyle.h3(Get.context!),
+        ),
         SizedBox(height: 10),
         Container(
           padding: EdgeInsets.all(12),
@@ -255,7 +258,7 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                         DefaultText(
                           maxLines: 1,
                           text: controller.rname.text,
-                          style: AppTextStyle.h3_f22,
+                          style: AppTextStyle.h3_f22(Get.context!),
                         ),
                         DefaultText(
                           maxLines: 1,
@@ -566,7 +569,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                 children: [
                   DefaultText(
                     text: "Top up tokens for",
-                    style: AppTextStyle.body1,
+                    style: AppTextStyle.body1(context),
                     color: AppColorV2.background,
                   ),
                   InkWell(
@@ -605,7 +608,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                     children: [
                       DefaultText(
                         text: "Recipient Number",
-                        style: AppTextStyle.h3,
+                        style: AppTextStyle.h3(context),
                       ),
                       CustomMobileNumber(
                         hintText: "Enter mobile number",
@@ -633,7 +636,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                       spacing(height: 20),
                       DefaultText(
                         text: "Choose other method",
-                        style: AppTextStyle.h3,
+                        style: AppTextStyle.h3(context),
                       ),
                       spacing(height: 8),
                       SingleChildScrollView(
@@ -663,7 +666,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                                     SizedBox(width: 5),
                                     DefaultText(
                                       text: "Scan QR Code",
-                                      style: AppTextStyle.body1,
+                                      style: AppTextStyle.body1(context),
                                     ),
                                   ],
                                 ),
@@ -690,7 +693,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                                     SizedBox(width: 5),
                                     DefaultText(
                                       text: "From Contacts",
-                                      style: AppTextStyle.body1,
+                                      style: AppTextStyle.body1(context),
                                     ),
                                   ],
                                 ),

@@ -207,15 +207,26 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.white,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-      ),
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
+    final brand = AppColorV2.lpBlueBrand;
+    final surface = cs.surface;
+    final onSurface = cs.onSurface;
+    final onSurfaceVar = cs.onSurfaceVariant;
+    final outline = cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75);
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+          .copyWith(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: surface,
+            systemNavigationBarIconBrightness:
+                isDark ? Brightness.light : Brightness.dark,
+          ),
       child: Scaffold(
-        backgroundColor: AppColorV2.background,
+        backgroundColor: surface,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
@@ -237,7 +248,8 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                             maxLines: 1,
                             text: "New sign-in detected",
                             textAlign: TextAlign.center,
-                            style: AppTextStyle.h1,
+                            style: AppTextStyle.h1(context),
+                            color: onSurface,
                           ),
                           const SizedBox(height: 8),
 
@@ -246,9 +258,9 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                             text:
                                 "Register this device to keep your account secure.\nYou can always do this later.",
                             textAlign: TextAlign.center,
-                            style: AppTextStyle.paragraph2.copyWith(
+                            style: AppTextStyle.paragraph2(context).copyWith(
                               height: 1.35,
-                              color: AppColorV2.bodyTextColor.withOpacity(.75),
+                              color: onSurfaceVar.withOpacity(0.85),
                             ),
                           ),
 
@@ -258,11 +270,11 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: Colors.black.withAlpha(6),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.black.withAlpha(12),
+                              color: cs.surfaceContainerHighest.withOpacity(
+                                isDark ? 0.35 : 0.55,
                               ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: outline),
                             ),
                             child: Row(
                               children: [
@@ -270,12 +282,14 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                                   width: 42,
                                   height: 42,
                                   decoration: BoxDecoration(
-                                    color: AppColorV2.lpBlueBrand.withAlpha(14),
+                                    color: brand.withOpacity(
+                                      isDark ? 0.18 : 0.12,
+                                    ),
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   child: Icon(
                                     Icons.phone_iphone_rounded,
-                                    color: AppColorV2.lpBlueBrand,
+                                    color: brand,
                                     size: 20,
                                   ),
                                 ),
@@ -290,15 +304,16 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                                         style: TextStyle(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,
-                                          color: Colors.black.withAlpha(130),
+                                          color: onSurfaceVar,
                                         ),
                                       ),
                                       const SizedBox(height: 3),
                                       Text(
                                         widget.mobileNo,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w900,
+                                          color: onSurface,
                                         ),
                                       ),
                                     ],
@@ -313,9 +328,7 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: CustomButton(
-                              bordercolor: AppColorV2.bodyTextColor.withAlpha(
-                                40,
-                              ),
+                              bordercolor: outline,
                               text: "Register this device",
                               onPressed:
                                   isVerifiedOtp
@@ -329,10 +342,10 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: CustomButton(
-                              bordercolor: Colors.black.withAlpha(18),
+                              bordercolor: outline,
                               btnColor: Colors.transparent,
                               text: "Later",
-                              textColor: Colors.black.withAlpha(180),
+                              textColor: onSurface.withOpacity(0.85),
                               onPressed: () => Get.back(),
                             ),
                           ),
@@ -350,7 +363,7 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black.withAlpha(110),
+                      color: onSurfaceVar.withOpacity(0.9),
                     ),
                   ),
                 ),

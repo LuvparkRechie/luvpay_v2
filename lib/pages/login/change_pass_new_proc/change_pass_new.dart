@@ -25,6 +25,7 @@ import '../../routes/routes.dart';
 class ChangePassNewProtocol extends StatefulWidget {
   final String mobileNo;
   final String userId;
+
   const ChangePassNewProtocol({
     super.key,
     required this.mobileNo,
@@ -37,18 +38,16 @@ class ChangePassNewProtocol extends StatefulWidget {
 
 class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
   final GlobalKey<FormState> formKeyChangePass = GlobalKey<FormState>();
-  TextEditingController oldPassword = TextEditingController();
-  TextEditingController newPassword = TextEditingController();
-  TextEditingController newConfirmPassword = TextEditingController();
-  RxBool isShowOldPass = false.obs;
-  RxBool isShowNewPass = false.obs;
-  RxBool isShowNewPassConfirm = false.obs;
-  RxInt passStrength = 0.obs;
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  final TextEditingController oldPassword = TextEditingController();
+  final TextEditingController newPassword = TextEditingController();
+  final TextEditingController newConfirmPassword = TextEditingController();
+
+  final RxBool isShowOldPass = false.obs;
+  final RxBool isShowNewPass = false.obs;
+  final RxBool isShowNewPassConfirm = false.obs;
+
+  final RxInt passStrength = 0.obs;
 
   void onToggleOldPass(bool isShow) {
     isShowOldPass.value = isShow;
@@ -71,7 +70,6 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
   }
 
   void onPasswordConfirmChanged(String value) {
-    // passStrength.value = Variables.getPasswordStrength(value);
     setState(() {});
   }
 
@@ -79,15 +77,13 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
     CustomDialogStack.showLoading(context);
     DateTime timeNow = await Functions.getTimeNow();
     Get.back();
-    // Close any open keyboards
-    FocusManager.instance.primaryFocus!.unfocus();
 
-    // Validate the form first
+    FocusManager.instance.primaryFocus?.unfocus();
+
     if (!formKeyChangePass.currentState!.validate()) {
-      return; // Stop submission if the form is not valid
+      return;
     }
 
-    // Proceed with password change logic if validation passes
     if (newPassword.text != newConfirmPassword.text) {
       CustomDialogStack.showError(
         Get.context!,
@@ -118,7 +114,6 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
         timeExp.millisecond,
       );
 
-      // Calculate difference
       Duration difference = otpExpiry.difference(timeNow);
 
       if (obj["success"] == "Y" || obj["status"] == "PENDING") {
@@ -127,6 +122,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
           "otp": obj["otp"].toString(),
           "req_type": "SR",
         };
+
         Object args = {
           "time_duration": difference,
           "mobile_no": widget.mobileNo,
@@ -148,6 +144,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                 parameters: postParam,
               ).putBody().then((retvalue) async {
                 Get.back();
+
                 if (retvalue == "No Internet") {
                   CustomDialogStack.showError(
                     Get.context!,
@@ -159,6 +156,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                   );
                   return;
                 }
+
                 if (retvalue == null) {
                   CustomDialogStack.showError(
                     Get.context!,
@@ -168,55 +166,57 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                       Get.back();
                     },
                   );
-                } else {
-                  if (retvalue["success"] == "Y") {
-                    Get.back();
-                    CustomDialogStack.showSuccess(
-                      Get.context!,
-                      "Success",
-                      retvalue["msg"],
-                      leftText: "Okay",
-                      () async {
-                        Get.back();
-                        CustomDialogStack.showLoading(Get.context!);
-                        await Future.delayed(const Duration(seconds: 1));
-                        final userLogin = await Authentication().getUserLogin();
-                        if (userLogin == null) {
-                          Get.back();
-                          Get.offAllNamed(Routes.login);
-                          return;
-                        }
+                  return;
+                }
 
-                        List userData = [userLogin];
-                        userData =
-                            userData.map((e) {
-                              e["is_login"] = "N";
-                              return e;
-                            }).toList();
+                if (retvalue["success"] == "Y") {
+                  Get.back();
+                  CustomDialogStack.showSuccess(
+                    Get.context!,
+                    "Success",
+                    retvalue["msg"],
+                    leftText: "Okay",
+                    () async {
+                      Get.back();
+                      CustomDialogStack.showLoading(Get.context!);
+                      await Future.delayed(const Duration(seconds: 1));
 
-                        await Authentication().setLogin(
-                          jsonEncode(userData[0]),
-                        );
-                        await Authentication().setBiometricStatus(false);
+                      final userLogin = await Authentication().getUserLogin();
+                      if (userLogin == null) {
                         Get.back();
                         Get.offAllNamed(Routes.login);
-                      },
-                    );
-                  } else {
-                    CustomDialogStack.showError(
-                      Get.context!,
-                      "Error",
-                      retvalue["msg"],
-                      () {
-                        Get.back();
-                      },
-                    );
-                  }
+                        return;
+                      }
+
+                      List userData = [userLogin];
+                      userData =
+                          userData.map((e) {
+                            e["is_login"] = "N";
+                            return e;
+                          }).toList();
+
+                      await Authentication().setLogin(jsonEncode(userData[0]));
+                      await Authentication().setBiometricStatus(false);
+
+                      Get.back();
+                      Get.offAllNamed(Routes.login);
+                    },
+                  );
+                } else {
+                  CustomDialogStack.showError(
+                    Get.context!,
+                    "Error",
+                    retvalue["msg"],
+                    () {
+                      Get.back();
+                    },
+                  );
                 }
               });
             }
           },
         };
+
         Get.to(
           OtpFieldScreen(arguments: args),
           transition: Transition.rightToLeftWithFade,
@@ -228,6 +228,9 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         elevation: 1,
@@ -240,9 +243,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
         title: Text("Reset password"),
         centerTitle: true,
         leading: IconButton(
-          onPressed: () {
-            Get.back();
-          },
+          onPressed: () => Get.back(),
           icon: Icon(Iconsax.arrow_left, color: Colors.white),
         ),
       ),
@@ -267,7 +268,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                     text: "New Password",
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black,
+                    color: cs.onSurface,
                   ),
                   CustomTextField(
                     title: "New Password",
@@ -278,12 +279,8 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                         !isShowNewPass.value
                             ? Icons.visibility_off
                             : Icons.visibility,
-                    onChange: (value) {
-                      onPasswordChanged(value);
-                    },
-                    onIconTap: () {
-                      onToggleNewPass(!isShowNewPass.value);
-                    },
+                    onChange: (value) => onPasswordChanged(value),
+                    onIconTap: () => onToggleNewPass(!isShowNewPass.value),
                     inputFormatters: [
                       FilteringTextInputFormatter.deny(RegExp(r'\s')),
                     ],
@@ -298,16 +295,9 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                           txtValue.trim().length > 32) {
                         return "Password must be between 8 and 32 characters";
                       }
-                      if (passStrength.value == 1) {
-                        return "Very Weak Password";
-                      }
-                      if (passStrength.value == 2) {
-                        return "Weak Password";
-                      }
-                      if (passStrength.value == 3) {
-                        return "Medium Password";
-                      }
-
+                      if (passStrength.value == 1) return "Very Weak Password";
+                      if (passStrength.value == 2) return "Weak Password";
+                      if (passStrength.value == 3) return "Medium Password";
                       return null;
                     },
                   ),
@@ -315,7 +305,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                     text: "Confirm Password",
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black,
+                    color: cs.onSurface,
                   ),
                   CustomTextField(
                     title: "Confirm Password",
@@ -326,12 +316,10 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                         !isShowNewPassConfirm.value
                             ? Icons.visibility_off
                             : Icons.visibility,
-                    onChange: (value) {
-                      onPasswordConfirmChanged(value);
-                    },
-                    onIconTap: () {
-                      onToggleConfirmNewPass(!isShowNewPassConfirm.value);
-                    },
+                    onChange: (value) => onPasswordConfirmChanged(value),
+                    onIconTap:
+                        () =>
+                            onToggleConfirmNewPass(!isShowNewPassConfirm.value),
                     inputFormatters: [
                       FilteringTextInputFormatter.deny(RegExp(r'\s')),
                     ],
@@ -346,7 +334,6 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                       if (txtValue != newPassword.text) {
                         return "New passwords do not match";
                       }
-
                       return null;
                     },
                   ),
@@ -356,9 +343,8 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                       shape: RoundedRectangleBorder(
                         side: BorderSide(
                           width: 1,
-                          color: Colors.black.withValues(
-                            alpha: 0.05999999865889549,
-                          ),
+                          color: (isDark ? Colors.white : Colors.black)
+                              .withOpacity(0.06),
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -368,12 +354,13 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const DefaultText(
+                          DefaultText(
                             text: "Password Strength",
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             letterSpacing: -.1,
                             wordSpacing: 2,
+                            color: cs.onSurface,
                           ),
                           spacing(height: 15),
                           Row(
@@ -412,7 +399,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                                   ),
                                   size: 18,
                                 ),
-                                Container(width: 6),
+                                SizedBox(width: 6),
                                 DefaultText(
                                   text: Variables.getPasswordStrengthText(
                                     passStrength.value,
@@ -424,15 +411,16 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                               ],
                             ),
                           spacing(height: 10),
-                          const DefaultText(
+                          DefaultText(
                             text:
                                 "The password should have a minimum of 8 characters, including at least one uppercase letter and a number.",
+                            color: cs.onSurfaceVariant,
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const VerticalHeight(height: 30),
+                  VerticalHeight(height: 30),
                   if (MediaQuery.of(context).viewInsets.bottom == 0)
                     CustomButton(text: "Submit", onPressed: onSubmit),
                 ],

@@ -194,7 +194,10 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
                   "Complete verification by providing security details and setting your password.",
             ),
             spacing(height: 20),
-            DefaultText(text: secData["question"], style: AppTextStyle.h3),
+            DefaultText(
+              text: secData["question"],
+              style: AppTextStyle.h3(context),
+            ),
             CustomTextField(
               controller: secAns,
               hintText: "Enter your answer",
@@ -208,7 +211,7 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
               },
             ),
             spacing(height: 14),
-            DefaultText(text: "Old password", style: AppTextStyle.h3),
+            DefaultText(text: "Old password", style: AppTextStyle.h3(context)),
             CustomTextField(
               hintText: "Enter your old password",
               controller: oldPass,
@@ -221,7 +224,7 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
               },
             ),
             spacing(height: 14),
-            DefaultText(text: "New password", style: AppTextStyle.h3),
+            DefaultText(text: "New password", style: AppTextStyle.h3(context)),
             CustomTextField(
               hintText: "Enter your new password",
               controller: newPass,
@@ -364,7 +367,7 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
             DefaultText(
               height: 18 / 14,
               text: "Minimum of 8 characters",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),
@@ -382,7 +385,7 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
             DefaultText(
               height: 18 / 14,
               text: "At least one uppercase letter",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),
@@ -400,7 +403,7 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
             DefaultText(
               height: 18 / 14,
               text: "At least one number",
-              style: AppTextStyle.paragraph2,
+              style: AppTextStyle.paragraph2(context),
             ),
           ],
         ),

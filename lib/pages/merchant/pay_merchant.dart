@@ -174,7 +174,10 @@ class _PayMerchantState extends State<PayMerchant> {
 
                           buildWalletBalance(),
                           spacing(height: 20),
-                          DefaultText(text: "Amount", style: AppTextStyle.h3),
+                          DefaultText(
+                            text: "Amount",
+                            style: AppTextStyle.h3(context),
+                          ),
                           CustomTextField(
                             hintText: "Enter payment amount",
                             keyboardType: TextInputType.numberWithOptions(
@@ -187,7 +190,7 @@ class _PayMerchantState extends State<PayMerchant> {
                           spacing(height: 14),
                           DefaultText(
                             text: "Order Number (Optional)",
-                            style: AppTextStyle.h3,
+                            style: AppTextStyle.h3(context),
                           ),
                           CustomTextField(
                             hintText: "Enter order number",
@@ -301,7 +304,7 @@ class _PayMerchantState extends State<PayMerchant> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DefaultText(text: "luvpay Balance", style: AppTextStyle.h3),
+        DefaultText(text: "luvpay Balance", style: AppTextStyle.h3(context)),
         spacing(height: 14),
         Container(
           height: 50,
@@ -324,7 +327,7 @@ class _PayMerchantState extends State<PayMerchant> {
                   color: AppColorV2.background,
                   text:
                       "${toCurrencyString(userData[0]["amount_bal"].toString())}",
-                  style: AppTextStyle.body1,
+                  style: AppTextStyle.body1(context),
                   maxLines: 1,
                 ),
               ),
@@ -344,7 +347,7 @@ class _PayMerchantState extends State<PayMerchant> {
           child: DefaultText(
             color: AppColorV2.lpBlueBrand,
             text: _capitalize(widget.data[0]["data"]["merchant_name"]),
-            style: AppTextStyle.h4,
+            style: AppTextStyle.h4(context),
           ),
         ),
       ],

@@ -13,10 +13,8 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/bg_process/bg_process.dart';
-import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/variables.dart';
 import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/pages/routes/pages.dart';
@@ -28,6 +26,8 @@ import 'package:permission_handler/permission_handler.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
+import 'custom_widgets/luvpay/luvpay_theme.dart';
+import 'custom_widgets/luvpay/theme_mode_controller.dart';
 import 'notification_controller.dart';
 import 'security/app_security.dart';
 
@@ -35,7 +35,6 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Timer? _sessionTimer;
 Timer? _tamperTimer;
 
-// ===== Shared Tamper Flag =====
 Future<bool> isTamperDialogActive() async {
   final prefs = await SharedPreferences.getInstance();
 
@@ -57,7 +56,6 @@ Future<void> backgroundFunc(int id, Map<String, dynamic> params) async {
   bool isAppSecured = appSecurity[0]["is_secured"];
 
   if (isAppSecured) {
-    // Background should still respect tamper check
     tz.initializeTimeZones();
     await checkTamper();
     await getMessNotif();
@@ -188,11 +186,16 @@ void _exitApp() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init();
+
+  await GetStorage.init(); // ✅ MUST be first before ThemeModeController reads
   await dotenv.load();
+
+  Get.put(ThemeModeController(), permanent: true);
+
   DartPingIOS.register();
   await setTamperDialogActive(false);
   tz.initializeTimeZones();
+
   final packageInfo = await PackageInfo.fromPlatform();
   Variables.version = packageInfo.version;
 
@@ -201,13 +204,14 @@ void main() async {
     await Permission.notification.request();
   }
 
-  bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+  final isAllowed = await AwesomeNotifications().isNotificationAllowed();
   if (!isAllowed) {
     AwesomeNotifications().requestPermissionToSendNotifications();
   }
 
   NotificationController.initializeLocalNotifications();
   NotificationController.initializeIsolateReceivePort();
+
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((
     _,
   ) {
@@ -223,6 +227,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final ThemeController themeController = Get.put(ThemeController());
+
   @override
   void initState() {
     super.initState();
@@ -273,80 +279,25 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final themeCtrl = Get.find<ThemeModeController>();
+
     return Listener(
       onPointerDown: (_) => _onUserActivity(),
-      child: GetMaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: !ApiKeys.isProduction,
-        title: 'MyApp',
-        theme: ThemeData(
-          scaffoldBackgroundColor: AppColorV2.background,
-          colorScheme: ColorScheme(
-            primary: AppColorV2.lpBlueBrand,
-            onPrimaryFixedVariant: AppColorV2.lpBlueBrand,
-            secondary: AppColorV2.lpTealBrand,
-            onSecondaryFixedVariant: AppColorV2.lpTealBrand,
-            surface: Colors.white,
-            error: AppColorV2.incorrectState,
-            onPrimary: Colors.white,
-            onSecondary: Colors.white,
-            onSurface: AppColorV2.primaryTextColor,
-            onError: Colors.white,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: false,
-          appBarTheme: AppBarTheme(
-            titleTextStyle: GoogleFonts.manrope(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              height: 28 / 18,
-              color: AppColorV2.background,
-              fontStyle: FontStyle.normal,
-            ),
-            backgroundColor: AppColorV2.lpBlueBrand,
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: AppColorV2.lpBlueBrand,
-              statusBarIconBrightness: Brightness.light,
-              statusBarBrightness: Brightness.dark,
-            ),
-          ),
-          dividerTheme: DividerThemeData(
-            color: Colors.grey.shade300,
-            thickness: 0.5,
-            space: 15,
-            indent: 5,
-          ),
-        ),
-        navigatorObservers: [GetObserver()],
-        initialRoute: Routes.splash,
-        getPages: AppPages.pages,
-      ),
+      child: Obx(() {
+        return GetMaterialApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: ApiKeys.isProduction,
+          title: 'MyApp',
+
+          theme: AppThemeV2.light(),
+          darkTheme: AppThemeV2.dark(),
+          themeMode: themeCtrl.mode.value,
+
+          navigatorObservers: [GetObserver()],
+          initialRoute: Routes.splash,
+          getPages: AppPages.pages,
+        );
+      }),
     );
   }
 }
-
-// import 'package:flutter/material.dart';
-// import 'package:camera/camera.dart';
-// import 'verification/verify_identity_screen.dart';
-
-// late List<CameraDescription> cameras; // Global variable
-
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-
-//   // Initialize cameras
-//   final camerasList = await availableCameras();
-
-//   runApp(MyApp(cameras: camerasList));
-// }
-
-// class MyApp extends StatelessWidget {
-//   final List<CameraDescription> cameras;
-
-//   const MyApp({super.key, required this.cameras});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(home: VerifyIdentityScreen(cameras: cameras));
-//   }
-// }
