@@ -11,7 +11,7 @@ import 'package:luvpay/http/http_request.dart';
 import '../../custom_widgets/custom_button.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/loading.dart';
+import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/no_internet.dart';
 import '../../custom_widgets/spacing.dart';
 import '../../custom_widgets/vertical_height.dart';

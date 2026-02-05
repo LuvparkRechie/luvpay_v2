@@ -3,14 +3,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+
 import '../../custom_widgets/alert_dialog.dart';
-import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/brightness_setter.dart';
 import '../../custom_widgets/custom_button.dart';
-import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/loading.dart';
+import '../../custom_widgets/luvpay/custom_scaffold.dart';
+import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import 'controller.dart';
 
 class QR extends StatefulWidget {
@@ -36,14 +37,23 @@ class _QRState extends State<QR> {
     super.dispose();
   }
 
+  Color _stroke(ColorScheme cs, bool isDark) =>
+      cs.onSurface.withOpacity(isDark ? 0.05 : 0.01);
+
   @override
   Widget build(BuildContext context) {
     final bool myQR = widget.qrCode != null;
 
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final stroke = _stroke(cs, isDark);
+
     return CustomScaffoldV2(
       centerTitle: true,
-      appBarTitle: myQR ? "My QR" : "Scan to Pay",
-
+      appBarTitle: "My QR",
+      padding: EdgeInsets.zero,
       scaffoldBody: Obx(
         () => CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -51,15 +61,14 @@ class _QRState extends State<QR> {
             SliverAppBar(
               expandedHeight: 120,
               pinned: true,
-              backgroundColor: Colors.transparent,
               elevation: 0,
               automaticallyImplyLeading: false,
               flexibleSpace: FlexibleSpaceBar(
                 background:
                     myQR
-                        ? SizedBox.shrink()
-                        : Padding(
-                          padding: const EdgeInsets.only(
+                        ? const SizedBox.shrink()
+                        : const Padding(
+                          padding: EdgeInsets.only(
                             top: 60.0,
                             left: 19,
                             right: 19,
@@ -80,12 +89,12 @@ class _QRState extends State<QR> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 20,
                         ),
                         width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           image: DecorationImage(
                             fit: BoxFit.fill,
                             image: AssetImage(
@@ -97,10 +106,8 @@ class _QRState extends State<QR> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             controller.isLoading.value
-                                ? Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 100,
-                                  ),
+                                ? const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 100),
                                   child: LoadingCard(),
                                 )
                                 : Container(
@@ -112,12 +119,25 @@ class _QRState extends State<QR> {
                                   ),
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
+                                    color: cs.surface,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: stroke,
+                                      width: 0.01,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(
+                                          isDark ? 0.28 : 0.10,
+                                        ),
+                                        blurRadius: 18,
+                                        offset: const Offset(0, 10),
+                                      ),
+                                    ],
                                   ),
                                   child: PrettyQrView(
                                     decoration: const PrettyQrDecoration(
-                                      background: Colors.white,
+                                      background: AppColorV2.background,
                                       image: PrettyQrDecorationImage(
                                         image: AssetImage(
                                           "assets/images/logo.png",
@@ -136,14 +156,17 @@ class _QRState extends State<QR> {
                                     ),
                                   ),
                                 ),
-                            SizedBox(height: 20),
+
+                            const SizedBox(height: 20),
                             DefaultText(
                               text:
-                                  "Align the QR code within the frame to proceed ${!myQR ? "with payment" : ""}",
+                                  "Align the QR code within the frame to proceed.",
                               textAlign: TextAlign.center,
                               style: AppTextStyle.paragraph1(context),
                             ),
-                            SizedBox(height: 40),
+
+                            const SizedBox(height: 40),
+
                             if (!myQR)
                               Obx(
                                 () => Padding(
@@ -157,15 +180,15 @@ class _QRState extends State<QR> {
                                             controller.isButtonDisabled.value ||
                                             !controller.isInternetConn.value,
                                         leading: Icon(
-                                          color: AppColorV2.lpBlueBrand,
                                           LucideIcons.refreshCw,
+                                          color: cs.primary,
                                         ),
                                         bordercolor:
                                             controller.isButtonDisabled.value
-                                                ? AppColorV2.inactiveButton
-                                                : AppColorV2.lpBlueBrand,
-                                        btnColor: AppColorV2.background,
-                                        textColor: AppColorV2.lpBlueBrand,
+                                                ? cs.onSurface.withOpacity(0.20)
+                                                : cs.primary.withOpacity(0.75),
+                                        btnColor: cs.surface,
+                                        textColor: cs.primary,
                                         text:
                                             controller.isButtonDisabled.value ||
                                                     ((controller.remainingTime.value %
@@ -183,20 +206,18 @@ class _QRState extends State<QR> {
                                                 ? () {
                                                   CustomDialogStack.showConnectionLost(
                                                     context,
-                                                    () {
-                                                      Get.back();
-                                                    },
+                                                    () => Get.back(),
                                                   );
                                                 }
-                                                : () {
-                                                  controller.generateQr();
-                                                },
+                                                : () => controller.generateQr(),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                            SizedBox(height: 10),
+
+                            const SizedBox(height: 10),
+
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 19.0,
@@ -207,37 +228,38 @@ class _QRState extends State<QR> {
                                     child: CustomButton(
                                       leading: Icon(
                                         LucideIcons.download,
-                                        color: AppColorV2.lpBlueBrand,
+                                        color: cs.primary,
                                       ),
-                                      bordercolor: AppColorV2.lpBlueBrand,
-                                      btnColor: AppColorV2.background,
-                                      textColor: AppColorV2.lpBlueBrand,
+                                      bordercolor: cs.primary.withOpacity(0.75),
+                                      btnColor: cs.surface,
+                                      textColor: cs.primary,
                                       text: "Download",
-                                      onPressed: () {
-                                        controller.saveQr(widget.qrCode);
-                                      },
+                                      onPressed:
+                                          () =>
+                                              controller.saveQr(widget.qrCode),
                                     ),
                                   ),
-                                  SizedBox(width: 10),
+                                  const SizedBox(width: 10),
                                   Expanded(
                                     child: CustomButton(
                                       leading: Icon(
                                         LucideIcons.share,
-                                        color: AppColorV2.lpBlueBrand,
+                                        color: cs.primary,
                                       ),
-                                      bordercolor: AppColorV2.lpBlueBrand,
-                                      btnColor: AppColorV2.background,
-                                      textColor: AppColorV2.lpBlueBrand,
+                                      bordercolor: cs.primary.withOpacity(0.75),
+                                      btnColor: cs.surface,
+                                      textColor: cs.primary,
                                       text: "Share",
-                                      onPressed: () {
-                                        controller.shareQr(widget.qrCode);
-                                      },
+                                      onPressed:
+                                          () =>
+                                              controller.shareQr(widget.qrCode),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            SizedBox(height: 30),
+
+                            const SizedBox(height: 30),
                           ],
                         ),
                       ),

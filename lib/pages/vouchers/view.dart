@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -25,29 +27,38 @@ class _VouchersState extends State<Vouchers> {
 
   final GlobalKey _textFieldKey = GlobalKey();
 
-  Color get _base => AppColorV2.background;
+  Color _border(ColorScheme cs, bool isDark, [double? o]) =>
+      cs.outlineVariant.withOpacity(o ?? (isDark ? 0.05 : 0.01));
 
-  List<BoxShadow> _softShadow() {
+  List<BoxShadow> _softShadow(ColorScheme cs, bool isDark) {
     return [
       BoxShadow(
-        color: Colors.black.withOpacity(.06),
-        blurRadius: 10,
-        offset: const Offset(3, 4),
+        color: (isDark ? Colors.black : cs.shadow).withOpacity(
+          isDark ? 0.35 : .10,
+        ),
+        blurRadius: isDark ? 18 : 14,
+        offset: const Offset(0, 10),
       ),
     ];
   }
 
-  BoxDecoration _neo({
+  BoxDecoration _neo(
+    BuildContext context, {
     double radius = 22,
     Border? border,
     Color? color,
     List<BoxShadow>? shadows,
   }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final base = color ?? cs.surface;
     return BoxDecoration(
-      color: color ?? _base,
+      color: base,
       borderRadius: BorderRadius.circular(radius),
       border: border,
-      boxShadow: shadows ?? _softShadow(),
+      boxShadow: shadows ?? _softShadow(cs, isDark),
     );
   }
 
@@ -58,7 +69,7 @@ class _VouchersState extends State<Vouchers> {
   }
 
   void _claimVoucher() async {
-    String code = controller.text.trim();
+    final code = controller.text.trim();
     if (code.isEmpty) return;
 
     try {
@@ -72,14 +83,19 @@ class _VouchersState extends State<Vouchers> {
       vouchersBodyKey.currentState?.refresh();
       setState(() {});
     } catch (error) {
+      // ignore: avoid_print
       print("Error claiming voucher: $error");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return CustomScaffoldV2(
-      backgroundColor: AppColorV2.lpBlueBrand,
+      backgroundColor: cs.primary,
       appBarTitle: title,
       padding: EdgeInsets.zero,
       canPop: true,
@@ -93,7 +109,7 @@ class _VouchersState extends State<Vouchers> {
               valueListenable: controller,
               builder: (context, value, child) {
                 final enabled = controller.text.trim().isNotEmpty;
-                return searchBar(enabled);
+                return _searchBar(context, enabled, cs, isDark);
               },
             ),
           ),
@@ -112,15 +128,31 @@ class _VouchersState extends State<Vouchers> {
     );
   }
 
-  Container searchBar(bool enabled) {
+  Widget _searchBar(
+    BuildContext context,
+    bool enabled,
+    ColorScheme cs,
+    bool isDark,
+  ) {
+    final stroke = _border(cs, isDark);
+    final hint = cs.onSurface.withOpacity(isDark ? 0.55 : 0.45);
+    final textColor = cs.onSurface.withOpacity(0.90);
+
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: _neo(
+        context,
         radius: 24,
-        border: Border.all(
-          color: const Color(0xFF0F172A).withOpacity(.06),
-          width: 1,
-        ),
+        border: Border.all(color: stroke, width: 1),
+        shadows: [
+          BoxShadow(
+            color: (isDark ? Colors.black : cs.shadow).withOpacity(
+              isDark ? 0.22 : 0.08,
+            ),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -129,20 +161,23 @@ class _VouchersState extends State<Vouchers> {
               key: _textFieldKey,
               height: 50,
               decoration: _neo(
+                context,
                 radius: 18,
-                border: Border.all(
-                  color: const Color(0xFF0F172A).withOpacity(.06),
-                  width: 1,
-                ),
+                border: Border.all(color: stroke, width: 1),
+                shadows: [
+                  BoxShadow(
+                    color: (isDark ? Colors.black : cs.shadow).withOpacity(
+                      isDark ? 0.12 : 0.04,
+                    ),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
                   const SizedBox(width: 12),
-                  Icon(
-                    Icons.search_rounded,
-                    size: 20,
-                    color: AppColorV2.inactiveState.withOpacity(.85),
-                  ),
+                  Icon(Icons.search_rounded, size: 20, color: hint),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextFormField(
@@ -153,21 +188,21 @@ class _VouchersState extends State<Vouchers> {
                         UpperCaseTextFormatter(),
                       ],
                       style: TextStyle(
-                        color: AppColorV2.primaryTextColor,
+                        color: textColor,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         letterSpacing: .25,
                       ),
-                      cursorColor: AppColorV2.lpBlueBrand,
+                      cursorColor: cs.primary,
                       decoration: InputDecoration(
                         hintText: "Enter voucher code",
                         hintStyle: TextStyle(
-                          color: AppColorV2.inactiveState.withOpacity(.85),
+                          color: hint,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                         filled: true,
-                        fillColor: _base,
+                        fillColor: cs.surface,
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
@@ -195,7 +230,7 @@ class _VouchersState extends State<Vouchers> {
                               icon: Icon(
                                 Icons.close_rounded,
                                 size: 18,
-                                color: AppColorV2.inactiveState.withOpacity(.9),
+                                color: cs.onSurface.withOpacity(0.55),
                               ),
                             ),
                   ),
@@ -209,29 +244,45 @@ class _VouchersState extends State<Vouchers> {
             enabled: enabled,
             onTap: enabled ? _claimVoucher : null,
             builder: (pressed) {
+              final btnStroke =
+                  enabled
+                      ? cs.primary.withOpacity(isDark ? 0.22 : 0.18)
+                      : stroke;
+
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 140),
                 curve: Curves.easeOut,
                 height: 50,
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 decoration: _neo(
+                  context,
                   radius: 18,
-                  border: Border.all(
-                    color:
-                        enabled
-                            ? AppColorV2.lpBlueBrand.withOpacity(.16)
-                            : const Color(0xFF0F172A).withOpacity(.06),
-                    width: 1,
-                  ),
+                  border: Border.all(color: btnStroke, width: 1),
+                  shadows:
+                      pressed
+                          ? [
+                            BoxShadow(
+                              color: (isDark ? Colors.black : cs.shadow)
+                                  .withOpacity(isDark ? 0.10 : 0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                          : [
+                            BoxShadow(
+                              color: (isDark ? Colors.black : cs.shadow)
+                                  .withOpacity(isDark ? 0.18 : 0.08),
+                              blurRadius: 14,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                 ),
                 child: Center(
                   child: DefaultText(
                     text: "CLAIM",
                     style: AppTextStyle.h3_semibold(context),
                     color:
-                        enabled
-                            ? AppColorV2.lpBlueBrand
-                            : AppColorV2.inactiveState,
+                        enabled ? cs.primary : cs.onSurface.withOpacity(0.45),
                   ),
                 ),
               );

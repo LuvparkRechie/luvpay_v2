@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 
 class StatusBarManager {
-  static const SystemUiOverlayStyle _defaultLightStyle = SystemUiOverlayStyle(
-    statusBarColor: Color(0xFF0078FF),
-    statusBarIconBrightness: Brightness.light,
-    statusBarBrightness: Brightness.dark,
+  static const SystemUiOverlayStyle defaultLightStyle = SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    statusBarBrightness: Brightness.light,
     systemNavigationBarColor: Colors.white,
     systemNavigationBarIconBrightness: Brightness.dark,
   );
@@ -18,8 +18,7 @@ class StatusBarManager {
     systemNavigationBarColor: Colors.black,
     systemNavigationBarIconBrightness: Brightness.light,
   );
-
-  static SystemUiOverlayStyle get defaultStyle => _defaultLightStyle;
+  static SystemUiOverlayStyle get defaultStyle => defaultLightStyle;
 
   static void setStatusBarColor({
     Color? statusBarColor,
@@ -57,12 +56,21 @@ class ConsistentStatusBarWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      SystemChrome.setSystemUIOverlayStyle(
-        systemOverlayStyle ?? StatusBarManager.defaultStyle,
-      );
-    });
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return child;
+    final fallback =
+        isDark
+            ? StatusBarManager._defaultDarkStyle
+            : StatusBarManager.defaultLightStyle.copyWith(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.dark,
+              statusBarBrightness: Brightness.light,
+            );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemOverlayStyle ?? fallback,
+      child: child,
+    );
   }
 }

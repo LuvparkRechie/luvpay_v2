@@ -10,12 +10,12 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
+import 'package:luvpay/custom_widgets/luvpay/luvpay_loading.dart';
 import 'package:luvpay/custom_widgets/no_data_found.dart';
 import 'package:luvpay/custom_widgets/no_internet.dart';
 
 import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/luvpay/neumorphism.dart';
 import 'controller.dart';
 import 'utils/add_wallet_modal.dart';
@@ -585,154 +585,133 @@ class _SubWalletScreenState extends State<SubWalletScreen>
         body: SafeArea(
           top: false,
           bottom: true,
-          child: PremiumLoaderOverlay(
-            topInset: headerH,
-            loading: !ready,
-            title: "Loading subwallets…",
-            subtitle: "Please wait a moment",
-            accentColor: accent,
-            glowColor: glow,
-            child:
-                !controller.hasNet.value
-                    ? NoInternetConnected(onTap: _refreshData)
-                    : PremiumRefreshOverlay(
-                      topInset: headerH,
-                      refreshing: isRefreshing,
-                      label: "Refreshing…",
-                      accentColor: accent,
-                      glowColor: glow,
-                      child: Stack(
-                        children: [
-                          RefreshIndicator.noSpinner(
-                            elevation: 0,
-                            onRefresh: _refreshData,
-                            child: CustomScrollView(
-                              controller: _scrollCtrl,
-                              physics: const AlwaysScrollableScrollPhysics(
-                                parent: BouncingScrollPhysics(),
-                              ),
-                              slivers: [
-                                SliverToBoxAdapter(
-                                  child: SizedBox(
-                                    height: hasWallets ? 104 : 10,
-                                  ),
-                                ),
+          child:
+              !ready
+                  ? LoadingCard()
+                  : !controller.hasNet.value
+                  ? NoInternetConnected(onTap: _refreshData)
+                  : isRefreshing
+                  ? LoadingCard(text: "Refreshing, please wait...")
+                  : Stack(
+                    children: [
+                      RefreshIndicator.noSpinner(
+                        elevation: 0,
+                        onRefresh: _refreshData,
+                        child: CustomScrollView(
+                          controller: _scrollCtrl,
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: SizedBox(height: hasWallets ? 104 : 10),
+                            ),
 
-                                SliverPadding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                  ),
-                                  sliver:
-                                      wallets.isEmpty
-                                          ? SliverFillRemaining(
-                                            hasScrollBody: false,
-                                            child: GestureDetector(
+                            SliverPadding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                              ),
+                              sliver:
+                                  wallets.isEmpty
+                                      ? SliverFillRemaining(
+                                        hasScrollBody: false,
+                                        child: GestureDetector(
+                                          onTap:
+                                              () =>
+                                                  _showAddWalletModal(context),
+                                          child: NoDataFound(
+                                            text: "No SubWallets found",
+                                            subtext: "Add your first subwallet",
+                                            buttonText: "Add SubWallet",
+                                            buttonIcon: Iconsax.add,
+                                            onTap:
+                                                () => _showAddWalletModal(
+                                                  context,
+                                                ),
+                                          ),
+                                        ),
+                                      )
+                                      : SliverGrid(
+                                        gridDelegate:
+                                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 2,
+                                              crossAxisSpacing: 15,
+                                              mainAxisSpacing: 20,
+                                              childAspectRatio: 1.35,
+                                              mainAxisExtent: 120,
+                                            ),
+                                        delegate: SliverChildBuilderDelegate((
+                                          context,
+                                          index,
+                                        ) {
+                                          final isCreateTile =
+                                              index == wallets.length;
+
+                                          if (isCreateTile) {
+                                            return CreateSubwalletTile(
                                               onTap:
                                                   () => _showAddWalletModal(
                                                     context,
                                                   ),
-                                              child: NoDataFound(
-                                                text: "No SubWallets found",
-                                                subtext:
-                                                    "Add your first subwallet",
-                                                buttonText: "Add SubWallet",
-                                                buttonIcon: Iconsax.add,
-                                                onTap:
-                                                    () => _showAddWalletModal(
-                                                      context,
-                                                    ),
-                                              ),
-                                            ),
-                                          )
-                                          : SliverGrid(
-                                            gridDelegate:
-                                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                                  crossAxisCount: 2,
-                                                  crossAxisSpacing: 15,
-                                                  mainAxisSpacing: 20,
-                                                  childAspectRatio: 1.35,
-                                                  mainAxisExtent: 120,
+                                            );
+                                          }
+
+                                          final w = wallets[index];
+                                          final iconBytes =
+                                              (w.imageBase64?.isNotEmpty ??
+                                                      false)
+                                                  ? decodeBase64Safe(
+                                                    w.imageBase64!,
+                                                  )
+                                                  : null;
+
+                                          final categoryLabel =
+                                              (w.categoryTitle.trim().isNotEmpty
+                                                  ? w.categoryTitle
+                                                  : w.category);
+
+                                          return SubWalletCard(
+                                            wallet: w,
+                                            onTap:
+                                                () => _showWalletDetails(
+                                                  context,
+                                                  w,
+                                                  sheetBg,
                                                 ),
-                                            delegate: SliverChildBuilderDelegate(
-                                              (context, index) {
-                                                final isCreateTile =
-                                                    index == wallets.length;
+                                            iconBytes: iconBytes,
+                                            base: w.color,
 
-                                                if (isCreateTile) {
-                                                  return CreateSubwalletTile(
-                                                    onTap:
-                                                        () =>
-                                                            _showAddWalletModal(
-                                                              context,
-                                                            ),
-                                                  );
-                                                }
+                                            titleColor: cs.onSurface,
+                                            amountColor: cs.onSurface
+                                                .withOpacity(0.72),
 
-                                                final w = wallets[index];
-                                                final iconBytes =
-                                                    (w
-                                                                .imageBase64
-                                                                ?.isNotEmpty ??
-                                                            false)
-                                                        ? decodeBase64Safe(
-                                                          w.imageBase64!,
-                                                        )
-                                                        : null;
-
-                                                final categoryLabel =
-                                                    (w.categoryTitle
-                                                            .trim()
-                                                            .isNotEmpty
-                                                        ? w.categoryTitle
-                                                        : w.category);
-
-                                                return SubWalletCard(
-                                                  wallet: w,
-                                                  onTap:
-                                                      () => _showWalletDetails(
-                                                        context,
-                                                        w,
-                                                        sheetBg,
-                                                      ),
-                                                  iconBytes: iconBytes,
-                                                  base: w.color,
-
-                                                  titleColor: cs.onSurface,
-                                                  amountColor: cs.onSurface
-                                                      .withOpacity(0.72),
-
-                                                  categoryLabel: categoryLabel,
-                                                  isDeleting:
-                                                      w.id == _deletingWalletId,
-                                                  isPulsing:
-                                                      w.id == _pulsingWalletId,
-                                                  deleteAnim: _deleteAnim,
-                                                  pulseAnim: _pulseAnim,
-                                                );
-                                              },
-                                              childCount: wallets.length + 1,
-                                            ),
-                                          ),
-                                ),
-
-                                const SliverToBoxAdapter(
-                                  child: SizedBox(height: 30),
-                                ),
-                              ],
+                                            categoryLabel: categoryLabel,
+                                            isDeleting:
+                                                w.id == _deletingWalletId,
+                                            isPulsing: w.id == _pulsingWalletId,
+                                            deleteAnim: _deleteAnim,
+                                            pulseAnim: _pulseAnim,
+                                          );
+                                        }, childCount: wallets.length + 1),
+                                      ),
                             ),
-                          ),
 
-                          if (hasWallets && _pinHeader)
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              child: _buildBalanceHeader(),
+                            const SliverToBoxAdapter(
+                              child: SizedBox(height: 30),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-          ),
+
+                      if (hasWallets && _pinHeader)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: _buildBalanceHeader(),
+                        ),
+                    ],
+                  ),
         ),
       ),
     );

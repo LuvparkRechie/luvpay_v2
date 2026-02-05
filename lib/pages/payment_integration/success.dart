@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../custom_widgets/loading.dart';
+import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
 
 class SuccessPage extends StatefulWidget {

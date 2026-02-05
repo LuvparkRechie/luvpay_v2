@@ -1,8 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, unreachable_switch_default
 
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,7 +16,7 @@ import 'package:luvpay/pages/qr/view.dart';
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
-import '../../custom_widgets/loading.dart';
+import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/luvpay/neumorphism.dart';
 import '../../custom_widgets/luvpay/statusbar_manager.dart';
 import '../../custom_widgets/luvpay/theme_mode_controller.dart';
@@ -188,20 +186,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
     final bool isVerified = userData["is_verified"] == "N";
     final themeCtrl = Get.find<ThemeModeController>();
 
-    return ConsistentStatusBarWrapper(
-      child: CustomScaffoldV2(
-        leading: const SizedBox.shrink(),
-        canPop: false,
-        showAppBar: false,
-        padding: EdgeInsets.zero,
-        backgroundColor: cs.surface,
-        scaffoldBody:
+    return SafeArea(
+      child: Scaffold(
+        body:
             isLoading
                 ? const LoadingCard()
                 : CustomGradientBackground(
@@ -403,55 +393,52 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   Widget _profile(ThemeModeController themeCtrl) {
-    return DefaultContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InfoRowTile(
-            icon: Icons.qr_code_rounded,
-            title: 'Personal QR Code ',
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => QR(qrCode: userData["mobile_no"]),
-              );
-            },
-          ),
-          InfoRowTile(
-            icon: LucideIcons.ticket,
-            title: 'Vouchers',
-            onTap: () => Get.toNamed(Routes.vouchers),
-          ),
-          InfoRowTile(
-            icon: LucideIcons.bell,
-            title: 'Notifications',
-            onTap: () => Get.to(WalletNotifications(fromTab: false)),
-          ),
-          InfoRowTile(
-            icon: LucideIcons.history,
-            title: 'Transaction History',
-            onTap: () => Get.to(const TransactionHistory()),
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InfoRowTile(
+          icon: Icons.qr_code_rounded,
+          title: 'Personal QR Code ',
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => QR(qrCode: userData["mobile_no"]),
+            );
+          },
+        ),
+        InfoRowTile(
+          icon: LucideIcons.ticket,
+          title: 'Vouchers',
+          onTap: () => Get.toNamed(Routes.vouchers),
+        ),
+        InfoRowTile(
+          icon: LucideIcons.bell,
+          title: 'Notifications',
+          onTap: () => Get.to(WalletNotifications(fromTab: false)),
+        ),
+        InfoRowTile(
+          icon: LucideIcons.history,
+          title: 'Transaction History',
+          onTap: () => Get.to(const TransactionHistory()),
+        ),
 
-          InfoRowTile(
-            icon: LucideIcons.lock,
-            title: 'App Security',
-            onTap: () => Get.toNamed(Routes.securitySettings),
-          ),
-          const SizedBox(height: 10),
+        InfoRowTile(
+          icon: LucideIcons.lock,
+          title: 'App Security',
+          onTap: () => Get.toNamed(Routes.securitySettings),
+        ),
+        const SizedBox(height: 10),
 
-          Obx(
-            () => InfoRowTile(
-              icon: themeCtrl.iconOf(themeCtrl.mode.value),
-              title: "Theme",
-              subtitle:
-                  "Choose light, dark, or system (${themeCtrl.labelOf(themeCtrl.mode.value)}).",
-              subtitleMaxlines: 2,
-              onTap: () => _showThemePopup(context),
-            ),
+        Obx(
+          () => InfoRowTile(
+            icon: themeCtrl.iconOf(themeCtrl.mode.value),
+            title: "Theme (${themeCtrl.labelOf(themeCtrl.mode.value)})",
+            subtitle: "Choose light, dark, or system.",
+            subtitleMaxlines: 2,
+            onTap: () => _showThemePopup(context),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -462,11 +449,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
     final themeCtrl = Get.find<ThemeModeController>();
 
-    // Theme-aware base colors
     final cardColor = cs.surface;
-    final subtleBorder = cs.outlineVariant.withOpacity(
-      isDark ? 0.35 : 0.55,
-    ); // soft outline
+    final subtleBorder = cs.outlineVariant.withOpacity(isDark ? 0.35 : 0.55);
     final closeColor = cs.onSurfaceVariant.withOpacity(0.75);
     final titleColor = cs.onSurface;
 
@@ -678,114 +662,110 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   Widget _helpAndSupport() {
     final cs = Theme.of(context).colorScheme;
 
-    return DefaultContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DefaultText(
-            text: 'Help & Support',
-            style: AppTextStyle.h3(context).copyWith(color: cs.onSurface),
-          ),
-          const SizedBox(height: 10),
-          InfoRowTile(
-            icon: Icons.info_outline,
-            title: 'About Us',
-            onTap: () async {
-              CustomDialogStack.showLoading(context);
-              final response = await HttpRequestApi(api: "").linkToPage();
-              Get.back();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DefaultText(
+          text: 'Help & Support',
+          style: AppTextStyle.h3(context).copyWith(color: cs.onSurface),
+        ),
+        const SizedBox(height: 10),
+        InfoRowTile(
+          icon: Icons.info_outline,
+          title: 'About Us',
+          onTap: () async {
+            CustomDialogStack.showLoading(context);
+            final response = await HttpRequestApi(api: "").linkToPage();
+            Get.back();
 
-              if (response == "Success") {
-                Get.to(
-                  const WebviewPage(
-                    urlDirect: "https://luvpark.ph/about-us/",
-                    label: "About Us",
-                    isBuyToken: false,
-                    bodyPadding: EdgeInsets.symmetric(
-                      horizontal: 19,
-                      vertical: 10,
-                    ),
+            if (response == "Success") {
+              Get.to(
+                const WebviewPage(
+                  urlDirect: "https://luvpark.ph/about-us/",
+                  label: "About Us",
+                  isBuyToken: false,
+                  bodyPadding: EdgeInsets.symmetric(
+                    horizontal: 19,
+                    vertical: 10,
                   ),
-                );
-              } else {
-                CustomDialogStack.showConnectionLost(context, () => Get.back());
-              }
-            },
-          ),
-          InfoRowTile(
-            icon: LucideIcons.messageCircle,
-            title: 'FAQs',
-            onTap: () => Get.toNamed(Routes.faqpage),
-          ),
-        ],
-      ),
+                ),
+              );
+            } else {
+              CustomDialogStack.showConnectionLost(context, () => Get.back());
+            }
+          },
+        ),
+        InfoRowTile(
+          icon: LucideIcons.messageCircle,
+          title: 'FAQs',
+          onTap: () => Get.toNamed(Routes.faqpage),
+        ),
+      ],
     );
   }
 
   Widget _legal() {
     final cs = Theme.of(context).colorScheme;
 
-    return DefaultContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DefaultText(
-            text: 'Legal',
-            style: AppTextStyle.h3(context).copyWith(color: cs.onSurface),
-          ),
-          const SizedBox(height: 10),
-          InfoRowTile(
-            icon: LucideIcons.bookmark,
-            title: 'Terms of Use',
-            onTap: () async {
-              CustomDialogStack.showLoading(context);
-              final response = await HttpRequestApi(api: "").linkToPage();
-              Get.back();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DefaultText(
+          text: 'Legal',
+          style: AppTextStyle.h3(context).copyWith(color: cs.onSurface),
+        ),
+        const SizedBox(height: 10),
+        InfoRowTile(
+          icon: LucideIcons.bookmark,
+          title: 'Terms of Use',
+          onTap: () async {
+            CustomDialogStack.showLoading(context);
+            final response = await HttpRequestApi(api: "").linkToPage();
+            Get.back();
 
-              if (response == "Success") {
-                Get.to(
-                  const WebviewPage(
-                    urlDirect: "https://luvpark.ph/terms-of-use/",
-                    label: "Terms of Use",
-                    isBuyToken: false,
-                    bodyPadding: EdgeInsets.symmetric(
-                      horizontal: 19,
-                      vertical: 10,
-                    ),
+            if (response == "Success") {
+              Get.to(
+                const WebviewPage(
+                  urlDirect: "https://luvpark.ph/terms-of-use/",
+                  label: "Terms of Use",
+                  isBuyToken: false,
+                  bodyPadding: EdgeInsets.symmetric(
+                    horizontal: 19,
+                    vertical: 10,
                   ),
-                );
-              } else {
-                CustomDialogStack.showConnectionLost(context, () => Get.back());
-              }
-            },
-          ),
-          InfoRowTile(
-            icon: LucideIcons.shield,
-            title: 'Privacy Policy',
-            onTap: () async {
-              CustomDialogStack.showLoading(context);
-              final response = await HttpRequestApi(api: "").linkToPage();
-              Get.back();
+                ),
+              );
+            } else {
+              CustomDialogStack.showConnectionLost(context, () => Get.back());
+            }
+          },
+        ),
+        InfoRowTile(
+          icon: LucideIcons.shield,
+          title: 'Privacy Policy',
+          onTap: () async {
+            CustomDialogStack.showLoading(context);
+            final response = await HttpRequestApi(api: "").linkToPage();
+            Get.back();
 
-              if (response == "Success") {
-                Get.to(
-                  const WebviewPage(
-                    urlDirect: "https://luvpark.ph/privacy-policy/",
-                    label: "Privacy Policy",
-                    isBuyToken: false,
-                    bodyPadding: EdgeInsets.symmetric(
-                      horizontal: 19,
-                      vertical: 10,
-                    ),
+            if (response == "Success") {
+              Get.to(
+                const WebviewPage(
+                  urlDirect: "https://luvpark.ph/privacy-policy/",
+                  label: "Privacy Policy",
+                  isBuyToken: false,
+                  bodyPadding: EdgeInsets.symmetric(
+                    horizontal: 19,
+                    vertical: 10,
                   ),
-                );
-              } else {
-                CustomDialogStack.showConnectionLost(context, () => Get.back());
-              }
-            },
-          ),
-        ],
-      ),
+                ),
+              );
+            } else {
+              CustomDialogStack.showConnectionLost(context, () => Get.back());
+            }
+          },
+        ),
+      ],
     );
   }
 }

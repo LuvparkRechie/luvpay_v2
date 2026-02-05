@@ -506,6 +506,8 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     final body =
         !isNetConn
             ? NoInternetConnected(onTap: () => fetchLogs(isInitial: true))
+            : isLoadingPage || isDownloading
+            ? LoadingCard()
             : groupedLogs.isEmpty
             ? Center(child: NoDataFound())
             : Column(
@@ -887,14 +889,9 @@ class _TransactionHistoryState extends State<TransactionHistory> {
       padding: EdgeInsets.zero,
       enableToolBar: true,
       appBarTitle: "Transaction History",
-      scaffoldBody: PremiumLoaderOverlay(
-        accentColor: AppColorV2.lpBlueBrand,
-        glowColor: AppColorV2.lpTealBrand,
-        loading: isLoadingPage || isDownloading,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 8, 10, 19),
-          child: body,
-        ),
+      scaffoldBody: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 19),
+        child: body,
       ),
     );
   }

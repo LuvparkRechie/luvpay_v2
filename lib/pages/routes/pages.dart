@@ -14,6 +14,7 @@ import 'package:luvpay/pages/wallet_recharge_load/index.dart';
 
 import '../dashboard/index.dart';
 import '../loading/index.dart';
+import '../lock/index.dart';
 import '../lock_screen/index.dart';
 import '../login/index.dart';
 import '../merchant/merchantreceipt/index.dart';
@@ -189,6 +190,14 @@ class AppPages {
       name: Routes.vouchers,
       page: () => const Vouchers(),
       binding: VouchersBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.lock,
+      page: () => const Lock(),
+      binding: LockBinding(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,

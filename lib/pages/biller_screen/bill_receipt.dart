@@ -1,19 +1,20 @@
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
+
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:ticketcher/ticketcher.dart';
 
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
-import '../../custom_widgets/app_color_v2.dart';
+import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
 class BillPaymentReceipt extends StatelessWidget {
   final Map<String, dynamic> apiResponse;
@@ -29,26 +30,44 @@ class BillPaymentReceipt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final borderOpacity = isDark ? 0.05 : 0.01;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: cs.surface,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           toolbarHeight: 0,
           elevation: 0,
+          backgroundColor: cs.surface,
+          surfaceTintColor: Colors.transparent,
+          systemOverlayStyle: (isDark
+                  ? SystemUiOverlayStyle.light
+                  : SystemUiOverlayStyle.dark)
+              .copyWith(statusBarColor: cs.surface),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 19),
             child: Column(
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 28),
                 Screenshot(
                   controller: _shot,
-                  child: _downloadableReceipt(context),
+                  child: _downloadableReceipt(
+                    context,
+                    cs: cs,
+                    isDark: isDark,
+                    borderOpacity: borderOpacity,
+                  ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 22),
                 Column(
                   children: [
                     CustomButton(
@@ -61,15 +80,15 @@ class BillPaymentReceipt extends StatelessWidget {
                     const SizedBox(height: 10),
                     CustomButton(
                       text: "Save Receipt",
-                      btnColor: Colors.white,
-                      textColor: AppColorV2.lpBlueBrand,
-                      bordercolor: AppColorV2.lpBlueBrand,
+                      btnColor: cs.surface,
+                      textColor: cs.primary,
+                      bordercolor: cs.primary,
                       onPressed: () => _saveReceipt(context),
                     ),
                     const SizedBox(height: 12),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
               ],
             ),
           ),
@@ -78,30 +97,50 @@ class BillPaymentReceipt extends StatelessWidget {
     );
   }
 
-  Widget _downloadableReceipt(BuildContext context) {
+  Widget _downloadableReceipt(
+    BuildContext context, {
+    required ColorScheme cs,
+    required bool isDark,
+    required double borderOpacity,
+  }) {
     final width = MediaQuery.of(context).size.width - (19 * 2);
-    return SizedBox(width: width, child: _receiptTicket());
+    return SizedBox(
+      width: width,
+      child: _receiptTicket(
+        context,
+        cs: cs,
+        isDark: isDark,
+        borderOpacity: borderOpacity,
+      ),
+    );
   }
 
-  Widget _receiptTicket() {
+  Widget _receiptTicket(
+    BuildContext context, {
+    required ColorScheme cs,
+    required bool isDark,
+    required double borderOpacity,
+  }) {
     final message = apiResponse['msg']?.toString() ?? '';
     final amountStr = _extractAmountFromMessage(message);
     final billerName = _extractBillerNameFromMessage(message);
     final amount = double.tryParse(amountStr) ?? 0.0;
 
+    final borderColor = cs.onSurface.withOpacity(borderOpacity);
+
     return Ticketcher.vertical(
       notchRadius: 14,
       decoration: TicketcherDecoration(
-        backgroundColor: Colors.white,
-        borderRadius: TicketRadius(radius: 14),
-        border: Border.all(color: AppColorV2.boxStroke, width: 1),
+        backgroundColor: cs.surface,
+        borderRadius: const TicketRadius(radius: 16),
+        border: Border.all(color: borderColor, width: 1),
         shadow: BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
-          blurRadius: 18,
-          offset: const Offset(0, 10),
+          color: cs.shadow.withOpacity(isDark ? 0.30 : 0.10),
+          blurRadius: 22,
+          offset: const Offset(0, 12),
         ),
         divider: TicketDivider.dashed(
-          color: AppColorV2.boxStroke.withValues(alpha: 0.8),
+          color: cs.onSurface.withOpacity(isDark ? 0.18 : 0.12),
           thickness: 1,
           dashWidth: 8,
           dashSpace: 6,
@@ -110,29 +149,36 @@ class BillPaymentReceipt extends StatelessWidget {
       ),
       sections: [
         Section(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
           child: Column(
             children: [
-              _buildReceiptHeader(),
+              _buildReceiptHeader(
+                context,
+                cs: cs,
+                isDark: isDark,
+                borderOpacity: borderOpacity,
+              ),
               const SizedBox(height: 18),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   DefaultText(
                     text: "AMOUNT PAID",
-                    style: TextStyle(
-                      color: AppColorV2.bodyTextColor,
+                    style: AppTextStyle.body2(context).copyWith(
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
                     ),
+                    color: cs.onSurface.withOpacity(0.60),
                   ),
                   DefaultText(
                     text: _formatCurrency(amount),
-                    style: TextStyle(
-                      color: AppColorV2.lpBlueBrand,
+                    style: AppTextStyle.h3(context).copyWith(
                       fontSize: 18,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.2,
                     ),
+                    color: cs.primary,
                   ),
                 ],
               ),
@@ -143,65 +189,98 @@ class BillPaymentReceipt extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
           child: Column(
             children: [
-              _buildReceiptRow('STATUS', 'COMPLETED', isBold: true),
+              _buildReceiptRow(
+                context,
+                cs,
+                'STATUS',
+                'COMPLETED',
+                isBold: true,
+              ),
               const SizedBox(height: 14),
-              _buildReceiptRow('DATE', _formatDate(apiResponse['payment_dt'])),
-              const SizedBox(height: 10),
-              _buildReceiptRow('TIME', _formatTime(apiResponse['payment_dt'])),
+              _buildReceiptRow(
+                context,
+                cs,
+                'DATE',
+                _formatDate(apiResponse['payment_dt']),
+              ),
               const SizedBox(height: 10),
               _buildReceiptRow(
+                context,
+                cs,
+                'TIME',
+                _formatTime(apiResponse['payment_dt']),
+              ),
+              const SizedBox(height: 10),
+              _buildReceiptRow(
+                context,
+                cs,
                 'REFERENCE NO.',
                 apiResponse['lp_ref_no']?.toString() ?? 'N/A',
               ),
               const SizedBox(height: 10),
               _buildReceiptRow(
+                context,
+                cs,
                 'BILLER',
                 billerName.isNotEmpty ? billerName : 'One Communities',
               ),
               const SizedBox(height: 10),
               _buildReceiptRow(
+                context,
+                cs,
                 'ACCOUNT NAME',
                 paymentParams['account_name']?.toString() ?? 'N/A',
               ),
               const SizedBox(height: 10),
               _buildReceiptRow(
+                context,
+                cs,
                 'ACCOUNT NO.',
                 paymentParams['bill_acct_no']?.toString() ?? 'N/A',
               ),
               const SizedBox(height: 10),
-              _buildReceiptRow('PAYMENT METHOD', 'LUVPARK Wallet'),
+              _buildReceiptRow(context, cs, 'PAYMENT METHOD', 'LUVPARK Wallet'),
             ],
           ),
         ),
         Section(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
           child: Column(
             children: [
-              Column(
-                children: [
-                  Image.asset("assets/images/logo.png", height: 40),
-                  const SizedBox(height: 8),
-                  DefaultText(
-                    text: 'Thank you for your payment!',
-                    style: TextStyle(
-                      color: AppColorV2.primaryTextColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    textAlign: TextAlign.center,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: cs.onSurface.withOpacity(borderOpacity),
                   ),
-                  const SizedBox(height: 4),
-                  DefaultText(
-                    text: 'Keep this receipt for your records',
-                    style: TextStyle(
-                      color: AppColorV2.bodyTextColor,
-                      fontSize: 10,
+                ),
+                child: Column(
+                  children: [
+                    Image.asset("assets/images/logo.png", height: 38),
+                    const SizedBox(height: 8),
+                    DefaultText(
+                      text: 'Thank you for your payment!',
+                      style: AppTextStyle.body1(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w900),
+                      color: cs.onSurface,
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    DefaultText(
+                      text: 'Keep this receipt for your records',
+                      style: AppTextStyle.body2(
+                        context,
+                      ).copyWith(fontWeight: FontWeight.w700),
+                      color: cs.onSurface.withOpacity(0.60),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 14),
             ],
           ),
         ),
@@ -214,7 +293,6 @@ class BillPaymentReceipt extends StatelessWidget {
 
     try {
       await Future.delayed(const Duration(milliseconds: 60));
-
       final bytes = await _shot.capture(pixelRatio: 3.0);
 
       if (bytes == null) {
@@ -258,32 +336,45 @@ class BillPaymentReceipt extends StatelessWidget {
     }
   }
 
-  Widget _buildReceiptHeader() {
+  Widget _buildReceiptHeader(
+    BuildContext context, {
+    required ColorScheme cs,
+    required bool isDark,
+    required double borderOpacity,
+  }) {
     return Column(
       children: [
         Container(
-          width: 60,
-          height: 60,
+          width: 64,
+          height: 64,
           decoration: BoxDecoration(
-            color: AppColorV2.correctState,
+            color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
             shape: BoxShape.circle,
+            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
           ),
-          child: const Icon(Icons.check_rounded, color: Colors.white, size: 30),
+          child: Icon(Icons.check_rounded, color: cs.primary, size: 32),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         DefaultText(
           text: 'Payment Successful',
-          style: TextStyle(
-            color: AppColorV2.primaryTextColor,
+          style: AppTextStyle.h2(context).copyWith(
             fontSize: 20,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.25,
           ),
+          color: cs.onSurface,
         ),
       ],
     );
   }
 
-  Widget _buildReceiptRow(String title, String value, {bool isBold = false}) {
+  Widget _buildReceiptRow(
+    BuildContext context,
+    ColorScheme cs,
+    String title,
+    String value, {
+    bool isBold = false,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -291,11 +382,13 @@ class BillPaymentReceipt extends StatelessWidget {
           flex: 4,
           child: DefaultText(
             text: title,
-            style: TextStyle(
-              color: AppColorV2.bodyTextColor,
+            style: AppTextStyle.body2(context).copyWith(
               fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
             ),
+            color: cs.onSurface.withOpacity(0.58),
+            maxLines: 1,
           ),
         ),
         const SizedBox(width: 10),
@@ -304,11 +397,12 @@ class BillPaymentReceipt extends StatelessWidget {
           child: DefaultText(
             text: value,
             textAlign: TextAlign.right,
-            style: TextStyle(
-              color: AppColorV2.primaryTextColor,
+            style: AppTextStyle.body2(context).copyWith(
               fontSize: 12,
-              fontWeight: isBold ? FontWeight.w800 : FontWeight.w500,
+              fontWeight: isBold ? FontWeight.w900 : FontWeight.w800,
             ),
+            color: cs.onSurface,
+            maxLines: 2,
           ),
         ),
       ],

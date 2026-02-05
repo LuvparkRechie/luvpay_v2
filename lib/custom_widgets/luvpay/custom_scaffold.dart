@@ -17,6 +17,8 @@ class CustomGradientBackground extends StatelessWidget {
   final double blurSigma;
   final Color? bodyColor;
 
+  final bool blendIntoStatusBar;
+
   const CustomGradientBackground({
     super.key,
     this.child,
@@ -25,12 +27,14 @@ class CustomGradientBackground extends StatelessWidget {
     this.padding,
     this.blurSigma = 0,
     this.bodyColor,
+    this.blendIntoStatusBar = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     final fallbackGradient =
         isDark
@@ -57,6 +61,17 @@ class CustomGradientBackground extends StatelessWidget {
               cs.surface,
             ];
 
+    final colors = gradientColors ?? fallbackGradient;
+
+    final topColor = colors.isNotEmpty ? colors.first : cs.surface;
+    final iconBrightness =
+        ThemeData.estimateBrightnessForColor(topColor) == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark;
+
+    final statusBarBrightness =
+        iconBrightness == Brightness.light ? Brightness.dark : Brightness.light;
+
     Widget content = Container(
       width: double.infinity,
       height: double.infinity,
@@ -78,17 +93,28 @@ class CustomGradientBackground extends StatelessWidget {
       );
     }
 
-    return Container(
+    final gradientLayer = Container(
       width: double.infinity,
       height: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: gradientColors ?? fallbackGradient,
+          colors: colors,
         ),
       ),
       child: content,
+    );
+
+    if (!blendIntoStatusBar) return gradientLayer;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: iconBrightness,
+        statusBarBrightness: statusBarBrightness,
+      ),
+      child: gradientLayer,
     );
   }
 }
@@ -156,6 +182,27 @@ class CustomScaffoldV2 extends StatelessWidget {
     this.showAppBar = true,
     this.useNormalBody = false,
   });
+
+  Color _stroke(ColorScheme cs, bool isDark) =>
+      cs.onSurface.withOpacity(isDark ? 0.05 : 0.01);
+
+  Color _appBarBg(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (appBarBackgroundColor != null) return appBarBackgroundColor!;
+
+    return isDark ? cs.surface : cs.primary;
+  }
+
+  Color _appBarFg(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return isDark ? cs.onSurface : cs.onPrimary;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -246,14 +293,22 @@ class CustomScaffoldV2 extends StatelessWidget {
   }
 
   AppBar _buildModernAppBar(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    final bg = appBarBackgroundColor ?? cs.primary;
-    final fg = cs.onPrimary;
+    final bg = _appBarBg(context);
+    final fg = _appBarFg(context);
+
+    final iconBrightness =
+        ThemeData.estimateBrightnessForColor(bg) == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark;
 
     return AppBar(
       bottom: bottom,
       backgroundColor: bg,
+      surfaceTintColor: Colors.transparent,
       centerTitle: centerTitle ?? true,
       title: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
@@ -269,6 +324,8 @@ class CustomScaffoldV2 extends StatelessWidget {
           maxLines: 1,
         ),
       ),
+      iconTheme: IconThemeData(color: fg),
+      actionsIconTheme: IconThemeData(color: fg),
       leading: leading ?? _buildModernLeading(context),
       leadingWidth: appBarLeadingWidth ?? 80,
       elevation: 0,
@@ -282,23 +339,39 @@ class CustomScaffoldV2 extends StatelessWidget {
                 ),
               ]
               : null,
-
       shape: null,
-
+      bottomOpacity: 1,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: _stroke(cs, isDark), width: 1),
+          ),
+        ),
+      ),
       systemOverlayStyle:
           systemOverlayStyle ??
-          SystemUiOverlayStyle.light.copyWith(
+          SystemUiOverlayStyle(
             statusBarColor: bg,
-            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness:
+                iconBrightness == Brightness.light
+                    ? Brightness.dark
+                    : Brightness.light,
+            statusBarIconBrightness: iconBrightness,
+            systemNavigationBarColor: null,
+            systemNavigationBarIconBrightness: null,
           ),
     );
   }
 
   Widget _buildModernLeading(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    final bg = appBarBackgroundColor ?? cs.primary;
-    final fg = cs.onPrimary;
+    final fg = _appBarFg(context);
+
+    final chipBg = fg.withOpacity(isDark ? 0.10 : 0.14);
+    final chipBorder = fg.withOpacity(isDark ? 0.18 : 0.20);
 
     return Padding(
       padding: const EdgeInsets.only(left: 16.0),
@@ -308,9 +381,9 @@ class CustomScaffoldV2 extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: fg.withOpacity(0.15),
+              color: chipBg,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: fg.withOpacity(0.20), width: 1),
+              border: Border.all(color: chipBorder, width: 1),
             ),
             child: Material(
               color: Colors.transparent,
@@ -401,9 +474,27 @@ class CustomSliverScaffold extends StatelessWidget {
     this.showAppBar = true,
   });
 
+  Color _stroke(ColorScheme cs, bool isDark) =>
+      cs.onSurface.withOpacity(isDark ? 0.05 : 0.01);
+
+  Color _bg(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    return appBarBackgroundColor ?? (isDark ? cs.surface : cs.primary);
+  }
+
+  Color _fg(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    return isDark ? cs.onSurface : cs.onPrimary;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return PopScope(
       onPopInvokedWithResult: onPopInvokedWithResult,
@@ -418,6 +509,14 @@ class CustomSliverScaffold extends StatelessWidget {
         body: NestedScrollView(
           physics: const BouncingScrollPhysics(),
           headerSliverBuilder: (context, innerBoxIsScrolled) {
+            final bg = _bg(context);
+            final fg = _fg(context);
+
+            final iconBrightness =
+                ThemeData.estimateBrightnessForColor(bg) == Brightness.dark
+                    ? Brightness.light
+                    : Brightness.dark;
+
             return [
               if (showAppBar)
                 SliverAppBar(
@@ -427,7 +526,8 @@ class CustomSliverScaffold extends StatelessWidget {
                   stretch: stretch,
                   expandedHeight: expandedHeight,
                   toolbarHeight: toolbarHeight,
-                  backgroundColor: appBarBackgroundColor ?? cs.primary,
+                  backgroundColor: bg,
+                  surfaceTintColor: Colors.transparent,
                   leading: _buildSliverLeading(context),
                   leadingWidth: appBarLeadingWidth ?? 80,
                   title:
@@ -444,7 +544,7 @@ class CustomSliverScaffold extends StatelessWidget {
                                         fontWeight: FontWeight.w600,
                                         letterSpacing: -0.3,
                                       ),
-                                      color: cs.onPrimary,
+                                      color: fg,
                                       maxLines: 1,
                                     )
                                     : const SizedBox.shrink(),
@@ -460,15 +560,28 @@ class CustomSliverScaffold extends StatelessWidget {
                             ),
                           ]
                           : null,
-                  flexibleSpace: flexibleSpace,
+                  flexibleSpace: DecoratedBox(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: _stroke(cs, isDark),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: flexibleSpace,
+                  ),
                   elevation: 0,
                   shape: null,
-
                   systemOverlayStyle:
                       systemOverlayStyle ??
-                      SystemUiOverlayStyle.light.copyWith(
-                        statusBarColor: appBarBackgroundColor ?? cs.primary,
-                        statusBarIconBrightness: Brightness.light,
+                      SystemUiOverlayStyle(
+                        statusBarColor: bg,
+                        statusBarBrightness:
+                            iconBrightness == Brightness.light
+                                ? Brightness.dark
+                                : Brightness.light,
+                        statusBarIconBrightness: iconBrightness,
                       ),
                 ),
             ];
@@ -482,11 +595,7 @@ class CustomSliverScaffold extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: cs.shadow.withOpacity(
-                    Theme.of(context).brightness == Brightness.dark
-                        ? 0.25
-                        : 0.10,
-                  ),
+                  color: cs.shadow.withOpacity(isDark ? 0.25 : 0.10),
                   blurRadius: 30,
                   spreadRadius: 0,
                   offset: const Offset(0, -4),
@@ -519,7 +628,11 @@ class CustomSliverScaffold extends StatelessWidget {
 
   Widget _buildSliverLeading(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final fg = cs.onPrimary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final fg = _fg(context);
+    final chipBg = fg.withOpacity(isDark ? 0.10 : 0.14);
+    final chipBorder = fg.withOpacity(isDark ? 0.18 : 0.20);
 
     return Padding(
       padding: const EdgeInsets.only(left: 16.0),
@@ -527,9 +640,9 @@ class CustomSliverScaffold extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: fg.withOpacity(0.15),
+          color: chipBg,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: fg.withOpacity(0.20), width: 1),
+          border: Border.all(color: chipBorder, width: 1),
         ),
         child: Material(
           color: Colors.transparent,

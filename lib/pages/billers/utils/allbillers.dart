@@ -10,7 +10,7 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../../../custom_widgets/alert_dialog.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/custom_textfield.dart';
-import '../../../custom_widgets/loading.dart';
+import '../../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../../custom_widgets/luvpay/neumorphism.dart';
 import '../../../custom_widgets/no_data_found.dart';

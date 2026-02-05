@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
-import 'package:luvpay/custom_widgets/loading.dart';
+import 'package:luvpay/custom_widgets/luvpay/luvpay_loading.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
 import 'package:luvpay/custom_widgets/variables.dart';
 

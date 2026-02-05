@@ -18,7 +18,7 @@ import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/brightness_setter.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
-import 'package:luvpay/custom_widgets/loading.dart';
+import 'package:luvpay/custom_widgets/luvpay/luvpay_loading.dart';
 import 'package:luvpay/custom_widgets/luvpay/statusbar_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+
 import 'dart:io';
 
 import 'package:email_validator/email_validator.dart';
@@ -10,18 +12,20 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/pages/my_account/utils/index.dart';
 
 import '../../../custom_widgets/alert_dialog.dart';
-import '../../../custom_widgets/app_color_v2.dart';
-import '../../../custom_widgets/custom_button.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/custom_textfield.dart';
-import '../../../custom_widgets/loading.dart';
 import '../../../custom_widgets/luvpay/custom_scaffold.dart';
+import '../../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../../custom_widgets/luvpay/neumorphism.dart';
 import '../../../custom_widgets/spacing.dart';
 import '../../../custom_widgets/variables.dart';
+import 'success/update_success.dart';
 
 class UpdateProfile extends GetView<UpdateProfileController> {
   const UpdateProfile({super.key});
+
+  Color _stroke(ColorScheme cs, bool isDark) =>
+      cs.onSurface.withOpacity(isDark ? 0.05 : 0.01);
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +36,7 @@ class UpdateProfile extends GetView<UpdateProfileController> {
         "Are you sure you want to close this page?",
         leftText: "No",
         rightText: "Yes",
-        () {
-          Get.back();
-        },
+        () => Get.back(),
         () {
           Get.back();
           Get.back();
@@ -42,166 +44,177 @@ class UpdateProfile extends GetView<UpdateProfileController> {
       );
     }
 
-    return Obx(
-      () =>
-          controller.isLoading.value
-              ? const Scaffold(body: LoadingCard())
-              : CustomScaffoldV2(
-                appBarTitle: "Personal Information",
+    return Obx(() {
+      final theme = Theme.of(context);
+      final cs = theme.colorScheme;
+      final isDark = theme.brightness == Brightness.dark;
 
-                onPopInvokedWithResult: (bool didPop, dynamic result) {
-                  FocusScope.of(context).requestFocus(FocusNode());
-                  if (!didPop) {
-                    close();
-                  }
-                },
-                onPressedLeading: () {
-                  FocusScope.of(context).requestFocus(FocusNode());
-                  close();
-                },
-                canPop: false,
-                enableToolBar: true,
-                scaffoldBody: SizedBox(
-                  width: double.infinity,
-                  child: ScrollConfiguration(
-                    behavior: ScrollBehavior().copyWith(overscroll: false),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+      if (controller.isLoading.value) {
+        return Scaffold(
+          backgroundColor: cs.surface,
+          body: const LoadingCard(text: "Loading…"),
+        );
+      }
+
+      return CustomScaffoldV2(
+        appBarTitle: "Personal Information",
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
+          FocusScope.of(context).requestFocus(FocusNode());
+          if (!didPop) close();
+        },
+        onPressedLeading: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+          close();
+        },
+        canPop: false,
+        enableToolBar: true,
+        padding: EdgeInsets.zero,
+        scaffoldBody: SizedBox(
+          width: double.infinity,
+          child: ScrollConfiguration(
+            behavior: ScrollBehavior().copyWith(overscroll: false),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(19, 19, 19, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Builder(
+                      builder: (context) {
+                        final idx = controller.currentIndex.value;
+                        if (idx == 0) {
+                          return DefaultText(
+                            maxLines: 1,
+                            style: AppTextStyle.body1(context),
+                            color: cs.onSurface.withOpacity(0.72),
+                            text:
+                                "Enter accurate details to personalize your experience.",
+                          );
+                        } else if (idx == 1) {
+                          return DefaultText(
+                            style: AppTextStyle.body1(context),
+                            color: cs.onSurface.withOpacity(0.72),
+                            text:
+                                "Add your full residential address for verification.",
+                          );
+                        } else {
+                          return DefaultText(
+                            style: AppTextStyle.body1(context),
+                            color: cs.onSurface.withOpacity(0.72),
+                            text:
+                                "Select an answer you can easily recall but that others cannot easily guess.",
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 100),
+                      transitionBuilder: (
+                        Widget child,
+                        Animation<double> animation,
+                      ) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      child: controller.pages[controller.currentIndex.value],
+                    ),
+                  ),
+                  if (MediaQuery.of(context).viewInsets.bottom == 0)
+                    Row(
                       children: [
-                        AnimatedSwitcher(
-                          duration: Duration(milliseconds: 200),
-                          child: Builder(
-                            builder: (context) {
-                              if (controller.currentIndex.value == 0) {
-                                return DefaultText(
-                                  maxLines: 1,
-                                  style: AppTextStyle.body1(context),
-                                  text:
-                                      "Enter accurate details to personalize your experience.",
-                                );
-                              } else if (controller.currentIndex.value == 1) {
-                                return DefaultText(
-                                  style: AppTextStyle.body1(context),
-                                  text:
-                                      "Add your full residential address for verification.",
-                                );
-                              } else {
-                                return DefaultText(
-                                  style: AppTextStyle.body1(context),
-                                  text:
-                                      "Select an answer you can easily recall but that others cannot easily guess.",
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        Expanded(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 100),
-                            transitionBuilder: (
-                              Widget child,
-                              Animation<double> animation,
-                            ) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                            child:
-                                controller.pages[controller.currentIndex.value],
-                          ),
-                        ),
-                        if (MediaQuery.of(context).viewInsets.bottom == 0)
-                          Row(
-                            children: [
-                              if (controller.currentIndex.value > 0)
-                                Expanded(
-                                  child: LuvNeuPress.rectangle(
-                                    radius: BorderRadius.circular(16),
-                                    onTap: controller.previousPage,
-                                    borderColor: AppColorV2.lpBlueBrand
-                                        .withOpacity(0.18),
-                                    child: SizedBox(
-                                      height: 52,
-                                      child: Center(
-                                        child: DefaultText(
-                                          text: "Previous",
-                                          style: AppTextStyle.body1(
-                                            context,
-                                          ).copyWith(
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                          color: AppColorV2.lpBlueBrand,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (controller.currentIndex.value > 0)
-                                spacing(width: 10),
-                              Expanded(
-                                child: LuvNeuPress.rectangle(
-                                  radius: BorderRadius.circular(16),
-                                  onTap: controller.nextPage,
-                                  background: AppColorV2.lpBlueBrand,
-                                  borderColor: AppColorV2.lpBlueBrand
-                                      .withOpacity(0.12),
-                                  child: SizedBox(
-                                    height: 52,
-                                    child: Center(
-                                      child: DefaultText(
-                                        text:
-                                            controller.currentIndex.value == 2
-                                                ? "Submit"
-                                                : "Next",
-                                        style: AppTextStyle.body1(
-                                          context,
-                                        ).copyWith(fontWeight: FontWeight.w900),
-                                        color: AppColorV2.background,
-                                      ),
-                                    ),
+                        if (controller.currentIndex.value > 0)
+                          Expanded(
+                            child: LuvNeuPress.rectangle(
+                              radius: BorderRadius.circular(16),
+                              onTap: controller.previousPage,
+                              background: cs.surface,
+                              borderColor: _stroke(cs, isDark),
+                              child: SizedBox(
+                                height: 52,
+                                child: Center(
+                                  child: DefaultText(
+                                    text: "Previous",
+                                    style: AppTextStyle.body1(
+                                      context,
+                                    ).copyWith(fontWeight: FontWeight.w800),
+                                    color: cs.primary,
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-
-                        spacing(height: 20),
+                        if (controller.currentIndex.value > 0)
+                          spacing(width: 10),
+                        Expanded(
+                          child: LuvNeuPress.rectangle(
+                            radius: BorderRadius.circular(16),
+                            onTap: controller.nextPage,
+                            background: cs.primary,
+                            borderColor: Colors.transparent,
+                            child: SizedBox(
+                              height: 52,
+                              child: Center(
+                                child: DefaultText(
+                                  text:
+                                      controller.currentIndex.value == 2
+                                          ? "Submit"
+                                          : "Next",
+                                  style: AppTextStyle.body1(
+                                    context,
+                                  ).copyWith(fontWeight: FontWeight.w900),
+                                  color: cs.onPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ),
-                bottom: PreferredSize(
-                  preferredSize: Size.fromHeight(90),
-                  child: index(),
-                ),
+                  spacing(height: 20),
+                ],
               ),
-    );
+            ),
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(90),
+          child: index(context),
+        ),
+      );
+    });
   }
 
-  Widget index() {
+  Widget index(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final inactiveDot = cs.onPrimary.withOpacity(isDark ? 0.22 : 0.40);
+    final activeDot = cs.onPrimary;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 19),
       child: Column(
         children: [
           Row(
-            children: List.generate(3, (index) {
+            children: List.generate(3, (i) {
+              final cur = controller.currentIndex.value;
+              final passed = cur > i;
+              final isNow = cur == i;
+              final enabled = cur >= i;
+
               return Expanded(
                 child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Row(
                       children: [
-                        if (index != 0)
+                        if (i != 0)
                           Expanded(
                             child: Container(
                               height: 2,
-                              color:
-                                  controller.currentIndex.value >= index
-                                      ? AppColorV2.background
-                                      : AppColorV2.background.withAlpha(50),
+                              color: enabled ? activeDot : inactiveDot,
                             ),
                           ),
                         Container(
@@ -210,31 +223,29 @@ class UpdateProfile extends GetView<UpdateProfileController> {
                           height: 40,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color:
-                                controller.currentIndex.value > index
-                                    ? AppColorV2.background
-                                    : controller.currentIndex.value == index
-                                    ? AppColorV2.background
-                                    : AppColorV2.background.withAlpha(50),
+                            color: passed || isNow ? activeDot : inactiveDot,
+                            border: Border.all(
+                              color: cs.onPrimary.withOpacity(
+                                isDark ? 0.05 : 0.01,
+                              ),
+                              width: 1,
+                            ),
                           ),
                           child: Center(
                             child: Text(
-                              '${index + 1}',
+                              '${i + 1}',
                               style: TextStyle(
-                                color: AppColorV2.lpBlueBrand,
-                                fontWeight: FontWeight.bold,
+                                color: cs.primary,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
                           ),
                         ),
-                        if (index != 2)
+                        if (i != 2)
                           Expanded(
                             child: Container(
                               height: 2,
-                              color:
-                                  controller.currentIndex.value > index
-                                      ? AppColorV2.background
-                                      : AppColorV2.background.withAlpha(50),
+                              color: passed ? activeDot : inactiveDot,
                             ),
                           ),
                       ],
@@ -247,23 +258,21 @@ class UpdateProfile extends GetView<UpdateProfileController> {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(3, (index) {
+            children: List.generate(3, (i) {
+              final enabled = controller.currentIndex.value >= i;
               return DefaultText(
-                style: AppTextStyle.body1(Get.context!),
+                style: AppTextStyle.body1(context),
                 text:
-                    index == 0
+                    i == 0
                         ? "Profile"
-                        : index == 1
+                        : i == 1
                         ? "  Address"
                         : "Security",
-                color:
-                    controller.currentIndex.value >= index
-                        ? AppColorV2.background
-                        : AppColorV2.background.withAlpha(180),
+                color: enabled ? cs.onPrimary : cs.onPrimary.withOpacity(0.70),
               );
             }),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -276,9 +285,7 @@ class NumericInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    if (RegExp(r'^\d*$').hasMatch(newValue.text)) {
-      return newValue;
-    }
+    if (RegExp(r'^\d*$').hasMatch(newValue.text)) return newValue;
     return oldValue;
   }
 }
@@ -291,10 +298,10 @@ class SimpleNameFormatter extends TextInputFormatter {
   ) {
     final regex = RegExp(r'^(|[a-zA-Z][a-zA-Z.-]*( [a-zA-Z.-]*)* ?)$');
 
-    int periodCount = newValue.text.split('.').length - 1;
-    int hyphenCount = newValue.text.split('-').length - 1;
+    final periodCount = newValue.text.split('.').length - 1;
+    final hyphenCount = newValue.text.split('-').length - 1;
 
-    bool hasDisallowedCombination =
+    final hasDisallowedCombination =
         newValue.text.contains('. -') ||
         newValue.text.contains('- .') ||
         newValue.text.contains(' .') ||
@@ -321,6 +328,9 @@ class Stepp1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(UpdateProfileController());
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return Obx(
       () => SizedBox(
         width: double.infinity,
@@ -333,16 +343,15 @@ class Stepp1 extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(height: 20),
+                  const SizedBox(height: 20),
+
                   DefaultText(
                     text: "First Name",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   CustomTextField(
                     textInputAction: TextInputAction.next,
-
                     hintText: "e.g Juan",
                     controller: controller.firstName,
                     onChange: (value) {
@@ -353,10 +362,8 @@ class Stepp1 extends StatelessWidget {
                         );
                       } else {
                         controller.firstName.value = TextEditingValue(
-                          text: Variables.capitalizeAllWord(
-                            value.substring(0, 30),
-                          ),
-                          selection: TextSelection.collapsed(offset: 0),
+                          text: Variables.capitalizeAllWord(value),
+                          selection: const TextSelection.collapsed(offset: 0),
                         );
                       }
                     },
@@ -365,27 +372,26 @@ class Stepp1 extends StatelessWidget {
                       SimpleNameFormatter(),
                     ],
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return "First name is required";
-                      }
-                      if ((value.endsWith(' ') ||
+                      if (value.endsWith(' ') ||
                           value.endsWith('-') ||
-                          value.endsWith('.'))) {
+                          value.endsWith('.')) {
                         return "First name cannot end with a space, hyphen, or period";
                       }
                       return null;
                     },
                   ),
-                  Container(height: 15),
+
+                  const SizedBox(height: 15),
+
                   DefaultText(
                     text: "Middle Name",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   CustomTextField(
                     textInputAction: TextInputAction.next,
-
                     hintText: "e.g Santos (optional)",
                     controller: controller.middleName,
                     inputFormatters: [
@@ -393,7 +399,7 @@ class Stepp1 extends StatelessWidget {
                       SimpleNameFormatter(),
                     ],
                     textCapitalization: TextCapitalization.words,
-                    onChange: (inputText) {},
+                    onChange: (_) {},
                     validator: (value) {
                       if (value != null &&
                           (value.endsWith(' ') ||
@@ -404,16 +410,16 @@ class Stepp1 extends StatelessWidget {
                       return null;
                     },
                   ),
-                  Container(height: 15),
+
+                  const SizedBox(height: 15),
+
                   DefaultText(
                     text: "Last Name",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   CustomTextField(
                     textInputAction: TextInputAction.next,
-
                     hintText: "e.g dela Cruz",
                     controller: controller.lastName,
                     textCapitalization: TextCapitalization.words,
@@ -425,10 +431,8 @@ class Stepp1 extends StatelessWidget {
                         );
                       } else {
                         controller.lastName.value = TextEditingValue(
-                          text: Variables.capitalizeAllWord(
-                            value.substring(0, 30),
-                          ),
-                          selection: TextSelection.collapsed(offset: 0),
+                          text: Variables.capitalizeAllWord(value),
+                          selection: const TextSelection.collapsed(offset: 0),
                         );
                       }
                     },
@@ -437,50 +441,44 @@ class Stepp1 extends StatelessWidget {
                       SimpleNameFormatter(),
                     ],
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return "Last name is required";
-                      }
-                      if ((value.endsWith(' ') ||
+                      if (value.endsWith(' ') ||
                           value.endsWith('-') ||
-                          value.endsWith('.'))) {
+                          value.endsWith('.')) {
                         return "Last name cannot end with a space, hyphen, or period";
                       }
                       return null;
                     },
                   ),
-                  Container(height: 15),
+
+                  const SizedBox(height: 15),
+
                   DefaultText(
                     text: "Email",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
-
                   CustomTextField(
                     textInputAction: TextInputAction.next,
-
                     hintText: "youremail@gmail.com",
                     controller: controller.email,
                     keyboardType: TextInputType.emailAddress,
                     onChange: (value) {
-                      String trimmedValue = value.replaceFirst(
+                      final trimmedValue = value.replaceFirst(
                         RegExp(r'^\s+'),
                         '',
                       );
-                      if (trimmedValue.isNotEmpty) {
-                      } else {
+                      if (trimmedValue.isEmpty) {
                         controller.email.value = TextEditingValue(
-                          text: Variables.capitalizeAllWord(
-                            trimmedValue.substring(0, 30),
-                          ),
-                          selection: TextSelection.collapsed(offset: 0),
+                          text: trimmedValue,
+                          selection: const TextSelection.collapsed(offset: 0),
                         );
                       }
                     },
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return 'Email address is required';
-                      }
                       if (!EmailValidator.validate(value) ||
                           !Variables.emailRegex.hasMatch(value)) {
                         controller.focusNode.requestFocus();
@@ -489,17 +487,16 @@ class Stepp1 extends StatelessWidget {
                       return null;
                     },
                   ),
-                  Container(height: 15),
+
+                  const SizedBox(height: 15),
+
                   DefaultText(
                     text: "Birthday",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   CustomTextField(
-                    onIconTap: () {
-                      controller.selectDate(Get.context!);
-                    },
+                    onIconTap: () => controller.selectDate(Get.context!),
                     inputFormatters: [DateTextInputFormatter()],
                     keyboardType: TextInputType.number,
                     suffixIcon: LucideIcons.calendarRange,
@@ -508,15 +505,12 @@ class Stepp1 extends StatelessWidget {
                     controller: controller.bday,
                     onTap: () {},
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return "Birthday is required";
-                      }
-
                       try {
                         final parsedDate = DateFormat(
                           'yyyy-MM-dd',
                         ).parseStrict(value);
-
                         final today = DateTime.now();
                         int age = today.year - parsedDate.year;
                         if (today.month < parsedDate.month ||
@@ -524,19 +518,17 @@ class Stepp1 extends StatelessWidget {
                                 today.day < parsedDate.day)) {
                           age--;
                         }
-
-                        if (age < 12) {
+                        if (age < 12)
                           return "You must be at least 12 years old.";
-                        }
-                      } catch (e) {
+                      } catch (_) {
                         return "Please enter a valid date (YYYY-MM-DD)";
                       }
-
                       return null;
                     },
                   ),
 
-                  Container(height: 15),
+                  const SizedBox(height: 15),
+
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -547,19 +539,24 @@ class Stepp1 extends StatelessWidget {
                             DefaultText(
                               text: "Gender",
                               style: AppTextStyle.h3(context),
-
-                              color: AppColorV2.primaryTextColor,
+                              color: cs.onSurface,
                             ),
-                            SizedBox(height: 5),
+                            const SizedBox(height: 5),
                             Container(
                               width: double.infinity,
-                              padding: EdgeInsets.only(left: 10),
+                              padding: const EdgeInsets.only(left: 10),
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  width: 2,
-                                  color: AppColorV2.boxStroke,
+                                  width: 1,
+                                  color: cs.onSurface.withOpacity(
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? 0.05
+                                        : 0.01,
+                                  ),
                                 ),
                                 borderRadius: BorderRadius.circular(10),
+                                color: cs.surface,
                               ),
                               child: DropdownButton<String>(
                                 isExpanded: true,
@@ -567,36 +564,34 @@ class Stepp1 extends StatelessWidget {
                                     controller.gender.value.isEmpty
                                         ? null
                                         : controller.gender.value,
-
-                                items: [
+                                items: const [
                                   DropdownMenuItem(
                                     value: "M",
-                                    child: DefaultText(
-                                      text: "Male",
-                                      color: AppColorV2.primaryTextColor,
-                                    ),
+                                    child: Text("Male"),
                                   ),
                                   DropdownMenuItem(
                                     value: "F",
-                                    child: DefaultText(
-                                      text: "Female",
-                                      color: AppColorV2.primaryTextColor,
-                                    ),
+                                    child: Text("Female"),
                                   ),
                                 ],
-                                onChanged: (String? newValue) {
-                                  if (newValue != null) {
-                                    controller.gender.value = newValue;
-                                  }
+                                onChanged: (v) {
+                                  if (v != null) controller.gender.value = v;
                                 },
-                                dropdownColor: Colors.white,
-                                underline: SizedBox(),
+                                dropdownColor: cs.surface,
+                                underline: const SizedBox(),
+                                style: TextStyle(
+                                  color: cs.onSurface,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                iconEnabledColor: cs.onSurface.withOpacity(
+                                  0.65,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      Container(width: 15),
+                      const SizedBox(width: 15),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -604,30 +599,29 @@ class Stepp1 extends StatelessWidget {
                             DefaultText(
                               text: "Civil status",
                               style: AppTextStyle.h3(context),
-
-                              color: AppColorV2.primaryTextColor,
+                              color: cs.onSurface,
                             ),
-                            SizedBox(height: 5),
+                            const SizedBox(height: 5),
                             customDropdown(
                               labelText: "Select status",
                               isDisabled: false,
                               items: controller.civilData,
                               selectedValue: controller.selectedCivil.value,
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null || value.isEmpty)
                                   return "Civil status is required";
-                                }
                                 return null;
                               },
-                              onChanged: (data) {
-                                controller.selectedCivil.value = data!;
-                              },
+                              onChanged:
+                                  (data) =>
+                                      controller.selectedCivil.value = data!,
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
+
                   spacing(height: 10),
                   spacing(height: 30),
                 ],
@@ -646,6 +640,8 @@ class Stepp2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(UpdateProfileController());
+    final cs = Theme.of(context).colorScheme;
+
     return Obx(
       () => SizedBox(
         width: double.infinity,
@@ -660,11 +656,11 @@ class Stepp2 extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   spacing(height: 20),
+
                   DefaultText(
                     text: "Region",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 10, bottom: 20),
@@ -678,96 +674,92 @@ class Stepp2 extends StatelessWidget {
                         controller.getProvinceData(newValue);
                         controller.zipCode.clear();
                       },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Region is required";
-                        }
-                        return null;
-                      },
+                      validator:
+                          (value) =>
+                              (value == null || value.isEmpty)
+                                  ? "Region is required"
+                                  : null,
                     ),
                   ),
+
                   DefaultText(
                     text: "Province",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 10.0, bottom: 20),
+                    padding: const EdgeInsets.only(top: 10, bottom: 20),
                     child: customDropdown(
                       labelText: "Choose Province",
                       isDisabled: false,
                       items: controller.provinceData,
                       selectedValue: controller.selectedProvince.value,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Province is required';
-                        }
-                        return null;
-                      },
+                      validator:
+                          (value) =>
+                              (value == null || value.isEmpty)
+                                  ? 'Province is required'
+                                  : null,
                       onChanged: (data) {
                         controller.selectedProvince.value = data.toString();
                         controller.getCityData(data);
                       },
                     ),
                   ),
+
                   DefaultText(
                     text: "City",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 10.0, bottom: 20),
+                    padding: const EdgeInsets.only(top: 10, bottom: 20),
                     child: customDropdown(
                       labelText: "Choose City",
                       isDisabled: false,
                       items: controller.cityData,
                       selectedValue: controller.selectedCity.value,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'City is required';
-                        }
-                        return null;
-                      },
+                      validator:
+                          (value) =>
+                              (value == null || value.isEmpty)
+                                  ? 'City is required'
+                                  : null,
                       onChanged: (data) {
                         controller.selectedCity.value = data.toString();
                         controller.getBrgyData(data);
                       },
                     ),
                   ),
+
                   DefaultText(
                     text: "Barangay",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 10.0, bottom: 20),
+                    padding: const EdgeInsets.only(top: 10, bottom: 20),
                     child: customDropdown(
                       labelText: "Choose Barangay",
                       isDisabled: false,
                       items: controller.brgyData,
                       selectedValue: controller.selectedBrgy.value,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Barangay is required';
-                        }
-                        return null;
-                      },
-                      onChanged: (data) {
-                        controller.selectedBrgy.value = data.toString();
-                      },
+                      validator:
+                          (value) =>
+                              (value == null || value.isEmpty)
+                                  ? 'Barangay is required'
+                                  : null,
+                      onChanged:
+                          (data) =>
+                              controller.selectedBrgy.value = data.toString(),
                     ),
                   ),
+
                   DefaultText(
                     text: "Zip Code",
                     style: AppTextStyle.h3(context),
-
-                    color: AppColorV2.primaryTextColor,
+                    color: cs.onSurface,
                   ),
                   CustomTextField(
-                    filledColor: AppColorV2.inactiveButton,
+                    filledColor: cs.surfaceContainerHighest,
                     isReadOnly:
                         controller.selectedBrgy.value == null ||
                         controller.selectedRegion.value == null ||
@@ -791,23 +783,22 @@ class Stepp2 extends StatelessWidget {
                               signed: true,
                               decimal: false,
                             ),
-                    onChange: (value) {
+                    onChange: (_) {
                       controller.zipCode.selection = TextSelection.fromPosition(
                         TextPosition(offset: controller.zipCode.text.length),
                       );
                       controller.formKeyStep2.currentState?.validate();
                     },
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return 'ZIP code is required';
-                      } else if (value.length != 4) {
-                        return 'ZIP code must be 4 digits';
-                      } else if (!RegExp(r'^\d{4}$').hasMatch(value)) {
+                      if (value.length != 4) return 'ZIP code must be 4 digits';
+                      if (!RegExp(r'^\d{4}$').hasMatch(value))
                         return 'ZIP code must be numeric';
-                      }
                       return null;
                     },
                   ),
+
                   spacing(height: 10),
                 ],
               ),
@@ -825,257 +816,96 @@ class Stepp3 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(UpdateProfileController());
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return Obx(
       () => SingleChildScrollView(
         child: Form(
           key: controller.formKeyStep3,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               spacing(height: 20),
-              Column(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      controller.showBottomSheet(
-                        bottomSheetQuestion(controller.getDropdownData(), (
-                          objData,
-                        ) {
-                          Get.back();
-                          controller.question1.value = objData["question"];
-                          controller.seq1.value = objData["secq_id"];
-                        }),
-                      );
-                    },
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: DefaultText(
-                            text: controller.question1.value,
-                            style: AppTextStyle.h3(context),
 
-                            color:
-                                controller.seq1.value == 0
-                                    ? AppColorV2.lpBlueBrand
-                                    : AppColorV2.primaryTextColor,
-                          ),
-                        ),
-                        spacing(width: 10),
-                        Icon(
-                          CupertinoIcons.chevron_down,
-                          color:
-                              controller.seq1.value == 0
-                                  ? AppColorV2.lpBlueBrand
-                                  : AppColorV2.primaryTextColor,
-                        ),
-                      ],
+              _QnaBlock(
+                titleText: controller.question1.value,
+                isDisabled: controller.seq1.value == 0,
+                titleColor:
+                    controller.seq1.value == 0 ? cs.primary : cs.onSurface,
+                onPickQuestion: () {
+                  controller.showBottomSheet(
+                    bottomSheetQuestion(controller.getDropdownData(), (
+                      objData,
+                    ) {
+                      Get.back();
+                      controller.question1.value = objData["question"];
+                      controller.seq1.value = objData["secq_id"];
+                    }, context),
+                  );
+                },
+                controller: controller.answer1,
+                obscure: controller.obscureTextAnswer1.value,
+                toggle:
+                    () => controller.onToggleShowAnswer1(
+                      !controller.obscureTextAnswer1.value,
                     ),
-                  ),
-                  spacing(height: 10),
-                  CustomTextField(
-                    hintText: "Enter your answer",
-                    textCapitalization: TextCapitalization.characters,
-                    inputFormatters: [
-                      UpperCaseTextFormatter(),
-                      LengthLimitingTextInputFormatter(30),
-                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
-                    ],
-                    keyboardType: TextInputType.name,
-                    controller: controller.answer1,
-                    isReadOnly: controller.seq1.value == 0,
-                    isObscure: controller.obscureTextAnswer1.value,
-                    suffixIcon:
-                        controller.obscureTextAnswer1.value
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                    onIconTap: () {
-                      controller.onToggleShowAnswer1(
-                        !controller.obscureTextAnswer1.value,
-                      );
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Field is required.';
-                      }
-                      if (value.length < 3) {
-                        return 'Minimum length is 3 characters.';
-                      }
-                      if (value.length > 30) {
-                        return 'Maximum length is 30 characters.';
-                      }
-
-                      return null;
-                    },
-                  ),
-                ],
               ),
+
               spacing(height: 20),
-              Column(
-                children: [
-                  Column(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          controller.showBottomSheet(
-                            bottomSheetQuestion(controller.getDropdownData(), (
-                              objData,
-                            ) {
-                              Get.back();
-                              controller.question2.value = objData["question"];
-                              controller.seq2.value = objData["secq_id"];
-                            }),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: DefaultText(
-                                text: controller.question2.value,
-                                style: AppTextStyle.h3(context),
 
-                                color:
-                                    controller.seq2.value == 0
-                                        ? AppColorV2.lpBlueBrand
-                                        : AppColorV2.primaryTextColor,
-                              ),
-                            ),
-                            spacing(width: 10),
-                            Icon(
-                              CupertinoIcons.chevron_down,
-                              color:
-                                  controller.seq2.value == 0
-                                      ? AppColorV2.lpBlueBrand
-                                      : AppColorV2.primaryTextColor,
-                            ),
-                          ],
-                        ),
-                      ),
-                      spacing(height: 10),
-                      CustomTextField(
-                        hintText: "Enter your answer",
-                        inputFormatters: [
-                          UpperCaseTextFormatter(),
-                          LengthLimitingTextInputFormatter(30),
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[a-zA-Z\s]'),
-                          ),
-                        ],
-                        keyboardType: TextInputType.name,
-                        textCapitalization: TextCapitalization.characters,
-                        isReadOnly: controller.seq2.value == 0,
-                        controller: controller.answer2,
-                        isObscure: controller.obscureTextAnswer2.value,
-                        suffixIcon:
-                            controller.obscureTextAnswer2.value
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                        onIconTap: () {
-                          controller.onToggleShowAnswer2(
-                            !controller.obscureTextAnswer2.value,
-                          );
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Field is required.';
-                          }
-                          if (value.length < 3) {
-                            return 'Minimum length is 3 characters.';
-                          }
-                          if (value.length > 30) {
-                            return 'Maximum length is 30 characters.';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+              _QnaBlock(
+                titleText: controller.question2.value,
+                isDisabled: controller.seq2.value == 0,
+                titleColor:
+                    controller.seq2.value == 0 ? cs.primary : cs.onSurface,
+                onPickQuestion: () {
+                  controller.showBottomSheet(
+                    bottomSheetQuestion(controller.getDropdownData(), (
+                      objData,
+                    ) {
+                      Get.back();
+                      controller.question2.value = objData["question"];
+                      controller.seq2.value = objData["secq_id"];
+                    }, context),
+                  );
+                },
+                controller: controller.answer2,
+                obscure: controller.obscureTextAnswer2.value,
+                toggle:
+                    () => controller.onToggleShowAnswer2(
+                      !controller.obscureTextAnswer2.value,
+                    ),
               ),
+
               spacing(height: 30),
-              Column(
-                children: [
-                  Column(
-                    children: [
-                      InkWell(
-                        onTap: () async {
-                          FocusScope.of(context).requestFocus(FocusNode());
-                          await Future.delayed(Duration(milliseconds: 200));
-                          controller.showBottomSheet(
-                            bottomSheetQuestion(controller.getDropdownData(), (
-                              objData,
-                            ) {
-                              Get.back();
-                              controller.question3.value = objData["question"];
-                              controller.seq3.value = objData["secq_id"];
-                            }),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: DefaultText(
-                                text: controller.question3.value,
-                                style: AppTextStyle.h3(context),
 
-                                color:
-                                    controller.seq3.value == 0
-                                        ? AppColorV2.lpBlueBrand
-                                        : AppColorV2.primaryTextColor,
-                              ),
-                            ),
-                            spacing(width: 10),
-                            Icon(
-                              CupertinoIcons.chevron_down,
-                              color:
-                                  controller.seq3.value == 0
-                                      ? AppColorV2.lpBlueBrand
-                                      : AppColorV2.primaryTextColor,
-                            ),
-                          ],
-                        ),
-                      ),
-                      spacing(height: 10),
-                      CustomTextField(
-                        hintText: "Enter your answer",
-                        inputFormatters: [
-                          UpperCaseTextFormatter(),
-                          LengthLimitingTextInputFormatter(30),
-                          FilteringTextInputFormatter.allow(
-                            RegExp(r'[a-zA-Z\s]'),
-                          ),
-                        ],
-                        keyboardType: TextInputType.name,
-                        textCapitalization: TextCapitalization.characters,
-                        controller: controller.answer3,
-                        isReadOnly: controller.seq3.value == 0,
-                        isObscure: controller.obscureTextAnswer3.value,
-                        suffixIcon:
-                            controller.obscureTextAnswer3.value
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                        onIconTap: () {
-                          controller.onToggleShowAnswer3(
-                            !controller.obscureTextAnswer3.value,
-                          );
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Field is required.';
-                          }
-                          if (value.length < 3) {
-                            return 'Minimum length is 3 characters.';
-                          }
-                          if (value.length > 30) {
-                            return 'Maximum length is 30 characters.';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+              _QnaBlock(
+                titleText: controller.question3.value,
+                isDisabled: controller.seq3.value == 0,
+                titleColor:
+                    controller.seq3.value == 0 ? cs.primary : cs.onSurface,
+                onPickQuestion: () async {
+                  FocusScope.of(context).requestFocus(FocusNode());
+                  await Future.delayed(const Duration(milliseconds: 200));
+                  controller.showBottomSheet(
+                    bottomSheetQuestion(controller.getDropdownData(), (
+                      objData,
+                    ) {
+                      Get.back();
+                      controller.question3.value = objData["question"];
+                      controller.seq3.value = objData["secq_id"];
+                    }, context),
+                  );
+                },
+                controller: controller.answer3,
+                obscure: controller.obscureTextAnswer3.value,
+                toggle:
+                    () => controller.onToggleShowAnswer3(
+                      !controller.obscureTextAnswer3.value,
+                    ),
               ),
+
               spacing(height: MediaQuery.of(context).size.height / 5),
             ],
           ),
@@ -1084,13 +914,21 @@ class Stepp3 extends StatelessWidget {
     );
   }
 
-  Widget bottomSheetQuestion(dynamic data, Function cb) {
+  Widget bottomSheetQuestion(dynamic data, Function cb, BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      height: MediaQuery.of(Get.context!).size.height * .60,
-      width: MediaQuery.of(Get.context!).size.width,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+      height: MediaQuery.of(context).size.height * .60,
+      width: MediaQuery.of(context).size.width,
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+        border: Border.all(
+          color: cs.onSurface.withOpacity(isDark ? 0.05 : 0.01),
+          width: 1,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(15, 20, 15, 10),
@@ -1102,35 +940,35 @@ class Stepp3 extends StatelessWidget {
                 height: 6,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(56),
-                  color: const Color(0xffd9d9d9),
+                  color: cs.onSurface.withOpacity(isDark ? 0.20 : 0.12),
                 ),
               ),
             ),
             spacing(height: 10),
-            const DefaultText(text: "Choose a question"),
-            Divider(),
-            spacing(height: 20),
+            DefaultText(
+              text: "Choose a question",
+              style: AppTextStyle.h3(context),
+              color: cs.onSurface,
+            ),
+            Divider(color: cs.onSurface.withOpacity(isDark ? 0.08 : 0.05)),
+            spacing(height: 10),
             Expanded(
               child: StretchingOverscrollIndicator(
                 axisDirection: AxisDirection.down,
                 child: ListView.separated(
-                  physics: BouncingScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(5),
                   itemBuilder: (context, index) {
                     return ListTile(
-                      onTap: () {
-                        cb(data[index]);
-                      },
-
+                      onTap: () => cb(data[index]),
                       title: DefaultText(
                         style: AppTextStyle.paragraph2(context),
                         text: data[index]["question"],
-                        color: Colors.black,
+                        color: cs.onSurface.withOpacity(0.88),
                       ),
                     );
                   },
-                  separatorBuilder:
-                      (context, index) => const SizedBox(height: 5),
+                  separatorBuilder: (_, __) => const SizedBox(height: 5),
                   itemCount: data.length,
                 ),
               ),
@@ -1138,6 +976,72 @@ class Stepp3 extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _QnaBlock extends StatelessWidget {
+  final String titleText;
+  final bool isDisabled;
+  final Color titleColor;
+  final VoidCallback onPickQuestion;
+  final TextEditingController controller;
+  final bool obscure;
+  final VoidCallback toggle;
+
+  const _QnaBlock({
+    required this.titleText,
+    required this.isDisabled,
+    required this.titleColor,
+    required this.onPickQuestion,
+    required this.controller,
+    required this.obscure,
+    required this.toggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: onPickQuestion,
+          child: Row(
+            children: [
+              Expanded(
+                child: DefaultText(
+                  text: titleText,
+                  style: AppTextStyle.h3(context),
+                  color: titleColor,
+                ),
+              ),
+              spacing(width: 10),
+              Icon(CupertinoIcons.chevron_down, color: titleColor),
+            ],
+          ),
+        ),
+        spacing(height: 10),
+        CustomTextField(
+          hintText: "Enter your answer",
+          textCapitalization: TextCapitalization.characters,
+          inputFormatters: [
+            UpperCaseTextFormatter(),
+            LengthLimitingTextInputFormatter(30),
+            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+          ],
+          keyboardType: TextInputType.name,
+          controller: controller,
+          isReadOnly: isDisabled,
+          isObscure: obscure,
+          suffixIcon: obscure ? Icons.visibility_off : Icons.visibility,
+          onIconTap: toggle,
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'Field is required.';
+            if (value.length < 3) return 'Minimum length is 3 characters.';
+            if (value.length > 30) return 'Maximum length is 30 characters.';
+            return null;
+          },
+        ),
+      ],
     );
   }
 }

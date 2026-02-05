@@ -249,12 +249,9 @@ class QRController extends GetxController
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Center(child: DefaultText(text: "Scan to Pay", fontSize: 20)),
-          spacing(height: 10),
           Center(
             child: DefaultText(
-              text:
-                  "Align the QR code within the frame to proceed ${myQR != null ? "" : "with payment"}",
+              text: "Align the QR code\nwithin the frame to proceed.",
               textAlign: TextAlign.center,
             ),
           ),

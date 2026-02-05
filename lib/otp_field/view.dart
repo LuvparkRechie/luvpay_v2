@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, deprecated_member_use
 
 import 'dart:async';
 
@@ -19,7 +19,7 @@ import '../../http/http_request.dart';
 import '../custom_widgets/custom_button.dart';
 import '../custom_widgets/luvpay/custom_scaffold.dart';
 import '../custom_widgets/custom_text_v2.dart';
-import '../custom_widgets/loading.dart';
+import '../custom_widgets/luvpay/luvpay_loading.dart';
 import '../custom_widgets/vertical_height.dart';
 
 class OtpFieldScreen extends StatefulWidget {
@@ -308,7 +308,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
 
     final brand = cs.primary;
     final danger = cs.error;
-    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.65);
+    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.05 : 0.04);
 
     Color borderColor;
     if (_hasError) {
@@ -389,10 +389,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                       ),
                                     ),
                                   ],
-                                  border: Border.all(
-                                    color: stroke.withOpacity(0.9),
-                                    width: 1,
-                                  ),
                                 ),
                                 child: Center(
                                   child: Icon(

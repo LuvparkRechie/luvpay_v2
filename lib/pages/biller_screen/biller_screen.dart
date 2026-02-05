@@ -1,12 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
+
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
-import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/custom_body.dart';
 import 'package:luvpay/custom_widgets/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/custom_textfield.dart';
@@ -18,8 +20,6 @@ import 'package:luvpay/http/api_keys.dart';
 import 'package:luvpay/http/http_request.dart';
 import 'package:luvpay/pages/biller_screen/bill_receipt.dart';
 
-import 'package:material_symbols_icons/symbols.dart';
-
 import '../../otp_field/view.dart';
 
 class BillerScreen extends StatefulWidget {
@@ -28,40 +28,43 @@ class BillerScreen extends StatefulWidget {
   const BillerScreen({super.key, required this.data, required this.paymentHk});
 
   @override
-  _BillerScreenState createState() => _BillerScreenState();
+  State<BillerScreen> createState() => _BillerScreenState();
 }
 
 class _BillerScreenState extends State<BillerScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final TextEditingController _billAcctController = TextEditingController();
   final TextEditingController _billNoController = TextEditingController();
   final TextEditingController _accountNameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _billerNameController = TextEditingController();
 
-  List userBal = [];
-  bool canProceed = false;
   bool isLoading = false;
   double _walletBal = 0.0;
 
   @override
   void initState() {
     super.initState();
-    print("data: ${widget.data}");
     getUserData();
+  }
+
+  @override
+  void dispose() {
+    _billAcctController.dispose();
+    _billNoController.dispose();
+    _accountNameController.dispose();
+    _amountController.dispose();
+    super.dispose();
   }
 
   Future<void> getUserData() async {
     if (isLoading || !mounted) return;
-
     setState(() => isLoading = true);
 
     try {
       final data = await Functions.getUserBalance();
-      debugPrint("userBal $data");
 
       double bal = 0.0;
-
       if (data.isNotEmpty) {
         final root = data[0];
         if (root is Map &&
@@ -73,17 +76,13 @@ class _BillerScreenState extends State<BillerScreen> {
             bal =
                 raw is num
                     ? raw.toDouble()
-                    : double.tryParse(raw?.toString() ?? "") ?? 0.0;
+                    : (double.tryParse(raw?.toString() ?? "") ?? 0.0);
           }
         }
       }
 
-      if (mounted) {
-        setState(() {
-          userBal = data;
-          _walletBal = bal;
-        });
-      }
+      if (!mounted) return;
+      setState(() => _walletBal = bal);
     } catch (e) {
       debugPrint("Error fetching user data: $e");
     } finally {
@@ -123,14 +122,13 @@ class _BillerScreenState extends State<BillerScreen> {
         final timeExp = DateFormat(
           "yyyy-MM-dd hh:mm:ss a",
         ).parse(objData["otp_exp_dt"].toString());
-
         final otpExpiry = DateTime(
           timeExp.year,
           timeExp.month,
           timeExp.day,
           timeExp.hour,
           timeExp.minute,
-          timeExp.millisecond,
+          timeExp.second,
         );
 
         final difference = otpExpiry.difference(timeNow);
@@ -162,341 +160,399 @@ class _BillerScreenState extends State<BillerScreen> {
   }
 
   String? _validateAmount(String? value) {
-    if (value == null || value.isEmpty) return 'Please enter an amount';
+    if (value == null || value.trim().isEmpty) return 'Please enter an amount';
 
     final amount = double.tryParse(value);
-    if (amount == null || amount <= 0) {
+    if (amount == null || amount <= 0)
       return 'Please enter a valid amount greater than zero';
-    }
 
     if (amount > _walletBal) return 'Insufficient balance';
     return null;
   }
 
   void _submitForm() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      CustomDialogStack.showLoading(Get.context!);
-      final billAcct = _billAcctController.text;
-      final billNo = _billNoController.text;
-      final accountName = _accountNameController.text;
-      final amount = _amountController.text;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-      double serviceFee =
-          double.tryParse(widget.data[0]['service_fee'].toString()) ?? 0.0;
-      double userAmount = double.tryParse(amount) ?? 0.0;
-      double addedAmount = serviceFee + userAmount;
-      String totalAmount = addedAmount.toStringAsFixed(2);
-      int userId = await Authentication().getUserId();
-      var parameter = {
-        "luvpay_id": userId.toString(),
-        "biller_id": widget.data[0]["biller_id"].toString(),
-        "bill_acct_no": billAcct,
-        "amount": totalAmount,
-        "payment_hk": widget.paymentHk,
-        "bill_no": billNo,
-        "account_name": accountName,
-        'original_amount': amount,
-      };
+    CustomDialogStack.showLoading(Get.context!);
 
-      HttpRequestApi(
-        api: ApiKeys.postPayBills,
-        parameters: parameter,
-      ).postBody().then((returnPost) async {
-        print("returnPost $returnPost");
-        Get.back();
-        if (returnPost == "No Internet") {
-          CustomDialogStack.showConnectionLost(Get.context!, () {
-            Get.back();
-          });
-        } else if (returnPost == null) {
-          CustomDialogStack.showServerError(Get.context!, () {
-            Get.back();
-          });
-        } else {
-          if (returnPost["success"] == 'Y') {
-            _billAcctController.clear();
-            _billNoController.clear();
-            _accountNameController.clear();
-            _amountController.clear();
-            final result = await Get.to(
-              BillPaymentReceipt(
-                apiResponse: returnPost,
-                paymentParams: parameter,
-              ),
-            );
-            if (result != null) {
-              Get.back();
-            }
-          } else {
-            CustomDialogStack.showError(
-              Get.context!,
-              "Error",
-              returnPost["msg"],
-              () {
-                Get.back();
-              },
-            );
-          }
-        }
-      });
-    }
+    final billAcct = _billAcctController.text.trim();
+    final billNo = _billNoController.text.trim();
+    final accountName = _accountNameController.text.trim();
+    final amount = _amountController.text.trim();
+
+    final serviceFee =
+        double.tryParse(widget.data[0]['service_fee'].toString()) ?? 0.0;
+    final userAmount = double.tryParse(amount) ?? 0.0;
+    final totalAmount = (serviceFee + userAmount).toStringAsFixed(2);
+
+    final userId = await Authentication().getUserId();
+
+    final parameter = {
+      "luvpay_id": userId.toString(),
+      "biller_id": widget.data[0]["biller_id"].toString(),
+      "bill_acct_no": billAcct,
+      "amount": totalAmount,
+      "payment_hk": widget.paymentHk,
+      "bill_no": billNo,
+      "account_name": accountName,
+      "original_amount": amount,
+    };
+
+    HttpRequestApi(
+      api: ApiKeys.postPayBills,
+      parameters: parameter,
+    ).postBody().then((returnPost) async {
+      Get.back();
+
+      if (returnPost == "No Internet") {
+        CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
+        return;
+      }
+
+      if (returnPost == null) {
+        CustomDialogStack.showServerError(Get.context!, () => Get.back());
+        return;
+      }
+
+      if (returnPost["success"] == 'Y') {
+        _billAcctController.clear();
+        _billNoController.clear();
+        _accountNameController.clear();
+        _amountController.clear();
+
+        final result = await Get.to(
+          BillPaymentReceipt(apiResponse: returnPost, paymentParams: parameter),
+        );
+
+        if (result != null) Get.back();
+        return;
+      }
+
+      CustomDialogStack.showError(
+        Get.context!,
+        "Error",
+        returnPost["msg"],
+        () => Get.back(),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final borderOpacity = isDark ? 0.05 : 0.01;
+
+    final billerName = _capitalize(
+      (widget.data[0]["biller_name"] ?? "Biller").toString(),
+    );
+    final serviceFeeText = (widget.data[0]["service_fee"] ?? "0").toString();
+    final hasServiceFee = serviceFeeText.isNotEmpty && serviceFeeText != "0";
+
     return CustomScaffoldV2(
-      padding: EdgeInsets.zero,
-      backgroundColor: AppColorV2.background,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      appBarTitle: "Pay Bill",
       onPressedLeading: () {
         Get.back();
         Get.back();
       },
-      appBarTitle: "Pay Bill",
-      scaffoldBody: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 20),
-        child: Column(
-          children: [
-            spacing(height: 20),
+      scaffoldBody: Column(
+        children: [
+          _headerCard(
+            context,
+            cs: cs,
+            isDark: isDark,
+            borderOpacity: borderOpacity,
+            title: billerName,
+          ),
+          spacing(height: 12),
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  _balanceCard(
+                    context,
+                    cs: cs,
+                    isDark: isDark,
+                    borderOpacity: borderOpacity,
+                    isLoading: isLoading,
+                    balanceText: toCurrencyString(_walletBal.toString()),
+                  ),
+                  spacing(height: 18),
 
-            // Biller Card
-            _buildBillerCard(),
-            spacing(height: 10),
+                  DefaultText(
+                    text: "Bill Account Number",
+                    style: AppTextStyle.h3(context),
+                  ),
+                  spacing(height: 10),
+                  CustomTextField(
+                    keyboardType: TextInputType.number,
+                    controller: _billAcctController,
+                    hintText: 'Enter bill account number',
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(15),
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return "Account number is required";
+                      if (value.length < 5)
+                        return "Account number must be at least 5 digits";
+                      if (value.length > 15)
+                        return "Account number must not exceed 15 digits";
+                      return null;
+                    },
+                  ),
 
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    spacing(height: 20),
+                  spacing(height: 14),
+                  DefaultText(
+                    text: "Bill Number",
+                    style: AppTextStyle.h3(context),
+                  ),
+                  spacing(height: 10),
+                  CustomTextField(
+                    controller: _billNoController,
+                    hintText: 'Enter bill number',
+                    inputFormatters: [
+                      UpperCaseTextFormatter(),
+                      LengthLimitingTextInputFormatter(15),
+                    ],
+                    validator:
+                        (value) =>
+                            (value == null || value.isEmpty)
+                                ? 'Please enter bill number'
+                                : null,
+                  ),
 
-                    // Wallet Balance
-                    buildWalletBalance(),
-                    spacing(height: 30),
+                  spacing(height: 14),
+                  DefaultText(
+                    text: "Account Name",
+                    style: AppTextStyle.h3(context),
+                  ),
+                  spacing(height: 10),
+                  CustomTextField(
+                    controller: _accountNameController,
+                    hintText: 'Enter account name',
+                    keyboardType: TextInputType.name,
+                    textCapitalization: TextCapitalization.characters,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(30),
+                      TextInputFormatter.withFunction((oldValue, newValue) {
+                        final filtered = newValue.text
+                            .toUpperCase()
+                            .replaceAll(RegExp(r'[^A-Z\s]'), '')
+                            .replaceAll(RegExp(r'\s+'), ' ');
+                        return TextEditingValue(
+                          text: filtered,
+                          selection: TextSelection.collapsed(
+                            offset: filtered.length,
+                          ),
+                        );
+                      }),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return "Account name is required";
+                      if (value.startsWith(' ') || value.endsWith(' ')) {
+                        return "Account name cannot start or end with a space";
+                      }
+                      return null;
+                    },
+                  ),
 
-                    DefaultText(
-                      text: "Bill Account Number",
-                      style: AppTextStyle.h3(context),
-                    ),
-
-                    CustomTextField(
-                      keyboardType: TextInputType.number,
-                      controller: _billAcctController,
-                      hintText: 'Enter bill account number',
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(15),
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Account number is required";
-                        } else if (value.length < 5) {
-                          return "Account number must be at least 5 digits";
-                        } else if (value.length > 15) {
-                          return "Account number must not exceed 15 digits";
-                        }
-                        return null;
-                      },
-                    ),
-
-                    // Bill Number Field
-                    spacing(height: 14),
-                    DefaultText(
-                      text: "Bill Number",
-                      style: AppTextStyle.h3(context),
-                    ),
-
-                    CustomTextField(
-                      controller: _billNoController,
-                      hintText: 'Enter bill number',
-                      inputFormatters: [
-                        UpperCaseTextFormatter(),
-                        LengthLimitingTextInputFormatter(15),
-                      ],
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter bill number';
-                        }
-                        return null;
-                      },
-                    ),
-
-                    // Account Name Field
-                    spacing(height: 14),
-                    DefaultText(
-                      text: "Account Name",
-                      style: AppTextStyle.h3(context),
-                    ),
-
-                    CustomTextField(
-                      controller: _accountNameController,
-                      hintText: 'Enter account name',
-                      keyboardType: TextInputType.name,
-                      textCapitalization: TextCapitalization.characters,
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(30),
-                        TextInputFormatter.withFunction((oldValue, newValue) {
-                          final filtered = newValue.text
-                              .toUpperCase()
-                              .replaceAll(RegExp(r'[^A-Z\s]'), '')
-                              .replaceAll(RegExp(r'\s+'), ' ');
-
-                          return TextEditingValue(
-                            text: filtered,
-                            selection: TextSelection.collapsed(
-                              offset: filtered.length,
-                            ),
-                          );
-                        }),
-                      ],
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "account name is required";
-                        }
-                        if (value.startsWith(' ') || value.endsWith(' ')) {
-                          return "account name cannot start or end with a space";
-                        }
-                        return null;
-                      },
-                    ),
-
-                    // Amount Field
-                    spacing(height: 14),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        DefaultText(
+                  spacing(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DefaultText(
                           text: "Amount",
                           style: AppTextStyle.h3(context),
                         ),
-                        Visibility(
-                          visible:
-                              widget.data[0]["service_fee"].toString() != "0" &&
-                              widget.data[0]["service_fee"].toString() != "",
-                          child: DefaultText(
-                            text:
-                                "+${widget.data[0]["service_fee"].toString()} Service Fee",
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    CustomTextField(
-                      controller: _amountController,
-                      hintText: "Enter payment amount",
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
                       ),
-                      inputFormatters: [
-                        AutoDecimalInputFormatter(),
-                        LengthLimitingTextInputFormatter(10),
-                      ],
-                      validator: _validateAmount,
+                      if (hasServiceFee)
+                        DefaultText(
+                          text: "+$serviceFeeText Service Fee",
+                          style: AppTextStyle.body2(
+                            context,
+                          ).copyWith(fontWeight: FontWeight.w800),
+                          color: cs.onSurface.withOpacity(0.60),
+                        ),
+                    ],
+                  ),
+                  spacing(height: 10),
+                  CustomTextField(
+                    controller: _amountController,
+                    hintText: "Enter payment amount",
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
+                    inputFormatters: [
+                      AutoDecimalInputFormatter(),
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    validator: _validateAmount,
+                  ),
 
-                    spacing(height: 30),
-                    Text(
-                      'Please review your details before you proceed',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                    ),
-                    spacing(height: 20),
-                    CustomButton(
-                      text: "Pay now",
+                  spacing(height: 18),
+                  _reviewHintCard(context, cs, borderOpacity),
+                  spacing(height: 18),
 
-                      onPressed: () async {
-                        FocusManager.instance.primaryFocus?.unfocus();
+                  CustomButton(
+                    text: "Pay now",
+                    onPressed: () async {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      if (!(_formKey.currentState?.validate() ?? false)) return;
 
-                        if (!(_formKey.currentState?.validate() ?? false))
-                          return;
+                      await _requestOtpThenPay(() {
+                        _submitForm();
+                      });
+                    },
+                  ),
 
-                        await _requestOtpThenPay(() {
-                          _submitForm();
-                        });
-                      },
-                    ),
-                    spacing(height: 20),
-                  ],
-                ),
+                  spacing(height: 20),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget buildWalletBalance() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DefaultText(text: "luvpay Balance", style: AppTextStyle.h3(context)),
-        spacing(height: 14),
-        Container(
-          height: 50,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: AppColorV2.lpBlueBrand.withAlpha(50)),
-            image: DecorationImage(
-              fit: BoxFit.cover,
-              image: AssetImage("assets/images/booking_wallet_bg.png"),
-            ),
+  Widget _headerCard(
+    BuildContext context, {
+    required ColorScheme cs,
+    required bool isDark,
+    required double borderOpacity,
+    required String title,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
+        boxShadow: [
+          BoxShadow(
+            color: cs.shadow.withOpacity(isDark ? 0.28 : 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
           ),
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Icon(Symbols.wallet, color: AppColorV2.background),
-              Container(width: 10),
-              Expanded(
-                child: DefaultText(
-                  color: AppColorV2.background,
-                  text:
-                      isLoading
-                          ? "Loading..."
-                          : toCurrencyString(_walletBal.toString()),
-                  style: AppTextStyle.body1(context),
-                  maxLines: 1,
-                ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: cs.onSurface.withOpacity(borderOpacity),
               ),
-            ],
+            ),
+            child: Icon(Iconsax.receipt_text, color: cs.primary, size: 20),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBillerCard() {
-    return Row(
-      children: [
-        Icon(Iconsax.receipt_text, color: AppColorV2.lpBlueBrand, size: 24),
-        SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            _capitalize(widget.data[0]["biller_name"]),
-            style: TextStyle(
-              color: AppColorV2.lpBlueBrand,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+          const SizedBox(width: 12),
+          Expanded(
+            child: DefaultText(
+              text: title,
+              style: AppTextStyle.h3(
+                context,
+              ).copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.2),
+              color: cs.onSurface,
+              maxLines: 1,
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  @override
-  void dispose() {
-    _billerNameController.dispose();
-    _billAcctController.dispose();
-    _billNoController.dispose();
-    _accountNameController.dispose();
-    _amountController.dispose();
-    super.dispose();
+  Widget _balanceCard(
+    BuildContext context, {
+    required ColorScheme cs,
+    required bool isDark,
+    required double borderOpacity,
+    required bool isLoading,
+    required String balanceText,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        image: const DecorationImage(
+          fit: BoxFit.cover,
+          image: AssetImage("assets/images/booking_wallet_bg.png"),
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
+        boxShadow: [
+          BoxShadow(
+            color: cs.shadow.withOpacity(isDark ? 0.22 : 0.10),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(Symbols.wallet, color: cs.onPrimary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: DefaultText(
+              text: isLoading ? "Loading…" : balanceText,
+              style: AppTextStyle.body1(
+                context,
+              ).copyWith(fontWeight: FontWeight.w900),
+              color: cs.onPrimary,
+              maxLines: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _reviewHintCard(
+    BuildContext context,
+    ColorScheme cs,
+    double borderOpacity,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
+      ),
+      child: Row(
+        children: [
+          Icon(Iconsax.info_circle, size: 18, color: cs.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: DefaultText(
+              text: "Please review your details before you proceed.",
+              style: AppTextStyle.body2(
+                context,
+              ).copyWith(fontWeight: FontWeight.w800),
+              color: cs.onSurface.withOpacity(0.70),
+              maxLines: 2,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-// Helper functions from your basis code
 class AutoDecimalInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -505,10 +561,7 @@ class AutoDecimalInputFormatter extends TextInputFormatter {
   ) {
     if (newValue.text.isEmpty) return newValue;
 
-    // Remove non-numeric characters
     final numericValue = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-
-    // Format as decimal (e.g., "123" -> "1.23")
     final value = double.tryParse(numericValue) ?? 0.0;
     final formattedValue = (value / 100).toStringAsFixed(2);
 

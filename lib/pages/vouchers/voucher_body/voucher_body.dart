@@ -7,14 +7,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/custom_widgets/luvpay/luvpay_loading.dart';
 import 'package:luvpay/http/http_request.dart';
 import 'package:ticketcher/ticketcher.dart';
 
 import '../../../auth/authentication.dart';
 import '../../../custom_widgets/alert_dialog.dart';
-import '../../../custom_widgets/app_color_v2.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
-import '../../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../../http/api_keys.dart';
 
 class VouchersBody extends StatefulWidget {
@@ -54,29 +53,37 @@ class VouchersBodyState extends State<VouchersBody>
   bool get _isFromBooking => widget.queryParam?["isFromBooking"] == "true";
   int get _tabLength => _isFromBooking ? 1 : 3;
 
-  Color get _base => AppColorV2.background;
+  Color _border(ColorScheme cs, bool isDark, [double? o]) =>
+      cs.outlineVariant.withOpacity(o ?? (isDark ? 0.05 : 0.01));
 
-  List<BoxShadow> _softShadow() {
+  List<BoxShadow> _softShadow(ColorScheme cs, bool isDark) {
     return [
       BoxShadow(
-        color: Colors.black.withOpacity(.06),
-        blurRadius: 10,
-        offset: const Offset(3, 4),
+        color: (isDark ? Colors.black : cs.shadow).withOpacity(
+          isDark ? 0.22 : 0.08,
+        ),
+        blurRadius: isDark ? 18 : 12,
+        offset: const Offset(0, 10),
       ),
     ];
   }
 
-  BoxDecoration _neo({
+  BoxDecoration _neo(
+    BuildContext context, {
     double radius = 18,
     Color? color,
     Border? border,
     List<BoxShadow>? shadows,
   }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return BoxDecoration(
-      color: color ?? _base,
+      color: color ?? cs.surface,
       borderRadius: BorderRadius.circular(radius),
       border: border,
-      boxShadow: shadows ?? _softShadow(),
+      boxShadow: shadows ?? _softShadow(cs, isDark),
     );
   }
 
@@ -85,8 +92,9 @@ class VouchersBodyState extends State<VouchersBody>
     super.initState();
     _tabController = TabController(length: _tabLength, vsync: this);
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging)
+      if (!_tabController.indexIsChanging) {
         _savedTabIndex = _tabController.index;
+      }
     });
     _getVouchers();
   }
@@ -103,8 +111,9 @@ class VouchersBodyState extends State<VouchersBody>
       _tabController.index = newIndex;
 
       _tabController.addListener(() {
-        if (!_tabController.indexIsChanging)
+        if (!_tabController.indexIsChanging) {
           _savedTabIndex = _tabController.index;
+        }
       });
     } else {
       final fixedIndex = _savedTabIndex.clamp(0, _tabLength - 1);
@@ -137,7 +146,7 @@ class VouchersBodyState extends State<VouchersBody>
 
     try {
       final item = await Authentication().getUserData();
-      String userId = jsonDecode(item!)['user_id'].toString();
+      final userId = jsonDecode(item!)['user_id'].toString();
 
       final availableApi = "${ApiKeys.vouchers}?user_id=$userId";
       final usedApi = "${ApiKeys.vouchersUsed}?user_id=$userId";
@@ -148,7 +157,7 @@ class VouchersBodyState extends State<VouchersBody>
         HttpRequestApi(api: usedApi).get(),
         HttpRequestApi(api: expiredApi).get(),
       ]);
-      print("results are $results");
+
       if (!mounted) return;
 
       if (results.contains("No Internet")) {
@@ -196,7 +205,7 @@ class VouchersBodyState extends State<VouchersBody>
 
       final fixedIndex = _savedTabIndex.clamp(0, _tabLength - 1);
       if (_tabController.index != fixedIndex) _tabController.index = fixedIndex;
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
         isLoading = false;
@@ -206,6 +215,9 @@ class VouchersBodyState extends State<VouchersBody>
   }
 
   Widget _noVoucherWidget() {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -215,7 +227,7 @@ class VouchersBodyState extends State<VouchersBody>
           DefaultText(
             text: "No Vouchers Yet",
             style: AppTextStyle.h3(context),
-            color: AppColorV2.inactiveState,
+            color: cs.onSurface.withOpacity(0.55),
             textAlign: TextAlign.center,
           ),
         ],
@@ -224,14 +236,18 @@ class VouchersBodyState extends State<VouchersBody>
   }
 
   Widget _tabBar(List<Tab> tabs) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final stroke = _border(cs, isDark);
+
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: _neo(
+        context,
         radius: 18,
-        border: Border.all(
-          color: const Color(0xFF0F172A).withOpacity(.06),
-          width: 1,
-        ),
+        border: Border.all(color: stroke, width: 1),
       ),
       child: TabBar(
         physics: const BouncingScrollPhysics(),
@@ -239,18 +255,15 @@ class VouchersBodyState extends State<VouchersBody>
         dividerColor: Colors.transparent,
         indicatorSize: TabBarIndicatorSize.tab,
         labelPadding: EdgeInsets.zero,
-        labelColor: AppColorV2.lpBlueBrand,
-        unselectedLabelColor: AppColorV2.inactiveState,
+        labelColor: cs.primary,
+        unselectedLabelColor: cs.onSurface.withOpacity(0.55),
         labelStyle: AppTextStyle.h3(context),
         unselectedLabelStyle: AppTextStyle.h3_semibold(context),
         indicator: BoxDecoration(
-          color: _base,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFF0F172A).withOpacity(.06),
-            width: 1,
-          ),
-          boxShadow: _softShadow(),
+          border: Border.all(color: stroke, width: 1),
+          boxShadow: _softShadow(cs, isDark),
         ),
         tabs: tabs,
       ),
@@ -265,15 +278,22 @@ class VouchersBodyState extends State<VouchersBody>
     required bool isSelectedNow,
     required VoidCallback? onSelect,
   }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final String amt = (voucher["voucher_amt"] ?? "0").toString();
     final String merchant = (voucher["merchant_name"] ?? "N/A").toString();
     final String code = (voucher["voucher_code"] ?? "—").toString();
 
-    final Color fadedText = AppColorV2.primaryTextColor.withOpacity(
-      isCE ? .35 : 1,
-    );
+    final Color accent =
+        isCE ? cs.onSurface.withOpacity(0.35) : cs.primary.withOpacity(0.95);
 
-    final Color fadedBlue = AppColorV2.lpBlueBrand.withOpacity(isCE ? .45 : 1);
+    final Color fadedText = cs.onSurface.withOpacity(isCE ? 0.40 : 0.90);
+    final Color fadedSub = cs.onSurface.withOpacity(isCE ? 0.35 : 0.65);
+
+    final stroke = _border(cs, isDark);
+    final base = cs.surface;
 
     return GestureDetector(
       onTap: onSelect,
@@ -284,27 +304,22 @@ class VouchersBodyState extends State<VouchersBody>
           Ticketcher.horizontal(
             height: 108,
             decoration: TicketcherDecoration(
-              backgroundColor: _base,
-
-              border: Border.all(
-                color: const Color(0xFF0F172A).withOpacity(.06),
-                width: 1,
-              ),
-
+              backgroundColor: base,
+              border: Border.all(color: stroke, width: 1),
               borderRadius: const TicketRadius(radius: 18),
-
               divider: TicketDivider.dashed(
-                color: const Color(0xFF0F172A).withOpacity(.10),
+                color: cs.onSurface.withOpacity(isDark ? 0.18 : 0.10),
                 thickness: 1,
                 dashWidth: 10,
                 dashSpace: 7,
                 padding: 10,
               ),
-
               shadow: BoxShadow(
-                color: Colors.black.withOpacity(.06),
+                color: (isDark ? Colors.black : cs.shadow).withOpacity(
+                  isDark ? 0.18 : 0.08,
+                ),
                 blurRadius: 12,
-                offset: const Offset(3, 4),
+                offset: const Offset(0, 10),
               ),
             ),
             sections: [
@@ -316,13 +331,12 @@ class VouchersBodyState extends State<VouchersBody>
                     child: DefaultText(
                       text: "-$amt",
                       style: AppTextStyle.h2(context),
-                      color: AppColorV2.lpBlueBrand.withOpacity(isCE ? .45 : 1),
+                      color: cs.primary.withOpacity(isCE ? 0.45 : 0.95),
                       textAlign: TextAlign.center,
                     ),
                   ),
                 ),
               ),
-
               Section(
                 widthFactor: 3,
                 child: Tooltip(
@@ -344,20 +358,16 @@ class VouchersBodyState extends State<VouchersBody>
                           color: fadedText,
                           maxLines: 1,
                         ),
-                        const SizedBox(width: 8),
                         const SizedBox(height: 6),
                         DefaultText(
                           text: "Get $amt tokens off your parking",
-                          color: fadedBlue,
+                          color: accent,
                           maxLines: 2,
                         ),
                         const SizedBox(height: 8),
                         DefaultText(
                           text: "Expiry date: $voucherDt",
-                          color:
-                              isCE
-                                  ? AppColorV2.primaryTextColor.withOpacity(.35)
-                                  : AppColorV2.bodyTextColor,
+                          color: fadedSub,
                           maxFontSize: 10,
                           minFontSize: 8,
                           maxLines: 1,
@@ -382,20 +392,13 @@ class VouchersBodyState extends State<VouchersBody>
                   height: 26,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelectedNow ? AppColorV2.lpBlueBrand : _base,
-                    boxShadow: _softShadow(),
-                    border: Border.all(
-                      color: const Color(0xFF0F172A).withOpacity(.06),
-                      width: 1,
-                    ),
+                    color: isSelectedNow ? cs.primary : base,
+                    boxShadow: _softShadow(cs, isDark),
+                    border: Border.all(color: stroke, width: 1),
                   ),
                   child:
                       isSelectedNow
-                          ? const Icon(
-                            Icons.check,
-                            size: 16,
-                            color: Colors.white,
-                          )
+                          ? Icon(Icons.check, size: 16, color: cs.onPrimary)
                           : const SizedBox.shrink(),
                 ),
               ),
@@ -426,7 +429,7 @@ class VouchersBodyState extends State<VouchersBody>
                   ? DateTime.tryParse(voucher["expiry_date"].toString())
                   : null;
 
-          String voucherDt =
+          final voucherDt =
               expDt != null ? DateFormat('MMM d, yyyy').format(expDt) : "N/A";
 
           VoidCallback? onSelect =
@@ -460,6 +463,9 @@ class VouchersBodyState extends State<VouchersBody>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     final List<Tab> tabs = [
       Tab(text: _isFromBooking ? "Available Vouchers" : "Available"),
       if (!_isFromBooking) const Tab(text: "Claimed"),
@@ -473,7 +479,7 @@ class VouchersBodyState extends State<VouchersBody>
     ];
 
     return Container(
-      color: AppColorV2.background,
+      color: cs.surface,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,7 +490,7 @@ class VouchersBodyState extends State<VouchersBody>
           Expanded(
             child:
                 isLoading
-                    ? const LuvpayLoading(label: "Loading…")
+                    ? const LoadingCard(text: "Loading…")
                     : vouchersList.isEmpty
                     ? _noVoucherWidget()
                     : TabBarView(
