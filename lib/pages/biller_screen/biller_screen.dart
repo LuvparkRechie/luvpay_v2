@@ -9,7 +9,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
-import 'package:luvpay/custom_widgets/custom_button.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/custom_textfield.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';

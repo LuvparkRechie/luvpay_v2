@@ -8,7 +8,7 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/brightness_setter.dart';
-import '../../custom_widgets/custom_button.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/luvpay/luvpay_loading.dart';

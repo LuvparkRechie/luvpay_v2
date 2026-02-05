@@ -13,7 +13,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:ticketcher/ticketcher.dart';
 
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
-import 'package:luvpay/custom_widgets/custom_button.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
 class BillPaymentReceipt extends StatelessWidget {

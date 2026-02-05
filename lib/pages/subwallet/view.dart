@@ -590,8 +590,6 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                   ? LoadingCard()
                   : !controller.hasNet.value
                   ? NoInternetConnected(onTap: _refreshData)
-                  : isRefreshing
-                  ? LoadingCard(text: "Refreshing, please wait...")
                   : Stack(
                     children: [
                       RefreshIndicator.noSpinner(
@@ -612,7 +610,14 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                 horizontal: 14,
                               ),
                               sliver:
-                                  wallets.isEmpty
+                                  isRefreshing
+                                      ? SliverFillRemaining(
+                                        hasScrollBody: false,
+                                        child: LoadingCard(
+                                          text: "Refreshing, please wait...",
+                                        ),
+                                      )
+                                      : wallets.isEmpty
                                       ? SliverFillRemaining(
                                         hasScrollBody: false,
                                         child: GestureDetector(

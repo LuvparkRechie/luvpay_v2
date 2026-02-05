@@ -9,9 +9,10 @@ import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
-import '../../custom_widgets/custom_button.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/custom_textfield.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
@@ -23,69 +24,173 @@ import 'controller.dart';
 class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
   const WalletRechargeLoadScreen({super.key});
 
-  BoxDecoration _neoCard({
+  bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  Color _surface(BuildContext context) {
+    return AppColorV2.background;
+  }
+
+  Color _borderSoft(BuildContext context) {
+    return _isDark(context)
+        ? Colors.white.withAlpha(14)
+        : Colors.black.withAlpha(12);
+  }
+
+  Color _shadowDark(BuildContext context) {
+    return _isDark(context)
+        ? Colors.black.withAlpha(80)
+        : Colors.black.withAlpha(28);
+  }
+
+  Color _shadowLight(BuildContext context) {
+    return _isDark(context)
+        ? Colors.white.withAlpha(26)
+        : Colors.white.withAlpha(180);
+  }
+
+  Color _textPrimary(BuildContext context) {
+    return AppColorV2.primaryTextColor;
+  }
+
+  Color _textSecondary(BuildContext context) {
+    return AppColorV2.bodyTextColor;
+  }
+
+  Color _chipActiveText(BuildContext context) {
+    return Colors.white;
+  }
+
+  Color _chipInactiveText(BuildContext context) {
+    return _textPrimary(context);
+  }
+
+  BoxDecoration _neoCard(
+    BuildContext context, {
     double radius = 12,
     Color? color,
     bool inset = false,
   }) {
-    final base = color ?? AppColorV2.background;
-    final top = Colors.white.withAlpha(180);
-    final bottom = Colors.black.withAlpha(28);
+    final base = color ?? _surface(context);
 
     return BoxDecoration(
       color: base,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: Colors.black.withAlpha(12)),
+      border: Border.all(color: _borderSoft(context)),
       boxShadow:
           inset
               ? [
                 BoxShadow(
-                  color: Colors.black.withAlpha(18),
+                  color: _shadowDark(
+                    context,
+                  ).withAlpha(_isDark(context) ? 90 : 18),
                   blurRadius: 10,
                   offset: Offset(3, 3),
                 ),
                 BoxShadow(
-                  color: Colors.white.withAlpha(210),
+                  color: _shadowLight(
+                    context,
+                  ).withAlpha(_isDark(context) ? 34 : 210),
                   blurRadius: 10,
                   offset: Offset(-3, -3),
                 ),
               ]
               : [
-                BoxShadow(color: bottom, blurRadius: 12, offset: Offset(6, 6)),
-                BoxShadow(color: top, blurRadius: 12, offset: Offset(-6, -6)),
+                BoxShadow(
+                  color: _shadowDark(context),
+                  blurRadius: 12,
+                  offset: Offset(6, 6),
+                ),
+                BoxShadow(
+                  color: _shadowLight(context),
+                  blurRadius: 12,
+                  offset: Offset(-6, -6),
+                ),
               ],
     );
   }
 
-  BoxDecoration _neoChip({double radius = 10, required bool active}) {
+  BoxDecoration _neoChip(
+    BuildContext context, {
+    double radius = 10,
+    required bool active,
+  }) {
+    final base = _surface(context);
+
     return BoxDecoration(
       borderRadius: BorderRadius.circular(radius),
-      color: active ? AppColorV2.lpBlueBrand : AppColorV2.background,
+      color: active ? AppColorV2.lpBlueBrand : base,
       border: Border.all(
-        color: active ? Colors.transparent : Colors.black.withAlpha(14),
+        color: active ? Colors.transparent : _borderSoft(context),
         width: 1,
       ),
       boxShadow:
           active
               ? [
                 BoxShadow(
-                  color: Colors.black.withAlpha(30),
+                  color: _shadowDark(
+                    context,
+                  ).withAlpha(_isDark(context) ? 120 : 30),
                   blurRadius: 10,
                   offset: Offset(4, 4),
                 ),
               ]
               : [
                 BoxShadow(
-                  color: Colors.black.withAlpha(20),
+                  color: _shadowDark(
+                    context,
+                  ).withAlpha(_isDark(context) ? 95 : 20),
                   blurRadius: 10,
                   offset: Offset(4, 4),
                 ),
                 BoxShadow(
-                  color: Colors.white.withAlpha(210),
+                  color: _shadowLight(
+                    context,
+                  ).withAlpha(_isDark(context) ? 34 : 210),
                   blurRadius: 10,
                   offset: Offset(-4, -4),
                 ),
               ],
+    );
+  }
+
+  BoxDecoration _recipientNeo(BuildContext context, {required bool isUnknown}) {
+    if (isUnknown) {
+      return BoxDecoration(
+        color: _isDark(context) ? Color(0xFF3B1F1F) : Color(0xFFFFDFDF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColorV2.incorrectState.withAlpha(140)),
+        boxShadow: [
+          BoxShadow(
+            color: _shadowDark(context).withAlpha(_isDark(context) ? 120 : 18),
+            blurRadius: 10,
+            offset: Offset(4, 4),
+          ),
+          BoxShadow(
+            color: _shadowLight(context).withAlpha(_isDark(context) ? 34 : 210),
+            blurRadius: 10,
+            offset: Offset(-4, -4),
+          ),
+        ],
+      );
+    }
+
+    return BoxDecoration(
+      color: _surface(context),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: _borderSoft(context)),
+      boxShadow: [
+        BoxShadow(
+          color: _shadowDark(context).withAlpha(_isDark(context) ? 95 : 18),
+          blurRadius: 12,
+          offset: Offset(6, 6),
+        ),
+        BoxShadow(
+          color: _shadowLight(context).withAlpha(_isDark(context) ? 34 : 210),
+          blurRadius: 12,
+          offset: Offset(-6, -6),
+        ),
+      ],
     );
   }
 
@@ -110,8 +215,9 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
               RepaintBoundary(
                 child: Container(
                   decoration: _neoCard(
+                    context,
                     radius: 12,
-                    color: AppColorV2.background,
+                    color: _surface(context),
                   ),
                   height: 70,
                   width: MediaQuery.of(context).size.width / 2,
@@ -127,10 +233,15 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
               ),
 
               SizedBox(height: 10),
-              Divider(color: Colors.black.withAlpha(18)),
+              Divider(
+                color:
+                    _isDark(context)
+                        ? Colors.white.withAlpha(14)
+                        : Colors.black.withAlpha(18),
+              ),
               SizedBox(height: 10),
 
-              Obx(() => topupAccount()),
+              Obx(() => topupAccount(context)),
 
               SizedBox(height: 14),
               DefaultText(text: "Amount", style: AppTextStyle.h3(context)),
@@ -147,9 +258,7 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                           signed: true,
                           decimal: false,
                         ),
-                onChange: (d) {
-                  controller.onTextChange();
-                },
+                onChange: (d) => controller.onTextChange(),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Amount is required";
@@ -176,7 +285,7 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                             j < i + 3 && j < controller.padData.length;
                             j++
                           )
-                            myPads(controller.padData[j], j),
+                            myPads(context, controller.padData[j], j),
                         ],
                       ),
                   ],
@@ -189,18 +298,15 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                 if (MediaQuery.of(context).viewInsets.bottom != 0) {
                   return SizedBox.shrink();
                 }
+                final inactive = !controller.isActiveBtn.value;
+
                 return CustomButton(
                   text: "Continue",
                   btnColor:
-                      !controller.isActiveBtn.value
+                      inactive
                           ? AppColorV2.lpBlueBrand.withValues(alpha: .7)
                           : AppColorV2.lpBlueBrand,
-                  onPressed:
-                      !controller.isActiveBtn.value
-                          ? () {}
-                          : () {
-                            controller.onPay();
-                          },
+                  onPressed: inactive ? () {} : () => controller.onPay(),
                 );
               }),
             ],
@@ -210,21 +316,18 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
     );
   }
 
-  Widget topupAccount() {
+  Widget topupAccount(BuildContext context) {
     final isUnknown = controller.rname.text.toLowerCase().contains("unknown");
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DefaultText(
-          text: "Top up tokens for",
-          style: AppTextStyle.h3(Get.context!),
-        ),
+        DefaultText(text: "Top up tokens for", style: AppTextStyle.h3(context)),
         SizedBox(height: 10),
         Container(
           padding: EdgeInsets.all(12),
           width: double.infinity,
-          decoration: _recipientNeo(isUnknown: isUnknown),
+          decoration: _recipientNeo(context, isUnknown: isUnknown),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -255,11 +358,7 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        DefaultText(
-                          maxLines: 1,
-                          text: controller.rname.text,
-                          style: AppTextStyle.h3_f22(Get.context!),
-                        ),
+                        DefaultText(maxLines: 1, text: controller.rname.text),
                         DefaultText(
                           maxLines: 1,
                           text:
@@ -274,7 +373,12 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                   Container(width: 5),
                 ],
               ),
-              Divider(color: Colors.black.withAlpha(18)),
+              Divider(
+                color:
+                    Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withAlpha(14)
+                        : Colors.black.withAlpha(18),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -305,47 +409,7 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
     );
   }
 
-  BoxDecoration _recipientNeo({required bool isUnknown}) {
-    if (isUnknown) {
-      return BoxDecoration(
-        color: Color(0xFFFFDFDF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColorV2.incorrectState.withAlpha(120)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(18),
-            blurRadius: 10,
-            offset: Offset(4, 4),
-          ),
-          BoxShadow(
-            color: Colors.white.withAlpha(210),
-            blurRadius: 10,
-            offset: Offset(-4, -4),
-          ),
-        ],
-      );
-    }
-
-    return BoxDecoration(
-      color: AppColorV2.background,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.black.withAlpha(12)),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withAlpha(18),
-          blurRadius: 12,
-          offset: Offset(6, 6),
-        ),
-        BoxShadow(
-          color: Colors.white.withAlpha(210),
-          blurRadius: 12,
-          offset: Offset(-6, -6),
-        ),
-      ],
-    );
-  }
-
-  Widget myPads(data, int index) {
+  Widget myPads(BuildContext context, data, int index) {
     final active = data["is_active"] == true;
 
     return Expanded(
@@ -353,13 +417,11 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
         padding: const EdgeInsets.all(3.0),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: () {
-            controller.pads(data["value"]);
-          },
+          onTap: () => controller.pads(data["value"]),
           child: AnimatedContainer(
             duration: Duration(milliseconds: 160),
             padding: const EdgeInsets.fromLTRB(22, 12, 22, 12),
-            decoration: _neoChip(active: active),
+            decoration: _neoChip(context, active: active),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -370,12 +432,18 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                   minFontSize: 8,
                   text: "${data["value"]}",
                   fontWeight: FontWeight.w700,
-                  color: active ? Colors.white : Colors.black,
+                  color:
+                      active
+                          ? _chipActiveText(context)
+                          : _chipInactiveText(context),
                 ),
                 DefaultText(
                   text: "Token",
                   fontWeight: FontWeight.w500,
-                  color: active ? Colors.white : null,
+                  color:
+                      active
+                          ? _chipActiveText(context)
+                          : _textSecondary(context),
                 ),
               ],
             ),
@@ -397,19 +465,37 @@ class PaymentMethodType extends StatelessWidget {
     {"type": "Pay Gate", "value": "paygate"},
   ];
 
-  BoxDecoration _neoSheetTile() {
+  bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  Color _borderSoft(BuildContext context) =>
+      _isDark(context)
+          ? Colors.white.withAlpha(14)
+          : Colors.black.withAlpha(10);
+
+  Color _shadowDark(BuildContext context) =>
+      _isDark(context)
+          ? Colors.black.withAlpha(95)
+          : Colors.black.withAlpha(16);
+
+  Color _shadowLight(BuildContext context) =>
+      _isDark(context)
+          ? Colors.white.withAlpha(34)
+          : Colors.white.withAlpha(210);
+
+  BoxDecoration _neoSheetTile(BuildContext context) {
     return BoxDecoration(
       color: AppColorV2.background,
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.black.withAlpha(10)),
+      border: Border.all(color: _borderSoft(context)),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withAlpha(16),
+          color: _shadowDark(context),
           blurRadius: 10,
           offset: Offset(5, 5),
         ),
         BoxShadow(
-          color: Colors.white.withAlpha(210),
+          color: _shadowLight(context),
           blurRadius: 10,
           offset: Offset(-5, -5),
         ),
@@ -437,7 +523,7 @@ class PaymentMethodType extends StatelessWidget {
                         cabllBack(e["value"]);
                       },
                       child: Container(
-                        decoration: _neoSheetTile(),
+                        decoration: _neoSheetTile(context),
                         child: ListTile(
                           title: DefaultText(text: e["type"]),
                           trailing: Icon(
@@ -476,6 +562,24 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
   final TextEditingController mobileNo = TextEditingController();
   final ct = Get.put(WalletRechargeLoadController());
 
+  bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  Color _borderSoft(BuildContext context) =>
+      _isDark(context)
+          ? Colors.white.withAlpha(14)
+          : Colors.black.withAlpha(10);
+
+  Color _shadowDark(BuildContext context) =>
+      _isDark(context)
+          ? Colors.black.withAlpha(100)
+          : Colors.black.withAlpha(18);
+
+  Color _shadowLight(BuildContext context) =>
+      _isDark(context)
+          ? Colors.white.withAlpha(34)
+          : Colors.white.withAlpha(210);
+
   @override
   void initState() {
     super.initState();
@@ -507,9 +611,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
             context,
             "Error",
             "Invalid mobile number format",
-            () {
-              Get.back();
-            },
+            () => Get.back(),
           );
         } else {
           ct.onSearchChanged(
@@ -523,19 +625,19 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
     }
   }
 
-  BoxDecoration _neoActionPill() {
+  BoxDecoration _neoActionPill(BuildContext context) {
     return BoxDecoration(
       color: AppColorV2.background,
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.black.withAlpha(10)),
+      border: Border.all(color: _borderSoft(context)),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withAlpha(18),
+          color: _shadowDark(context),
           blurRadius: 10,
           offset: Offset(4, 4),
         ),
         BoxShadow(
-          color: Colors.white.withAlpha(210),
+          color: _shadowLight(context),
           blurRadius: 10,
           offset: Offset(-4, -4),
         ),
@@ -554,7 +656,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
           color: AppColorV2.lpBlueBrand,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(35),
+              color: Colors.black.withAlpha(_isDark(context) ? 110 : 35),
               blurRadius: 14,
               offset: Offset(0, -2),
             ),
@@ -588,12 +690,16 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                 borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white.withAlpha(220),
+                    color: _shadowLight(
+                      context,
+                    ).withAlpha(_isDark(context) ? 34 : 220),
                     blurRadius: 12,
                     offset: Offset(-6, -6),
                   ),
                   BoxShadow(
-                    color: Colors.black.withAlpha(16),
+                    color: _shadowDark(
+                      context,
+                    ).withAlpha(_isDark(context) ? 95 : 16),
                     blurRadius: 12,
                     offset: Offset(6, 6),
                   ),
@@ -620,9 +726,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                           });
                         },
                         validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Field is required';
-                          }
+                          if (value!.isEmpty) return 'Field is required';
                           if (value.toString().replaceAll(" ", "").length <
                               10) {
                             return 'Invalid mobile number';
@@ -656,7 +760,7 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                                   horizontal: 14,
                                   vertical: 10,
                                 ),
-                                decoration: _neoActionPill(),
+                                decoration: _neoActionPill(context),
                                 child: Row(
                                   children: [
                                     Icon(
@@ -675,15 +779,13 @@ class _UsersBottomsheetState extends State<UserssBottomsheet> {
                             SizedBox(width: 8),
                             InkWell(
                               borderRadius: BorderRadius.circular(12),
-                              onTap: () {
-                                selectSingleContact();
-                              },
+                              onTap: () => selectSingleContact(),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 14,
                                   vertical: 10,
                                 ),
-                                decoration: _neoActionPill(),
+                                decoration: _neoActionPill(context),
                                 child: Row(
                                   children: [
                                     Icon(

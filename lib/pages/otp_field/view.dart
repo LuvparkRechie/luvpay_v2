@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' as dtTime;
 import 'package:luvpay/http/http_request.dart';
-import '../../custom_widgets/custom_button.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/luvpay/luvpay_loading.dart';

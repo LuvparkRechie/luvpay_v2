@@ -87,7 +87,7 @@ class _CustomButtonState extends State<CustomButton> {
     final dy = pressedVisual ? 1.0 : 0.0;
     final borderCol = (widget.bordercolor ?? Colors.transparent);
     final effectiveBorder =
-        borderCol == Colors.transparent ? null : borderCol.withOpacity(0.22);
+        borderCol == Colors.transparent ? null : borderCol.withOpacity(0.02);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

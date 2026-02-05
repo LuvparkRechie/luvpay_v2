@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/custom_button.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 
 import '../auth/authentication.dart';

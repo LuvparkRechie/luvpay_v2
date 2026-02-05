@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 
 import '../../../custom_widgets/app_color_v2.dart';
-import '../../../custom_widgets/custom_button.dart';
+import '../../../custom_widgets/luvpay/custom_button.dart';
 import '../../../custom_widgets/custom_text_v2.dart';
 import '../../../custom_widgets/custom_textfield.dart';
 import '../../my_account/utils/view.dart';

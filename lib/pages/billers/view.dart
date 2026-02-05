@@ -7,7 +7,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../custom_widgets/app_color_v2.dart';
-import '../../custom_widgets/custom_button.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';

@@ -5,7 +5,6 @@ import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:luvpay/custom_widgets/luvpay/custom_buttons.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/smooth_route.dart';
@@ -16,9 +15,9 @@ import 'package:luvpay/pages/qr/view.dart';
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/luvpay/neumorphism.dart';
-import '../../custom_widgets/luvpay/statusbar_manager.dart';
 import '../../custom_widgets/luvpay/theme_mode_controller.dart';
 import '../../functions/functions.dart';
 import '../../http/api_keys.dart';
@@ -225,7 +224,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               Container(
                                 margin: const EdgeInsets.fromLTRB(19, 0, 19, 0),
                                 width: double.infinity,
-                                child: CustomButtons.no(
+                                child: CustomButton(
                                   text: "Logout",
                                   onPressed: () {
                                     CustomDialogStack.showConfirmation(
@@ -298,92 +297,86 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           final double horizontalPadding = 10 * t + 4 * (1 - t);
 
           return FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: cs.surface,
-                border: Border.all(
-                  color: cs.outlineVariant.withOpacity(isDark ? 0.05 : 0.01),
-                  width: 0.8,
+            background: GestureDetector(
+              onTap: () {
+                Get.to(() => const MyProfile())?.then((value) {
+                  if (value == "refresh") initialize();
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: cs.surface,
+                  border: Border.all(
+                    color: cs.outlineVariant.withOpacity(isDark ? 0.05 : 0.01),
+                    width: 0.8,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.25 : 0.07),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.25 : 0.07),
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              padding: EdgeInsets.all(horizontalPadding),
-              child: Row(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 120),
-                    width: avatarSize,
-                    height: avatarSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        width: 3,
-                        color: AppColorV2.lpBlueBrand.withOpacity(
-                          isDark ? 0.22 : 0.16,
-                        ),
-                      ),
-                    ),
-                    child: ClipOval(
-                      child: SizedBox(
-                        height: 130,
-                        width: 130,
-                        child:
-                            myprofile.isEmpty
-                                ? Image.asset(
-                                  "assets/images/d_unverified_img.png",
-                                  height: 60,
-                                )
-                                : Image.memory(
-                                  base64Decode(myprofile),
-                                  fit: BoxFit.cover,
-                                ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 10 * t + 4 * (1 - t)),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        DefaultText(
-                          text: Functions().getDisplayName(userData),
-                          maxLines: 1,
-                          style: AppTextStyle.h3(
-                            context,
-                          ).copyWith(fontSize: nameFont, color: cs.onSurface),
-                        ),
-                        DefaultText(
-                          text: userData["email"] ?? "No email",
-                          style: AppTextStyle.textbox(context).copyWith(
-                            fontSize: emailFont,
-                            color: cs.onSurfaceVariant,
+                padding: EdgeInsets.all(horizontalPadding),
+                child: Row(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 120),
+                      width: avatarSize,
+                      height: avatarSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          width: 3,
+                          color: AppColorV2.lpBlueBrand.withOpacity(
+                            isDark ? 0.22 : 0.16,
                           ),
                         ),
-                      ],
+                      ),
+                      child: ClipOval(
+                        child: SizedBox(
+                          height: 130,
+                          width: 130,
+                          child:
+                              myprofile.isEmpty
+                                  ? Image.asset(
+                                    "assets/images/d_unverified_img.png",
+                                    height: 60,
+                                  )
+                                  : Image.memory(
+                                    base64Decode(myprofile),
+                                    fit: BoxFit.cover,
+                                  ),
+                        ),
+                      ),
                     ),
-                  ),
-                  Transform.scale(
-                    scale: 0.8 + (0.2 * t),
-                    child: CustomButtons.nextCircle(
-                      onPressed: () {
-                        Get.to(() => const MyProfile())?.then((value) {
-                          if (value == "refresh") initialize();
-                        });
-                      },
-                      isActive: true,
-                      size: 30,
-                      activeColor: AppColorV2.lpBlueBrand,
+                    SizedBox(width: 10 * t + 4 * (1 - t)),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DefaultText(
+                            text: Functions().getDisplayName(userData),
+                            maxLines: 1,
+                            style: AppTextStyle.h3(
+                              context,
+                            ).copyWith(fontSize: nameFont, color: cs.onSurface),
+                          ),
+                          DefaultText(
+                            text: userData["email"] ?? "No email",
+                            style: AppTextStyle.textbox(context).copyWith(
+                              fontSize: emailFont,
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );

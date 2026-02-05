@@ -7,7 +7,7 @@ import '../../custom_widgets/no_internet.dart';
 import '../../custom_widgets/spacing.dart';
 import '../lock_screen/controller.dart';
 
-import '../../custom_widgets/custom_button.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 
 class LockScreen extends GetView<LockScreenController> {
   const LockScreen({super.key});

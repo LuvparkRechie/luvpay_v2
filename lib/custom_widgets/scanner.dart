@@ -12,7 +12,7 @@ import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/custom_widgets/alert_dialog.dart';
-import 'package:luvpay/custom_widgets/custom_button.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_button.dart';
 import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/luvpay/luvpay_loading.dart';

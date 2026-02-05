@@ -17,7 +17,7 @@ import 'package:luvpay/custom_widgets/luvpay/custom_scaffold.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
-import '../../custom_widgets/custom_button.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/luvpay/neumorphism.dart';
 import '../../custom_widgets/upper_case_formatter.dart';

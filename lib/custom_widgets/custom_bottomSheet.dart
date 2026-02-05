@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/custom_widgets/app_color_v2.dart';
-import 'package:luvpay/custom_widgets/custom_button.dart';
+import 'package:luvpay/custom_widgets/luvpay/custom_button.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/custom_widgets/spacing.dart';
 

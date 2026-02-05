@@ -16,7 +16,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../custom_widgets/alert_dialog.dart';
 import '../../custom_widgets/app_color_v2.dart';
-import '../../custom_widgets/custom_button.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../custom_widgets/custom_separator.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import 'package:path_provider/path_provider.dart';

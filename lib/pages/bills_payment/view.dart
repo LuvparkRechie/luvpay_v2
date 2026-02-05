@@ -16,7 +16,7 @@ import 'package:luvpay/pages/my_account/utils/index.dart';
 
 import '../../auth/authentication.dart';
 import '../../custom_widgets/alert_dialog.dart';
-import '../../custom_widgets/custom_button.dart';
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../custom_widgets/custom_text_v2.dart';
 import '../../custom_widgets/custom_textfield.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';

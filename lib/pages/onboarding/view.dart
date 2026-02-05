@@ -8,8 +8,8 @@ import 'package:luvpay/custom_widgets/app_color_v2.dart';
 import 'package:luvpay/custom_widgets/custom_text_v2.dart';
 import 'package:luvpay/pages/routes/routes.dart';
 
+import '../../custom_widgets/luvpay/custom_button.dart';
 import '../../web_view/webview.dart';
-import '../../custom_widgets/luvpay/custom_buttons.dart';
 
 class MyOnboardingPage extends StatefulWidget {
   const MyOnboardingPage({super.key});
@@ -312,12 +312,24 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                         }),
                       ),
                       const SizedBox(height: 48),
-                      CustomButtons.cta(
+                      CustomButton(
                         text: isLast ? "Get Started" : "Continue",
-                        icon:
+                        leading:
                             isLast
-                                ? Icons.check_rounded
-                                : Icons.arrow_forward_rounded,
+                                ? Icon(
+                                  Icons.check_rounded,
+                                  color:
+                                      isLast
+                                          ? AppColorV2.lpBlueBrand
+                                          : cs.onPrimary,
+                                )
+                                : Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color:
+                                      isLast
+                                          ? AppColorV2.lpBlueBrand
+                                          : cs.onPrimary,
+                                ),
                         onPressed: () {
                           if (!isLast) {
                             _pageController.nextPage(
@@ -328,12 +340,10 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                             _completeOnboarding();
                           }
                         },
-
-                        lightBg: currentPageColor,
-                        lightFg: cs.onPrimary,
-                        darkBg:
+                        textColor:
+                            isLast ? AppColorV2.lpBlueBrand : cs.onPrimary,
+                        btnColor:
                             isLast ? AppColorV2.background : currentPageColor,
-                        darkFg: isLast ? AppColorV2.lpBlueBrand : cs.onPrimary,
                       ),
 
                       if (isLast) ...[
