@@ -26,19 +26,18 @@ import 'package:permission_handler/permission_handler.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
-import 'bg_process/luvpay/session_service.dart';
 import 'custom_widgets/luvpay/luvpay_theme.dart';
 import 'custom_widgets/luvpay/theme_mode_controller.dart';
 import 'notification_controller.dart';
 import 'security/app_security.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 Timer? _sessionTimer;
 Timer? _tamperTimer;
 
 Future<bool> isTamperDialogActive() async {
   final prefs = await SharedPreferences.getInstance();
+
   return prefs.getBool('tamperDialogActive') ?? false;
 }
 
@@ -100,7 +99,6 @@ void onStart(ServiceInstance service) async {
       }
     });
   } catch (e, stack) {
-    // ignore: avoid_print
     print(stack);
   }
 }
@@ -113,18 +111,12 @@ void sessionTimeOut(BuildContext context) {
       await checkTamper();
       getLogSession(context);
     } else {
-      // ignore: avoid_print
       print("[Session Timeout] Skipped tamper check — dialog active.");
     }
   });
 }
 
 void _onUserActivity() {
-  if (Get.currentRoute == Routes.lock) return;
-
-  SessionService.touchActivity();
-  SessionService.startIdleTimer();
-
   _sessionTimer?.cancel();
   sessionTimeOut(navigatorKey.currentContext!);
 }
@@ -138,7 +130,6 @@ Future<void> checkTamper() async {
       serverUtcTime = await AccurateTime.now();
       if (serverUtcTime.year < 2000) throw Exception("Invalid NTP time");
     } catch (_) {
-      // ignore: avoid_print
       print("[Tamper] Using fallback local UTC time.");
       serverUtcTime = DateTime.now().toUtc();
     }
@@ -175,9 +166,7 @@ Future<void> checkTamper() async {
       }
     }
   } catch (e, stack) {
-    // ignore: avoid_print
     print("Error in checkTamper: $e");
-    // ignore: avoid_print
     print(stack);
   }
 }
@@ -237,14 +226,12 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class _MyAppState extends State<MyApp> {
   final ThemeController themeController = Get.put(ThemeController());
 
   @override
   void initState() {
     super.initState();
-
-    WidgetsBinding.instance.addObserver(this);
 
     setTamperDialogActive(false);
 
@@ -253,30 +240,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       AndroidAlarmManager.initialize();
     }
     initializedDeviceSecurity();
-
-    SessionService.touchActivity();
-    SessionService.startIdleTimer();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _sessionTimer?.cancel();
     _tamperTimer?.cancel();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.detached) {
-      SessionService.markBackgrounded();
-    }
-
-    if (state == AppLifecycleState.resumed) {
-      await SessionService.enforce();
-    }
   }
 
   void initializedDeviceSecurity() async {
@@ -313,15 +283,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     return Listener(
       onPointerDown: (_) => _onUserActivity(),
-      onPointerMove: (_) => _onUserActivity(),
       child: Obx(() {
         return GetMaterialApp(
           navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: ApiKeys.isProduction,
           title: 'MyApp',
+
           theme: AppThemeV2.light(),
           darkTheme: AppThemeV2.dark(),
           themeMode: themeCtrl.mode.value,
+
           navigatorObservers: [GetObserver()],
           initialRoute: Routes.splash,
           getPages: AppPages.pages,
