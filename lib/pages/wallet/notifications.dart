@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/custom_widgets/luvpay/luvpay_loading.dart';
 import 'package:luvpay/custom_widgets/luvpay/neumorphism.dart';
 
 import '../../auth/authentication.dart';
@@ -15,7 +16,6 @@ import '../../custom_widgets/app_color_v2.dart';
 import '../../custom_widgets/luvpay/custom_scaffold.dart';
 import '../../custom_widgets/custom_scrollbar.dart';
 import '../../custom_widgets/custom_text_v2.dart';
-import '../../custom_widgets/luvpay/luvpay_loading.dart';
 import '../../custom_widgets/no_internet.dart';
 import '../../http/api_keys.dart';
 import '../../http/http_request.dart';
@@ -350,12 +350,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
               ]
               : [],
       padding: const EdgeInsets.fromLTRB(19, 20, 19, 0),
-      scaffoldBody: PremiumLoaderOverlay(
-        loading: isLoading,
-        accentColor: AppColorV2.lpBlueBrand,
-        glowColor: AppColorV2.lpTealBrand,
-        child: body,
-      ),
+      scaffoldBody: isLoading ? LoadingCard() : body,
     );
   }
 
