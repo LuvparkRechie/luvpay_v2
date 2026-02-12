@@ -29,6 +29,7 @@ check security settings. Uncomment for production
 FOR PLAYSTORE UPLOAD 
 checking of 16kb (recommended) 
 flutter build apk --release --no-tree-shake-icons
+flutter build apk --debug --no-tree-shake-icons
 flutter build appbundle --release --no-tree-shake-icons
 flutter build apk --release
 
