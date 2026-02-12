@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
-import '../custom_widgets/alert_dialog.dart';
+import '../shared/dialogs/dialogs.dart';
 
 class MayaAuth {
   static final String? _baseUrl = dotenv.env['MAYA_BASE_URL'];

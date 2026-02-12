@@ -14,11 +14,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:luvpay/auth/authentication.dart';
-import 'package:luvpay/bg_process/bg_process.dart';
-import 'package:luvpay/custom_widgets/variables.dart';
-import 'package:luvpay/http/api_keys.dart';
-import 'package:luvpay/pages/routes/pages.dart';
-import 'package:luvpay/pages/routes/routes.dart';
+import 'package:luvpay/shared/widgets/variables.dart';
+import 'package:luvpay/core/network/http/api_keys.dart';
+import 'package:luvpay/features/routes/pages.dart';
+import 'package:luvpay/features/routes/routes.dart';
 import 'package:ntp_dart/ntp_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart'
@@ -26,10 +25,10 @@ import 'package:permission_handler/permission_handler.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 
-import 'custom_widgets/luvpay/luvpay_theme.dart';
-import 'custom_widgets/luvpay/theme_mode_controller.dart';
-import 'notification_controller.dart';
-import 'security/app_security.dart';
+import 'shared/widgets/luvpay_theme.dart';
+import 'shared/widgets/theme_mode_controller.dart';
+import 'core/services/notification_controller.dart';
+import 'core/security/security/app_security.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Timer? _sessionTimer;
@@ -299,5 +298,31 @@ class _MyAppState extends State<MyApp> {
         );
       }),
     );
+  }
+}
+
+class IosBgProcess {
+  Future<void> initializeService() async {
+    final service = FlutterBackgroundService();
+
+    if (Platform.isIOS || Platform.isAndroid) {
+      await service.configure(
+        androidConfiguration: AndroidConfiguration(
+          onStart: onStart,
+          autoStart: true,
+          isForegroundMode: true,
+          notificationChannelId: 'my_foreground',
+          initialNotificationTitle: 'AWESOME SERVICE',
+          initialNotificationContent: 'Initializing',
+          foregroundServiceNotificationId: 888,
+          foregroundServiceTypes: [AndroidForegroundType.location],
+        ),
+        iosConfiguration: IosConfiguration(
+          autoStart: true,
+          onForeground: onStart,
+          onBackground: onIosBackground,
+        ),
+      );
+    }
   }
 }

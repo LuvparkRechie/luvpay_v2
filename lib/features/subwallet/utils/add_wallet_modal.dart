@@ -1,0 +1,908 @@
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+
+import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
+import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
+
+import 'package:luvpay/shared/dialogs/dialogs.dart';
+import 'package:luvpay/shared/widgets/luvpay_text.dart';
+import 'package:luvpay/shared/widgets/upper_case_formatter.dart';
+
+import '../../../shared/widgets/colors.dart';
+import '../../../shared/widgets/neumorphism.dart';
+import '../controller.dart';
+import '../view.dart';
+
+class AddWalletModal extends StatefulWidget {
+  final WalletModalMode mode;
+  final Wallet? wallet;
+  final List<Wallet>? existingWallets;
+  final VoidCallback? onWalletCreated;
+
+  const AddWalletModal({
+    super.key,
+    this.mode = WalletModalMode.create,
+    this.wallet,
+    this.existingWallets,
+    this.onWalletCreated,
+  });
+
+  @override
+  AddWalletModalState createState() => AddWalletModalState();
+}
+
+class AddWalletModalState extends State<AddWalletModal> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _balanceController = TextEditingController();
+
+  String? _selectedCategoryId;
+  String? _selectedCategoryName;
+  Color? _selectedColor;
+
+  String? _nameError;
+  String? _balanceError;
+  String? _categoryError;
+
+  final FocusNode _balanceFocusNode = FocusNode();
+
+  final SubWalletController controller = Get.find<SubWalletController>();
+
+  List<Wallet> existingWallets = [];
+  List<Map<String, dynamic>> _availableCategories = [];
+
+  Uint8List? _selectedIconBytes;
+  final Map<String, Uint8List> _iconCache = {};
+
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.existingWallets != null) {
+      existingWallets = widget.existingWallets!;
+    }
+
+    if (widget.mode == WalletModalMode.edit && widget.wallet != null) {
+      final w = widget.wallet!;
+      _nameController.text = w.name;
+
+      _selectedCategoryId = null;
+      _selectedCategoryName = null;
+      _selectedColor = null;
+      _selectedIconBytes = null;
+    }
+
+    _balanceFocusNode.addListener(_validateBalanceOnBlur);
+
+    if (widget.mode == WalletModalMode.create) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(_loadCategories);
+      });
+    }
+  }
+
+  void _loadCategories() {
+    _availableCategories = List<Map<String, dynamic>>.from(
+      controller.categoryList,
+    );
+    if (_availableCategories.isEmpty) return;
+
+    if (_selectedCategoryId == null) {
+      final first = _availableCategories.first;
+      final categoryId = first['category_id']?.toString() ?? '';
+      final categoryName = first['category_title']?.toString() ?? 'Unknown';
+
+      _selectedCategoryId = categoryId;
+      _selectedCategoryName = categoryName;
+
+      if (first['color'] is int) {
+        _selectedColor = Color(first['color']);
+      } else if (first['color'] is String) {
+        _selectedColor = _getColorFromString(first['color']);
+      } else {
+        _selectedColor = AppColorV2.lpBlueBrand;
+      }
+
+      final imageBase64 = first['image_base64']?.toString() ?? '';
+      if (imageBase64.isNotEmpty) {
+        try {
+          final clean = imageBase64.replaceAll(RegExp(r'\s'), '');
+          _selectedIconBytes = base64.decode(clean);
+          _iconCache[categoryId] = _selectedIconBytes!;
+        } catch (_) {
+          _selectedIconBytes = null;
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _balanceFocusNode.removeListener(_validateBalanceOnBlur);
+    _balanceFocusNode.dispose();
+    _nameController.dispose();
+    _balanceController.dispose();
+    super.dispose();
+  }
+
+  String? _validateCategory(String? categoryId) {
+    if (categoryId == null || categoryId.isEmpty) return 'Category is required';
+    return null;
+  }
+
+  void _validateBalanceOnBlur() {
+    if (!_balanceFocusNode.hasFocus) {
+      setState(() => _balanceError = _validateBalance(_balanceController.text));
+    }
+  }
+
+  String? _validateName(String value) {
+    final raw = value.trim();
+    if (raw.isEmpty) return 'SubWallet name is required';
+    if (raw.length < 3) return 'SubWallet name must be at least 3 characters';
+    if (raw.length > 15) return 'SubWallet name must be 15 characters or less';
+
+    final input = _normalizeName(raw);
+
+    if (widget.mode == WalletModalMode.create) {
+      final hasDuplicate = existingWallets.any(
+        (w) => _normalizeName(w.name) == input,
+      );
+      if (hasDuplicate) return 'A subwallet with this name already exists';
+    }
+
+    if (widget.mode == WalletModalMode.edit && widget.wallet != null) {
+      final currentId = widget.wallet!.id;
+      final hasDuplicate = existingWallets.any(
+        (w) => w.id != currentId && _normalizeName(w.name) == input,
+      );
+      if (hasDuplicate) return 'A subwallet with this name already exists';
+    }
+
+    return null;
+  }
+
+  String _normalizeName(String s) =>
+      s.trim().replaceAll(RegExp(r'\s+'), ' ').toUpperCase();
+
+  void _validateCategoryOnChange(String categoryId) {
+    setState(() => _categoryError = _validateCategory(categoryId));
+  }
+
+  void _validateNameOnChange(String value) {
+    setState(() => _nameError = _validateName(value));
+  }
+
+  String? _validateBalance(String value) {
+    if (value.trim().isEmpty) return null;
+
+    final balanceStr = value.trim();
+    if (balanceStr.startsWith('0') && !balanceStr.startsWith('0.')) {
+      return 'Amount cannot start with 0';
+    }
+
+    final beforeDecimal = balanceStr.split('.')[0];
+    if (beforeDecimal.length > 9) return 'Balance cannot exceed 9 digits';
+
+    try {
+      final balance = double.parse(balanceStr);
+
+      if (balance < 0) return 'Balance cannot be negative';
+      if (balance > 999999999.99) return 'Balance cannot exceed 999,999,999.99';
+      if (balance > controller.numericBalance.value) {
+        return 'Insufficient main balance';
+      }
+      return null;
+    } catch (_) {
+      return 'Please enter a valid balance';
+    }
+  }
+
+  void _validateBalanceOnChange(String value) {
+    setState(() => _balanceError = _validateBalance(value));
+  }
+
+  Color _getColorFromString(String colorString) {
+    switch (colorString.toLowerCase()) {
+      case 'blue':
+      case 'lpbluebrand':
+        return AppColorV2.lpBlueBrand;
+      case 'secondary':
+        return AppColorV2.lpTealBrand;
+      case 'accent':
+      case 'teal':
+      case 'lptealbrand':
+        return AppColorV2.lpTealBrand;
+      case 'success':
+        return AppColorV2.correctState;
+      case 'warning':
+        return AppColorV2.partialState;
+      case 'correct':
+      case 'correctstate':
+        return AppColorV2.correctState;
+      case 'mint':
+      case 'darkmintaccent':
+        return AppColorV2.darkMintAccent;
+      default:
+        return AppColorV2.lpBlueBrand;
+    }
+  }
+
+  Widget _softCard({
+    required Widget child,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(12),
+    BorderRadius radius = const BorderRadius.all(Radius.circular(14)),
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final cardColor = cs.surface;
+
+    final border = cs.outlineVariant.withOpacity(isDark ? 0.08 : 0.20);
+
+    return Neumorphic(
+      style: LuvNeu.card(
+        radius: radius,
+        color: cardColor,
+
+        depth: isDark ? 0.55 : 1.2,
+        pressedDepth: isDark ? -0.25 : -0.7,
+
+        borderColor: isDark ? Colors.transparent : border,
+        borderWidth: isDark ? 0 : 1,
+
+        isDark: isDark,
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+  }
+
+  Widget _categoryChip({
+    required bool isSelected,
+    required Color color,
+    required Widget iconWidget,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final radius = BorderRadius.circular(15);
+    final bg = cs.surface;
+
+    return LuvNeuPress(
+      onTap: onTap,
+      radius: radius,
+      depth: isDark ? 0.45 : 1.0,
+      pressedDepth: isDark ? -0.22 : -0.55,
+      borderColor:
+          isDark ? Colors.transparent : cs.outlineVariant.withOpacity(0.22),
+      overlayOpacity: isDark ? 0.0 : 0.02,
+
+      background: isSelected ? color.withOpacity(isDark ? 0.16 : 0.12) : bg,
+
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipOval(child: iconWidget),
+            const SizedBox(width: 8),
+            LuvpayText(
+              text: label,
+              style: AppTextStyle.h3(
+                context,
+              ).copyWith(color: cs.onSurface, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _primaryButton({
+    required bool enabled,
+    required bool loading,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final radius = BorderRadius.circular(16);
+    final disabledBg = cs.surfaceContainerHighest;
+
+    if (loading) {
+      return LuvNeuPress(
+        onTap: enabled ? onTap : null,
+        radius: radius,
+        depth: isDark ? 0.35 : 1.1,
+        pressedDepth: isDark ? -0.18 : -0.65,
+        overlayOpacity: 0.0,
+        background: cs.primary,
+        borderColor: cs.primary.withOpacity(0.22),
+
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: const Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (!enabled) {
+      return Opacity(
+        opacity: isDark ? 0.58 : 0.55,
+        child: LuvNeuPress(
+          onTap: () {},
+          radius: radius,
+          depth: isDark ? 0.25 : 0.9,
+          pressedDepth: isDark ? -0.12 : -0.5,
+          borderColor: Colors.transparent,
+          overlayOpacity: 0.0,
+          background: disabledBg,
+          child: SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Iconsax.tick_circle, color: cs.onSurface, size: 20),
+                  const SizedBox(width: 8),
+                  LuvpayText(
+                    text: text,
+                    style: AppTextStyle.h3(
+                      context,
+                    ).copyWith(color: cs.onSurface, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return LuvNeuPillButton(
+      label: text,
+      icon: Iconsax.tick_circle,
+      filled: true,
+      onTap: onTap,
+      height: 56,
+      filledColor: cs.primary,
+    );
+  }
+
+  Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+
+    final ctx = Get.overlayContext ?? context;
+    CustomDialogStack.showLoading(ctx);
+
+    try {
+      final walletName = _nameController.text.trim();
+
+      final double walletAmount =
+          widget.mode == WalletModalMode.edit
+              ? (widget.wallet?.balance ?? 0.0)
+              : (_balanceController.text.trim().isEmpty
+                  ? 0.0
+                  : double.parse(_balanceController.text.trim()));
+
+      if (widget.mode == WalletModalMode.create &&
+          _selectedCategoryId == null) {
+        if (Get.isDialogOpen == true) Get.back();
+        CustomDialogStack.showError(
+          ctx,
+          "luvpay",
+          "Please select a category",
+          () => Get.back(),
+        );
+        return;
+      }
+
+      final Map<String, dynamic> result =
+          widget.mode == WalletModalMode.create
+              ? await controller.postSubWallet(
+                categoryId: int.tryParse(_selectedCategoryId!),
+                subWalletName: walletName,
+                amount: walletAmount,
+              )
+              : await controller.editSubwallet(
+                subwalletId: int.tryParse(widget.wallet!.id),
+                subWalletName: walletName,
+              );
+
+      if (result["success"] == true) {
+        await controller.getUserSubWallets();
+        await controller.luvpayBalance();
+        widget.onWalletCreated?.call();
+      }
+
+      if (Get.isDialogOpen == true) Get.back();
+
+      final isOk = result["success"] == true;
+      final msg =
+          (isOk ? result["message"] : result["error"])?.toString() ??
+          (isOk ? "Success" : "Failed");
+
+      if (isOk) {
+        CustomDialogStack.showSuccess(ctx, "Success", msg, () {
+          Get.back();
+          Get.back();
+          Navigator.of(context).pop(true);
+        });
+      } else {
+        CustomDialogStack.showError(ctx, "luvpay", msg, () {
+          Get.back();
+          Get.back();
+        });
+      }
+    } catch (_) {
+      if (Get.isDialogOpen == true) Get.back();
+      CustomDialogStack.showError(
+        ctx,
+        "luvpay",
+        "Something went wrong. Please try again.",
+        () => Get.back(),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bg = cs.surface;
+    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+    final titleColor = cs.onSurface;
+    final bodyColor = cs.onSurface.withOpacity(0.72);
+
+    final nameOk = _validateName(_nameController.text) == null;
+
+    final canSubmit =
+        !_isSubmitting &&
+        nameOk &&
+        (widget.mode == WalletModalMode.edit
+            ? true
+            : _validateBalance(_balanceController.text) == null &&
+                _validateCategory(_selectedCategoryId) == null);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      color: bg,
+      child: SingleChildScrollView(
+        reverse: true,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 60,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: stroke,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            LuvpayText(
+              text:
+                  widget.mode == WalletModalMode.create
+                      ? 'Create New SubWallet'
+                      : 'Edit Wallet Name',
+              style: AppTextStyle.popup(context).copyWith(color: titleColor),
+            ),
+            const SizedBox(height: 10),
+
+            if (widget.mode == WalletModalMode.create) ...[
+              Obx(
+                () => _softCard(
+                  radius: BorderRadius.circular(14),
+                  child: Row(
+                    children: [
+                      Icon(Iconsax.wallet_money, color: cs.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: LuvpayText(
+                          text:
+                              'Available Main Balance: ${controller.luvpayBal.value}',
+                          style: AppTextStyle.paragraph1(context).copyWith(
+                            color: cs.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              LuvpayText(
+                text: 'Select Category',
+                style: AppTextStyle.h3(context).copyWith(color: titleColor),
+              ),
+              const SizedBox(height: 10),
+
+              if (_availableCategories.isNotEmpty)
+                SizedBox(
+                  height: 60,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: _availableCategories.length,
+                    itemBuilder: (context, index) {
+                      final category = _availableCategories[index];
+                      final categoryId =
+                          category['category_id']?.toString() ?? '';
+                      final categoryName =
+                          category['category_title']?.toString() ?? 'Unknown';
+                      final isSelected = _selectedCategoryId == categoryId;
+
+                      final imageBase64 =
+                          category['image_base64']?.toString() ?? '';
+                      Color color;
+
+                      if (category['color'] is int) {
+                        color = Color(category['color']);
+                      } else if (category['color'] is String) {
+                        color = _getColorFromString(category['color']);
+                      } else {
+                        color = cs.primary;
+                      }
+
+                      Widget iconWidget;
+                      if (imageBase64.isNotEmpty) {
+                        final clean = imageBase64.replaceAll(RegExp(r'\s'), '');
+                        Uint8List? bytes;
+                        if (_iconCache.containsKey(categoryId)) {
+                          bytes = _iconCache[categoryId];
+                        } else {
+                          try {
+                            bytes = base64.decode(clean);
+                            _iconCache[categoryId] = bytes;
+                          } catch (_) {
+                            bytes = null;
+                          }
+                        }
+
+                        iconWidget =
+                            bytes != null
+                                ? Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Image.memory(
+                                    bytes,
+                                    width: 40,
+                                    height: 40,
+                                    fit: BoxFit.contain,
+                                    gaplessPlayback: true,
+                                  ),
+                                )
+                                : Icon(
+                                  Iconsax.wallet,
+                                  size: 30,
+                                  color: cs.onSurface,
+                                );
+                      } else {
+                        iconWidget = Icon(
+                          Iconsax.wallet,
+                          size: 30,
+                          color: cs.onSurface,
+                        );
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.all(3),
+                        child: _categoryChip(
+                          isSelected: isSelected,
+                          color: color,
+                          iconWidget: iconWidget,
+                          label: categoryName,
+                          onTap: () {
+                            setState(() {
+                              _selectedCategoryId = categoryId;
+                              _selectedCategoryName = categoryName;
+                              _selectedColor = color;
+                              _selectedIconBytes = _iconCache[categoryId];
+                            });
+                            _validateCategoryOnChange(categoryId);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                )
+              else
+                GestureDetector(
+                  onTap: () => controller.refreshAllData(),
+                  child: LuvpayText(
+                    text: 'No categories available',
+                    style: AppTextStyle.paragraph2(
+                      context,
+                    ).copyWith(color: bodyColor),
+                  ),
+                ),
+
+              if (_categoryError != null) ...[
+                const SizedBox(height: 8),
+                LuvpayText(
+                  text: _categoryError!,
+                  style: AppTextStyle.paragraph2(context).copyWith(
+                    color: cs.error,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 18),
+            ],
+
+            if (widget.mode == WalletModalMode.edit &&
+                widget.wallet != null) ...[
+              _softCard(
+                radius: BorderRadius.circular(16),
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    LuvNeuPress(
+                      radius: BorderRadius.circular(16),
+                      depth: 1.2,
+                      pressedDepth: -0.6,
+                      onTap: null,
+                      background: widget.wallet!.color.withOpacity(
+                        isDark ? 0.14 : 0.10,
+                      ),
+                      borderColor: stroke,
+                      overlayOpacity: 0.02,
+                      child: SizedBox(
+                        width: 52,
+                        height: 52,
+                        child: Center(
+                          child: ClipOval(
+                            child: SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: buildWalletIcon(
+                                widget.wallet!.imageBase64 != null &&
+                                        widget.wallet!.imageBase64!.isNotEmpty
+                                    ? decodeBase64Safe(
+                                      widget.wallet!.imageBase64!,
+                                    )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LuvpayText(
+                            text: 'Current Category',
+                            style: AppTextStyle.paragraph2(context).copyWith(
+                              color: bodyColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          LuvpayText(
+                            text: widget.wallet!.categoryTitle,
+                            style: AppTextStyle.h3(context).copyWith(
+                              color: titleColor,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+            ],
+
+            TextField(
+              controller: _nameController,
+              onChanged: _validateNameOnChange,
+              style: AppTextStyle.h3(context).copyWith(color: titleColor),
+              maxLength: 15,
+              inputFormatters: [UpperCaseTextFormatter()],
+              decoration: InputDecoration(
+                labelText: 'SubWallet Name',
+                labelStyle: AppTextStyle.paragraph2(
+                  context,
+                ).copyWith(color: bodyColor),
+                filled: true,
+                fillColor: cs.surfaceContainerHighest,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(
+                    color: stroke,
+                    width: isDark ? 0.8 : 1.0,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(
+                    color: stroke,
+                    width: isDark ? 0.8 : 1.0,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: cs.primary),
+                ),
+                prefixIcon: Icon(Iconsax.wallet, color: cs.primary),
+                counterText: '',
+                hintText: 'Max 15 characters',
+                hintStyle: AppTextStyle.paragraph2(
+                  context,
+                ).copyWith(fontSize: 12, color: bodyColor.withOpacity(0.75)),
+                errorText: _nameError,
+                errorStyle: TextStyle(color: cs.error, fontSize: 12),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            if (widget.mode == WalletModalMode.create) ...[
+              TextField(
+                controller: _balanceController,
+                focusNode: _balanceFocusNode,
+                onChanged: _validateBalanceOnChange,
+                style: AppTextStyle.h3(context).copyWith(color: titleColor),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                maxLength: 12,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^[1-9]\d{0,8}(\.\d{0,2})?$'),
+                  ),
+                ],
+                decoration: InputDecoration(
+                  prefixText: '₱ ',
+                  prefixStyle: AppTextStyle.h3_semibold(
+                    context,
+                  ).copyWith(color: titleColor),
+                  labelText: 'Amount',
+                  labelStyle: AppTextStyle.paragraph2(
+                    context,
+                  ).copyWith(color: bodyColor),
+                  filled: true,
+                  fillColor: cs.surfaceContainerHighest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(
+                      color: stroke,
+                      width: isDark ? 0.8 : 1.0,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(
+                      color: stroke,
+                      width: isDark ? 0.8 : 1.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: cs.primary),
+                  ),
+                  prefixIcon: Icon(Iconsax.money_3, color: cs.primary),
+                  counterText: '',
+                  hintText: 'Optional (defaults to 0)',
+                  hintStyle: AppTextStyle.paragraph2(
+                    context,
+                  ).copyWith(fontSize: 12, color: bodyColor.withOpacity(0.75)),
+                  errorText: _balanceError,
+                  errorStyle: TextStyle(color: cs.error, fontSize: 12),
+                  suffixIcon:
+                      _balanceError != null &&
+                              _balanceError!.contains(
+                                'Insufficient main balance',
+                              )
+                          ? Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Icon(
+                              Iconsax.warning_2,
+                              color: cs.error,
+                              size: 20,
+                            ),
+                          )
+                          : null,
+                ),
+              ),
+
+              if (_balanceError != null &&
+                  _balanceError!.contains('Insufficient main balance')) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Iconsax.info_circle, color: cs.error, size: 14),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: LuvpayText(
+                        text: 'Available: ${controller.luvpayBal.value}',
+                        style: AppTextStyle.paragraph2(
+                          context,
+                        ).copyWith(color: cs.error, fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
+              const SizedBox(height: 18),
+            ],
+
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: _primaryButton(
+                enabled: canSubmit,
+                loading: _isSubmitting,
+                text:
+                    widget.mode == WalletModalMode.create
+                        ? 'Create SubWallet'
+                        : 'Save Changes',
+                onTap: _submitForm,
+              ),
+            ),
+
+            if (widget.mode == WalletModalMode.create) ...[
+              const SizedBox(height: 14),
+              _softCard(
+                radius: BorderRadius.circular(14),
+                child: Row(
+                  children: [
+                    Icon(Iconsax.info_circle, color: cs.primary, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: LuvpayText(
+                        text:
+                            'Funds will be deducted from your main LuvPay balance',
+                        style: AppTextStyle.paragraph2(
+                          context,
+                        ).copyWith(color: bodyColor),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

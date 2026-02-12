@@ -4,11 +4,11 @@ import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:luvpay/decryptor/decryptor.dart';
+import 'package:luvpay/core/security/decryptor/decryptor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../custom_widgets/variables.dart';
-import '../functions/functions.dart';
+import '../shared/widgets/variables.dart';
+import '../core/utils/functions/functions.dart';
 
 class Authentication {
   static EncryptedSharedPreferences encryptedSharedPreferences =
