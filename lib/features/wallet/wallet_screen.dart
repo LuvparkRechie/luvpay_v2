@@ -48,7 +48,7 @@ class _WalletScreenState extends State<WalletScreen> {
   bool isOpen = false;
   String myprofile = "";
   bool _isDialogVisible = false;
-
+  String firstName = "";
   List<Map<String, dynamic>> get _merchantGridItems => [
     {
       'icon': "assets/images/luvpay_bills.png",
@@ -88,7 +88,7 @@ class _WalletScreenState extends State<WalletScreen> {
     getUserData();
     _loadProfile();
     _startAutoRefresh();
-
+    _showFirstName();
     ever(WalletRefreshBus.refresh, (_) {
       getUserData();
       getLogs();
@@ -165,6 +165,17 @@ class _WalletScreenState extends State<WalletScreen> {
         myprofile = pic;
       });
     }
+  }
+
+  Future<void> _showFirstName() async {
+    try {
+      final data = await Authentication().getUserData2();
+      final name = (data["first_name"] ?? "").toString().trim();
+      if (!mounted) return;
+      setState(() {
+        firstName = name;
+      });
+    } catch (_) {}
   }
 
   Future<void> _loadUserInfo() async {
@@ -483,9 +494,7 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget _buildHeader() {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-
     String greeting = _getTimeBasedGreeting();
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
@@ -496,7 +505,7 @@ class _WalletScreenState extends State<WalletScreen> {
               children: [
                 Image.asset("assets/images/luvpay_text.png", height: 30),
                 LuvpayText(
-                  text: greeting,
+                  text: "$greeting${firstName.isEmpty ? "" : " $firstName"}!",
                   style: AppTextStyle.body1(context),
                   color: cs.onSurface.withOpacity(0.70),
                 ),

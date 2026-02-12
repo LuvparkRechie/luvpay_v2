@@ -930,4 +930,17 @@ class Functions {
 
     return "luvpay User";
   }
+
+  static String getFirstName(Map<String, dynamic> user) {
+    final first = user['first_name']?.toString().trim() ?? '';
+    final mobile = user['mobile_no'] ?? '';
+
+    if (first.isNotEmpty) return first;
+
+    if (mobile.toString().isNotEmpty && mobile.toString().length >= 4) {
+      return "User ${mobile.toString().substring(mobile.toString().length - 4)}";
+    }
+
+    return "luvpay User";
+  }
 }

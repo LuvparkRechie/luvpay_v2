@@ -429,7 +429,7 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
           }
         } else {
           _showErrorDialog(
-            "No QR Code Found",
+            "QR Code Invalid",
             "The selected image doesn't contain a valid QR code.",
           );
         }
