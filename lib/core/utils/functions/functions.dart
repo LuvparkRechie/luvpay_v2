@@ -19,7 +19,7 @@ import 'package:luvpay/core/utils/functions/eta_calculator.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/core/services/notification_controller.dart';
-import 'package:ntp/ntp.dart';
+import 'package:ntp_dart/ntp_dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../shared/dialogs/dialogs.dart';
@@ -300,9 +300,10 @@ class Functions {
 
   static Future<DateTime> getTimeNow() async {
     try {
-      DateTime timeNow = await NTP.now().timeout(Duration(seconds: 2));
-      return timeNow;
-    } catch (e) {
+      final t = await AccurateTime.now().timeout(const Duration(seconds: 2));
+      if (t.year < 2000) throw Exception("Invalid NTP time");
+      return t;
+    } catch (_) {
       return DateTime.now();
     }
   }

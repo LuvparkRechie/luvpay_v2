@@ -35,7 +35,7 @@ class Routes {
   static const message = "/message";
   static const helpfeedback = "/help_feedback";
   static const lockScreen = "/lock_screen";
-  static const send2 = "/send_screen_send";
+  static const send = "/send_screen_send";
   static const billers = "/billers";
   static const myQR = "/myQR";
   static const merchantQR = "/merchantQR";

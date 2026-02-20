@@ -409,6 +409,7 @@ class CustomDialogStack {
           color: Colors.transparent,
           child: PopScope(
             canPop: false,
+            // canPop: true,
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(

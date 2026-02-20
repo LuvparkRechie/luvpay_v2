@@ -1,11 +1,9 @@
-import 'dart:async';
-import 'dart:io';
+// ignore_for_file: deprecated_member_use
 
-import 'package:app_version_update/data/models/app_version_result.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/features/splash_screen/util/update_app.dart';
 import '../../auth/authentication.dart';
 import '../../shared/widgets/variables.dart';
 import '../../core/security/security/app_security.dart';
@@ -59,15 +57,6 @@ class SplashController extends GetxController
   }
 
   Future<void> determineInitialRoute() async {
-    // isNetConn.value = true;
-
-    // final response = await HttpRequestApi(api: "").pingInternet();
-
-    // if (response == "Success") {
-    //   _verifyVersion();
-    // } else {
-    //   isNetConn.value = false;
-    // }
     _verifyVersion();
   }
 
@@ -98,43 +87,35 @@ class SplashController extends GetxController
     basicStatusCheck();
   }
 
-  // basicStatusCheck(NewVersionPlus newVersion) async {
   basicStatusCheck() async {
+    final isForcedLogout = await Authentication().getLogoutStatus();
+    if (isForcedLogout == true) {
+      Get.offAllNamed(Routes.login);
+      return;
+    }
+
     final data = await Authentication().getUserData2();
     final userLogin = await Authentication().getUserLogin();
 
     await _waitSplashPaint(minDelay: const Duration(milliseconds: 900));
+
     if (data != null) {
       final service = FlutterBackgroundService();
       service.invoke('updateUserLogin', {
         'userId':
             userLogin != null ? int.parse(userLogin['user_id'].toString()) : 0,
       });
+
       if (userLogin == null || userLogin["is_login"] == "N") {
         Get.offAllNamed(Routes.login);
         return;
       } else {
         Get.offAllNamed(Routes.dashboard);
-        // LocationService.grantPermission(Get.context!, (isGranted) async {
-        //   if (isGranted) {
-        //     Get.offAllNamed(Routes.map);
-        //   } else {
-        //     final response = await Get.toNamed(Routes.permission);
-
-        //     if (response) {
-        //       Get.offAllNamed(Routes.map);
-        //     }
-        //   }
-        // });
       }
     } else {
       await Future.delayed(const Duration(milliseconds: 800));
       Get.offAllNamed(Routes.onboarding);
     }
-  }
-
-  void _showCustomAlertDialog(BuildContext context, AppVersionResult data) {
-    Get.to(UpdateApp(), arguments: data);
   }
 
   @override

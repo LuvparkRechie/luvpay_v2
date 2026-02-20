@@ -268,6 +268,8 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                             if (userLogin == null) {
                               box.write('isFirstLogin', true);
                             }
+                            await Authentication().setLogoutStatus(false);
+
                             Get.offAllNamed(Routes.dashboard);
                           }
                         });
@@ -478,8 +480,12 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                             "device_key": devKey.toString(),
                           };
 
-                          controller.postLogin(Get.context!, postParam, (data) {
+                          controller.postLogin(Get.context!, postParam, (
+                            data,
+                          ) async {
                             Get.back();
+                            await Authentication().setLogoutStatus(false);
+
                             if (data[0]["items"].isNotEmpty) {
                               Get.offAllNamed(Routes.dashboard);
                             }
@@ -512,8 +518,11 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                           if (isEnabledBio) {
                             CustomDialogStack.showLoading(Get.context!);
 
-                            controller.postLogin(Get.context!, data, (data) {
+                            controller.postLogin(Get.context!, data, (
+                              data,
+                            ) async {
                               Get.back();
+                              await Authentication().setLogoutStatus(false);
 
                               if (data[0]["items"].isNotEmpty) {
                                 Get.offAllNamed(Routes.dashboard);

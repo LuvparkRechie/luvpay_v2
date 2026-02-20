@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:luvpay/features/wallet_send/index.dart';
 import 'package:luvpay/shared/components/otp_field/index.dart';
 import 'package:luvpay/features/billers/index.dart';
 import 'package:luvpay/features/bills_payment/index.dart';
@@ -180,6 +181,14 @@ class AppPages {
       name: Routes.vouchers,
       page: () => const Vouchers(),
       binding: VouchersBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.send,
+      page: () => WalletSend(),
+      binding: WalletSendBinding(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,

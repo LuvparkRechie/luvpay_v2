@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
-
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:dart_ping_ios/dart_ping_ios.dart';
@@ -18,13 +17,12 @@ import 'package:luvpay/shared/widgets/variables.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
 import 'package:luvpay/features/routes/pages.dart';
 import 'package:luvpay/features/routes/routes.dart';
-import 'package:ntp_dart/ntp_dart.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart'
     hide PermissionStatus;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
-
+import 'core/security/auto_logout_guard.dart';
+import 'core/security/tamper_gaurd.dart';
 import 'shared/widgets/luvpay_theme.dart';
 import 'shared/widgets/theme_mode_controller.dart';
 import 'core/services/notification_controller.dart';
@@ -33,17 +31,6 @@ import 'core/security/security/app_security.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 Timer? _sessionTimer;
 Timer? _tamperTimer;
-
-Future<bool> isTamperDialogActive() async {
-  final prefs = await SharedPreferences.getInstance();
-
-  return prefs.getBool('tamperDialogActive') ?? false;
-}
-
-Future<void> setTamperDialogActive(bool value) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('tamperDialogActive', value);
-}
 
 @pragma('vm:entry-point')
 Future<void> backgroundFunc(int id, Map<String, dynamic> params) async {
@@ -55,8 +42,11 @@ Future<void> backgroundFunc(int id, Map<String, dynamic> params) async {
   bool isAppSecured = appSecurity[0]["is_secured"];
 
   if (isAppSecured) {
-    tz.initializeTimeZones();
-    await checkTamper();
+    await TamperGuard.checkOnce(
+      onTamperUi: (_) {
+        TamperGuard.exitApp();
+      },
+    );
     await getMessNotif();
   } else {
     Variables.bgProcess?.cancel();
@@ -106,94 +96,34 @@ void onStart(ServiceInstance service) async {
 void sessionTimeOut(BuildContext context) {
   _tamperTimer?.cancel();
   _tamperTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
-    if (!await isTamperDialogActive()) {
-      await checkTamper();
+    if (!await TamperGuard.isDialogActive()) {
       getLogSession(context);
     } else {
-      print("[Session Timeout] Skipped tamper check — dialog active.");
+      print("[Session Timeout] Skipped session log — tamper dialog active.");
     }
   });
 }
 
 void _onUserActivity() {
   _sessionTimer?.cancel();
-  sessionTimeOut(navigatorKey.currentContext!);
-}
-
-Future<void> checkTamper() async {
-  if (await isTamperDialogActive()) return;
-
-  try {
-    DateTime serverUtcTime;
-    try {
-      serverUtcTime = await AccurateTime.now();
-      if (serverUtcTime.year < 2000) throw Exception("Invalid NTP time");
-    } catch (_) {
-      print("[Tamper] Using fallback local UTC time.");
-      serverUtcTime = DateTime.now().toUtc();
-    }
-
-    serverUtcTime = DateTime.utc(
-      serverUtcTime.year,
-      serverUtcTime.month,
-      serverUtcTime.day,
-      serverUtcTime.hour,
-      serverUtcTime.minute,
-    );
-
-    DateTime deviceUtcTime = DateTime.now().toUtc();
-    deviceUtcTime = DateTime.utc(
-      deviceUtcTime.year,
-      deviceUtcTime.month,
-      deviceUtcTime.day,
-      deviceUtcTime.hour,
-      deviceUtcTime.minute,
-    );
-
-    final differenceMinutes =
-        serverUtcTime.difference(deviceUtcTime).inMinutes.abs();
-    const allowedDriftMinutes = 1;
-
-    if (differenceMinutes > allowedDriftMinutes || _isTimezoneChanged()) {
-      await setTamperDialogActive(true);
-      final ctx = navigatorKey.currentContext;
-      if (ctx != null) {
-        Variables.showSecurityPopUp('"Time/Date Tampered"');
-      } else {
-        await setTamperDialogActive(false);
-        _exitApp();
-      }
-    }
-  } catch (e, stack) {
-    print("Error in checkTamper: $e");
-    print(stack);
-  }
-}
-
-bool _isTimezoneChanged() {
-  final deviceOffset = DateTime.now().timeZoneOffset.inHours;
-  return deviceOffset != 8;
-}
-
-void _exitApp() {
-  if (Platform.isAndroid) {
-    SystemNavigator.pop();
-  } else if (Platform.isIOS) {
-    exit(0);
-  }
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final ctx = navigatorKey.currentContext;
+    if (ctx != null) sessionTimeOut(ctx);
+  });
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await GetStorage.init();
   await dotenv.load();
+  if (Platform.isAndroid) {
+    await AndroidAlarmManager.initialize();
+  }
+  await AutoLogoutGuard.checkColdStartLogout();
 
   Get.put(ThemeModeController(), permanent: true);
-
   DartPingIOS.register();
-  await setTamperDialogActive(false);
-  tz.initializeTimeZones();
+  await TamperGuard.prime();
 
   final packageInfo = await PackageInfo.fromPlatform();
   Variables.version = packageInfo.version;
@@ -225,27 +155,42 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final ThemeController themeController = Get.put(ThemeController());
 
   @override
   void initState() {
     super.initState();
-
-    setTamperDialogActive(false);
+    TamperGuard.start(
+      interval: const Duration(seconds: 10),
+      onTamperUi: (msg) {
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) {
+          Variables.showSecurityPopUp(msg);
+        } else {
+          TamperGuard.exitApp();
+        }
+      },
+    );
+    WidgetsBinding.instance.addObserver(this);
 
     NotificationController.startListeningNotificationEvents();
-    if (Platform.isAndroid) {
-      AndroidAlarmManager.initialize();
-    }
+
     initializedDeviceSecurity();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    TamperGuard.stop();
     _sessionTimer?.cancel();
     _tamperTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    await AutoLogoutGuard.handleLifecycle(state);
   }
 
   void initializedDeviceSecurity() async {
@@ -258,7 +203,11 @@ class _MyAppState extends State<MyApp> {
       } else {
         IosBgProcess().initializeService();
       }
-      sessionTimeOut(navigatorKey.currentContext!);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) sessionTimeOut(ctx);
+      });
     } else {
       Variables.bgProcess?.cancel();
       Variables.showSecurityPopUp(appSecurity[0]["msg"]);

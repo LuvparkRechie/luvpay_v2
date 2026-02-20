@@ -835,41 +835,46 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                 ),
 
                                 title: LuvpayText(
-                                  text: category,
-                                  style: AppTextStyle.body1(ctx),
+                                  text: desc,
+                                  style: AppTextStyle.body1(context),
+                                  maxFontSize: 12,
+                                  minFontSize: 8,
                                   color: cs.onSurface,
                                 ),
-
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // LuvpayText(
-                                    //   text: desc,
-                                    //   maxLines: 1,
-                                    //   maxFontSize: 12,
-                                    //   style: AppTextStyle.paragraph2(ctx),
-                                    //   color: cs.onSurfaceVariant.withOpacity(
-                                    //     isDark ? 0.78 : 0.75,
-                                    //   ),
-                                    // ),
-                                    // const SizedBox(height: 4),
                                     LuvpayText(
                                       text: formatDate(
                                         tx['tran_date'].toString(),
                                       ),
-                                      style: AppTextStyle.body1(ctx),
+                                      style: AppTextStyle.body1(context),
                                       maxFontSize: 10,
                                       minFontSize: 8,
                                       color: cs.onSurfaceVariant.withOpacity(
-                                        isDark ? 0.72 : 0.70,
+                                        0.75,
                                       ),
                                     ),
                                   ],
                                 ),
 
-                                trailing: LuvpayText(
-                                  text: toCurrencyString(tx['amount']),
-                                  style: TextStyle(color: accent),
+                                trailing: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    LuvpayText(
+                                      text: toCurrencyString(tx['amount']),
+                                      style: TextStyle(color: accent),
+                                    ),
+                                    LuvpayText(
+                                      text: category,
+                                      style: AppTextStyle.body1(context),
+                                      maxFontSize: 10,
+                                      minFontSize: 8,
+                                      color: cs.onSurfaceVariant.withOpacity(
+                                        0.75,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );

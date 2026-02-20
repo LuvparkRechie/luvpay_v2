@@ -9,7 +9,6 @@ import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
 import 'package:luvpay/features/billers/index.dart';
 import 'package:luvpay/features/billers/utils/allbillers.dart';
@@ -75,6 +74,14 @@ class _WalletScreenState extends State<WalletScreen> {
       'color': Colors.orange,
       'onTap': () {
         showTopUpMethod();
+      },
+    },
+    {
+      'icon': "assets/images/navigation.png",
+      'label': 'Top-up',
+      'color': Colors.orange,
+      'onTap': () {
+        Get.toNamed(Routes.send);
       },
     },
   ];
@@ -423,6 +430,8 @@ class _WalletScreenState extends State<WalletScreen> {
               _buildHeader(),
               const SizedBox(height: 10),
               _buildBalanceCard(),
+              const SizedBox(height: 20),
+              _buildMerchantBillsGrid(),
               const SizedBox(height: 25),
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -460,8 +469,8 @@ class _WalletScreenState extends State<WalletScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 1,
+        crossAxisCount: 5,
+        crossAxisSpacing: 10,
         mainAxisSpacing: 10,
         mainAxisExtent: 50,
       ),
@@ -505,7 +514,7 @@ class _WalletScreenState extends State<WalletScreen> {
               children: [
                 Image.asset("assets/images/luvpay_text.png", height: 30),
                 LuvpayText(
-                  text: "$greeting${firstName.isEmpty ? "" : " $firstName"}!",
+                  text: "$greeting${firstName.isEmpty ? "" : ", $firstName"}!",
                   style: AppTextStyle.body1(context),
                   color: cs.onSurface.withOpacity(0.70),
                 ),
@@ -521,13 +530,13 @@ class _WalletScreenState extends State<WalletScreen> {
     final hour = DateTime.now().hour;
 
     if (hour >= 5 && hour < 12) {
-      return 'Good Morning,';
+      return 'Good Morning';
     } else if (hour >= 12 && hour < 17) {
-      return 'Good Afternoon,';
+      return 'Good Afternoon';
     } else if (hour >= 17 && hour < 21) {
-      return 'Good Evening,';
+      return 'Good Evening';
     } else {
-      return 'Good Night,';
+      return 'Good Night';
     }
   }
 
@@ -702,14 +711,6 @@ class _WalletScreenState extends State<WalletScreen> {
                           style: AppTextStyle.body1(context),
                           color: Colors.white,
                           fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const Spacer(),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: SizedBox(
-                          width: 120,
-                          child: _buildMerchantBillsGrid(),
                         ),
                       ),
                     ],
@@ -909,37 +910,31 @@ class TransactionSectionListView extends StatelessWidget {
       ),
 
       title: LuvpayText(
-        text: transaction['category']?.toString() ?? 'Transaction',
+        text: transaction['tran_desc']?.toString() ?? 'No description',
         style: AppTextStyle.body1(context),
-        maxFontSize: 14,
+        maxFontSize: 12,
         minFontSize: 8,
         color: cs.onSurface,
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // LuvpayText(
-          //   text: transaction['tran_desc']?.toString() ?? 'No description',
-          //   maxLines: 1,
-          //   maxFontSize: 12,
-          //   style: AppTextStyle.paragraph2(context),
-          //   color: cs.onSurfaceVariant.withOpacity(0.85),
-          // ),
-          // const SizedBox(height: 4),
-          LuvpayText(
-            text: formatDate(transaction['tran_date']?.toString() ?? ''),
-            style: AppTextStyle.body1(context),
-            maxFontSize: 10,
-            minFontSize: 8,
-            color: cs.onSurfaceVariant.withOpacity(0.75),
-          ),
-        ],
+      subtitle: LuvpayText(
+        text: formatDate(transaction['tran_date']?.toString() ?? ''),
+        style: AppTextStyle.body1(context),
+        maxFontSize: 10,
+        minFontSize: 8,
+        color: cs.onSurfaceVariant.withOpacity(0.75),
       ),
 
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           LuvpayText(text: toCurrencyString(amountString), color: accent),
+          LuvpayText(
+            text: transaction['category']?.toString() ?? 'Transaction',
+            style: AppTextStyle.body1(context),
+            maxFontSize: 10,
+            minFontSize: 8,
+            color: cs.onSurfaceVariant.withOpacity(0.75),
+          ),
         ],
       ),
 

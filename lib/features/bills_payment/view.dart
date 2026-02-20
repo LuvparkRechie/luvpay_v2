@@ -228,6 +228,7 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   Get.back();
 
                   Functions().requestOtp(requestParam, (objData) async {
+                    print("objData  $objData  ");
                     if (objData == null) return;
 
                     final ok =

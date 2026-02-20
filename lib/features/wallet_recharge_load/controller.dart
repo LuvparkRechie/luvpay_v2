@@ -2,18 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
 
-import '../../core/security/agent_x.dart';
 import '../../auth/authentication.dart';
 import '../../auth/ub_auth.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/luvpay_text.dart';
-import '../../shared/widgets/scanner.dart';
 import '../../shared/widgets/variables.dart';
 import '../../core/network/http/api_keys.dart';
 import '../../shared/components/web_view/webview.dart';
@@ -137,59 +134,6 @@ class WalletRechargeLoadController extends GetxController
 
   bool isObjData(dynamic s) {
     return s is Map<String, dynamic>;
-  }
-
-  Future<void> requestCameraPermission() async {
-    Get.to(
-      ScannerScreen(
-        onchanged: (args) {
-          defPopup({msg}) {
-            CustomDialogStack.showError(
-              Get.context!,
-              "Invalid QR Code",
-              msg ?? "The scanned QR code is invalid. Please try again.",
-              () {
-                Get.back();
-              },
-            );
-          }
-
-          if (!isBase64(args)) {
-            defPopup();
-            return;
-          }
-
-          dynamic jsonData = jsonDecode(AgentX_().decryptAES256CBC(args));
-
-          if (jsonData["amount"].toString().isEmpty) {
-            amountController.text = "500";
-          } else {
-            amountController.text = jsonData["amount"].toString();
-          }
-          onTextChange();
-          if (jsonData is Map) {
-            if (jsonData.containsKey('mobile_no')) {
-              String mobileNo = jsonData["mobile_no"].toString();
-              if (mobileNo.toString().length == 12) {
-                mobNum.text = mobileNo.replaceAll(" ", "").substring(2);
-
-                onSearchChanged(mobNum.text, false, from: "scan_qr");
-                CustomDialogStack.showLoading(Get.context!);
-                return;
-              }
-              defPopup(msg: "Invalid mobile number");
-              return;
-            } else {
-              defPopup();
-              return;
-            }
-          } else {
-            defPopup();
-            return;
-          }
-        },
-      ),
-    );
   }
 
   //function for my pads

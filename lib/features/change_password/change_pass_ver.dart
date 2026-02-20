@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
 import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
+import '../../shared/components/otp_field/view.dart';
 import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/neumorphism.dart';
 import '../../shared/widgets/luvpay_text.dart';
@@ -16,7 +17,6 @@ import '../../shared/widgets/spacing.dart';
 import '../../shared/widgets/variables.dart';
 import '../../core/utils/functions/functions.dart';
 import '../../core/network/http/api_keys.dart';
-import '../otp_field/index.dart';
 import '../routes/routes.dart';
 
 class ChangePasswordVerified extends StatefulWidget {
