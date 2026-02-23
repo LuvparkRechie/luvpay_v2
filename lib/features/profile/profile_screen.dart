@@ -22,7 +22,7 @@ import '../../core/utils/functions/functions.dart';
 import '../../core/network/http/api_keys.dart';
 import '../../shared/components/web_view/webview.dart';
 import '../routes/routes.dart';
-import '../transaction/transaction_screen.dart';
+import '../wallet/transaction/transaction_screen.dart';
 import '../wallet/notifications.dart';
 import 'my_profile.dart';
 
@@ -664,8 +664,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ),
         InfoRowTile(
           icon: LucideIcons.messageCircle,
-          title: 'FAQs',
-          onTap: () => Get.toNamed(Routes.faqpage),
+          title: 'Help Center',
+          onTap: () => Get.toNamed(Routes.helpcenter),
         ),
       ],
     );

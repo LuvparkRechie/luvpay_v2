@@ -49,4 +49,5 @@ class Routes {
   static const securitySettings = "/security_settings";
   static const subwallet = "/subwallet";
   static const vouchers = "/vouchers";
+  static const helpcenter = "/helpcenter";
 }

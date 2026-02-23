@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:luvpay/features/helpcenter/index.dart';
 import 'package:luvpay/features/wallet_send/index.dart';
 import 'package:luvpay/shared/components/otp_field/index.dart';
 import 'package:luvpay/features/billers/index.dart';
@@ -189,6 +190,14 @@ class AppPages {
       name: Routes.send,
       page: () => WalletSend(),
       binding: WalletSendBinding(),
+      transition: Transition.rightToLeftWithFade,
+      transitionDuration: Duration(milliseconds: 300),
+      preventDuplicates: true,
+    ),
+    GetPage(
+      name: Routes.helpcenter,
+      page: () => HelpCenter(),
+      binding: HelpCenterBinding(),
       transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,

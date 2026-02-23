@@ -23,8 +23,8 @@ import '../../core/utils/functions/functions.dart';
 import '../../core/network/http/api_keys.dart';
 import '../../core/network/http/http_request.dart';
 import '../dashboard/refresh_wallet.dart';
-import '../transaction/transaction_details.dart';
-import '../transaction/transaction_screen.dart';
+import 'transaction/transaction_details.dart';
+import 'transaction/transaction_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   final bool? fromTab;
@@ -78,7 +78,7 @@ class _WalletScreenState extends State<WalletScreen> {
     },
     {
       'icon': "assets/images/navigation.png",
-      'label': 'Top-up',
+      'label': 'Send',
       'color': Colors.orange,
       'onTap': () {
         Get.toNamed(Routes.send);
@@ -430,7 +430,7 @@ class _WalletScreenState extends State<WalletScreen> {
               _buildHeader(),
               const SizedBox(height: 10),
               _buildBalanceCard(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
               _buildMerchantBillsGrid(),
               const SizedBox(height: 25),
               Padding(
@@ -470,9 +470,8 @@ class _WalletScreenState extends State<WalletScreen> {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 5,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        mainAxisExtent: 50,
+        crossAxisSpacing: 16,
+        mainAxisExtent: 80,
       ),
       itemCount: _merchantGridItems.length,
       itemBuilder: (context, index) {
@@ -493,6 +492,15 @@ class _WalletScreenState extends State<WalletScreen> {
               assetPath: item['icon'],
               onTap: item['onTap'],
               borderRadius: BorderRadius.circular(14),
+            ),
+            SizedBox(height: 6),
+            LuvpayText(
+              text: item['label'],
+              style: AppTextStyle.paragraph1(context),
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+              maxFontSize: 12,
+              minFontSize: 8,
             ),
           ],
         ),
@@ -546,13 +554,13 @@ class _WalletScreenState extends State<WalletScreen> {
 
     final balanceText =
         userData.isEmpty || userData[0]["items"].isEmpty || !isOpen
-            ? "PHP •••••••"
+            ? "PHP • • • • • • •"
             : "PHP ${toCurrencyString(userData[0]["items"][0]["amount_bal"])}";
 
     final mobileText =
         isOpen
-            ? (userInfo["mobile_no"]?.toString() ?? "•••••••••••")
-            : "•••••••••••";
+            ? (userInfo["mobile_no"]?.toString() ?? "• • • • • • • • • • •")
+            : "• • • • • • • • • • •";
     final brandA = AppColorV2.lpBlueBrand;
     final brandB = AppColorV2.lpTealBrand;
 
@@ -912,8 +920,9 @@ class TransactionSectionListView extends StatelessWidget {
       title: LuvpayText(
         text: transaction['tran_desc']?.toString() ?? 'No description',
         style: AppTextStyle.body1(context),
-        maxFontSize: 12,
-        minFontSize: 8,
+        maxFontSize: 16,
+        maxLines: 1,
+        minFontSize: 14,
         color: cs.onSurface,
       ),
       subtitle: LuvpayText(
@@ -927,7 +936,13 @@ class TransactionSectionListView extends StatelessWidget {
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          LuvpayText(text: toCurrencyString(amountString), color: accent),
+          LuvpayText(
+            text: toCurrencyString(amountString),
+            color: accent,
+            style: AppTextStyle.body1(
+              context,
+            ).copyWith(fontWeight: FontWeight.bold),
+          ),
           LuvpayText(
             text: transaction['category']?.toString() ?? 'Transaction',
             style: AppTextStyle.body1(context),

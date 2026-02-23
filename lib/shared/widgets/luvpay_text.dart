@@ -20,98 +20,98 @@ class AppTextStyle {
   static Color _onBrand(BuildContext context) =>
       _isDark(context) ? AppColorV2.darkBackground : AppColorV2.background;
 
-  static TextStyle h1(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle h1(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 28,
     fontWeight: FontWeight.w800,
     height: 32 / 28,
     color: _primaryText(context),
   );
 
-  static TextStyle h2_f26(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle h2_f26(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 26,
     fontWeight: FontWeight.w800,
     height: 32 / 26,
     color: _primaryText(context),
   );
 
-  static TextStyle h2(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle h2(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 24,
     fontWeight: FontWeight.w800,
     height: 28 / 24,
     color: _primaryText(context),
   );
 
-  static TextStyle h3_f22(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle h3_f22(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 26 / 22,
     color: _primaryText(context),
   );
 
-  static TextStyle h3(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle h3(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 16,
     fontWeight: FontWeight.w700,
     height: 20 / 16,
     color: _primaryText(context),
   );
 
-  static TextStyle h3_semibold(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle h3_semibold(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     height: 20 / 16,
     color: _primaryText(context),
   );
 
-  static TextStyle h4(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle h4(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 18,
     fontWeight: FontWeight.w700,
     height: 28 / 18,
     color: _primaryText(context),
   );
 
-  static TextStyle paragraph1(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle paragraph1(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 20 / 16,
     color: _bodyText(context),
   );
 
-  static TextStyle paragraph2(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle paragraph2(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 18 / 14,
     color: _bodyText(context),
   );
 
-  static TextStyle body2(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle body2(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 12,
     fontWeight: FontWeight.w700,
     height: 18 / 14,
     color: _bodyText(context),
   );
 
-  static TextStyle body1(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle body1(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 18 / 14,
     color: _bodyText(context),
   );
 
-  static TextStyle textbox(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle textbox(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 18 / 14,
     color: _bodyText(context),
   );
 
-  static TextStyle textButton(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle textButton(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 20 / 16,
     color: _onBrand(context),
   );
 
-  static TextStyle popup(BuildContext context) => GoogleFonts.manrope(
+  static TextStyle popup(BuildContext context) => GoogleFonts.montserrat(
     fontSize: 22,
     fontWeight: FontWeight.w800,
     height: 24 / 22,

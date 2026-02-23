@@ -29,7 +29,8 @@ import '../../database/sqlite/reserve_notification_table.dart';
 import 'package:uuid/uuid.dart';
 
 class Functions {
-  static GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
+  static final GeolocatorPlatform _geolocatorPlatform =
+      GeolocatorPlatform.instance;
 
   static Future<List> getUserBalance() async {
     final respo = await Authentication().getUserData2().then((userData) async {

@@ -15,13 +15,13 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
-import '../../shared/widgets/colors.dart';
+import '../../../shared/widgets/colors.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 
-import '../../shared/widgets/separator.dart';
-import '../../shared/widgets/luvpay_text.dart';
+import '../../../shared/widgets/separator.dart';
+import '../../../shared/widgets/luvpay_text.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../shared/widgets/variables.dart';
+import '../../../shared/widgets/variables.dart';
 
 class TransactionDetails extends StatelessWidget {
   final List data;

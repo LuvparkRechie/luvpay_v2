@@ -142,10 +142,7 @@ class AutoLogoutGuard {
 
       await Authentication().setLogoutStatus(true);
 
-      final expiryLabel = _formatExpiryLabel(
-        awayExpiry,
-      ); // e.g. "30 minutes", "1 month"
-      final awayLabel = _formatElapsed(awayMs); // e.g. "31 minutes", "2 hours"
+      final awayLabel = _formatElapsed(awayMs);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (Get.isDialogOpen == true) return;
@@ -157,7 +154,7 @@ class AutoLogoutGuard {
               title: const Text('Session Ended'),
               content: Text(
                 'To keep your account secure, you have been logged out due to inactivity.\n\n'
-                'You were away for $awayLabel, which exceeded the allowed limit of $expiryLabel.\n\n'
+                'You were away for $awayLabel, which exceeded the allowed limit.\n\n'
                 'Please sign in again to continue.',
               ),
               actions: [
@@ -176,8 +173,6 @@ class AutoLogoutGuard {
       });
     }
   }
-
-  // Helpers
 
   static int _computeExpiryAtMs(int bgAtMs, ExpiryConfig cfg) {
     final bg = DateTime.fromMillisecondsSinceEpoch(bgAtMs);
@@ -226,7 +221,6 @@ class AutoLogoutGuard {
   }
 
   static int _daysInMonth(int year, int month) {
-    // Day 0 of next month is last day of current month
     final lastDay = DateTime(year, month + 1, 0).day;
     return lastDay;
   }
@@ -255,8 +249,6 @@ class AutoLogoutGuard {
     return '$value ${singular}s';
   }
 
-  /// Formats elapsed time in a human way.
-  /// Uses largest unit that yields >= 1, with rounding down.
   static String _formatElapsed(int elapsedMs) {
     final seconds = elapsedMs ~/ 1000;
 
@@ -271,7 +263,7 @@ class AutoLogoutGuard {
     final days = hours ~/ 24;
     if (days < 30) return _plural(days, 'day');
 
-    // Past ~30 days, show months approximation for display only.
+    // 30 <= days
     final months = days ~/ 30;
     return _plural(months <= 0 ? 1 : months, 'month');
   }

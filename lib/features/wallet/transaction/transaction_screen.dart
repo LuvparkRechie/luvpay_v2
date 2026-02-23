@@ -23,9 +23,9 @@ import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-import '../../../auth/authentication.dart';
-import '../../shared/widgets/luvpay_loading.dart';
-import '../../core/utils/functions/functions.dart';
+import '../../../../auth/authentication.dart';
+import '../../../shared/widgets/luvpay_loading.dart';
+import '../../../core/utils/functions/functions.dart';
 import 'transaction_details.dart';
 
 class TransactionHistory extends StatefulWidget {
@@ -837,8 +837,9 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                 title: LuvpayText(
                                   text: desc,
                                   style: AppTextStyle.body1(context),
-                                  maxFontSize: 12,
-                                  minFontSize: 8,
+                                  maxFontSize: 16,
+                                  maxLines: 1,
+                                  minFontSize: 14,
                                   color: cs.onSurface,
                                 ),
                                 subtitle: Column(
@@ -863,7 +864,10 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                   children: [
                                     LuvpayText(
                                       text: toCurrencyString(tx['amount']),
-                                      style: TextStyle(color: accent),
+                                      color: accent,
+                                      style: AppTextStyle.body1(
+                                        context,
+                                      ).copyWith(fontWeight: FontWeight.bold),
                                     ),
                                     LuvpayText(
                                       text: category,

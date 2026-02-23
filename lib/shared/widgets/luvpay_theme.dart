@@ -60,25 +60,32 @@ class AppThemeV2 {
   static ThemeData light() {
     final scheme = AppColorV2.lightScheme;
 
-    return ThemeData(
+    final base = ThemeData(
       useMaterial3: false,
       brightness: Brightness.light,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColorV2.background,
+    );
+
+    final montserraTextTheme = GoogleFonts.montserratTextTheme(base.textTheme);
+    final montserraPrimaryTextTheme = GoogleFonts.montserratTextTheme(
+      base.primaryTextTheme,
+    );
+
+    return base.copyWith(
+      textTheme: montserraTextTheme,
+      primaryTextTheme: montserraPrimaryTextTheme,
+
       dividerTheme: DividerThemeData(
         color: Colors.grey.shade300,
         thickness: 0.5,
         space: 15,
         indent: 5,
       ),
+
       appBarTheme: AppBarTheme(
         backgroundColor: AppColorV2.lpBlueBrand,
-        titleTextStyle: GoogleFonts.manrope(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          height: 28 / 18,
-          color: Colors.white,
-        ),
+
         iconTheme: const IconThemeData(color: Colors.white),
       ),
     );
@@ -87,20 +94,32 @@ class AppThemeV2 {
   static ThemeData dark() {
     final scheme = AppColorV2.darkScheme;
 
-    return ThemeData(
+    final base = ThemeData(
       useMaterial3: false,
       brightness: Brightness.dark,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColorV2.darkBackground,
+    );
+
+    final montserraTextTheme = GoogleFonts.montserratTextTheme(base.textTheme);
+    final montserraPrimaryTextTheme = GoogleFonts.montserratTextTheme(
+      base.primaryTextTheme,
+    );
+
+    return base.copyWith(
+      textTheme: montserraTextTheme,
+      primaryTextTheme: montserraPrimaryTextTheme,
+
       dividerTheme: DividerThemeData(
         color: AppColorV2.darkStroke,
         thickness: 0.5,
         space: 15,
         indent: 5,
       ),
+
       appBarTheme: AppBarTheme(
         backgroundColor: AppColorV2.darkSurface2,
-        titleTextStyle: GoogleFonts.manrope(
+        titleTextStyle: GoogleFonts.montserrat(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           height: 28 / 18,
