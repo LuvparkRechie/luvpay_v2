@@ -279,6 +279,10 @@ class CustomMobileNumber extends StatefulWidget {
     this.suffixIcon,
     this.onIconTap,
     this.textInputAction,
+
+    this.suffixWidget,
+    this.suffixBgC,
+    this.circularRadius = 7,
   });
 
   final void Function()? onTap;
@@ -295,11 +299,23 @@ class CustomMobileNumber extends StatefulWidget {
   final IconData? suffixIcon;
   final TextInputAction? textInputAction;
 
+  final Widget? suffixWidget;
+  final Color? suffixBgC;
+  final double? circularRadius;
+
   @override
   State<CustomMobileNumber> createState() => _CustomMobileNumberState();
 }
 
 class _CustomMobileNumberState extends State<CustomMobileNumber> {
+  FocusNode focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
+
   OutlineInputBorder _border({
     required double radius,
     required Color color,
@@ -324,9 +340,12 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
     final hintColor = cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80);
     final textColor = cs.onSurface;
 
+    final radius = widget.circularRadius ?? 7;
+
     return Padding(
       padding: const EdgeInsets.only(top: 6.0),
       child: TextFormField(
+        focusNode: focusNode,
         keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
         maxLines: 1,
         autofocus: false,
@@ -339,25 +358,29 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
         keyboardType:
             Platform.isAndroid
                 ? TextInputType.phone
-                : TextInputType.numberWithOptions(signed: true, decimal: false),
+                : const TextInputType.numberWithOptions(
+                  signed: true,
+                  decimal: false,
+                ),
         decoration: InputDecoration(
           errorStyle: TextStyle(color: error, fontSize: 11),
           isDense: true,
           contentPadding: const EdgeInsets.only(top: 15, bottom: 12),
-          enabledBorder: _border(radius: 7, color: stroke),
-          focusedBorder: _border(radius: 7, color: focused),
-          border: _border(radius: 7, color: focused),
-          errorBorder: _border(radius: 7, color: error),
-          focusedErrorBorder: _border(radius: 7, color: error),
-          suffixIcon:
-              widget.suffixIcon != null
-                  ? InkWell(
-                    onTap: () {
-                      if (widget.onIconTap != null) widget.onIconTap!();
-                    },
-                    child: Icon(widget.suffixIcon!, color: cs.onSurfaceVariant),
-                  )
-                  : null,
+
+          enabledBorder: _border(radius: radius, color: stroke),
+          focusedBorder: _border(radius: radius, color: focused),
+          border: _border(radius: radius, color: focused),
+          errorBorder: _border(radius: radius, color: error),
+          focusedErrorBorder: _border(radius: radius, color: error),
+
+          suffixIconConstraints: const BoxConstraints(
+            minHeight: 0,
+            minWidth: 0,
+            maxHeight: 48,
+          ),
+
+          suffixIcon: _buildSuffix(context: context, radius: radius),
+
           prefixIcon: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -381,8 +404,10 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
                           fontSize: 14,
                         ),
               ),
+              const SizedBox(width: 8),
             ],
           ),
+
           hintMaxLines: 1,
           maintainHintSize: true,
           hintText: widget.hintText,
@@ -417,6 +442,47 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
             },
       ),
     );
+  }
+
+  Widget? _buildSuffix({
+    required BuildContext context,
+    required double radius,
+  }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (widget.suffixWidget != null) {
+      final bg =
+          widget.suffixBgC ??
+          (isDark ? cs.surfaceContainerHighest : cs.surface);
+
+      return Container(
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(radius),
+            bottomRight: Radius.circular(radius),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: FittedBox(fit: BoxFit.scaleDown, child: widget.suffixWidget!),
+      );
+    }
+
+    if (widget.suffixIcon != null) {
+      return InkWell(
+        onTap: () {
+          if (widget.onIconTap != null) widget.onIconTap!();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Icon(widget.suffixIcon!, color: cs.onSurfaceVariant),
+        ),
+      );
+    }
+
+    return null;
   }
 }
 

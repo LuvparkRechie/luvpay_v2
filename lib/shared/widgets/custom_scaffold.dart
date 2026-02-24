@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/shared/widgets/colors.dart';
 
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 import 'luvpay_text.dart';
@@ -380,6 +381,8 @@ class CustomScaffoldV2 extends StatelessWidget {
       child: Row(
         children: [
           NeoNavIcon.icon(
+            size: 40,
+            iconColor: AppColorV2.lpBlueBrand,
             padding: const EdgeInsets.all(8),
             iconSize: 20,
             iconData: Icons.arrow_back_ios_new_rounded,

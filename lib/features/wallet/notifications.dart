@@ -294,11 +294,11 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       leading:
           isSelectionMode
               ? Padding(
-                padding: const EdgeInsets.only(left: 10),
+                padding: const EdgeInsets.only(left: 10, top: 15, bottom: 10),
                 child: NeoNavIcon.icon(
                   flatten: true,
-                  padding: const EdgeInsets.all(8),
-                  iconSize: 22,
+
+                  iconSize: 20,
                   iconData: Icons.close,
                   iconColor: cs.onSurface,
                   onTap: cancelSelectionMode,
@@ -306,19 +306,13 @@ class _WalletNotificationsState extends State<WalletNotifications> {
               )
               : (hideBackBecauseFromTab
                   ? const SizedBox.shrink()
-                  : Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: NeoNavIcon.icon(
-                      flatten: true,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 8,
-                      ),
-                      iconSize: 18,
-                      iconData: CupertinoIcons.back,
-                      iconColor: cs.onSurface,
-                      onTap: () => Get.back(),
-                    ),
+                  : NeoNavIcon.icon(
+                    size: 40,
+                    iconColor: AppColorV2.lpBlueBrand,
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 20,
+                    iconData: CupertinoIcons.back,
+                    onTap: () => Get.back(),
                   )),
       enableToolBar: true,
       appBarTitle:

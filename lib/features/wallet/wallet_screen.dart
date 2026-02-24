@@ -22,7 +22,7 @@ import '../../shared/widgets/neumorphism.dart';
 import '../../core/utils/functions/functions.dart';
 import '../../core/network/http/api_keys.dart';
 import '../../core/network/http/http_request.dart';
-import '../dashboard/refresh_wallet.dart';
+import 'refresh_wallet.dart';
 import 'transaction/transaction_details.dart';
 import 'transaction/transaction_screen.dart';
 
