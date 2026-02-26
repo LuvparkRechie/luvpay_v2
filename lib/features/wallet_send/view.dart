@@ -55,11 +55,11 @@ class WalletSend extends GetView<WalletSendController> {
 
     return ScrollConfiguration(
       behavior: ScrollBehavior().copyWith(overscroll: false),
-      child: SingleChildScrollView(
-        child:
-            controller.isLoading.value
-                ? LoadingCard()
-                : Column(
+      child:
+          controller.isLoading.value
+              ? Center(child: LoadingCard())
+              : SingleChildScrollView(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Form(
@@ -207,7 +207,7 @@ class WalletSend extends GetView<WalletSendController> {
                     ),
                   ],
                 ),
-      ),
+              ),
     );
   }
 }
@@ -403,8 +403,9 @@ class _UserDetailsState extends State<UserDetails> {
 
                         if (clean.isEmpty) return 'Field is required';
                         if (clean.length != 10) return 'Invalid mobile number';
-                        if (clean.startsWith('0'))
+                        if (clean.startsWith('0')) {
                           return 'Invalid mobile number';
+                        }
 
                         return null;
                       },

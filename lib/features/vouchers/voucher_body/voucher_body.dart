@@ -15,6 +15,7 @@ import '../../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../../shared/widgets/luvpay_text.dart';
 import '../../../core/network/http/api_keys.dart';
+import '../../../shared/widgets/neumorphism.dart';
 
 class VouchersBody extends StatefulWidget {
   const VouchersBody({
@@ -87,6 +88,332 @@ class VouchersBodyState extends State<VouchersBody>
     );
   }
 
+  String _voucherDesc(Map v) {
+    return (v["description"] ??
+            v["voucher_desc"] ??
+            v["promo_desc"] ??
+            v["remarks"] ??
+            v["details"] ??
+            "")
+        .toString()
+        .trim();
+  }
+
+  String _voucherTerms(Map v) {
+    return (v["terms"] ?? v["tnc"] ?? v["terms_and_conditions"] ?? "")
+        .toString()
+        .trim();
+  }
+
+  String _statusLabel(bool isCE) {
+    if (!isCE) return "Available";
+    return "Unavailable";
+  }
+
+  Future<void> _showVoucherSheet({
+    required Map voucher,
+    required String voucherDt,
+    required bool isFromBooking,
+    required bool isCE,
+    required bool isSelectedNow,
+  }) async {
+    if (!mounted) return;
+
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final String amt = (voucher["voucher_amt"] ?? "0").toString();
+    final String merchant = (voucher["merchant_name"] ?? "N/A").toString();
+    final String code = (voucher["voucher_code"] ?? "—").toString();
+
+    final desc = _voucherDesc(voucher);
+    final terms = _voucherTerms(voucher);
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return SafeArea(
+          child: Container(
+            decoration: _neo(
+              context,
+              radius: 22,
+              border: Border.all(color: _border(cs, isDark), width: 1),
+            ),
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.58,
+              minChildSize: 0.42,
+              maxChildSize: 0.9,
+              builder: (context, scroll) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: cs.onSurface.withOpacity(isDark ? 0.20 : 0.14),
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                LuvpayText(
+                                  text: merchant,
+                                  style: AppTextStyle.h3(context),
+                                  color: cs.onSurface.withOpacity(0.92),
+                                  maxLines: 2,
+                                ),
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: cs.primary.withOpacity(
+                                      isCE ? 0.10 : 0.14,
+                                    ),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: cs.primary.withOpacity(
+                                        isDark ? 0.18 : 0.20,
+                                      ),
+                                      width: 0.9,
+                                    ),
+                                  ),
+                                  child: LuvpayText(
+                                    text: _statusLabel(isCE),
+                                    color: cs.primary.withOpacity(
+                                      isCE ? 0.55 : 0.95,
+                                    ),
+                                    maxLines: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () async {
+                              await Clipboard.setData(
+                                ClipboardData(text: code),
+                              );
+                              if (Get.isSnackbarOpen) Get.back();
+                              Get.snackbar(
+                                "Copied",
+                                "Voucher code copied",
+                                snackPosition: SnackPosition.BOTTOM,
+                                margin: const EdgeInsets.all(12),
+                                backgroundColor: cs.surface,
+                                colorText: cs.onSurface,
+                                borderRadius: 14,
+                                boxShadows: _softShadow(cs, isDark),
+                              );
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: _neo(
+                                context,
+                                radius: 14,
+                                border: Border.all(
+                                  color: _border(cs, isDark),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.copy_rounded,
+                                size: 18,
+                                color: cs.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: _neo(
+                          context,
+                          radius: 18,
+                          border: Border.all(
+                            color: _border(cs, isDark),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  LuvpayText(
+                                    text: "-$amt tokens",
+                                    style: AppTextStyle.h4(context),
+                                    color: cs.primary.withOpacity(
+                                      isCE ? 0.55 : 0.95,
+                                    ),
+                                    maxLines: 1,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  LuvpayText(
+                                    text: "Voucher code",
+                                    color: cs.onSurface.withOpacity(0.55),
+                                    maxLines: 1,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  LuvpayText(
+                                    text: code,
+                                    style: AppTextStyle.h3_semibold(context),
+                                    color: cs.onSurface.withOpacity(0.90),
+                                    maxLines: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                LuvpayText(
+                                  text: "Expiry",
+                                  color: cs.onSurface.withOpacity(0.55),
+                                  maxLines: 1,
+                                ),
+                                const SizedBox(height: 2),
+                                LuvpayText(
+                                  text: voucherDt,
+                                  color: cs.onSurface.withOpacity(
+                                    isCE ? 0.55 : 0.85,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: ListView(
+                          controller: scroll,
+                          physics: const BouncingScrollPhysics(),
+                          children: [
+                            LuvpayText(
+                              text: "Description",
+                              style: AppTextStyle.h3_semibold(context),
+                              color: cs.onSurface.withOpacity(0.90),
+                              maxLines: 1,
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: _neo(
+                                context,
+                                radius: 18,
+                                border: Border.all(
+                                  color: _border(cs, isDark),
+                                  width: 1,
+                                ),
+                              ),
+                              child: LuvpayText(
+                                text:
+                                    desc.isNotEmpty
+                                        ? desc
+                                        : "Get $amt tokens off your parking.",
+                                color: cs.onSurface.withOpacity(0.78),
+                                maxLines: 80,
+                              ),
+                            ),
+                            if (terms.isNotEmpty) ...[
+                              const SizedBox(height: 14),
+                              LuvpayText(
+                                text: "Terms",
+                                style: AppTextStyle.h3_semibold(context),
+                                color: cs.onSurface.withOpacity(0.90),
+                                maxLines: 1,
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(14),
+                                decoration: _neo(
+                                  context,
+                                  radius: 18,
+                                  border: Border.all(
+                                    color: _border(cs, isDark),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: LuvpayText(
+                                  text: terms,
+                                  color: cs.onSurface.withOpacity(0.75),
+                                  maxLines: 120,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      ),
+                      if (isFromBooking) ...[
+                        CustomButton(
+                          text:
+                              isSelectedNow
+                                  ? "Remove Voucher"
+                                  : "Apply Voucher",
+                          filled: true,
+                          isInactive: isCE,
+                          btnColor: cs.primary,
+                          textColor: cs.onPrimary,
+                          onPressed: () {
+                            if (isCE) return;
+
+                            final id = voucher["promo_voucher_id"];
+                            setState(() {
+                              if (selectedVoucherId == id) {
+                                selectedVoucherId = null;
+                              } else {
+                                selectedVoucherId = id;
+                              }
+                            });
+                            widget.callBack?.call(selectedVoucherId);
+                            Get.back();
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                      ] else ...[
+                        CustomButton(
+                          text: "Close",
+                          filled: false,
+                          onPressed: () => Get.back(),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -151,7 +478,7 @@ class VouchersBodyState extends State<VouchersBody>
       final availableApi = "${ApiKeys.vouchers}?user_id=$userId";
       final usedApi = "${ApiKeys.vouchersUsed}?user_id=$userId";
       final expiredApi = "${ApiKeys.vouchersExpired}?user_id=$userId";
-
+      print("API: $availableApi");
       final results = await Future.wait([
         HttpRequestApi(api: availableApi).get(),
         HttpRequestApi(api: usedApi).get(),
@@ -244,11 +571,7 @@ class VouchersBodyState extends State<VouchersBody>
 
     return Container(
       padding: const EdgeInsets.all(6),
-      decoration: _neo(
-        context,
-        radius: 18,
-        border: Border.all(color: stroke, width: 1),
-      ),
+      decoration: _neo(context, radius: 18),
       child: TabBar(
         physics: const BouncingScrollPhysics(),
         controller: _tabController,
@@ -277,6 +600,7 @@ class VouchersBodyState extends State<VouchersBody>
     required String voucherDt,
     required bool isSelectedNow,
     required VoidCallback? onSelect,
+    required VoidCallback onShowDetails,
   }) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -296,13 +620,12 @@ class VouchersBodyState extends State<VouchersBody>
     final base = cs.surface;
 
     return GestureDetector(
-      onTap: onSelect,
+      onTap: onShowDetails,
       behavior: HitTestBehavior.opaque,
       child: Stack(
         alignment: Alignment.centerRight,
         children: [
           Ticketcher.horizontal(
-            height: 108,
             decoration: TicketcherDecoration(
               backgroundColor: base,
               border: Border.all(color: stroke, width: 1),
@@ -330,9 +653,10 @@ class VouchersBodyState extends State<VouchersBody>
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: LuvpayText(
                       text: "-$amt",
-                      style: AppTextStyle.h2(context),
+                      style: AppTextStyle.h4(context),
                       color: cs.primary.withOpacity(isCE ? 0.45 : 0.95),
                       textAlign: TextAlign.center,
+                      maxLines: 1,
                     ),
                   ),
                 ),
@@ -360,16 +684,17 @@ class VouchersBodyState extends State<VouchersBody>
                         ),
                         const SizedBox(height: 6),
                         LuvpayText(
-                          text: "Get $amt tokens off your parking",
+                          text:
+                              "Get $amt tokens off your parking", //echange sa api return description
                           color: accent,
-                          maxLines: 2,
+                          maxLines: 1,
                         ),
                         const SizedBox(height: 8),
                         LuvpayText(
+                          maxFontSize: 12,
+                          minFontSize: 8,
                           text: "Expiry date: $voucherDt",
                           color: fadedSub,
-                          maxFontSize: 10,
-                          minFontSize: 8,
                           maxLines: 1,
                         ),
                       ],
@@ -379,7 +704,6 @@ class VouchersBodyState extends State<VouchersBody>
               ),
             ],
           ),
-
           if (isFromBooking)
             Positioned(
               right: 12,
@@ -445,6 +769,14 @@ class VouchersBodyState extends State<VouchersBody>
                     widget.callBack?.call(selectedVoucherId);
                   };
 
+          Future<void> onShowDetails() => _showVoucherSheet(
+            voucher: voucher,
+            voucherDt: voucherDt,
+            isFromBooking: isFromBooking,
+            isCE: isCE,
+            isSelectedNow: isSelectedNow,
+          );
+
           return Container(
             margin: const EdgeInsets.only(left: 10, right: 10),
             child: _voucherCard(
@@ -454,6 +786,7 @@ class VouchersBodyState extends State<VouchersBody>
               voucherDt: voucherDt,
               isSelectedNow: isSelectedNow,
               onSelect: onSelect,
+              onShowDetails: onShowDetails,
             ),
           );
         },

@@ -355,8 +355,6 @@ Future<void> getLogSession(context) async {
   }
 }
 
-//GET PARKING QUE
-
 //GET MEssage from PA
 Future<void> getMessNotif() async {
   var akongId = await Authentication().getUserId();

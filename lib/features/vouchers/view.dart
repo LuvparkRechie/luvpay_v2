@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/custom_scaffold.dart';
 import '../../shared/widgets/upper_case_formatter.dart';
@@ -138,158 +137,138 @@ class _VouchersState extends State<Vouchers> {
     final hint = cs.onSurface.withOpacity(isDark ? 0.55 : 0.45);
     final textColor = cs.onSurface.withOpacity(0.90);
 
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: _neo(
-        context,
-        radius: 24,
-        border: Border.all(color: stroke, width: 1),
-        shadows: [
-          BoxShadow(
-            color: (isDark ? Colors.black : cs.shadow).withOpacity(
-              isDark ? 0.22 : 0.08,
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            key: _textFieldKey,
+            height: 50,
+            decoration: _neo(
+              context,
+              radius: 18,
+              color: cs.surface,
+              border: Border.all(color: stroke, width: 1),
+              shadows: [
+                BoxShadow(
+                  color: (isDark ? Colors.black : cs.shadow).withOpacity(
+                    isDark ? 0.12 : 0.04,
+                  ),
+                  blurRadius: 10,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            child: Row(
+              children: [
+                const SizedBox(width: 12),
+                Icon(Icons.search_rounded, size: 20, color: hint),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    controller: controller,
+                    textCapitalization: TextCapitalization.characters,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(30),
+                      UpperCaseTextFormatter(),
+                    ],
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: .25,
+                    ),
+                    cursorColor: cs.primary,
+                    decoration: InputDecoration(
+                      hintText: "Enter voucher code",
+                      hintStyle: TextStyle(
+                        color: hint,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      filled: true,
+                      fillColor: cs.surface,
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onFieldSubmitted: (_) {
+                      if (enabled) _claimVoucher();
+                    },
+                  ),
+                ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 160),
+                  child:
+                      controller.text.isEmpty
+                          ? const SizedBox(width: 10)
+                          : IconButton(
+                            key: const ValueKey("clear"),
+                            onPressed: () {
+                              controller.clear();
+                              setState(() {});
+                            },
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            icon: Icon(
+                              Icons.close_rounded,
+                              size: 18,
+                              color: cs.onSurface.withOpacity(0.55),
+                            ),
+                          ),
+                ),
+                const SizedBox(width: 6),
+              ],
+            ),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              key: _textFieldKey,
+        ),
+        const SizedBox(width: 10),
+        _NeoPressable(
+          enabled: enabled,
+          onTap: enabled ? _claimVoucher : null,
+          builder: (pressed) {
+            final btnStroke =
+                enabled ? cs.primary.withOpacity(isDark ? 0.22 : 0.18) : stroke;
+
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              curve: Curves.easeOut,
               height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
               decoration: _neo(
                 context,
                 radius: 18,
-                border: Border.all(color: stroke, width: 1),
-                shadows: [
-                  BoxShadow(
-                    color: (isDark ? Colors.black : cs.shadow).withOpacity(
-                      isDark ? 0.12 : 0.04,
-                    ),
-                    blurRadius: 10,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+                border: Border.all(color: btnStroke, width: 1),
+                shadows:
+                    pressed
+                        ? [
+                          BoxShadow(
+                            color: (isDark ? Colors.black : cs.shadow)
+                                .withOpacity(isDark ? 0.10 : 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                        : [
+                          BoxShadow(
+                            color: (isDark ? Colors.black : cs.shadow)
+                                .withOpacity(isDark ? 0.18 : 0.08),
+                            blurRadius: 14,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
               ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 12),
-                  Icon(Icons.search_rounded, size: 20, color: hint),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextFormField(
-                      controller: controller,
-                      textCapitalization: TextCapitalization.characters,
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(30),
-                        UpperCaseTextFormatter(),
-                      ],
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: .25,
-                      ),
-                      cursorColor: cs.primary,
-                      decoration: InputDecoration(
-                        hintText: "Enter voucher code",
-                        hintStyle: TextStyle(
-                          color: hint,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        filled: true,
-                        fillColor: cs.surface,
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                        ),
-                      ),
-                      onFieldSubmitted: (_) {
-                        if (enabled) _claimVoucher();
-                      },
-                    ),
-                  ),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 160),
-                    child:
-                        controller.text.isEmpty
-                            ? const SizedBox(width: 10)
-                            : IconButton(
-                              key: const ValueKey("clear"),
-                              onPressed: () {
-                                controller.clear();
-                                setState(() {});
-                              },
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              icon: Icon(
-                                Icons.close_rounded,
-                                size: 18,
-                                color: cs.onSurface.withOpacity(0.55),
-                              ),
-                            ),
-                  ),
-                  const SizedBox(width: 6),
-                ],
+              child: Center(
+                child: LuvpayText(
+                  text: "CLAIM",
+                  style: AppTextStyle.h3_semibold(context),
+                  maxFontSize: 12,
+                  color: enabled ? cs.primary : cs.onSurface.withOpacity(0.45),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          _NeoPressable(
-            enabled: enabled,
-            onTap: enabled ? _claimVoucher : null,
-            builder: (pressed) {
-              final btnStroke =
-                  enabled
-                      ? cs.primary.withOpacity(isDark ? 0.22 : 0.18)
-                      : stroke;
-
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 140),
-                curve: Curves.easeOut,
-                height: 50,
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                decoration: _neo(
-                  context,
-                  radius: 18,
-                  border: Border.all(color: btnStroke, width: 1),
-                  shadows:
-                      pressed
-                          ? [
-                            BoxShadow(
-                              color: (isDark ? Colors.black : cs.shadow)
-                                  .withOpacity(isDark ? 0.10 : 0.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                          : [
-                            BoxShadow(
-                              color: (isDark ? Colors.black : cs.shadow)
-                                  .withOpacity(isDark ? 0.18 : 0.08),
-                              blurRadius: 14,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                ),
-                child: Center(
-                  child: LuvpayText(
-                    text: "CLAIM",
-                    style: AppTextStyle.h3_semibold(context),
-                    color:
-                        enabled ? cs.primary : cs.onSurface.withOpacity(0.45),
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
