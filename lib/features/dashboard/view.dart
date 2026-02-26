@@ -16,6 +16,7 @@ import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/neumorphism.dart';
 import '../biller_screen/biller_screen.dart';
 import '../profile/profile_screen.dart';
+import '../routes/routes.dart';
 import '../subwallet/controller.dart';
 import '../subwallet/view.dart';
 import '../wallet/notifications.dart';
@@ -30,9 +31,35 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  String? normalizePhMobile(String input) {
+    final s = input.replaceAll(RegExp(r'[^0-9]'), '');
+    if (s.isEmpty) return null;
+
+    if (s.length == 12 && s.startsWith('63') && s[2] == '9') return s;
+
+    if (s.length == 11 && s.startsWith('09')) return '63${s.substring(1)}';
+
+    if (s.length == 10 && s.startsWith('9')) return '63$s';
+
+    if (s.length >= 10) {
+      final last10 = s.substring(s.length - 10);
+      if (last10.startsWith('9')) return '63$last10';
+    }
+
+    return null;
+  }
+
+  bool isValidPhMobile(String? normalized) {
+    if (normalized == null) return false;
+    if (normalized.length != 12) return false;
+    if (!normalized.startsWith('639')) return false;
+    if (!RegExp(r'^639\d{9}$').hasMatch(normalized)) return false;
+    return true;
+  }
+
   final DashboardController controller = Get.put(DashboardController());
   bool _serviceBusy = false;
-
+  bool _scanHandled = false;
   @override
   void initState() {
     super.initState();
@@ -50,11 +77,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 2:
         return ScannerScreenV2(
           isBack: false,
-          onScanStart: () {
+          onScanStart: () async {
             controller.changePage(0);
           },
-          onchanged: (args) {
-            if (args.isNotEmpty) getService(args);
+          onchanged: (args) async {
+            if (_scanHandled) return;
+
+            final raw = args.trim();
+            if (raw.isEmpty) return;
+
+            _scanHandled = true;
+
+            try {
+              final normalized = normalizePhMobile(raw);
+
+              if (isValidPhMobile(normalized)) {
+                debugPrint('PH Mobile detected: $normalized');
+
+                controller.changePage(0);
+
+                Get.toNamed(
+                  Routes.send,
+                  arguments: {"mobile": normalized, "source": "qr_scan"},
+                );
+                return;
+              }
+              final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
+              if (digits.isNotEmpty &&
+                  digits.length >= 10 &&
+                  normalized == null) {
+                CustomDialogStack.showError(
+                  Get.context!,
+                  "Invalid Mobile Number",
+                  "Invalid mobile number format.",
+                  () => Get.back(),
+                );
+                return;
+              }
+
+              getService(raw);
+            } catch (e) {
+              debugPrint("Dashboard scan error: $e");
+
+              CustomDialogStack.showError(
+                Get.context!,
+                "Scan Error",
+                "Something went wrong. Please try again.",
+                () => Get.back(),
+              );
+            } finally {
+              Future.delayed(const Duration(milliseconds: 1200), () {
+                _scanHandled = false;
+              });
+            }
           },
         );
 

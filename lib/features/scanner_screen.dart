@@ -303,7 +303,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
       right: 0,
       child: Column(
         children: [
-          // Upload QR Button
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 24),
             decoration: BoxDecoration(
@@ -345,7 +344,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
 
-    // Cancel any existing subscription
     _scanSubscription?.cancel();
 
     _scanSubscription = controller.scannedDataStream.listen(
@@ -396,7 +394,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         return;
       }
 
-      // Show loading
       CustomDialogStack.showLoading(context);
 
       final inputImage = InputImage.fromFilePath(pickedFile.path);
@@ -405,7 +402,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
       try {
         final barcodes = await barcodeScanner.processImage(inputImage);
 
-        // Close loading
         if (mounted) {
           Navigator.of(context).pop();
         }
@@ -413,10 +409,8 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         if (barcodes.isNotEmpty) {
           final barcode = barcodes.first;
           if (barcode.displayValue != null) {
-            // Add haptic feedback
             HapticFeedback.lightImpact();
 
-            // Close scanner and return result
             if (mounted) {
               if (widget.isBack && Navigator.of(context).canPop()) {
                 Navigator.of(context).pop();
@@ -435,7 +429,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         }
       } finally {
         barcodeScanner.close();
-        // Clean up the temporary file
         try {
           await File(pickedFile.path).delete();
         } catch (e) {
@@ -443,7 +436,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         }
       }
     } catch (e) {
-      // Close loading if still open
       if (mounted && Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
@@ -463,7 +455,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
   }
 }
 
-// Custom painter for animated scan line
 class ScanLinePainter extends CustomPainter {
   final double scanPosition;
   final Color color;
@@ -489,14 +480,12 @@ class ScanLinePainter extends CustomPainter {
             ),
           );
 
-    // Draw scan line
     canvas.drawLine(
       Offset(0, size.height * scanPosition),
       Offset(size.width, size.height * scanPosition),
       paint,
     );
 
-    // Draw glow effect
     final glowPaint =
         Paint()
           ..color = color.withValues(alpha: 0.3)
