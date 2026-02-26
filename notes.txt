@@ -13,9 +13,33 @@ flutter build apk --release
 
 FOR 16KB CHECK
 macOS
-~/Library/Android/sdk/build-tools/<YOUR_VERSION>/zipalign -c -v 4 path-to-your-app.apk
-~/Library/Android/sdk/build-tools/2.4.2/zipalign -c -v 4 C:\Users\Mae\Documents\GitHub\luvparkv2\build\app\outputs\flutter-apk\app-release.apk
 
+find path:
+
+ls ~/Library/Android/sdk/ndk 
+
+Query: 
+flutter clean
+flutter build appbundle --release
+
+rm -rf aab_check
+unzip -oq build/app/outputs/bundle/release/app-release.aab -d aab_check
+
+NDK=~/Library/Android/sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf
+find aab_check -name "*.so" -print0 | while IFS= read -r -d '' so; do
+  "$NDK" -l "$so" | awk '($1=="LOAD"){print so " p_align=" $NF}'
+done
+
+
+✅ Run this (shows file + alignment)
+NDK=~/Library/Android/sdk/ndk/29.0.14206865/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf
+
+find aab_check -name "*.so" -print0 | while IFS= read -r -d '' so; do
+  echo "---- $so"
+  "$NDK" -l "$so" | awk '($1=="LOAD"){print "p_align=" $NF}'
+done
+
+------------------------------------------------------------------------------------------
 Windows
 "C:\Users\Mae\AppData\Local\Android\Sdk\build-tools\36.0.0\zipalign.exe" -c -v 4 "C:\Users\Mae\Documents\GitHub\luvparkv2\build\app\outputs\flutter-apk\app-release.apk"
 
