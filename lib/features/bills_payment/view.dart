@@ -12,7 +12,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 import 'package:luvpay/shared/components/otp_field/index.dart';
-import 'package:luvpay/features/my_account/utils/index.dart';
 
 import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
@@ -27,7 +26,7 @@ import '../billers/utils/ticketclipper.dart';
 import 'controller.dart';
 
 class BillsPayment extends GetView<BillsPaymentController> {
-  const BillsPayment({Key? key}) : super(key: key);
+  const BillsPayment({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +61,7 @@ class BillsPayment extends GetView<BillsPaymentController> {
                 borderOpacity: borderOpacity,
                 title: billerName,
               ),
+
               if (billerAddress.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 LuvpayText(
@@ -74,16 +74,13 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+              Divider(),
               const SizedBox(height: 14),
 
-              _walletBalanceCard(borderOpacity: borderOpacity),
-
-              const SizedBox(height: 18),
               LuvpayText(
                 text: "Bill Account Number",
                 style: AppTextStyle.h3(context),
               ),
-              const SizedBox(height: 10),
               CustomTextField(
                 controller: controller.accNo,
                 hintText: 'Enter bill account number',
@@ -104,7 +101,6 @@ class BillsPayment extends GetView<BillsPaymentController> {
 
               const SizedBox(height: 14),
               LuvpayText(text: "Account Name", style: AppTextStyle.h3(context)),
-              const SizedBox(height: 10),
               CustomTextField(
                 controller: controller.accName,
                 hintText: "Enter account name",
@@ -137,7 +133,6 @@ class BillsPayment extends GetView<BillsPaymentController> {
 
               const SizedBox(height: 14),
               LuvpayText(text: "Bill Number", style: AppTextStyle.h3(context)),
-              const SizedBox(height: 10),
               CustomTextField(
                 controller: controller.billNo,
                 hintText: "Enter bill number",
@@ -179,7 +174,6 @@ class BillsPayment extends GetView<BillsPaymentController> {
                     ),
                 ],
               ),
-              const SizedBox(height: 10),
               CustomTextField(
                 controller: controller.billAmount,
                 hintText: "Enter amount",
@@ -202,6 +196,7 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   return null;
                 },
               ),
+              _walletBalanceCard(borderOpacity: borderOpacity),
 
               const SizedBox(height: 18),
               _reviewHintCard(context, cs, borderOpacity),
@@ -289,48 +284,32 @@ class BillsPayment extends GetView<BillsPaymentController> {
     required double borderOpacity,
     required String title,
   }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-        boxShadow: [
-          BoxShadow(
-            color: cs.shadow.withOpacity(isDark ? 0.28 : 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
+    return Row(
+      children: [
+        // Container(
+        //   width: 42,
+        //   height: 42,
+        //   decoration: BoxDecoration(
+        //     color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
+        //     borderRadius: BorderRadius.circular(14),
+        //     border: Border.all(
+        //       color: cs.onSurface.withOpacity(borderOpacity),
+        //     ),
+        //   ),
+        //   child: Icon(Iconsax.receipt_text, color: cs.primary, size: 20),
+        // ),
+        // const SizedBox(width: 12),
+        Expanded(
+          child: LuvpayText(
+            text: title,
+            style: AppTextStyle.h3(
+              context,
+            ).copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.2),
+            color: cs.onSurface,
+            maxLines: 1,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: cs.onSurface.withOpacity(borderOpacity),
-              ),
-            ),
-            child: Icon(Iconsax.receipt_text, color: cs.primary, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: LuvpayText(
-              text: title,
-              style: AppTextStyle.h3(
-                context,
-              ).copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.2),
-              color: cs.onSurface,
-              maxLines: 1,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -371,55 +350,14 @@ class BillsPayment extends GetView<BillsPaymentController> {
       builder: (c) {
         final theme = Theme.of(Get.context!);
         final cs = theme.colorScheme;
-        final isDark = theme.brightness == Brightness.dark;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            LuvpayText(
-              text: "luvpay Balance",
-              style: AppTextStyle.h3(Get.context!),
-              color: cs.onSurface,
-            ),
-            spacing(height: 12),
-            Container(
-              height: 54,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: cs.onSurface.withOpacity(borderOpacity),
-                ),
-                image: const DecorationImage(
-                  fit: BoxFit.cover,
-                  image: AssetImage("assets/images/booking_wallet_bg.png"),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: cs.shadow.withOpacity(isDark ? 0.22 : 0.10),
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              child: Row(
-                children: [
-                  Icon(Symbols.wallet, color: cs.onPrimary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: LuvpayText(
-                      color: cs.onPrimary,
-                      text: toCurrencyString(c.walletBalance.toString()),
-                      style: AppTextStyle.body1(
-                        Get.context!,
-                      ).copyWith(fontWeight: FontWeight.w900),
-                      maxLines: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        return LuvpayText(
+          color: cs.onSurface,
+          text:
+              "${toCurrencyString(c.walletBalance.toString())} available balance",
+
+          maxLines: 1,
+          style: AppTextStyle.body2(Get.context!),
         );
       },
     );

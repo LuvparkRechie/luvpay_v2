@@ -206,13 +206,16 @@ class RegistrationPage extends GetView<RegistrationController> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              LuvpayText(
-                                style: AppTextStyle.paragraph2(context),
-                                color: cs.onSurfaceVariant,
-                                text: "Already have a LuvPay Wallet account?",
-                                height: 18 / 14,
+                              Expanded(
+                                child: LuvpayText(
+                                  style: AppTextStyle.paragraph2(context),
+                                  color: cs.onSurfaceVariant,
+                                  text: "Already have a LuvPay Wallet account?",
+                                  height: 18 / 14,
+                                  maxLines: 1,
+                                ),
                               ),
-                              SizedBox(width: 6),
+
                               InkWell(
                                 onTap: () async {
                                   Get.offNamed(Routes.login);

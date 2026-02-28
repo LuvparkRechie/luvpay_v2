@@ -108,28 +108,27 @@ class Allbillers extends GetView<BillersController> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Neumorphic(
-                                      style: LuvNeu.card(
-                                        radius: BorderRadius.circular(14),
-                                        color: surface2,
-                                        borderColor: outline,
-                                        borderWidth: 0.8,
-                                      ),
-                                      child: SizedBox(
-                                        width: 44,
-                                        height: 44,
-                                        child: Center(
-                                          child: Icon(
-                                            LucideIcons.receipt,
-                                            size: 20,
-                                            color: brand,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                    // Neumorphic(
+                                    //   style: LuvNeu.card(
+                                    //     radius: BorderRadius.circular(14),
+                                    //     color: surface2,
+                                    //     borderColor: outline,
+                                    //     borderWidth: 0.8,
+                                    //   ),
+                                    //   child: SizedBox(
+                                    //     width: 44,
+                                    //     height: 44,
+                                    //     child: Center(
+                                    //       child: Icon(
+                                    //         LucideIcons.receipt,
+                                    //         size: 20,
+                                    //         color: brand,
+                                    //       ),
+                                    //     ),
+                                    //   ),
+                                    // ),
 
-                                    const SizedBox(width: 12),
-
+                                    // const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:

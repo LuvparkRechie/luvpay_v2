@@ -75,11 +75,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return const SubWalletScreen();
 
       case 2:
+        // return ScannerScreenV2(
+        //   isBack: false,
+        //   onScanStart: () {
+        //     controller.changePage(0);
+        //   },
+        //   onchanged: (args) {
+        //     if (args.isNotEmpty) getService(args);
+        //   },
+        // );
+
         return ScannerScreenV2(
           isBack: false,
-          onScanStart: () async {
-            controller.changePage(0);
-          },
+          onScanStart: () {},
           onchanged: (args) async {
             if (_scanHandled) return;
 
@@ -92,33 +100,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               final normalized = normalizePhMobile(raw);
 
               if (isValidPhMobile(normalized)) {
-                debugPrint('PH Mobile detected: $normalized');
-
                 controller.changePage(0);
-
                 Get.toNamed(
                   Routes.send,
                   arguments: {"mobile": normalized, "source": "qr_scan"},
                 );
                 return;
               }
-              final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
-              if (digits.isNotEmpty &&
-                  digits.length >= 10 &&
-                  normalized == null) {
-                CustomDialogStack.showError(
-                  Get.context!,
-                  "Invalid Mobile Number",
-                  "Invalid mobile number format.",
-                  () => Get.back(),
-                );
-                return;
-              }
 
-              getService(raw);
+              await getService(raw);
             } catch (e) {
               debugPrint("Dashboard scan error: $e");
-
               CustomDialogStack.showError(
                 Get.context!,
                 "Scan Error",
@@ -148,7 +140,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return await HttpRequestApi(api: apiKey).get();
   }
 
-  void getService(String args) async {
+  Future<void> getService(String args) async {
     if (_serviceBusy) return;
     _serviceBusy = true;
 
