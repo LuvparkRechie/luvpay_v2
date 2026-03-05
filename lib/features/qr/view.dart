@@ -71,7 +71,7 @@ class _QRState extends State<QR> {
                     width: screenWidth - 20,
 
                     child: Ticketcher.vertical(
-                      notchRadius: 14,
+                       notchRadius: 14,
                       decoration: TicketcherDecoration(
                         backgroundColor: cs.surface,
                         borderRadius: const TicketRadius(radius: 16),

@@ -63,15 +63,15 @@ class NeoNavIcon extends StatelessWidget {
     this.badgeColor,
     this.badgeTextColor,
     this.dotSize = 9,
-  }) : mode = NeoNavIconMode.tab,
-       assetPath = null,
-       iconName = null,
-       iconData = null,
-       iconColor = null,
-       assert(
-         (activeIconName != null || inactiveIconName != null) ||
-             (activeIconData != null || inactiveIconData != null),
-       );
+  })  : mode = NeoNavIconMode.tab,
+        assetPath = null,
+        iconName = null,
+        iconData = null,
+        iconColor = null,
+        assert(
+          (activeIconName != null || inactiveIconName != null) ||
+              (activeIconData != null || inactiveIconData != null),
+        );
 
   const NeoNavIcon.icon({
     super.key,
@@ -92,15 +92,15 @@ class NeoNavIcon extends StatelessWidget {
     this.badgeColor,
     this.badgeTextColor,
     this.dotSize = 9,
-  }) : mode = NeoNavIconMode.icon,
-       active = null,
-       activeIconName = null,
-       inactiveIconName = null,
-       activeIconData = null,
-       inactiveIconData = null,
-       activeColor = null,
-       inactiveColor = null,
-       assert(assetPath != null || iconName != null || iconData != null);
+  })  : mode = NeoNavIconMode.icon,
+        active = null,
+        activeIconName = null,
+        inactiveIconName = null,
+        activeIconData = null,
+        inactiveIconData = null,
+        activeColor = null,
+        inactiveColor = null,
+        assert(assetPath != null || iconName != null || iconData != null);
 
   @override
   Widget build(BuildContext context) {
@@ -117,8 +117,7 @@ class NeoNavIcon extends StatelessWidget {
     final onSurface = cs.onSurface;
     final onSurfaceVariant = cs.onSurfaceVariant;
 
-    final inactive =
-        inactiveColor ??
+    final inactive = inactiveColor ??
         (isDark
             ? onSurface.withOpacity(0.62)
             : onSurfaceVariant.withOpacity(0.70));
@@ -132,10 +131,9 @@ class NeoNavIcon extends StatelessWidget {
     Widget buildIcon() {
       if (isTab) {
         if (activeIconData != null || inactiveIconData != null) {
-          final icon =
-              isActive
-                  ? (activeIconData ?? inactiveIconData!)
-                  : (inactiveIconData ?? activeIconData!);
+          final icon = isActive
+              ? (activeIconData ?? inactiveIconData!)
+              : (inactiveIconData ?? activeIconData!);
 
           return Icon(
             icon,
@@ -144,10 +142,9 @@ class NeoNavIcon extends StatelessWidget {
           );
         }
 
-        final name =
-            isActive
-                ? (activeIconName ?? inactiveIconName!)
-                : (inactiveIconName ?? activeIconName!);
+        final name = isActive
+            ? (activeIconName ?? inactiveIconName!)
+            : (inactiveIconName ?? activeIconName!);
 
         return Image.asset(
           "assets/images/$name.png",
@@ -162,8 +159,7 @@ class NeoNavIcon extends StatelessWidget {
         return Icon(iconData!, size: iconSize, color: iconColor ?? inactive);
       }
 
-      final path =
-          assetPath ??
+      final path = assetPath ??
           (iconName != null ? "assets/images/$iconName.png" : null);
 
       return Image.asset(
@@ -239,10 +235,9 @@ class NeoNavIcon extends StatelessWidget {
       depth: flatten ? 0 : LuvNeu.cardDepth,
       pressedDepth: flatten ? 0 : LuvNeu.cardPressedDepth,
       background: surface,
-      borderColor:
-          flatten
-              ? Colors.transparent
-              : (isActive ? brand.withOpacity(0.08) : null),
+      borderColor: flatten
+          ? Colors.transparent
+          : (isActive ? brand.withOpacity(0.08) : null),
       child: SizedBox(
         width: size,
         height: size,
@@ -290,15 +285,11 @@ class InfoRowTile extends StatelessWidget {
     super.key,
     this.icon,
     this.iconWidget,
-
     this.title,
     this.titleWidget,
-
     this.value,
-
     this.subtitle,
     this.subtitleWidget,
-
     this.trailing,
     this.trailingOnTap,
     required this.onTap,
@@ -306,22 +297,22 @@ class InfoRowTile extends StatelessWidget {
     this.subtitleMaxlines,
     this.iconBoxSize = 40,
     this.iconBoxRadius = const BorderRadius.all(Radius.circular(12)),
-  }) : assert(
-         icon == null || iconWidget == null,
-         "Provide either icon OR iconWidget, not both.",
-       ),
-       assert(
-         title != null || titleWidget != null,
-         "Provide either title OR titleWidget.",
-       ),
-       assert(
-         title == null || titleWidget == null,
-         "Provide either title OR titleWidget, not both.",
-       ),
-       assert(
-         subtitle == null || subtitleWidget == null,
-         "Provide either subtitle OR subtitleWidget, not both.",
-       );
+  })  : assert(
+          icon == null || iconWidget == null,
+          "Provide either icon OR iconWidget, not both.",
+        ),
+        assert(
+          title != null || titleWidget != null,
+          "Provide either title OR titleWidget.",
+        ),
+        assert(
+          title == null || titleWidget == null,
+          "Provide either title OR titleWidget, not both.",
+        ),
+        assert(
+          subtitle == null || subtitleWidget == null,
+          "Provide either subtitle OR subtitleWidget, not both.",
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -333,14 +324,12 @@ class InfoRowTile extends StatelessWidget {
 
     final hasLeading = icon != null || iconWidget != null;
 
-    final Widget? leadingWidget =
-        iconWidget ??
+    final Widget? leadingWidget = iconWidget ??
         (icon != null
             ? Icon(icon, color: onSurface.withOpacity(0.90), size: 20)
             : null);
 
-    final Widget builtTitle =
-        titleWidget ??
+    final Widget builtTitle = titleWidget ??
         LuvpayText(
           maxLines: maxLines ?? 2,
           text: title!,
@@ -348,14 +337,13 @@ class InfoRowTile extends StatelessWidget {
           style: AppTextStyle.body1(context),
         );
 
-    final Widget? builtSubtitle =
-        subtitleWidget ??
+    final Widget? builtSubtitle = subtitleWidget ??
         (subtitle != null
             ? LuvpayText(
-              text: subtitle!,
-              maxLines: subtitleMaxlines ?? 1,
-              color: cs.onSurfaceVariant,
-            )
+                text: subtitle!,
+                maxLines: subtitleMaxlines ?? 1,
+                color: cs.onSurfaceVariant,
+              )
             : null);
 
     return Padding(
@@ -395,9 +383,7 @@ class InfoRowTile extends StatelessWidget {
                         text: value!,
                         style: AppTextStyle.body1(context),
                       ),
-
                     builtTitle,
-
                     if (builtSubtitle != null) ...[
                       const SizedBox(height: 4),
                       builtSubtitle,
@@ -509,10 +495,9 @@ class LuvNeu {
       depth: selected ? depthFor(-0.5, isDark) : (pressed ? pd : d),
       intensity: isDark ? 0.06 : intensityFor(isDark),
       surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(isDark),
-      border:
-          borderColor == null
-              ? const NeumorphicBorder.none()
-              : _softBorder(borderColor, borderWidth),
+      border: borderColor == null
+          ? const NeumorphicBorder.none()
+          : _softBorder(borderColor, borderWidth),
     );
   }
 
@@ -539,10 +524,9 @@ class LuvNeu {
       depth: selected ? depthFor(-0.5, isDark) : (pressed ? pd : d),
       intensity: intensityFor(isDark),
       surfaceIntensity: surfaceIntensityFor(isDark),
-      border:
-          borderColor == null
-              ? const NeumorphicBorder.none()
-              : _softBorder(borderColor, borderWidth),
+      border: borderColor == null
+          ? const NeumorphicBorder.none()
+          : _softBorder(borderColor, borderWidth),
     );
   }
 
@@ -568,10 +552,9 @@ class LuvNeu {
       depth: pressed ? pd : d,
       intensity: isDark ? 0.06 : intensityFor(isDark),
       surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(isDark),
-      border:
-          borderColor == null
-              ? const NeumorphicBorder.none()
-              : _softBorder(borderColor, borderWidth),
+      border: borderColor == null
+          ? const NeumorphicBorder.none()
+          : _softBorder(borderColor, borderWidth),
     );
   }
 
@@ -596,14 +579,11 @@ class LuvNeu {
       shape: effectiveShape,
       boxShape: NeumorphicBoxShape.roundRect(radius),
       depth: pressed ? pd : d,
-
       intensity: isDark ? 0.06 : intensityFor(false),
       surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(false),
-
-      border:
-          borderColor == null
-              ? const NeumorphicBorder.none()
-              : _softBorder(borderColor, borderWidth),
+      border: borderColor == null
+          ? const NeumorphicBorder.none()
+          : _softBorder(borderColor, borderWidth),
     );
   }
 }
@@ -647,9 +627,9 @@ class LuvNeuPress extends StatefulWidget {
     this.pressedTranslateY = 1.0,
     this.overlayOpacity = 0.035,
   }) : assert(
-         radius != null || boxShape != null,
-         'Provide either radius or boxShape.',
-       );
+          radius != null || boxShape != null,
+          'Provide either radius or boxShape.',
+        );
 
   factory LuvNeuPress.rectangle({
     Key? key,
@@ -744,44 +724,41 @@ class _LuvNeuPressState extends State<LuvNeuPress> {
     final scale = pressedVisual ? widget.pressedScale : 1.0;
     final dy = pressedVisual ? widget.pressedTranslateY : 0.0;
 
-    final shape =
-        widget.boxShape ??
+    final shape = widget.boxShape ??
         NeumorphicBoxShape.roundRect(
           widget.radius ?? BorderRadius.circular(16),
         );
 
     final isCircle = widget.boxShape == const NeumorphicBoxShape.circle();
-    final style =
-        isCircle
-            ? LuvNeu.circle(
-              pressed: pressedVisual,
-              selected: widget.selected,
-              depth: widget.depth,
-              pressedDepth: widget.pressedDepth,
-              color: widget.background,
-              borderColor: widget.borderColor,
-              borderWidth: widget.borderWidth,
-              isDark: isDark,
-            )
-            : LuvNeu.card(
-              radius: widget.radius ?? BorderRadius.circular(16),
-              pressed: pressedVisual,
-              selected: widget.selected,
-              depth: widget.depth,
-              pressedDepth: widget.pressedDepth,
-              color: widget.background,
-              borderColor: widget.borderColor,
-              borderWidth: widget.borderWidth,
-              isDark: isDark,
-            );
+    final style = isCircle
+        ? LuvNeu.circle(
+            pressed: pressedVisual,
+            selected: widget.selected,
+            depth: widget.depth,
+            pressedDepth: widget.pressedDepth,
+            color: widget.background,
+            borderColor: widget.borderColor,
+            borderWidth: widget.borderWidth,
+            isDark: isDark,
+          )
+        : LuvNeu.card(
+            radius: widget.radius ?? BorderRadius.circular(16),
+            pressed: pressedVisual,
+            selected: widget.selected,
+            depth: widget.depth,
+            pressedDepth: widget.pressedDepth,
+            color: widget.background,
+            borderColor: widget.borderColor,
+            borderWidth: widget.borderWidth,
+            isDark: isDark,
+          );
     final overlay = widget.overlayOpacity * (isDark ? 0.45 : 1.0);
     final core = Neumorphic(
       style: style.copyWith(boxShape: shape),
       child: ClipRRect(
-        borderRadius:
-            isCircle
-                ? BorderRadius.circular(999)
-                : (widget.radius ?? BorderRadius.circular(16)),
+        borderRadius: isCircle
+            ? BorderRadius.circular(999)
+            : (widget.radius ?? BorderRadius.circular(16)),
         child: Stack(
           children: [
             if (overlay > 0)
@@ -1089,7 +1066,7 @@ class CustomButton extends StatelessWidget {
     this.bordercolor,
     this.textColor,
     this.loading,
-    this.borderRadius = 30,
+    this.borderRadius = 10,
     this.btnHeight = 52,
     this.maxLines,
     this.leading,
@@ -1115,26 +1092,22 @@ class CustomButton extends StatelessWidget {
 
     final fill = btnColor ?? cs.primary;
     final outline = bordercolor ?? cs.primary;
-    final fg =
-        textColor ??
+    final fg = textColor ??
         (filled ? cs.onPrimary : cs.primary).withOpacity(
           isDisabled ? 0.60 : 1.0,
         );
 
-    final bg =
-        isDisabled
-            ? cs.onSurface.withOpacity(isDark ? 0.10 : 0.08)
-            : (filled ? fill : cs.surface);
+    final bg = isDisabled
+        ? cs.onSurface.withOpacity(isDark ? 0.10 : 0.08)
+        : (filled ? fill : cs.surface);
 
-    final effectiveBorder =
-        filled
-            ? (bordercolor != null ? outline : null)
-            : outline.withOpacity(isDark ? 0.18 : 0.28);
+    final effectiveBorder = filled
+        ? (bordercolor != null ? outline : null)
+        : outline.withOpacity(isDark ? 0.18 : 0.28);
 
     final canTap = !isDisabled;
 
-    final padY =
-        verticalPadding ??
+    final padY = verticalPadding ??
         (btnHeight != null ? ((btnHeight! - 20) / 2).clamp(10.0, 16.0) : 12.0);
 
     return Container(
@@ -1155,49 +1128,48 @@ class CustomButton extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: padY, horizontal: 14),
           child: Center(
-            child:
-                showLoading
-                    ? SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: fg,
-                        strokeWidth: 2,
-                      ),
-                    )
-                    : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (leading != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: IconTheme(
-                              data: IconThemeData(color: fg),
-                              child: leading!,
-                            ),
-                          ),
-                        ],
-                        Flexible(
-                          child: LuvpayText(
-                            maxLines: maxLines ?? 1,
-                            text: text,
-                            textAlign: TextAlign.center,
-                            color: fg,
-                            fontSize: fontSize,
-                            style: AppTextStyle.textButton(context),
-                            fontWeight: fontWeight ?? FontWeight.w800,
-                            height: 20 / 16,
+            child: showLoading
+                ? SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: fg,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (leading != null) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: IconTheme(
+                            data: IconThemeData(color: fg),
+                            child: leading!,
                           ),
                         ),
-                        if (trailing != null) ...[
-                          const SizedBox(width: 10),
-                          IconTheme(
-                            data: IconThemeData(color: fg),
-                            child: trailing!,
-                          ),
-                        ],
                       ],
-                    ),
+                      Flexible(
+                        child: LuvpayText(
+                          maxLines: maxLines ?? 1,
+                          text: text,
+                          textAlign: TextAlign.center,
+                          color: fg,
+                          fontSize: fontSize,
+                          style: AppTextStyle.textButton(context),
+                          fontWeight: fontWeight ?? FontWeight.w800,
+                          height: 20 / 16,
+                        ),
+                      ),
+                      if (trailing != null) ...[
+                        const SizedBox(width: 10),
+                        IconTheme(
+                          data: IconThemeData(color: fg),
+                          child: trailing!,
+                        ),
+                      ],
+                    ],
+                  ),
           ),
         ),
       ),

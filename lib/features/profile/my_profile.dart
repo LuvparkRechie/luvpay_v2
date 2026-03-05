@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'dart:convert';
 import 'dart:io';
@@ -130,7 +130,6 @@ class _MyProfileState extends State<MyProfile> {
                 ),
               ),
               const SizedBox(height: 16),
-
               Neumorphic(
                 style: LuvNeu.card(
                   radius: BorderRadius.circular(20),
@@ -207,9 +206,7 @@ class _MyProfileState extends State<MyProfile> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 10),
-
               LuvNeuPress.rectangle(
                 radius: BorderRadius.circular(20),
                 onTap: () => Get.back(),
@@ -377,12 +374,11 @@ class _MyProfileState extends State<MyProfile> {
 
     if (returnData["items"].isNotEmpty) {
       isNetConn = true;
-      province =
-          returnData["items"]
-              .where(
-                (element) => element["value"] == userData[0]["province_id"],
-              )
-              .toList()[0]["text"];
+      province = returnData["items"]
+          .where(
+            (element) => element["value"] == userData[0]["province_id"],
+          )
+          .toList()[0]["text"];
       return;
     }
 
@@ -407,10 +403,10 @@ class _MyProfileState extends State<MyProfile> {
     return s == "w"
         ? LucideIcons.user
         : s == "m"
-        ? LucideIcons.users
-        : s == "s"
-        ? LucideIcons.user
-        : Icons.person_outline_rounded;
+            ? LucideIcons.users
+            : s == "s"
+                ? LucideIcons.user
+                : Icons.person_outline_rounded;
   }
 
   @override
@@ -419,10 +415,8 @@ class _MyProfileState extends State<MyProfile> {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    final bg = cs.surface;
     final surface = cs.surface;
-    final surface2 = cs.surfaceContainerHighest;
-    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
+    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.05 : 0.01);
 
     final displayName = Functions().getDisplayName(userData);
     final isVerified = _isVerified;
@@ -510,7 +504,6 @@ class _MyProfileState extends State<MyProfile> {
                         ),
                       ),
                     const SizedBox(height: 16),
-
                     LuvNeuPress.rectangle(
                       radius: BorderRadius.circular(999),
                       onTap: () => getRegions(),
@@ -531,10 +524,9 @@ class _MyProfileState extends State<MyProfile> {
                             ),
                             const SizedBox(width: 6),
                             LuvpayText(
-                              text:
-                                  !isVerified
-                                      ? "Edit Profile"
-                                      : "Verification Required",
+                              text: !isVerified
+                                  ? "Edit Profile"
+                                  : "Verification Required",
                               style: AppTextStyle.body1(
                                 context,
                               ).copyWith(fontWeight: FontWeight.w700),
@@ -547,9 +539,7 @@ class _MyProfileState extends State<MyProfile> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 32),
-
               Padding(
                 padding: const EdgeInsets.only(bottom: 16, left: 10),
                 child: LuvpayText(
@@ -562,7 +552,6 @@ class _MyProfileState extends State<MyProfile> {
                   color: cs.onSurface,
                 ),
               ),
-
               _buildInfoCard(
                 context,
                 icon: Icons.phone_outlined,
@@ -573,10 +562,9 @@ class _MyProfileState extends State<MyProfile> {
                 context,
                 icon: Icons.cake_outlined,
                 title: 'Birthday',
-                value:
-                    userData["birthday"] == null
-                        ? "Not set"
-                        : birthday(userData["birthday"]),
+                value: userData["birthday"] == null
+                    ? "Not set"
+                    : birthday(userData["birthday"]),
               ),
               _buildInfoCard(
                 context,
@@ -586,33 +574,28 @@ class _MyProfileState extends State<MyProfile> {
               ),
               _buildInfoCard(
                 context,
-                icon:
-                    userData["gender"]?.toString().toLowerCase() == "m"
-                        ? Icons.male_outlined
-                        : Icons.female_outlined,
+                icon: userData["gender"]?.toString().toLowerCase() == "m"
+                    ? Icons.male_outlined
+                    : Icons.female_outlined,
                 title: 'Gender',
-                value:
-                    userData["gender"]?.toString().toLowerCase() == "m"
-                        ? "Male"
-                        : "Female",
+                value: userData["gender"]?.toString().toLowerCase() == "m"
+                    ? "Male"
+                    : "Female",
               ),
               _buildInfoCard(
                 context,
                 icon: Icons.location_on_outlined,
                 title: 'Address',
-                value:
-                    userData["brgy_name"] == null ||
-                            userData["city_name"] == null ||
-                            userData["province_name"] == null ||
-                            userData["zip_code"] == null
-                        ? "Not set"
-                        : "${userData["brgy_name"]}, ${userData["city_name"]}, ${userData["province_name"]}, ${userData["zip_code"]}",
+                value: userData["brgy_name"] == null ||
+                        userData["city_name"] == null ||
+                        userData["province_name"] == null ||
+                        userData["zip_code"] == null
+                    ? "Not set"
+                    : "${userData["brgy_name"]}, ${userData["city_name"]}, ${userData["province_name"]}, ${userData["zip_code"]}",
                 isMultiLine: true,
               ),
-
               if (isVerified) ...[
                 const SizedBox(height: 32),
-
                 Container(
                   margin: const EdgeInsets.only(left: 10, right: 10),
                   child: Neumorphic(
@@ -730,7 +713,6 @@ class _MyProfileState extends State<MyProfile> {
                   ),
                 ),
               ],
-
               const SizedBox(height: 40),
             ],
           ),
@@ -746,72 +728,13 @@ class _MyProfileState extends State<MyProfile> {
     required String value,
     bool isMultiLine = false,
   }) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    final surface = cs.surface;
-    final stroke = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
-
-    final radius = BorderRadius.circular(18);
-
     return Container(
       margin: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-      child: Neumorphic(
-        style: LuvNeu.card(
-          radius: radius,
-          color: surface,
-          borderColor: stroke,
-          borderWidth: 1,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            crossAxisAlignment:
-                isMultiLine
-                    ? CrossAxisAlignment.start
-                    : CrossAxisAlignment.center,
-            children: [
-              Neumorphic(
-                style: LuvNeu.circle(
-                  color: surface,
-                  borderColor: stroke,
-                  borderWidth: 1,
-                ),
-                child: SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: Center(child: Icon(icon, color: cs.primary, size: 20)),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    LuvpayText(
-                      text: title,
-                      style: AppTextStyle.body1(context).copyWith(
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.2,
-                      ),
-                      color: cs.onSurface.withOpacity(0.70),
-                    ),
-                    const SizedBox(height: 4),
-                    LuvpayText(
-                      text: value,
-                      style: AppTextStyle.body1(
-                        context,
-                      ).copyWith(fontWeight: FontWeight.w800),
-                      color: cs.onSurface,
-                      maxLines: isMultiLine ? 3 : 2,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+      child: InfoRowTile(
+        onTap: () {},
+        icon: icon,
+        title: title,
+        subtitle: value,
       ),
     );
   }

@@ -81,10 +81,9 @@ class _OTPPreferenceState extends State<OTPPreference> {
                           height: 25,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
-                            color:
-                                controller.isToggle.value
-                                    ? AppColorV2.lpBlueBrand
-                                    : AppColorV2.inactiveButton,
+                            color: controller.isToggle.value
+                                ? AppColorV2.lpBlueBrand
+                                : AppColorV2.inactiveButton,
                           ),
                           child: Stack(
                             alignment: Alignment.center,

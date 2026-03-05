@@ -75,16 +75,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return const SubWalletScreen();
 
       case 2:
-        // return ScannerScreenV2(
-        //   isBack: false,
-        //   onScanStart: () {
-        //     controller.changePage(0);
-        //   },
-        //   onchanged: (args) {
-        //     if (args.isNotEmpty) getService(args);
-        //   },
-        // );
-
         return ScannerScreenV2(
           isBack: false,
           onScanStart: () {},

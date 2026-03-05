@@ -236,11 +236,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: ApiKeys.isProduction,
           title: 'MyApp',
-
           theme: AppThemeV2.light(),
           darkTheme: AppThemeV2.dark(),
           themeMode: themeCtrl.mode.value,
-
           navigatorObservers: [GetObserver()],
           initialRoute: Routes.splash,
           getPages: AppPages.pages,

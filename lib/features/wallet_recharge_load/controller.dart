@@ -29,12 +29,11 @@ class WalletRechargeLoadController extends GetxController
   var currentPayment = 'wt_unionbank'.obs;
   Rx<Contact?> contact = Rx<Contact?>(null);
   RxString userImage = "".obs;
-  List dataList =
-      [
-        {"value": 500, "is_active": false},
-        {"value": 1000, "is_active": false},
-        {"value": 2000, "is_active": false},
-      ].obs;
+  List dataList = [
+    {"value": 500, "is_active": false},
+    {"value": 1000, "is_active": false},
+    {"value": 2000, "is_active": false},
+  ].obs;
   RxList padData = [].obs;
   RxString email = "".obs;
   RxString fullName = "".obs;
@@ -81,14 +80,13 @@ class WalletRechargeLoadController extends GetxController
 
   Future<void> getData() async {
     final String bank = arguments["bank_code"].toString().toLowerCase();
-    final String payment =
-        bank.contains('ub online')
-            ? 'wt_unionbank'
-            : bank.contains('instapay')
+    final String payment = bank.contains('ub online')
+        ? 'wt_unionbank'
+        : bank.contains('instapay')
             ? 'wt_instapay'
             : bank.contains('pesonet')
-            ? 'wt_pesonet'
-            : 'default_image';
+                ? 'wt_pesonet'
+                : 'default_image';
 
     currentPayment.value = payment;
     var userData = await Authentication().getUserData();
@@ -139,11 +137,10 @@ class WalletRechargeLoadController extends GetxController
   //function for my pads
   Future<void> pads(int value) async {
     amountController.text = value.toString();
-    padData.value =
-        dataList.map((obj) {
-          obj["is_active"] = (obj["value"] == value);
-          return obj;
-        }).toList();
+    padData.value = dataList.map((obj) {
+      obj["is_active"] = (obj["value"] == value);
+      return obj;
+    }).toList();
 
     isActiveBtn.value = true;
   }
@@ -229,9 +226,9 @@ class WalletRechargeLoadController extends GetxController
           );
           String transformedLname = Variables.transformFullName(
             userDataInfo[0]["last_name"].toString().replaceAll(
-              RegExp(r'\..*'),
-              '',
-            ),
+                  RegExp(r'\..*'),
+                  '',
+                ),
           );
 
           String middelName = "";
@@ -266,16 +263,14 @@ class WalletRechargeLoadController extends GetxController
 
     bool isValueInDataList = dataList.any((e) => e["value"] == value);
 
-    padData.value =
-        padData.map((e) {
-          if (isValueInDataList &&
-              double.parse(e["value"].toString()) == value) {
-            e["is_active"] = true;
-          } else {
-            e["is_active"] = false;
-          }
-          return e;
-        }).toList();
+    padData.value = padData.map((e) {
+      if (isValueInDataList && double.parse(e["value"].toString()) == value) {
+        e["is_active"] = true;
+      } else {
+        e["is_active"] = false;
+      }
+      return e;
+    }).toList();
     isActiveBtn.value =
         isValueInDataList || (value != null && value >= minTopUp.value);
   }
@@ -287,16 +282,16 @@ class WalletRechargeLoadController extends GetxController
         return;
       }
       if (arguments["bank_type"].toString().toLowerCase().contains(
-        "unionbank",
-      )) {
+            "unionbank",
+          )) {
         uBankPay();
       }
       if (arguments["bank_type"].toString().toLowerCase().contains("maya")) {
         mayaPay();
       }
       if (arguments["bank_type"].toString().toLowerCase().contains(
-        "landbank",
-      )) {
+            "landbank",
+          )) {
         landbankPay();
       }
     }
@@ -390,11 +385,10 @@ class WalletRechargeLoadController extends GetxController
         ],
       };
 
-      final response =
-          await HttpRequestApi(
-            api: ApiKeys.postUBTrans,
-            parameters: param,
-          ).postBody();
+      final response = await HttpRequestApi(
+        api: ApiKeys.postUBTrans,
+        parameters: param,
+      ).postBody();
 
       Get.back();
       if (response == "No Internet") {
@@ -430,11 +424,11 @@ class WalletRechargeLoadController extends GetxController
           if (payMethod['type'].toString().toLowerCase().contains("instapay")) {
             Navigator.of(Get.context!).push(
               PageRouteBuilder(
-                pageBuilder:
-                    (context, animation, secondaryAnimation) => InstapayPage(
-                      qr: response["qrCode"].toString(),
-                      amount: double.parse(amountController.text),
-                    ),
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    InstapayPage(
+                  qr: response["qrCode"].toString(),
+                  amount: double.parse(amountController.text),
+                ),
                 transitionDuration: Duration(milliseconds: 200),
                 reverseTransitionDuration: Duration.zero,
               ),
@@ -495,11 +489,10 @@ class WalletRechargeLoadController extends GetxController
       "to_mobile_no": "63${mobNum.text.replaceAll(" ", "")}",
     };
 
-    final response =
-        await HttpRequestApi(
-          api: ApiKeys.postMayaIntegration,
-          parameters: postParam,
-        ).postBody();
+    final response = await HttpRequestApi(
+      api: ApiKeys.postMayaIntegration,
+      parameters: postParam,
+    ).postBody();
     Get.back();
     if (response == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -657,10 +650,9 @@ class WalletRechargeLoadController extends GetxController
 
     while (!isPaid && retryCount < maxRetries) {
       try {
-        final response =
-            await HttpRequestApi(
-              api: "${ApiKeys.postLandBankTrans}?reference_no=$refNo",
-            ).get();
+        final response = await HttpRequestApi(
+          api: "${ApiKeys.postLandBankTrans}?reference_no=$refNo",
+        ).get();
         if (response["items"] is List && response["items"].isNotEmpty) {
           final firstItem = response["items"][0];
 

@@ -67,14 +67,14 @@ class AppThemeV2 {
       scaffoldBackgroundColor: AppColorV2.background,
     );
 
-    final montserraTextTheme = GoogleFonts.montserratTextTheme(base.textTheme);
-    final montserraPrimaryTextTheme = GoogleFonts.montserratTextTheme(
+    final workSansTextTheme = GoogleFonts.workSansTextTheme(base.textTheme);
+    final workSansPrimaryTextTheme = GoogleFonts.workSansTextTheme(
       base.primaryTextTheme,
     );
 
     return base.copyWith(
-      textTheme: montserraTextTheme,
-      primaryTextTheme: montserraPrimaryTextTheme,
+      textTheme: workSansTextTheme,
+      primaryTextTheme: workSansPrimaryTextTheme,
 
       dividerTheme: DividerThemeData(
         color: Colors.grey.shade300,
@@ -101,14 +101,14 @@ class AppThemeV2 {
       scaffoldBackgroundColor: AppColorV2.darkBackground,
     );
 
-    final montserraTextTheme = GoogleFonts.montserratTextTheme(base.textTheme);
-    final montserraPrimaryTextTheme = GoogleFonts.montserratTextTheme(
+    final workSansTextTheme = GoogleFonts.workSansTextTheme(base.textTheme);
+    final workSansPrimaryTextTheme = GoogleFonts.workSansTextTheme(
       base.primaryTextTheme,
     );
 
     return base.copyWith(
-      textTheme: montserraTextTheme,
-      primaryTextTheme: montserraPrimaryTextTheme,
+      textTheme: workSansTextTheme,
+      primaryTextTheme: workSansPrimaryTextTheme,
 
       dividerTheme: DividerThemeData(
         color: AppColorV2.darkStroke,
@@ -119,7 +119,7 @@ class AppThemeV2 {
 
       appBarTheme: AppBarTheme(
         backgroundColor: AppColorV2.darkSurface2,
-        titleTextStyle: GoogleFonts.montserrat(
+        titleTextStyle: GoogleFonts.workSans(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           height: 28 / 18,

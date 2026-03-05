@@ -115,12 +115,13 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
     final radius = widget.circularRadius ?? 7;
 
-    final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
-    final focused = AppColorV2.lpBlueBrand;
+    final stroke = isDark
+        ? AppColorV2.darkStroke.withAlpha(150)
+        : AppColorV2.boxStroke.withAlpha(150);
+    final focused = AppColorV2.lpBlueBrand.withAlpha(130);
     final error = AppColorV2.incorrectState;
 
-    final fill =
-        widget.filledColor ??
+    final fill = widget.filledColor ??
         (widget.isFilled ? cs.surface : Colors.transparent);
 
     final hintColor = cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80);
@@ -128,10 +129,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
     final iconInactive = cs.onSurfaceVariant.withOpacity(0.70);
 
     return Padding(
-      padding:
-          (widget.allowFieldPadding ?? true)
-              ? EdgeInsets.only(top: 6.0)
-              : EdgeInsets.zero,
+      padding: (widget.allowFieldPadding ?? true)
+          ? EdgeInsets.only(top: 6.0)
+          : EdgeInsets.zero,
       child: TextFormField(
         keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
         minLines: widget.minLines,
@@ -167,17 +167,16 @@ class _CustomTextFieldState extends State<CustomTextField> {
             activeColor: focused,
             inactiveColor: iconInactive,
           ),
-          prefixIcon:
-              widget.prefixIcon != null
-                  ? (widget.isPota == true
-                      ? widget.prefixIcon!
-                      : InkWell(
-                        onTap: () {
-                          if (widget.onIconTap != null) widget.onIconTap!();
-                        },
-                        child: widget.prefixIcon,
-                      ))
-                  : null,
+          prefixIcon: widget.prefixIcon != null
+              ? (widget.isPota == true
+                  ? widget.prefixIcon!
+                  : InkWell(
+                      onTap: () {
+                        if (widget.onIconTap != null) widget.onIconTap!();
+                      },
+                      child: widget.prefixIcon,
+                    ))
+              : null,
           prefix: widget.prefix,
           hintMaxLines: 1,
           maintainHintSize: true,
@@ -197,8 +196,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         }) {
           return null;
         },
-        style:
-            widget.style ??
+        style: widget.style ??
             GoogleFonts.manrope(
               fontSize: widget.fontsize ?? 14,
               fontWeight: widget.fontweight ?? FontWeight.w500,
@@ -227,8 +225,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
     final cs = theme.colorScheme;
 
     if (widget.suffixWidget != null) {
-      final bg =
-          widget.suffixBgC ??
+      final bg = widget.suffixBgC ??
           (isDark ? cs.surfaceContainerHighest : cs.surface);
 
       return Container(
@@ -279,7 +276,6 @@ class CustomMobileNumber extends StatefulWidget {
     this.suffixIcon,
     this.onIconTap,
     this.textInputAction,
-
     this.suffixWidget,
     this.suffixBgC,
     this.circularRadius = 7,
@@ -355,32 +351,27 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
         readOnly: !widget.isEnabled || (widget.isReadOnly ?? false),
         textAlign: TextAlign.left,
         enabled: widget.isEnabled,
-        keyboardType:
-            Platform.isAndroid
-                ? TextInputType.phone
-                : const TextInputType.numberWithOptions(
-                  signed: true,
-                  decimal: false,
-                ),
+        keyboardType: Platform.isAndroid
+            ? TextInputType.phone
+            : const TextInputType.numberWithOptions(
+                signed: true,
+                decimal: false,
+              ),
         decoration: InputDecoration(
           errorStyle: TextStyle(color: error, fontSize: 11),
           isDense: true,
           contentPadding: const EdgeInsets.only(top: 15, bottom: 12),
-
           enabledBorder: _border(radius: radius, color: stroke),
           focusedBorder: _border(radius: radius, color: focused),
           border: _border(radius: radius, color: focused),
           errorBorder: _border(radius: radius, color: error),
           focusedErrorBorder: _border(radius: radius, color: error),
-
           suffixIconConstraints: const BoxConstraints(
             minHeight: 0,
             minWidth: 0,
             maxHeight: 48,
           ),
-
           suffixIcon: _buildSuffix(context: context, radius: radius),
-
           prefixIcon: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -389,25 +380,23 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
                 height: 18 / 14,
                 letterSpacing: 0,
                 text: '+63',
-                style:
-                    Platform.isAndroid
-                        ? GoogleFonts.manrope(
-                          color: textColor,
-                          fontWeight: FontWeight.w700,
-                          height: 20 / 14,
-                          fontSize: 14,
-                        )
-                        : TextStyle(
-                          fontFamily: "SFProTextReg",
-                          color: textColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
+                style: Platform.isAndroid
+                    ? GoogleFonts.manrope(
+                        color: textColor,
+                        fontWeight: FontWeight.w700,
+                        height: 20 / 14,
+                        fontSize: 14,
+                      )
+                    : TextStyle(
+                        fontFamily: "SFProTextReg",
+                        color: textColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
               ),
               const SizedBox(width: 8),
             ],
           ),
-
           hintMaxLines: 1,
           maintainHintSize: true,
           hintText: widget.hintText,
@@ -429,8 +418,7 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
         onChanged: (value) {
           if (widget.onChange != null) widget.onChange!(value);
         },
-        validator:
-            widget.validator ??
+        validator: widget.validator ??
             (value) {
               if (widget.hintText == "10 digit mobile number") {
                 if (value == null || value.isEmpty) return 'Field is required';
@@ -453,8 +441,7 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
     final isDark = theme.brightness == Brightness.dark;
 
     if (widget.suffixWidget != null) {
-      final bg =
-          widget.suffixBgC ??
+      final bg = widget.suffixBgC ??
           (isDark ? cs.surfaceContainerHighest : cs.surface);
 
       return Container(
@@ -544,10 +531,9 @@ DropdownButtonFormField<String> customDropdown({
     decoration: InputDecoration(
       prefixIcon: prefixIcon,
       filled: isDisabled,
-      fillColor:
-          isDisabled
-              ? (isDark ? cs.surfaceContainerHighest : cs.surface)
-              : null,
+      fillColor: isDisabled
+          ? (isDark ? cs.surfaceContainerHighest : cs.surface)
+          : null,
       contentPadding: const EdgeInsets.only(top: 15, bottom: 12, left: 11),
       enabledBorder: OutlineInputBorder(
         borderSide: BorderSide(width: 2, color: stroke),
@@ -591,22 +577,21 @@ DropdownButtonFormField<String> customDropdown({
       letterSpacing: 0.0,
       height: 18 / 14,
     ),
-    items:
-        items.map((item) {
-          return DropdownMenuItem(
-            value: item['value'].toString(),
-            child: AutoSizeText(
-              item['text'].toString(),
-              style: TextStyle(
-                color: cs.onSurface,
-                fontWeight: FontWeight.w500,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxFontSize: 16,
-              maxLines: 2,
-            ),
-          );
-        }).toList(),
+    items: items.map((item) {
+      return DropdownMenuItem(
+        value: item['value'].toString(),
+        child: AutoSizeText(
+          item['text'].toString(),
+          style: TextStyle(
+            color: cs.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxFontSize: 16,
+          maxLines: 2,
+        ),
+      );
+    }).toList(),
     value: selectedValue,
     onChanged: isDisabled ? null : onChanged,
     validator: validator,
@@ -614,10 +599,9 @@ DropdownButtonFormField<String> customDropdown({
     focusNode: FocusNode(),
     icon: Icon(
       Icons.arrow_drop_down,
-      color:
-          (items.isEmpty || isDisabled)
-              ? cs.onSurfaceVariant.withOpacity(0.5)
-              : cs.onSurfaceVariant,
+      color: (items.isEmpty || isDisabled)
+          ? cs.onSurfaceVariant.withOpacity(0.5)
+          : cs.onSurfaceVariant,
     ),
     dropdownColor: cs.surface,
     autovalidateMode: AutovalidateMode.onUserInteraction,

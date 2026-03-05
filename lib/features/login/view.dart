@@ -93,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
       canPop: false,
       appBar: null,
       backgroundColor: Theme.of(context).colorScheme.surface,
-
       scaffoldBody: isLoadingPage ? LoadingCard() : screen!,
     );
   }
@@ -120,32 +119,23 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
           behavior: const ScrollBehavior().copyWith(overscroll: false),
           child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 30),
                 Image(
-                  image: AssetImage("assets/images/luvpay_logo.png"),
+                  image: AssetImage("assets/images/luvpay_text.png"),
                   width: 100,
                 ),
-                SizedBox(height: 18),
-                Column(
-                  children: [
-                    LuvpayText(
-                      text: "Welcome to luvpay!",
-                      style: AppTextStyle.h1(context),
-                      color: AppColorV2.lpBlueBrand,
-                      maxLines: 1,
-                    ),
-                    SizedBox(height: 4),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      child: LuvpayText(
-                        maxLines: 1,
-                        text: "Enter your number and password to log in",
-                        style: AppTextStyle.paragraph1(context),
-                      ),
-                    ),
-                  ],
+                LuvpayText(
+                  text: "Refine Every Pay.",
+                  style: AppTextStyle.h3(context),
+                  color: AppColorV2.lpBlueBrand.withAlpha(180),
+                ),
+                SizedBox(height: 10),
+                LuvpayText(
+                  maxLines: 1,
+                  text: "Enter your number and password to log in",
+                  style: AppTextStyle.paragraph1(context),
                 ),
                 VerticalHeight(height: 50),
                 Column(
@@ -154,7 +144,6 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                     LuvpayText(
                       text: "Mobile Number",
                       style: AppTextStyle.h3(context),
-
                       height: 20 / 16,
                     ),
                     CustomMobileNumber(
@@ -172,10 +161,9 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                       hintText: "Enter your password",
                       controller: controller.password,
                       isObscure: !controller.isShowPass.value,
-                      suffixIcon:
-                          !controller.isShowPass.value
-                              ? Icons.visibility_off
-                              : Icons.visibility,
+                      suffixIcon: !controller.isShowPass.value
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       onIconTap: () {
                         controller.visibilityChanged(
                           !controller.isShowPass.value,
@@ -194,15 +182,14 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed:
-                        controller.isLoading.value
-                            ? () {}
-                            : () async {
-                              Get.toNamed(
-                                arguments: controller.mobileNumber.text,
-                                Routes.forgotPass,
-                              );
-                            },
+                    onPressed: controller.isLoading.value
+                        ? () {}
+                        : () async {
+                            Get.toNamed(
+                              arguments: controller.mobileNumber.text,
+                              Routes.forgotPass,
+                            );
+                          },
                     child: LuvpayText(
                       style: AppTextStyle.body1(context),
                       text: "Forgot Password?",
@@ -358,194 +345,224 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
   Widget bodyWidget() {
     final LoginScreenController controller = Get.put(LoginScreenController());
 
-    return Center(
-      child:
-          userData.isEmpty
-              ? Container()
-              : SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image(
-                      image: AssetImage("assets/images/luvpay_logo.png"),
-                      width: 100,
-                    ),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (userData[0]["first_name"] == null ||
-                            userData[0]["first_name"].toString().isEmpty) {
-                          return Text(
-                            "+${Variables.maskMobileNumber(userData[0]["mobile_no"])}",
-                            style: GoogleFonts.openSans(
-                              fontSize: 25,
-                              fontWeight: FontWeight.w700,
-                              color: AppColorV2.primaryTextColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          );
-                        }
-                        return LuvpayText(
-                          text:
-                              "Welcome, ${userData[0]["first_name"].toString()}!",
-                          style: AppTextStyle.h1(context),
-                          maxLines: 1,
-                        );
-                      },
-                    ),
-                    SizedBox(height: 8),
-                    LuvpayText(
-                      maxLines: 1,
-                      text:
-                          userData[0]["first_name"] == null ||
-                                  userData[0]["first_name"].toString().isEmpty
-                              ? ""
-                              : "+63 ${controller.mobnum.substring(2, 5)} ${controller.mobnum.substring(5, 8)} ${controller.mobnum.substring(8)}",
-                      style: AppTextStyle.paragraph1(context),
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-
-                    spacing(height: 48),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: LuvpayText(
-                        text: "Password",
-                        style: AppTextStyle.h3(context),
-                      ),
-                    ),
-                    spacing(height: 8),
-                    Obx(
-                      () => CustomTextField(
-                        controller: controller.password,
-                        hintText: "Enter your password",
-                        isObscure: !controller.isShowPass.value,
-                        onChange: (value) {
-                          if (value.isNotEmpty) {
-                            controller.canProceed.value = true;
-                          } else {
-                            controller.canProceed.value = false;
-                          }
-                        },
-                        suffixIcon:
-                            !controller.isShowPass.value
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                        onIconTap: () {
-                          controller.visibilityChanged(
-                            !controller.isShowPass.value,
-                          );
-                        },
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                          Get.toNamed(Routes.forgotPass);
-                        },
-                        child: LuvpayText(
-                          style: AppTextStyle.body1(context),
-                          text: "Forgot Password?",
-                          color: AppColorV2.lpBlueBrand,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Obx(
-                      () => CustomButton(
-                        isInactive: !controller.canProceed.value,
-                        text: "Log in",
-                        textColor: AppColorV2.background,
-                        onPressed: () async {
-                          if (controller.password.text.isEmpty) {
-                            CustomDialogStack.showSnackBar(
-                              context,
-                              "Password must not be empty",
-                              Colors.red,
-                              () {},
-                            );
-                            return;
-                          }
-
-                          final userData =
-                              await Authentication().getUserData2();
-
-                          CustomDialogStack.showLoading(Get.context!);
-                          String devKey = await Functions().getUniqueDeviceId();
-
-                          Map<String, dynamic> postParam = {
-                            "mobile_no": userData["mobile_no"],
-                            "pwd": controller.password.text,
-                            "device_key": devKey.toString(),
-                          };
-
-                          controller.postLogin(Get.context!, postParam, (
-                            data,
-                          ) async {
-                            Get.back();
-                            await Authentication().setLogoutStatus(false);
-
-                            if (data[0]["items"].isNotEmpty) {
-                              Get.offAllNamed(Routes.dashboard);
-                            }
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 18),
-                    if (widget.isAllowBio)
-                      CustomButton(
-                        textColor: AppColorV2.lpBlueBrand,
-                        bordercolor: AppColorV2.lpBlueBrand,
-                        btnColor: AppColorV2.background,
-                        leading: Icon(
-                          Icons.fingerprint_rounded,
-                          color: AppColorV2.lpBlueBrand,
-                          size: 22,
-                        ),
-                        text: "Biometrics Login",
-                        onPressed: () async {
-                          String devKey = await Functions().getUniqueDeviceId();
-
-                          Map<String, dynamic> data =
-                              await Authentication().getEncryptedKeys();
-                          data["device_key"] = devKey.toString();
-
-                          bool isEnabledBio =
-                              await AppSecurity.authenticateBio();
-
-                          if (isEnabledBio) {
-                            CustomDialogStack.showLoading(Get.context!);
-
-                            controller.postLogin(Get.context!, data, (
-                              data,
-                            ) async {
-                              Get.back();
-                              await Authentication().setLogoutStatus(false);
-
-                              if (data[0]["items"].isNotEmpty) {
-                                Get.offAllNamed(Routes.dashboard);
-                              }
-                            });
-                          }
-                        },
-                      ),
-                    SizedBox(height: 14),
-                    Visibility(
-                      visible: widget.appbar == null,
-                      child: InkWell(
-                        onTap: controller.switchAccount,
-                        child: LuvpayText(
-                          text: "Switch account",
-                          style: AppTextStyle.paragraph1(context),
-                          color: AppColorV2.lpBlueBrand,
-                        ),
-                      ),
-                    ),
-                  ],
+    return userData.isEmpty
+        ? Container()
+        : SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.15),
+                Image(
+                  image: AssetImage("assets/images/luvpay_text.png"),
+                  width: 100,
                 ),
-              ),
-    );
+                SizedBox(height: 5),
+                LuvpayText(
+                  textAlign: TextAlign.center,
+                  text: "Log in to your luvpay account to use our services.",
+                ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (userData[0]["first_name"] == null ||
+                        userData[0]["first_name"].toString().isEmpty) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          spacing(height: 48),
+                          LuvNeuPress.rectangle(
+                            radius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: LuvpayText(
+                                    text:
+                                        "+${Variables.maskMobileNumber(userData[0]["mobile_no"])}",
+                                    style: AppTextStyle.paragraph1(context),
+                                    maxLines: 1,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        spacing(height: 48),
+                        LuvNeuPress.rectangle(
+                          radius: BorderRadius.circular(10),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  LuvpayText(
+                                    text: userData[0]["first_name"].toString(),
+                                    style: AppTextStyle.h4(context),
+                                    color:
+                                        AppColorV2.lpBlueBrand.withAlpha(180),
+                                    maxLines: 1,
+                                  ),
+                                  LuvpayText(
+                                      text: userData[0]["first_name"] == null ||
+                                              userData[0]["first_name"]
+                                                  .toString()
+                                                  .isEmpty
+                                          ? ""
+                                          : "+63 ${controller.mobnum.substring(2, 5)} ${controller.mobnum.substring(5, 8)} ${controller.mobnum.substring(8)}",
+                                      style: AppTextStyle.paragraph1(context),
+                                      maxLines: 1,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primaryContainer),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    );
+                  },
+                ),
+                spacing(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: LuvpayText(
+                    text: "Password",
+                    style: AppTextStyle.h3(context),
+                  ),
+                ),
+                Obx(
+                  () => CustomTextField(
+                    controller: controller.password,
+                    hintText: "Your password",
+                    isObscure: !controller.isShowPass.value,
+                    onChange: (value) {
+                      if (value.isNotEmpty) {
+                        controller.canProceed.value = true;
+                      } else {
+                        controller.canProceed.value = false;
+                      }
+                    },
+                    suffixIcon: !controller.isShowPass.value
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    onIconTap: () {
+                      controller
+                          .visibilityChanged(!controller.isShowPass.value);
+                    },
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Get.toNamed(Routes.forgotPass);
+                    },
+                    child: LuvpayText(
+                      style: AppTextStyle.body1(context),
+                      text: "Forgot Password?",
+                      color: AppColorV2.lpBlueBrand,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Obx(
+                  () => CustomButton(
+                    isInactive: !controller.canProceed.value,
+                    text: "Log in",
+                    textColor: AppColorV2.background,
+                    onPressed: () async {
+                      if (controller.password.text.isEmpty) {
+                        CustomDialogStack.showSnackBar(
+                          context,
+                          "Password must not be empty",
+                          Colors.red,
+                          () {},
+                        );
+                        return;
+                      }
+
+                      final userData = await Authentication().getUserData2();
+
+                      CustomDialogStack.showLoading(Get.context!);
+                      String devKey = await Functions().getUniqueDeviceId();
+
+                      Map<String, dynamic> postParam = {
+                        "mobile_no": userData["mobile_no"],
+                        "pwd": controller.password.text,
+                        "device_key": devKey.toString(),
+                      };
+
+                      controller.postLogin(Get.context!, postParam,
+                          (data) async {
+                        Get.back();
+                        await Authentication().setLogoutStatus(false);
+
+                        if (data[0]["items"].isNotEmpty) {
+                          Get.offAllNamed(Routes.dashboard);
+                        }
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(height: 18),
+                if (widget.isAllowBio)
+                  CustomButton(
+                    textColor: AppColorV2.lpBlueBrand,
+                    bordercolor: AppColorV2.lpBlueBrand,
+                    btnColor: AppColorV2.background,
+                    leading: Icon(
+                      Icons.fingerprint_rounded,
+                      color: AppColorV2.lpBlueBrand,
+                      size: 22,
+                    ),
+                    text: "Biometrics Login",
+                    onPressed: () async {
+                      String devKey = await Functions().getUniqueDeviceId();
+
+                      Map<String, dynamic> data =
+                          await Authentication().getEncryptedKeys();
+                      data["device_key"] = devKey.toString();
+
+                      bool isEnabledBio = await AppSecurity.authenticateBio();
+
+                      if (isEnabledBio) {
+                        CustomDialogStack.showLoading(Get.context!);
+
+                        controller.postLogin(Get.context!, data, (data) async {
+                          Get.back();
+                          await Authentication().setLogoutStatus(false);
+
+                          if (data[0]["items"].isNotEmpty) {
+                            Get.offAllNamed(Routes.dashboard);
+                          }
+                        });
+                      }
+                    },
+                  ),
+                SizedBox(height: 14),
+                Center(
+                  child: Visibility(
+                    visible: widget.appbar == null,
+                    child: InkWell(
+                      onTap: controller.switchAccount,
+                      child: LuvpayText(
+                        text: "Switch account",
+                        style: AppTextStyle.paragraph1(context),
+                        color: AppColorV2.lpBlueBrand,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
   }
 }

@@ -178,11 +178,10 @@ class LoginScreenController extends GetxController {
             returnPost["login_attempt"] >= 5) {
           List mapData = [returnPost];
 
-          mapData =
-              mapData.map((e) {
-                e["mobile_no"] = param["mobile_no"];
-                return e;
-              }).toList();
+          mapData = mapData.map((e) {
+            e["mobile_no"] = param["mobile_no"];
+            return e;
+          }).toList();
 
           Future.delayed(Duration(milliseconds: 200), () {
             mobileNumber.text = "";
@@ -358,11 +357,10 @@ class LoginScreenController extends GetxController {
   void extendPassword(String mobileNo, Function cb) async {
     final putParam = {"extend": "Y", "mobile_no": mobileNo};
     CustomDialogStack.showLoading(Get.context!);
-    final response =
-        await HttpRequestApi(
-          api: ApiKeys.putLogin,
-          parameters: putParam,
-        ).putBody();
+    final response = await HttpRequestApi(
+      api: ApiKeys.putLogin,
+      parameters: putParam,
+    ).putBody();
     Get.back();
     if (response == "No Internet") {
       cb(false);
@@ -449,11 +447,10 @@ class LoginScreenController extends GetxController {
         } else {
           List itemData = objData["items"];
 
-          itemData =
-              itemData.map((e) {
-                e["session_id"] = returnPost["session_id"];
-                return e;
-              }).toList();
+          itemData = itemData.map((e) {
+            e["session_id"] = returnPost["session_id"];
+            return e;
+          }).toList();
 
           var items = itemData[0];
 
@@ -551,12 +548,11 @@ class LoginScreenController extends GetxController {
 
   Future<bool> userAuth(String mobile) async {
     final data = await Authentication().getEncryptedKeys();
-    int mobaNo =
-        data == null
-            ? 0
-            : int.parse(
-              data["mobile_no"].toString().trim().replaceAll(" ", ""),
-            );
+    int mobaNo = data == null
+        ? 0
+        : int.parse(
+            data["mobile_no"].toString().trim().replaceAll(" ", ""),
+          );
     int usrMo = int.parse("63${mobile.toString().trim().replaceAll(" ", "")}");
 
     return mobaNo == usrMo ? false : true;
