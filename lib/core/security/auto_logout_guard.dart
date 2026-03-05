@@ -20,7 +20,7 @@ class ExpiryConfig {
 
 class AutoLogoutGuard {
   static const ExpiryConfig awayExpiry = ExpiryConfig(
-    30,
+    10,
     ExpiryUnit.seconds,
   ); //number and unit
 
@@ -62,8 +62,7 @@ class AutoLogoutGuard {
 
     final box = GetStorage();
 
-    final isBackgrounding =
-        state == AppLifecycleState.inactive ||
+    final isBackgrounding = state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached;
@@ -133,21 +132,22 @@ class AutoLogoutGuard {
       final expiredFlag = (box.read(kAwayExpired) ?? false) as bool;
       final shouldExpire = expiredFlag || now >= expiryAt;
 
-      // ignore: avoid_print
-      print(
-        "[AutoLogoutGuard] RESUMED lastBg=$lastBg now=$now expiryAt=$expiryAt awayMs=$awayMs "
-        "expiredFlag=$expiredFlag shouldExpire=$shouldExpire",
-      );
-
       if (!shouldExpire) return;
 
       box.write(kAwayExpired, true);
+
+      if (_isOnLoginRoute()) {
+        await Authentication().setLogoutStatus(true);
+        return;
+      }
 
       await Authentication().setLogoutStatus(true);
 
       final awayLabel = _formatElapsed(awayMs);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_isOnLoginRoute()) return;
+
         if (Get.isDialogOpen == true) return;
 
         Get.dialog(
@@ -164,7 +164,10 @@ class AutoLogoutGuard {
                 TextButton(
                   onPressed: () {
                     if (Get.isDialogOpen == true) Get.back();
-                    Get.offAllNamed(Routes.login);
+
+                    if (!_isOnLoginRoute()) {
+                      Get.offAllNamed(Routes.login);
+                    }
                   },
                   child: const Text('Sign In'),
                 ),
@@ -266,9 +269,16 @@ class AutoLogoutGuard {
     final days = hours ~/ 24;
     if (days < 30) return _plural(days, 'day');
 
-    // 30 <= days
     final months = days ~/ 30;
     return _plural(months <= 0 ? 1 : months, 'month');
+  }
+
+  static bool _isOnLoginRoute() {
+    try {
+      return Get.currentRoute == Routes.login;
+    } catch (_) {
+      return false;
+    }
   }
 }
 

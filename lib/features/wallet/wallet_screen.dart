@@ -49,42 +49,42 @@ class _WalletScreenState extends State<WalletScreen> {
   bool _isDialogVisible = false;
   String firstName = "";
   List<Map<String, dynamic>> get _merchantGridItems => [
-    {
-      'icon': "assets/images/luvpay_bills.png",
-      'label': 'Bills',
-      'color': Colors.green,
-      'onTap': () async {
-        final billController = Get.put(BillersController());
-        billController.getBillers((billers) async {
-          final result = await Get.to(
-            () => Allbillers(),
-            arguments: {'source': 'pay'},
-          );
-          if (result != null) {
-            _startAutoRefresh();
-            getUserData();
-            getLogs();
-          }
-        });
-      },
-    },
-    {
-      'icon': "assets/images/luvpay_topup.png",
-      'label': 'Top-up',
-      'color': Colors.orange,
-      'onTap': () {
-        showTopUpMethod();
-      },
-    },
-    {
-      'icon': "assets/images/navigation.png",
-      'label': 'Send',
-      'color': Colors.orange,
-      'onTap': () {
-        Get.toNamed(Routes.send);
-      },
-    },
-  ];
+        {
+          'icon': "assets/images/luvpay_bills.png",
+          'label': 'Bills',
+          'color': Colors.green,
+          'onTap': () async {
+            final billController = Get.put(BillersController());
+            billController.getBillers((billers) async {
+              final result = await Get.to(
+                () => Allbillers(),
+                arguments: {'source': 'pay'},
+              );
+              if (result != null) {
+                _startAutoRefresh();
+                getUserData();
+                getLogs();
+              }
+            });
+          },
+        },
+        {
+          'icon': "assets/images/luvpay_topup.png",
+          'label': 'Top-up',
+          'color': Colors.orange,
+          'onTap': () {
+            showTopUpMethod();
+          },
+        },
+        {
+          'icon': "assets/images/navigation.png",
+          'label': 'Send',
+          'color': Colors.orange,
+          'onTap': () {
+            Get.toNamed(Routes.send);
+          },
+        },
+      ];
 
   @override
   void initState() {
@@ -232,13 +232,12 @@ class _WalletScreenState extends State<WalletScreen> {
             .substring(0, 10);
 
         setState(() {
-          logs =
-              response["items"]
-                  .where(
-                    (e) => e['tran_date'].toString().split("T")[0] == today,
-                  )
-                  .take(5)
-                  .toList();
+          logs = response["items"]
+              .where(
+                (e) => e['tran_date'].toString().split("T")[0] == today,
+              )
+              .take(5)
+              .toList();
         });
       }
     } catch (e) {
@@ -347,7 +346,6 @@ class _WalletScreenState extends State<WalletScreen> {
           decoration: BoxDecoration(
             color: cs.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(isDark ? 0.05 : .01),
@@ -411,15 +409,13 @@ class _WalletScreenState extends State<WalletScreen> {
         elevation: 0,
         toolbarHeight: 0,
         backgroundColor: Colors.transparent,
-        systemOverlayStyle: (isDark
-                ? SystemUiOverlayStyle.light
-                : SystemUiOverlayStyle.dark)
-            .copyWith(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness:
-                  isDark ? Brightness.light : Brightness.dark,
-              statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-            ),
+        systemOverlayStyle:
+            (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+                .copyWith(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        ),
       ),
       body: SafeArea(
         child: Padding(
@@ -557,10 +553,9 @@ class _WalletScreenState extends State<WalletScreen> {
             ? "PHP • • • • • • •"
             : "PHP ${toCurrencyString(userData[0]["items"][0]["amount_bal"])}";
 
-    final mobileText =
-        isOpen
-            ? (userInfo["mobile_no"]?.toString() ?? "• • • • • • • • • • •")
-            : "• • • • • • • • • • •";
+    final mobileText = isOpen
+        ? (userInfo["mobile_no"]?.toString() ?? "• • • • • • • • • • •")
+        : "• • • • • • • • • • •";
     final brandA = AppColorV2.lpBlueBrand;
     final brandB = AppColorV2.lpTealBrand;
 
@@ -616,7 +611,6 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
               ),
             ),
-
             Positioned.fill(
               child: IgnorePointer(
                 child: Container(
@@ -633,7 +627,6 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
@@ -672,14 +665,12 @@ class _WalletScreenState extends State<WalletScreen> {
                           ],
                         ),
                       ),
-
                       _PremiumEyeIcon(
                         isOpen: isOpen,
                         onTap: () => openEye(isOpen),
                       ),
                     ],
                   ),
-
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -700,7 +691,6 @@ class _WalletScreenState extends State<WalletScreen> {
                       ),
                     ],
                   ),
-
                   Row(
                     children: [
                       Container(
@@ -910,13 +900,11 @@ class TransactionSectionListView extends StatelessWidget {
           TransactionDetails(index: 0, data: [transaction], isHistory: true),
         );
       },
-
       leading: Icon(
         !isPositive ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
         color: accent,
         size: 20,
       ),
-
       title: LuvpayText(
         text: transaction['tran_desc']?.toString() ?? 'No description',
         style: AppTextStyle.body1(context),
@@ -932,7 +920,6 @@ class TransactionSectionListView extends StatelessWidget {
         minFontSize: 8,
         color: cs.onSurfaceVariant.withOpacity(0.75),
       ),
-
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -952,7 +939,6 @@ class TransactionSectionListView extends StatelessWidget {
           ),
         ],
       ),
-
       background: tileBg,
       leadingBackground: tileBg,
     );

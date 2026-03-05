@@ -37,7 +37,6 @@ Future<void> backgroundFunc(int id, Map<String, dynamic> params) async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
 
-  String userId = params['userId'];
   List appSecurity = await AppSecurity.checkDevMode();
   bool isAppSecured = appSecurity[0]["is_secured"];
 
