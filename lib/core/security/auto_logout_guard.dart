@@ -20,8 +20,8 @@ class ExpiryConfig {
 
 class AutoLogoutGuard {
   static const ExpiryConfig awayExpiry = ExpiryConfig(
-    10,
-    ExpiryUnit.seconds,
+    5,
+    ExpiryUnit.days,
   ); //number and unit
 
   static const int _awayAlarmId = 92001;
@@ -229,25 +229,6 @@ class AutoLogoutGuard {
   static int _daysInMonth(int year, int month) {
     final lastDay = DateTime(year, month + 1, 0).day;
     return lastDay;
-  }
-
-  static String _formatExpiryLabel(ExpiryConfig cfg) {
-    return _plural(cfg.value, _unitName(cfg.unit));
-  }
-
-  static String _unitName(ExpiryUnit unit) {
-    switch (unit) {
-      case ExpiryUnit.seconds:
-        return 'second';
-      case ExpiryUnit.minutes:
-        return 'minute';
-      case ExpiryUnit.hours:
-        return 'hour';
-      case ExpiryUnit.days:
-        return 'day';
-      case ExpiryUnit.months:
-        return 'month';
-    }
   }
 
   static String _plural(int value, String singular) {

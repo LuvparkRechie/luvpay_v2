@@ -124,10 +124,9 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
   }
 
   Future<void> registerDevice() async {
-    final userId =
-        widget.userId == null
-            ? args["data"]["user_id"]
-            : widget.userId.toString();
+    final userId = widget.userId == null
+        ? args["data"]["user_id"]
+        : widget.userId.toString();
 
     isVerifiedOtp = true;
     FocusManager.instance.primaryFocus?.unfocus();
@@ -142,11 +141,10 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
         "device_key": devKey.toString(),
       };
 
-      final response =
-          await HttpRequestApi(
-            api: ApiKeys.postRegDevice,
-            parameters: postParamRegDev,
-          ).postBody();
+      final response = await HttpRequestApi(
+        api: ApiKeys.postRegDevice,
+        parameters: postParamRegDev,
+      ).postBody();
 
       if (Get.isDialogOpen == true) {
         Navigator.of(ctx, rootNavigator: true).pop();
@@ -223,11 +221,11 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
           .copyWith(
-            statusBarColor: Colors.transparent,
-            systemNavigationBarColor: surface,
-            systemNavigationBarIconBrightness:
-                isDark ? Brightness.light : Brightness.dark,
-          ),
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: surface,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+      ),
       child: Scaffold(
         backgroundColor: surface,
         body: SafeArea(
@@ -246,7 +244,6 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                             height: 180,
                           ),
                           const SizedBox(height: 18),
-
                           LuvpayText(
                             maxLines: 1,
                             text: "New sign-in detected",
@@ -255,43 +252,33 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                             color: onSurface,
                           ),
                           const SizedBox(height: 8),
-
                           LuvpayText(
-                            maxLines: 3,
                             text:
                                 "Register this device to keep your account secure.\nYou can always do this later.",
                             textAlign: TextAlign.center,
                             style: AppTextStyle.paragraph2(context).copyWith(
                               height: 1.35,
-                              color: onSurfaceVar.withOpacity(0.85),
                             ),
                           ),
-
                           const SizedBox(height: 16),
-
                           InfoRowTile(
                             title: "Mobile number",
                             onTap: () {},
                             icon: Icons.phone_iphone_rounded,
                             subtitle: widget.mobileNo,
                           ),
-
                           const SizedBox(height: 18),
-
                           SizedBox(
                             width: double.infinity,
                             child: CustomButton(
                               bordercolor: outline,
                               text: "Register this device",
-                              onPressed:
-                                  isVerifiedOtp
-                                      ? registerDevice
-                                      : onRegisterDev,
+                              onPressed: isVerifiedOtp
+                                  ? registerDevice
+                                  : onRegisterDev,
                             ),
                           ),
-
                           const SizedBox(height: 10),
-
                           CustomButton(
                             bordercolor: outline,
                             btnColor: Colors.transparent,
@@ -304,7 +291,6 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: LuvpayText(

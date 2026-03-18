@@ -158,10 +158,9 @@ class UpdateProfile extends GetView<UpdateProfileController> {
                               height: 52,
                               child: Center(
                                 child: LuvpayText(
-                                  text:
-                                      controller.currentIndex.value == 2
-                                          ? "Submit"
-                                          : "Next",
+                                  text: controller.currentIndex.value == 2
+                                      ? "Submit"
+                                      : "Next",
                                   style: AppTextStyle.body1(
                                     context,
                                   ).copyWith(fontWeight: FontWeight.w900),
@@ -263,10 +262,9 @@ class UpdateProfile extends GetView<UpdateProfileController> {
               final enabled = controller.currentIndex.value >= i;
               return LuvpayText(
                 style: AppTextStyle.body1(context),
-                text:
-                    i == 0
-                        ? "Profile"
-                        : i == 1
+                text: i == 0
+                    ? "Profile"
+                    : i == 1
                         ? "  Address"
                         : "Security",
                 color: enabled ? cs.onPrimary : cs.onPrimary.withOpacity(0.70),
@@ -302,8 +300,7 @@ class SimpleNameFormatter extends TextInputFormatter {
     final periodCount = newValue.text.split('.').length - 1;
     final hyphenCount = newValue.text.split('-').length - 1;
 
-    final hasDisallowedCombination =
-        newValue.text.contains('. -') ||
+    final hasDisallowedCombination = newValue.text.contains('. -') ||
         newValue.text.contains('- .') ||
         newValue.text.contains(' .') ||
         newValue.text.contains('-.') ||
@@ -345,10 +342,9 @@ class Stepp1 extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-
                   LuvpayText(
                     text: "First Name",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   CustomTextField(
@@ -383,12 +379,10 @@ class Stepp1 extends StatelessWidget {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 15),
-
                   LuvpayText(
                     text: "Middle Name",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   CustomTextField(
@@ -411,12 +405,10 @@ class Stepp1 extends StatelessWidget {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 15),
-
                   LuvpayText(
                     text: "Last Name",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   CustomTextField(
@@ -452,12 +444,10 @@ class Stepp1 extends StatelessWidget {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 15),
-
                   LuvpayText(
                     text: "Email",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   CustomTextField(
@@ -488,12 +478,10 @@ class Stepp1 extends StatelessWidget {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 15),
-
                   LuvpayText(
                     text: "Birthday",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   CustomTextField(
@@ -527,9 +515,7 @@ class Stepp1 extends StatelessWidget {
                       return null;
                     },
                   ),
-
                   const SizedBox(height: 15),
-
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -539,7 +525,7 @@ class Stepp1 extends StatelessWidget {
                           children: [
                             LuvpayText(
                               text: "Gender",
-                              style: AppTextStyle.h3(context),
+                              style: AppTextStyle.body1(context),
                               color: cs.onSurface,
                             ),
                             const SizedBox(height: 5),
@@ -561,10 +547,9 @@ class Stepp1 extends StatelessWidget {
                               ),
                               child: DropdownButton<String>(
                                 isExpanded: true,
-                                value:
-                                    controller.gender.value.isEmpty
-                                        ? null
-                                        : controller.gender.value,
+                                value: controller.gender.value.isEmpty
+                                    ? null
+                                    : controller.gender.value,
                                 items: const [
                                   DropdownMenuItem(
                                     value: "M",
@@ -599,7 +584,7 @@ class Stepp1 extends StatelessWidget {
                           children: [
                             LuvpayText(
                               text: "Civil status",
-                              style: AppTextStyle.h3(context),
+                              style: AppTextStyle.body1(context),
                               color: cs.onSurface,
                             ),
                             const SizedBox(height: 5),
@@ -613,16 +598,14 @@ class Stepp1 extends StatelessWidget {
                                   return "Civil status is required";
                                 return null;
                               },
-                              onChanged:
-                                  (data) =>
-                                      controller.selectedCivil.value = data!,
+                              onChanged: (data) =>
+                                  controller.selectedCivil.value = data!,
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-
                   spacing(height: 10),
                   spacing(height: 30),
                 ],
@@ -657,10 +640,9 @@ class Stepp2 extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   spacing(height: 20),
-
                   LuvpayText(
                     text: "Region",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   Padding(
@@ -675,17 +657,14 @@ class Stepp2 extends StatelessWidget {
                         controller.getProvinceData(newValue);
                         controller.zipCode.clear();
                       },
-                      validator:
-                          (value) =>
-                              (value == null || value.isEmpty)
-                                  ? "Region is required"
-                                  : null,
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? "Region is required"
+                          : null,
                     ),
                   ),
-
                   LuvpayText(
                     text: "Province",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   Padding(
@@ -695,21 +674,18 @@ class Stepp2 extends StatelessWidget {
                       isDisabled: false,
                       items: controller.provinceData,
                       selectedValue: controller.selectedProvince.value,
-                      validator:
-                          (value) =>
-                              (value == null || value.isEmpty)
-                                  ? 'Province is required'
-                                  : null,
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? 'Province is required'
+                          : null,
                       onChanged: (data) {
                         controller.selectedProvince.value = data.toString();
                         controller.getCityData(data);
                       },
                     ),
                   ),
-
                   LuvpayText(
                     text: "City",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   Padding(
@@ -719,21 +695,18 @@ class Stepp2 extends StatelessWidget {
                       isDisabled: false,
                       items: controller.cityData,
                       selectedValue: controller.selectedCity.value,
-                      validator:
-                          (value) =>
-                              (value == null || value.isEmpty)
-                                  ? 'City is required'
-                                  : null,
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? 'City is required'
+                          : null,
                       onChanged: (data) {
                         controller.selectedCity.value = data.toString();
                         controller.getBrgyData(data);
                       },
                     ),
                   ),
-
                   LuvpayText(
                     text: "Barangay",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   Padding(
@@ -743,31 +716,25 @@ class Stepp2 extends StatelessWidget {
                       isDisabled: false,
                       items: controller.brgyData,
                       selectedValue: controller.selectedBrgy.value,
-                      validator:
-                          (value) =>
-                              (value == null || value.isEmpty)
-                                  ? 'Barangay is required'
-                                  : null,
-                      onChanged:
-                          (data) =>
-                              controller.selectedBrgy.value = data.toString(),
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? 'Barangay is required'
+                          : null,
+                      onChanged: (data) =>
+                          controller.selectedBrgy.value = data.toString(),
                     ),
                   ),
-
                   LuvpayText(
                     text: "Zip Code",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
                     color: cs.onSurface,
                   ),
                   CustomTextField(
                     filledColor: cs.surfaceContainerHighest,
-                    isReadOnly:
-                        controller.selectedBrgy.value == null ||
+                    isReadOnly: controller.selectedBrgy.value == null ||
                         controller.selectedRegion.value == null ||
                         controller.selectedProvince.value == null ||
                         controller.selectedCity.value == null,
-                    isFilled:
-                        controller.selectedBrgy.value == null ||
+                    isFilled: controller.selectedBrgy.value == null ||
                         controller.selectedRegion.value == null ||
                         controller.selectedProvince.value == null ||
                         controller.selectedCity.value == null,
@@ -777,13 +744,12 @@ class Stepp2 extends StatelessWidget {
                       NumericInputFormatter(),
                       LengthLimitingTextInputFormatter(4),
                     ],
-                    keyboardType:
-                        Platform.isAndroid
-                            ? TextInputType.number
-                            : const TextInputType.numberWithOptions(
-                              signed: true,
-                              decimal: false,
-                            ),
+                    keyboardType: Platform.isAndroid
+                        ? TextInputType.number
+                        : const TextInputType.numberWithOptions(
+                            signed: true,
+                            decimal: false,
+                          ),
                     onChange: (_) {
                       controller.zipCode.selection = TextSelection.fromPosition(
                         TextPosition(offset: controller.zipCode.text.length),
@@ -799,7 +765,6 @@ class Stepp2 extends StatelessWidget {
                       return null;
                     },
                   ),
-
                   spacing(height: 10),
                 ],
               ),
@@ -828,7 +793,6 @@ class Stepp3 extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               spacing(height: 20),
-
               _QnaBlock(
                 titleText: controller.question1.value,
                 isDisabled: controller.seq1.value == 0,
@@ -847,14 +811,11 @@ class Stepp3 extends StatelessWidget {
                 },
                 controller: controller.answer1,
                 obscure: controller.obscureTextAnswer1.value,
-                toggle:
-                    () => controller.onToggleShowAnswer1(
-                      !controller.obscureTextAnswer1.value,
-                    ),
+                toggle: () => controller.onToggleShowAnswer1(
+                  !controller.obscureTextAnswer1.value,
+                ),
               ),
-
               spacing(height: 20),
-
               _QnaBlock(
                 titleText: controller.question2.value,
                 isDisabled: controller.seq2.value == 0,
@@ -873,14 +834,11 @@ class Stepp3 extends StatelessWidget {
                 },
                 controller: controller.answer2,
                 obscure: controller.obscureTextAnswer2.value,
-                toggle:
-                    () => controller.onToggleShowAnswer2(
-                      !controller.obscureTextAnswer2.value,
-                    ),
+                toggle: () => controller.onToggleShowAnswer2(
+                  !controller.obscureTextAnswer2.value,
+                ),
               ),
-
               spacing(height: 30),
-
               _QnaBlock(
                 titleText: controller.question3.value,
                 isDisabled: controller.seq3.value == 0,
@@ -901,12 +859,10 @@ class Stepp3 extends StatelessWidget {
                 },
                 controller: controller.answer3,
                 obscure: controller.obscureTextAnswer3.value,
-                toggle:
-                    () => controller.onToggleShowAnswer3(
-                      !controller.obscureTextAnswer3.value,
-                    ),
+                toggle: () => controller.onToggleShowAnswer3(
+                  !controller.obscureTextAnswer3.value,
+                ),
               ),
-
               spacing(height: MediaQuery.of(context).size.height / 5),
             ],
           ),
@@ -1011,7 +967,7 @@ class _QnaBlock extends StatelessWidget {
               Expanded(
                 child: LuvpayText(
                   text: titleText,
-                  style: AppTextStyle.h3(context),
+                  style: AppTextStyle.body1(context),
                   color: titleColor,
                 ),
               ),

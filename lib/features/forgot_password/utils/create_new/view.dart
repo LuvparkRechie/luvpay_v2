@@ -39,6 +39,7 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return CustomScaffoldV2(
       enableToolBar: true,
       scaffoldBody: Obx(() {
@@ -84,16 +85,16 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                     children: [
                       LuvpayText(
                         text: "New password",
-                        style: AppTextStyle.h3(context),
+                        color: cs.onBackground.withAlpha(250),
+                        style: AppTextStyle.body1(context),
                       ),
                       CustomTextField(
                         hintText: "New password",
                         controller: controller.newPass,
                         isObscure: !controller.isShowNewPass.value,
-                        suffixIcon:
-                            !controller.isShowNewPass.value
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                        suffixIcon: !controller.isShowNewPass.value
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         onChange: (value) {
                           controller.onPasswordChanged(value);
                           setState(() {
@@ -131,7 +132,8 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                       spacing(height: 14),
                       LuvpayText(
                         text: "Confirm password",
-                        style: AppTextStyle.h3(context),
+                        color: cs.onBackground.withAlpha(250),
+                        style: AppTextStyle.body1(context),
                       ),
                       CustomTextField(
                         onChange: (value) {
@@ -142,10 +144,9 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                         hintText: "Confirm password",
                         controller: controller.confirmPass,
                         isObscure: !controller.isShowConfirmPass.value,
-                        suffixIcon:
-                            !controller.isShowConfirmPass.value
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                        suffixIcon: !controller.isShowConfirmPass.value
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         onIconTap: () {
                           controller.onToggleConfirmPass(
                             !controller.isShowConfirmPass.value,
@@ -207,8 +208,8 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                                       ),
                                       color:
                                           Variables.getColorForPasswordStrength(
-                                            controller.passStrength.value,
-                                          ),
+                                        controller.passStrength.value,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -268,28 +269,23 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                     ),
                   ),
                   const VerticalHeight(height: 34),
-
                   CustomButton(
-                    isInactive:
-                        controller.newPass.text.isEmpty ||
+                    isInactive: controller.newPass.text.isEmpty ||
                         !controller.newPass.text.length.isEqual(8) &&
                             !controller.newPass.text.length.isGreaterThan(7) ||
                         !controller.newPass.text.contains(RegExp(r'[A-Z]')) ||
                         !controller.newPass.text.contains(RegExp(r'[0-9]')),
-
                     text:
                         "${!controller.isFinish.value ? "Time left" : "Submit"} ${!controller.isFinish.value ? "- ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}" : ""}",
-
-                    onPressed:
-                        !controller.isFinish.value
-                            ? () {}
-                            : () async {
-                              FocusScope.of(context).requestFocus(FocusNode());
-                              if (controller.formKeyCreatePass.currentState!
-                                  .validate()) {
-                                controller.requestOtp();
-                              }
-                            },
+                    onPressed: !controller.isFinish.value
+                        ? () {}
+                        : () async {
+                            FocusScope.of(context).requestFocus(FocusNode());
+                            if (controller.formKeyCreatePass.currentState!
+                                .validate()) {
+                              controller.requestOtp();
+                            }
+                          },
                   ),
                   spacing(height: 20),
                 ],

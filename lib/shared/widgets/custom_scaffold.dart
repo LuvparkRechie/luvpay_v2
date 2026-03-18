@@ -8,116 +8,8 @@ import 'package:get/get.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 
 import 'package:luvpay/shared/widgets/neumorphism.dart';
+import 'anim.dart';
 import 'luvpay_text.dart';
-
-class CustomGradientBackground extends StatelessWidget {
-  final Widget? child;
-  final List<Color>? gradientColors;
-  final BorderRadius? borderRadius;
-  final EdgeInsetsGeometry? padding;
-  final double blurSigma;
-  final Color? bodyColor;
-
-  final bool blendIntoStatusBar;
-
-  const CustomGradientBackground({
-    super.key,
-    this.child,
-    this.gradientColors,
-    this.borderRadius,
-    this.padding,
-    this.blurSigma = 0,
-    this.bodyColor,
-    this.blendIntoStatusBar = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    final fallbackGradient =
-        isDark
-            ? <Color>[
-              cs.primary.withOpacity(0.22),
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-            ]
-            : <Color>[
-              cs.primary.withOpacity(0.95),
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-              cs.surface,
-            ];
-    final colors = gradientColors ?? fallbackGradient;
-
-    final topColor = colors.isNotEmpty ? colors.first : cs.surface;
-    final iconBrightness =
-        ThemeData.estimateBrightnessForColor(topColor) == Brightness.dark
-            ? Brightness.light
-            : Brightness.dark;
-
-    final statusBarBrightness =
-        iconBrightness == Brightness.light ? Brightness.dark : Brightness.light;
-
-    Widget content = Container(
-      width: double.infinity,
-      height: double.infinity,
-      padding: padding ?? EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: bodyColor ?? Colors.transparent,
-        borderRadius: borderRadius,
-      ),
-      child: child,
-    );
-
-    if (blurSigma > 0) {
-      content = ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.zero,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-          child: content,
-        ),
-      );
-    }
-
-    final gradientLayer = Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: colors,
-        ),
-      ),
-      child: content,
-    );
-
-    if (!blendIntoStatusBar) return gradientLayer;
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: iconBrightness,
-        statusBarBrightness: statusBarBrightness,
-      ),
-      child: gradientLayer,
-    );
-  }
-}
 
 class CustomScaffoldV2 extends StatelessWidget {
   final AppBar? appBar;
@@ -230,67 +122,14 @@ class CustomScaffoldV2 extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (useNormalBody) {
-      return SafeArea(
+    return LuvPayDiagonalLinesBackground(
+      child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: padding ?? const EdgeInsets.fromLTRB(19, 20, 19, 0),
+          padding: padding ?? const EdgeInsets.all(24),
           child: scaffoldBody,
         ),
-      );
-    }
-
-    final radius =
-        removeBorderRadius
-            ? null
-            : const BorderRadius.only(
-              topLeft: Radius.circular(28),
-              topRight: Radius.circular(28),
-            );
-
-    return Stack(
-      children: [
-        CustomGradientBackground(
-          blurSigma: 40,
-          gradientColors: [
-            cs.primary.withOpacity(isDark ? 0.18 : 0.12),
-            cs.surface,
-            cs.surface,
-            cs.surface,
-            cs.surface,
-            cs.surface,
-          ],
-          bodyColor: Colors.transparent,
-          borderRadius: radius,
-          padding: EdgeInsets.zero,
-        ),
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              color: (backgroundColor ?? cs.surface).withOpacity(0.98),
-              borderRadius: radius,
-              boxShadow: [
-                BoxShadow(
-                  color: cs.shadow.withOpacity(isDark ? 0.25 : 0.08),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: padding ?? const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            child: scaffoldBody,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -332,15 +171,14 @@ class CustomScaffoldV2 extends StatelessWidget {
       leadingWidth: appBarLeadingWidth ?? 80,
       elevation: 0,
       toolbarHeight: enableToolBar ? 64 : 0,
-      actions:
-          appBarAction != null
-              ? [
-                Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  child: Row(children: appBarAction!),
-                ),
-              ]
-              : null,
+      actions: appBarAction != null
+          ? [
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                child: Row(children: appBarAction!),
+              ),
+            ]
+          : null,
       shape: null,
       bottomOpacity: 1,
       flexibleSpace: Container(
@@ -350,14 +188,12 @@ class CustomScaffoldV2 extends StatelessWidget {
           ),
         ),
       ),
-      systemOverlayStyle:
-          systemOverlayStyle ??
+      systemOverlayStyle: systemOverlayStyle ??
           SystemUiOverlayStyle(
             statusBarColor: bg,
-            statusBarBrightness:
-                iconBrightness == Brightness.light
-                    ? Brightness.dark
-                    : Brightness.light,
+            statusBarBrightness: iconBrightness == Brightness.light
+                ? Brightness.dark
+                : Brightness.light,
             statusBarIconBrightness: iconBrightness,
             systemNavigationBarColor: null,
             systemNavigationBarIconBrightness: null,
@@ -371,10 +207,9 @@ class CustomScaffoldV2 extends StatelessWidget {
     final bg = _appBarBg(context);
     final iconColor = _safeIconColorOn(bg, cs);
 
-    final canGoBack =
-        (canPop &&
-            (Navigator.of(context).canPop() ||
-                Get.key.currentState?.canPop() == true));
+    final canGoBack = (canPop &&
+        (Navigator.of(context).canPop() ||
+            Get.key.currentState?.canPop() == true));
 
     return Padding(
       padding: const EdgeInsets.only(left: 10),
@@ -386,8 +221,7 @@ class CustomScaffoldV2 extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             iconSize: 20,
             iconData: Icons.arrow_back_ios_new_rounded,
-            onTap:
-                onPressedLeading ??
+            onTap: onPressedLeading ??
                 () {
                   if (canGoBack) Get.back();
                 },

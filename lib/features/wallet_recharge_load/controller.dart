@@ -511,7 +511,6 @@ class WalletRechargeLoadController extends GetxController
       );
       return;
     }
-
     if (response.isNotEmpty) {
       final result = await Get.to(
         () => WebviewPage(

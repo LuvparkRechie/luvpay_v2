@@ -505,7 +505,7 @@ class _MyProfileState extends State<MyProfile> {
                       ),
                     const SizedBox(height: 16),
                     LuvNeuPress.rectangle(
-                      radius: BorderRadius.circular(999),
+                      radius: BorderRadius.circular(30),
                       onTap: () => getRegions(),
                       background: surface,
                       borderColor: stroke,

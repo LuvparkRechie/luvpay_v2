@@ -330,10 +330,9 @@ class VouchersBodyState extends State<VouchersBody>
                                 ),
                               ),
                               child: LuvpayText(
-                                text:
-                                    desc.isNotEmpty
-                                        ? desc
-                                        : "Get $amt tokens off your parking.",
+                                text: desc.isNotEmpty
+                                    ? desc
+                                    : "Get $amt tokens off your parking.",
                                 color: cs.onSurface.withOpacity(0.78),
                                 maxLines: 80,
                               ),
@@ -371,10 +370,9 @@ class VouchersBodyState extends State<VouchersBody>
                       ),
                       if (isFromBooking) ...[
                         CustomButton(
-                          text:
-                              isSelectedNow
-                                  ? "Remove Voucher"
-                                  : "Apply Voucher",
+                          text: isSelectedNow
+                              ? "Remove Voucher"
+                              : "Apply Voucher",
                           filled: true,
                           isInactive: isCE,
                           btnColor: cs.primary,
@@ -684,8 +682,7 @@ class VouchersBodyState extends State<VouchersBody>
                         ),
                         const SizedBox(height: 6),
                         LuvpayText(
-                          text:
-                              "Get $amt tokens off your parking", //echange sa api return description
+                          text: "Get $amt tokens off your parking",
                           color: accent,
                           maxLines: 1,
                         ),
@@ -720,10 +717,9 @@ class VouchersBodyState extends State<VouchersBody>
                     boxShadow: _softShadow(cs, isDark),
                     border: Border.all(color: stroke, width: 1),
                   ),
-                  child:
-                      isSelectedNow
-                          ? Icon(Icons.check, size: 16, color: cs.onPrimary)
-                          : const SizedBox.shrink(),
+                  child: isSelectedNow
+                      ? Icon(Icons.check, size: 16, color: cs.onPrimary)
+                      : const SizedBox.shrink(),
                 ),
               ),
             ),
@@ -747,35 +743,33 @@ class VouchersBodyState extends State<VouchersBody>
           final bool isSelectedNow =
               voucher["promo_voucher_id"] == selectedVoucherId;
 
-          DateTime? expDt =
-              voucher["expiry_date"] != null &&
-                      voucher["expiry_date"].toString().isNotEmpty
-                  ? DateTime.tryParse(voucher["expiry_date"].toString())
-                  : null;
+          DateTime? expDt = voucher["expiry_date"] != null &&
+                  voucher["expiry_date"].toString().isNotEmpty
+              ? DateTime.tryParse(voucher["expiry_date"].toString())
+              : null;
 
           final voucherDt =
               expDt != null ? DateFormat('MMM d, yyyy').format(expDt) : "N/A";
 
-          VoidCallback? onSelect =
-              !isFromBooking
-                  ? null
-                  : () {
-                    if (selectedVoucherId == voucher["promo_voucher_id"]) {
-                      selectedVoucherId = null;
-                    } else {
-                      selectedVoucherId = voucher["promo_voucher_id"];
-                    }
-                    setState(() {});
-                    widget.callBack?.call(selectedVoucherId);
-                  };
+          VoidCallback? onSelect = !isFromBooking
+              ? null
+              : () {
+                  if (selectedVoucherId == voucher["promo_voucher_id"]) {
+                    selectedVoucherId = null;
+                  } else {
+                    selectedVoucherId = voucher["promo_voucher_id"];
+                  }
+                  setState(() {});
+                  widget.callBack?.call(selectedVoucherId);
+                };
 
           Future<void> onShowDetails() => _showVoucherSheet(
-            voucher: voucher,
-            voucherDt: voucherDt,
-            isFromBooking: isFromBooking,
-            isCE: isCE,
-            isSelectedNow: isSelectedNow,
-          );
+                voucher: voucher,
+                voucherDt: voucherDt,
+                isFromBooking: isFromBooking,
+                isCE: isCE,
+                isSelectedNow: isSelectedNow,
+              );
 
           return Container(
             margin: const EdgeInsets.only(left: 10, right: 10),
@@ -796,9 +790,6 @@ class VouchersBodyState extends State<VouchersBody>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
     final List<Tab> tabs = [
       Tab(text: _isFromBooking ? "Available Vouchers" : "Available"),
       if (!_isFromBooking) const Tab(text: "Claimed"),
@@ -811,29 +802,24 @@ class VouchersBodyState extends State<VouchersBody>
       if (!_isFromBooking) _voucherListView(expiredList, false, isCE: true),
     ];
 
-    return Container(
-      color: cs.surface,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 10),
-          _tabBar(tabs),
-          const SizedBox(height: 14),
-          Expanded(
-            child:
-                isLoading
-                    ? const LoadingCard(text: "Loading…")
-                    : vouchersList.isEmpty
-                    ? _noVoucherWidget()
-                    : TabBarView(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        _tabBar(tabs),
+        const SizedBox(height: 14),
+        Expanded(
+          child: isLoading
+              ? const LoadingCard(text: "Loading…")
+              : vouchersList.isEmpty
+                  ? _noVoucherWidget()
+                  : TabBarView(
                       physics: const BouncingScrollPhysics(),
                       controller: _tabController,
                       children: tabViews,
                     ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

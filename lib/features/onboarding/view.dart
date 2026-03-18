@@ -152,8 +152,8 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                 gradient: LinearGradient(
                   colors: [
                     pages[_currentPage].accentColor.withOpacity(
-                      isDark ? 0.10 : 0.05,
-                    ),
+                          isDark ? 0.10 : 0.05,
+                        ),
                     Colors.transparent,
                   ],
                 ),
@@ -290,23 +290,21 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                               width: index == _currentPage ? 40 : 12,
                               height: 6,
                               decoration: BoxDecoration(
-                                color:
-                                    index == _currentPage
-                                        ? currentPageColor
-                                        : stroke,
+                                color: index == _currentPage
+                                    ? currentPageColor
+                                    : stroke,
                                 borderRadius: BorderRadius.circular(3),
-                                boxShadow:
-                                    index == _currentPage
-                                        ? [
-                                          BoxShadow(
-                                            color: currentPageColor.withOpacity(
-                                              isDark ? 0.18 : 0.30,
-                                            ),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 3),
+                                boxShadow: index == _currentPage
+                                    ? [
+                                        BoxShadow(
+                                          color: currentPageColor.withOpacity(
+                                            isDark ? 0.18 : 0.30,
                                           ),
-                                        ]
-                                        : [],
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ]
+                                    : [],
                               ),
                             ),
                           );
@@ -315,22 +313,19 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                       const SizedBox(height: 48),
                       CustomButton(
                         text: isLast ? "Get Started" : "Continue",
-                        leading:
-                            isLast
-                                ? Icon(
-                                  Icons.check_rounded,
-                                  color:
-                                      isLast
-                                          ? AppColorV2.lpBlueBrand
-                                          : cs.onPrimary,
-                                )
-                                : Icon(
-                                  Icons.arrow_forward_rounded,
-                                  color:
-                                      isLast
-                                          ? AppColorV2.lpBlueBrand
-                                          : cs.onPrimary,
-                                ),
+                        leading: isLast
+                            ? Icon(
+                                Icons.check_rounded,
+                                color: isLast
+                                    ? AppColorV2.lpBlueBrand
+                                    : cs.onPrimary,
+                              )
+                            : Icon(
+                                Icons.arrow_forward_rounded,
+                                color: isLast
+                                    ? AppColorV2.lpBlueBrand
+                                    : cs.onPrimary,
+                              ),
                         onPressed: () {
                           if (!isLast) {
                             _pageController.nextPage(
@@ -346,7 +341,6 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                         btnColor:
                             isLast ? AppColorV2.background : currentPageColor,
                       ),
-
                       if (isLast) ...[
                         const SizedBox(height: 24),
                         InkWell(
@@ -565,8 +559,8 @@ class ModernOnboardingPageWidget extends StatelessWidget {
                     Center(
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 600),
-                        transform:
-                            Matrix4.identity()..scale(isActive ? 1.0 : 0.9),
+                        transform: Matrix4.identity()
+                          ..scale(isActive ? 1.0 : 0.9),
                         child: SvgPicture.asset(
                           page.imagePath,
                           width: 140,

@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
+import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
 import 'package:luvpay/shared/widgets/no_internet.dart';
@@ -79,29 +80,28 @@ class Wallet {
       isActive: isActive,
       categoryTitle: categoryTitle,
       imageBase64: imageBase64,
-      targetAmount:
-          targetAmount == _sentinel
-              ? this.targetAmount
-              : targetAmount as double?,
+      targetAmount: targetAmount == _sentinel
+          ? this.targetAmount
+          : targetAmount as double?,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'user_id': userId,
-    'category_id': categoryId,
-    'name': name,
-    'balance': balance,
-    'category': category,
-    'icon_base64': iconBase64,
-    'color': color.value,
-    'created_on': createdOn,
-    'updated_on': updatedOn,
-    'is_active': isActive,
-    'category_title': categoryTitle,
-    'image_base64': imageBase64,
-    'target_amount': targetAmount,
-  };
+        'id': id,
+        'user_id': userId,
+        'category_id': categoryId,
+        'name': name,
+        'balance': balance,
+        'category': category,
+        'icon_base64': iconBase64,
+        'color': color.value,
+        'created_on': createdOn,
+        'updated_on': updatedOn,
+        'is_active': isActive,
+        'category_title': categoryTitle,
+        'image_base64': imageBase64,
+        'target_amount': targetAmount,
+      };
 
   static Color getColorFromString(String s) {
     switch (s.toLowerCase()) {
@@ -132,10 +132,9 @@ class Wallet {
 
   factory Wallet.fromJson(Map<String, dynamic> json) {
     final rawColor = json['color'];
-    final Color color =
-        rawColor is int
-            ? Color(rawColor)
-            : rawColor is String
+    final Color color = rawColor is int
+        ? Color(rawColor)
+        : rawColor is String
             ? getColorFromString(rawColor)
             : AppColorV2.lpBlueBrand;
 
@@ -199,12 +198,12 @@ class Transaction {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'description': description,
-    'amount': amount,
-    'date': date.toIso8601String(),
-    'isIncome': isIncome,
-  };
+        'id': id,
+        'description': description,
+        'amount': amount,
+        'date': date.toIso8601String(),
+        'isIncome': isIncome,
+      };
 }
 
 class SubWalletScreen extends StatefulWidget {
@@ -296,26 +295,25 @@ class _SubWalletScreenState extends State<SubWalletScreen>
         await controller.getUserSubWallets();
       }
 
-      wallets =
-          controller.userSubWallets.map((w) {
-            final id = w['id']?.toString() ?? '';
-            return Wallet(
-              id: id,
-              userId: w['user_id']?.toString() ?? '',
-              categoryId: w['category_id']?.toString() ?? '',
-              name: w['name']?.toString() ?? 'Unnamed Wallet',
-              balance: (w['amount'] as num?)?.toDouble() ?? 0.0,
-              category: w['category']?.toString() ?? 'Unknown',
-              iconBase64: w['image_base64']?.toString(),
-              color: AppColorV2.lpBlueBrand,
-              createdOn: w['created_on']?.toString() ?? '',
-              updatedOn: w['updated_on']?.toString() ?? '',
-              isActive: w['is_active']?.toString() ?? 'N',
-              categoryTitle: w['category_title']?.toString() ?? 'Unknown',
-              imageBase64: w['image_base64']?.toString(),
-              targetAmount: null,
-            );
-          }).toList();
+      wallets = controller.userSubWallets.map((w) {
+        final id = w['id']?.toString() ?? '';
+        return Wallet(
+          id: id,
+          userId: w['user_id']?.toString() ?? '',
+          categoryId: w['category_id']?.toString() ?? '',
+          name: w['name']?.toString() ?? 'Unnamed Wallet',
+          balance: (w['amount'] as num?)?.toDouble() ?? 0.0,
+          category: w['category']?.toString() ?? 'Unknown',
+          iconBase64: w['image_base64']?.toString(),
+          color: AppColorV2.lpBlueBrand,
+          createdOn: w['created_on']?.toString() ?? '',
+          updatedOn: w['updated_on']?.toString() ?? '',
+          isActive: w['is_active']?.toString() ?? 'N',
+          categoryTitle: w['category_title']?.toString() ?? 'Unknown',
+          imageBase64: w['image_base64']?.toString(),
+          targetAmount: null,
+        );
+      }).toList();
 
       calculateTotalBalance();
     } catch (_) {
@@ -435,20 +433,19 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
-      builder:
-          (_) => AddWalletModal(
-            existingWallets: wallets,
-            onWalletCreated: () async {},
-          ),
+      builder: (_) => AddWalletModal(
+        existingWallets: wallets,
+        onWalletCreated: () async {},
+      ),
     ).then((result) async {
       if (result != true) return;
 
       await _refreshData();
 
       final created = wallets.cast<Wallet?>().firstWhere(
-        (w) => w != null && !beforeIds.contains(w.id),
-        orElse: () => null,
-      );
+            (w) => w != null && !beforeIds.contains(w.id),
+            orElse: () => null,
+          );
 
       if (created == null || !mounted) return;
       WidgetsBinding.instance.addPostFrameCallback(
@@ -554,9 +551,9 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) Get.back(result: true);
       },
-      child: Scaffold(
+      child: CustomScaffoldV2(
         backgroundColor: bg,
-
+        padding: EdgeInsets.zero,
         appBar: AppBar(
           systemOverlayStyle: SystemUiOverlayStyle(
             statusBarColor: cs.primary,
@@ -577,142 +574,137 @@ class _SubWalletScreenState extends State<SubWalletScreen>
             ).copyWith(fontWeight: FontWeight.w900, letterSpacing: .2),
           ),
         ),
-
-        body: SafeArea(
+        scaffoldBody: SafeArea(
           top: false,
           bottom: true,
-          child:
-              !ready
-                  ? LoadingCard()
-                  : !controller.hasNet.value
+          child: !ready
+              ? LoadingCard()
+              : !controller.hasNet.value
                   ? NoInternetConnected(onTap: _refreshData)
                   : Stack(
-                    children: [
-                      RefreshIndicator.noSpinner(
-                        elevation: 0,
-                        onRefresh: _refreshData,
-                        child: CustomScrollView(
-                          controller: _scrollCtrl,
-                          physics: const AlwaysScrollableScrollPhysics(
-                            parent: BouncingScrollPhysics(),
-                          ),
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: SizedBox(height: hasWallets ? 104 : 10),
+                      children: [
+                        RefreshIndicator.noSpinner(
+                          elevation: 0,
+                          onRefresh: _refreshData,
+                          child: CustomScrollView(
+                            controller: _scrollCtrl,
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
                             ),
-
-                            SliverPadding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
+                            slivers: [
+                              SliverToBoxAdapter(
+                                child: SizedBox(height: hasWallets ? 104 : 10),
                               ),
-                              sliver:
-                                  isRefreshing
-                                      ? SliverFillRemaining(
+                              SliverPadding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                ),
+                                sliver: isRefreshing
+                                    ? SliverFillRemaining(
                                         hasScrollBody: false,
                                         child: LoadingCard(
                                           text: "Refreshing, please wait...",
                                         ),
                                       )
-                                      : wallets.isEmpty
-                                      ? SliverFillRemaining(
-                                        hasScrollBody: false,
-                                        child: GestureDetector(
-                                          onTap:
-                                              () =>
+                                    : wallets.isEmpty
+                                        ? SliverFillRemaining(
+                                            hasScrollBody: false,
+                                            child: GestureDetector(
+                                              onTap: () =>
                                                   _showAddWalletModal(context),
-                                          child: NoDataFound(
-                                            text: "No SubWallets found",
-                                            subtext: "Add your first subwallet",
-                                            buttonText: "Add SubWallet",
-                                            buttonIcon: Iconsax.add,
-                                            onTap:
-                                                () => _showAddWalletModal(
+                                              child: NoDataFound(
+                                                text: "No SubWallets found",
+                                                subtext:
+                                                    "Add your first subwallet",
+                                                buttonText: "Add SubWallet",
+                                                buttonIcon: Iconsax.add,
+                                                onTap: () =>
+                                                    _showAddWalletModal(
                                                   context,
                                                 ),
-                                          ),
-                                        ),
-                                      )
-                                      : SliverGrid(
-                                        gridDelegate:
-                                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                              ),
+                                            ),
+                                          )
+                                        : SliverGrid(
+                                            gridDelegate:
+                                                const SliverGridDelegateWithFixedCrossAxisCount(
                                               crossAxisCount: 2,
                                               crossAxisSpacing: 15,
                                               mainAxisSpacing: 20,
                                               childAspectRatio: 1.35,
                                               mainAxisExtent: 120,
                                             ),
-                                        delegate: SliverChildBuilderDelegate((
-                                          context,
-                                          index,
-                                        ) {
-                                          final isCreateTile =
-                                              index == wallets.length;
+                                            delegate:
+                                                SliverChildBuilderDelegate((
+                                              context,
+                                              index,
+                                            ) {
+                                              final isCreateTile =
+                                                  index == wallets.length;
 
-                                          if (isCreateTile) {
-                                            return CreateSubwalletTile(
-                                              onTap:
-                                                  () => _showAddWalletModal(
+                                              if (isCreateTile) {
+                                                return CreateSubwalletTile(
+                                                  onTap: () =>
+                                                      _showAddWalletModal(
                                                     context,
                                                   ),
-                                            );
-                                          }
+                                                );
+                                              }
 
-                                          final w = wallets[index];
-                                          final iconBytes =
-                                              (w.imageBase64?.isNotEmpty ??
-                                                      false)
-                                                  ? decodeBase64Safe(
-                                                    w.imageBase64!,
-                                                  )
-                                                  : null;
+                                              final w = wallets[index];
+                                              final iconBytes =
+                                                  (w.imageBase64?.isNotEmpty ??
+                                                          false)
+                                                      ? decodeBase64Safe(
+                                                          w.imageBase64!,
+                                                        )
+                                                      : null;
 
-                                          final categoryLabel =
-                                              (w.categoryTitle.trim().isNotEmpty
+                                              final categoryLabel = (w
+                                                      .categoryTitle
+                                                      .trim()
+                                                      .isNotEmpty
                                                   ? w.categoryTitle
                                                   : w.category);
 
-                                          return SubWalletCard(
-                                            wallet: w,
-                                            onTap:
-                                                () => _showWalletDetails(
+                                              return SubWalletCard(
+                                                wallet: w,
+                                                onTap: () => _showWalletDetails(
                                                   context,
                                                   w,
                                                   sheetBg,
                                                 ),
-                                            iconBytes: iconBytes,
-                                            base: w.color,
-
-                                            titleColor: cs.onSurface,
-                                            amountColor: cs.onSurface
-                                                .withOpacity(0.72),
-
-                                            categoryLabel: categoryLabel,
-                                            isDeleting:
-                                                w.id == _deletingWalletId,
-                                            isPulsing: w.id == _pulsingWalletId,
-                                            deleteAnim: _deleteAnim,
-                                            pulseAnim: _pulseAnim,
-                                          );
-                                        }, childCount: wallets.length + 1),
-                                      ),
-                            ),
-
-                            const SliverToBoxAdapter(
-                              child: SizedBox(height: 30),
-                            ),
-                          ],
+                                                iconBytes: iconBytes,
+                                                base: w.color,
+                                                titleColor: cs.onSurface,
+                                                amountColor: cs.onSurface
+                                                    .withOpacity(0.72),
+                                                categoryLabel: categoryLabel,
+                                                isDeleting:
+                                                    w.id == _deletingWalletId,
+                                                isPulsing:
+                                                    w.id == _pulsingWalletId,
+                                                deleteAnim: _deleteAnim,
+                                                pulseAnim: _pulseAnim,
+                                              );
+                                            }, childCount: wallets.length + 1),
+                                          ),
+                              ),
+                              const SliverToBoxAdapter(
+                                child: SizedBox(height: 30),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-
-                      if (hasWallets && _pinHeader)
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          child: _buildBalanceHeader(),
-                        ),
-                    ],
-                  ),
+                        if (hasWallets && _pinHeader)
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: _buildBalanceHeader(),
+                          ),
+                      ],
+                    ),
         ),
       ),
     );
@@ -726,15 +718,14 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
-      builder:
-          (_) => WalletDetailsModal(
-            wallet: wallet,
-            allWallets: wallets,
-            onAddMoney: (_) async => _refreshData(),
-            onReturnMoney: (_) async => _refreshData(),
-            onUpdate: (_) async => _refreshData(),
-            onDelete: () async => _animateDelete(wallet.id),
-          ),
+      builder: (_) => WalletDetailsModal(
+        wallet: wallet,
+        allWallets: wallets,
+        onAddMoney: (_) async => _refreshData(),
+        onReturnMoney: (_) async => _refreshData(),
+        onUpdate: (_) async => _refreshData(),
+        onDelete: () async => _animateDelete(wallet.id),
+      ),
     );
   }
 }

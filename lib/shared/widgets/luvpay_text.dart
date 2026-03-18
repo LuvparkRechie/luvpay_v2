@@ -19,98 +19,98 @@ class AppTextStyle {
   static Color _onBrand(BuildContext context) =>
       _isDark(context) ? AppColorV2.darkBackground : AppColorV2.background;
 
-  static TextStyle h1(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle h1(BuildContext context) => GoogleFonts.nunito(
         fontSize: 28,
         fontWeight: FontWeight.w800,
         height: 32 / 28,
         color: _primaryText(context),
       );
 
-  static TextStyle h2_f26(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle h2_f26(BuildContext context) => GoogleFonts.nunito(
         fontSize: 26,
         fontWeight: FontWeight.w800,
         height: 32 / 26,
         color: _primaryText(context),
       );
 
-  static TextStyle h2(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle h2(BuildContext context) => GoogleFonts.nunito(
         fontSize: 24,
         fontWeight: FontWeight.w800,
         height: 28 / 24,
         color: _primaryText(context),
       );
 
-  static TextStyle h3_f22(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle h3_f22(BuildContext context) => GoogleFonts.nunito(
         fontSize: 22,
         fontWeight: FontWeight.w700,
         height: 26 / 22,
         color: _primaryText(context),
       );
 
-  static TextStyle h3(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle h3(BuildContext context) => GoogleFonts.nunito(
         fontSize: 16,
         fontWeight: FontWeight.w700,
         height: 20 / 16,
         color: _primaryText(context),
       );
 
-  static TextStyle h3_semibold(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle h3_semibold(BuildContext context) => GoogleFonts.nunito(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         height: 20 / 16,
         color: _primaryText(context),
       );
 
-  static TextStyle h4(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle h4(BuildContext context) => GoogleFonts.nunito(
         fontSize: 18,
         fontWeight: FontWeight.w700,
         height: 28 / 18,
         color: _primaryText(context),
       );
 
-  static TextStyle paragraph1(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle paragraph1(BuildContext context) => GoogleFonts.nunito(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         height: 20 / 16,
         color: _bodyText(context),
       );
 
-  static TextStyle paragraph2(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle paragraph2(BuildContext context) => GoogleFonts.nunito(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         height: 18 / 14,
         color: _bodyText(context),
       );
 
-  static TextStyle body2(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle body2(BuildContext context) => GoogleFonts.nunito(
         fontSize: 12,
         fontWeight: FontWeight.w700,
         height: 18 / 14,
         color: _bodyText(context),
       );
 
-  static TextStyle body1(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle body1(BuildContext context) => GoogleFonts.nunito(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         height: 18 / 14,
         color: _bodyText(context),
       );
 
-  static TextStyle textbox(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle textbox(BuildContext context) => GoogleFonts.nunito(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         height: 18 / 14,
         color: _bodyText(context),
       );
 
-  static TextStyle textButton(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle textButton(BuildContext context) => GoogleFonts.nunito(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         height: 20 / 16,
         color: _onBrand(context),
       );
 
-  static TextStyle popup(BuildContext context) => GoogleFonts.workSans(
+  static TextStyle popup(BuildContext context) => GoogleFonts.nunito(
         fontSize: 22,
         fontWeight: FontWeight.w800,
         height: 24 / 22,

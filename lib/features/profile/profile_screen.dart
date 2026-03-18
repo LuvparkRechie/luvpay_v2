@@ -79,10 +79,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       }
     }
 
-    userData["complete_add"] =
-        objData["province_name"] == null
-            ? "No address"
-            : "Province of ${objData["province_name"]} brgy ${objData["brgy_name"]}, ${objData["city_name"]} ";
+    userData["complete_add"] = objData["province_name"] == null
+        ? "No address"
+        : "Province of ${objData["province_name"]} brgy ${objData["brgy_name"]}, ${objData["city_name"]} ";
 
     if (!mounted) return;
     setState(() => isLoading = false);
@@ -187,83 +186,79 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final bool isVerified = userData["is_verified"] == "N";
     final themeCtrl = Get.find<ThemeModeController>();
 
-    return SafeArea(
-      child: Scaffold(
-        body:
-            isLoading
-                ? const LoadingCard()
-                : CustomGradientBackground(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
-                    child: CustomScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      slivers: [
-                        headerProfile(isVerified),
-                        !isVerified
-                            ? const SliverToBoxAdapter(child: SizedBox.shrink())
-                            : VerifiedWidget(isVerified: isVerified),
-                        SliverToBoxAdapter(
-                          child: Column(
-                            spacing: 14,
-                            children: [
-                              const SizedBox(height: 16),
-                              Container(
-                                margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                child: _profile(themeCtrl),
-                              ),
-                              Container(
-                                margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                child: _helpAndSupport(),
-                              ),
-                              Container(
-                                margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                child: _legal(),
-                              ),
-                              Container(
-                                margin: const EdgeInsets.fromLTRB(19, 0, 19, 0),
-                                width: double.infinity,
-                                child: CustomButton(
-                                  text: "Logout",
-                                  onPressed: () {
-                                    CustomDialogStack.showConfirmation(
-                                      isAllBlueColor: false,
-                                      context,
-                                      "Logout",
-                                      "Are you sure you want to logout?",
-                                      leftText: "No",
-                                      rightText: "Yes",
-                                      () => Get.back(),
-                                      () async {
-                                        Get.back();
-                                        final uData =
-                                            await Authentication()
-                                                .getUserData2();
+    return CustomScaffoldV2(
+      padding: EdgeInsets.zero,
+      showAppBar: false,
+      scaffoldBody: isLoading
+          ? const LoadingCard()
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  headerProfile(isVerified),
+                  !isVerified
+                      ? const SliverToBoxAdapter(child: SizedBox.shrink())
+                      : VerifiedWidget(isVerified: isVerified),
+                  SliverToBoxAdapter(
+                    child: Column(
+                      spacing: 14,
+                      children: [
+                        const SizedBox(height: 16),
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                          child: _profile(themeCtrl),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                          child: _helpAndSupport(),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                          child: _legal(),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(19, 0, 19, 0),
+                          width: double.infinity,
+                          child: CustomButton(
+                            text: "Logout",
+                            onPressed: () {
+                              CustomDialogStack.showConfirmation(
+                                isAllBlueColor: false,
+                                context,
+                                "Logout",
+                                "Are you sure you want to logout?",
+                                leftText: "No",
+                                rightText: "Yes",
+                                () => Get.back(),
+                                () async {
+                                  Get.back();
+                                  final uData =
+                                      await Authentication().getUserData2();
 
-                                        Functions.logoutUser(
-                                          uData["session_id"].toString(),
-                                          (isSuccess) async {
-                                            if (isSuccess["is_true"]) {
-                                              Authentication().setLogoutStatus(
-                                                true,
-                                              );
-                                              Get.offAllNamed(Routes.login);
-                                            }
-                                          },
+                                  Functions.logoutUser(
+                                    uData["session_id"].toString(),
+                                    (isSuccess) async {
+                                      if (isSuccess["is_true"]) {
+                                        Authentication().setLogoutStatus(
+                                          true,
                                         );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                            ],
+                                        Get.offAllNamed(Routes.login);
+                                      }
+                                    },
+                                  );
+                                },
+                              );
+                            },
                           ),
                         ),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
-                ),
-      ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -285,9 +280,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           final double minHeight = kToolbarHeight;
           final double currentHeight = constraints.biggest.height;
 
-          final double t = ((currentHeight - minHeight) /
-                  (maxHeight - minHeight))
-              .clamp(0.0, 1.0);
+          final double t =
+              ((currentHeight - minHeight) / (maxHeight - minHeight))
+                  .clamp(0.0, 1.0);
 
           final double avatarSize = 70 * t + 50 * (1 - t);
           final double nameFont = 18 * t + 14 * (1 - t);
@@ -305,7 +300,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     if (value == "refresh") initialize();
                   });
                 },
-
                 iconWidget: Container(
                   width: iconBox,
                   height: iconBox,
@@ -322,33 +316,27 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     child: SizedBox(
                       width: avatarSize,
                       height: avatarSize,
-                      child:
-                          myprofile.isEmpty
-                              ? Image.asset(
-                                "assets/images/d_unverified_img.png",
-                                fit: BoxFit.cover,
-                              )
-                              : Image.memory(
-                                base64Decode(myprofile),
-                                fit: BoxFit.cover,
-                              ),
+                      child: myprofile.isEmpty
+                          ? Image.asset(
+                              "assets/images/d_unverified_img.png",
+                              fit: BoxFit.cover,
+                            )
+                          : Image.memory(
+                              base64Decode(myprofile),
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                 ),
-
                 title: Functions().getDisplayName(userData),
-
                 subtitle: (userData["email"] ?? "No email").toString(),
                 subtitleMaxlines: 1,
-
                 maxLines: 1,
-
                 trailing: Icon(
                   LucideIcons.chevronRight,
                   size: 18,
                   color: cs.onSurfaceVariant.withOpacity(isDark ? 0.70 : 0.65),
                 ),
-
                 iconBoxSize: 44,
                 iconBoxRadius: BorderRadius.circular(999),
               ),
@@ -388,14 +376,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           title: 'Transaction History',
           onTap: () => Get.to(const TransactionHistory()),
         ),
-
         InfoRowTile(
           icon: LucideIcons.lock,
           title: 'App Security',
           onTap: () => Get.toNamed(Routes.securitySettings),
         ),
         const SizedBox(height: 10),
-
         Obx(
           () => InfoRowTile(
             icon: themeCtrl.iconOf(themeCtrl.mode.value),
@@ -475,7 +461,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-
                       _themeRadioTile(
                         context: context,
                         cs: cs,
@@ -520,7 +505,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           Navigator.pop(context);
                         },
                       ),
-
                       const SizedBox(height: 8),
                     ],
                   ),
@@ -581,10 +565,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   child: Icon(
                     icon,
                     size: 18,
-                    color:
-                        selected
-                            ? AppColorV2.lpBlueBrand
-                            : sub.withOpacity(.95),
+                    color: selected
+                        ? AppColorV2.lpBlueBrand
+                        : sub.withOpacity(.95),
                   ),
                 ),
               ),
@@ -615,10 +598,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             Icon(
               selected ? LucideIcons.checkCircle2 : LucideIcons.circle,
               size: 18,
-              color:
-                  selected
-                      ? AppColorV2.lpBlueBrand
-                      : cs.onSurfaceVariant.withOpacity(isDark ? 0.40 : 0.35),
+              color: selected
+                  ? AppColorV2.lpBlueBrand
+                  : cs.onSurfaceVariant.withOpacity(isDark ? 0.40 : 0.35),
             ),
           ],
         ),
@@ -780,10 +762,9 @@ class VerifiedWidget extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: LuvpayText(
-                  text:
-                      !isVerified
-                          ? "Verified Account\nEnjoy all features available!"
-                          : "Verify your account\nto unlock more features!",
+                  text: !isVerified
+                      ? "Verified Account\nEnjoy all features available!"
+                      : "Verify your account\nto unlock more features!",
                   style: AppTextStyle.body1(context),
                   color: cs.onPrimary,
                 ),
@@ -823,10 +804,9 @@ class AddressExecutionController {
     try {
       onProgress(_executionSteps[0]);
 
-      final provinceResponse =
-          await HttpRequestApi(
-            api: "${ApiKeys.getProvince}?p_region_id=$regionId",
-          ).get();
+      final provinceResponse = await HttpRequestApi(
+        api: "${ApiKeys.getProvince}?p_region_id=$regionId",
+      ).get();
 
       if (!_handleResponse(provinceResponse, onError)) {
         _isExecuting = false;
@@ -835,10 +815,9 @@ class AddressExecutionController {
 
       onProgress(_executionSteps[1]);
 
-      final cityResponse =
-          await HttpRequestApi(
-            api: "${ApiKeys.getCity}?p_province_id=$provinceId",
-          ).get();
+      final cityResponse = await HttpRequestApi(
+        api: "${ApiKeys.getCity}?p_province_id=$provinceId",
+      ).get();
 
       if (!_handleResponse(cityResponse, onError)) {
         _isExecuting = false;
@@ -847,10 +826,9 @@ class AddressExecutionController {
 
       onProgress(_executionSteps[2]);
 
-      final brgyResponse =
-          await HttpRequestApi(
-            api: "${ApiKeys.getBrgy}?p_city_id=$cityId",
-          ).get();
+      final brgyResponse = await HttpRequestApi(
+        api: "${ApiKeys.getBrgy}?p_city_id=$cityId",
+      ).get();
 
       if (!_handleResponse(brgyResponse, onError)) {
         _isExecuting = false;
@@ -1044,9 +1022,8 @@ class SmoothRoute {
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 200),
         reverseTransitionDuration: const Duration(milliseconds: 200),
-        pageBuilder:
-            (context, animation, secondaryAnimation) =>
-                FadeTransition(opacity: animation, child: child),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }

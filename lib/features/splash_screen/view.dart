@@ -39,7 +39,6 @@ class SplashScreen extends GetView<SplashController> {
               ),
             ),
           ),
-
           Positioned(
             top: -110,
             left: -90,
@@ -56,7 +55,6 @@ class SplashScreen extends GetView<SplashController> {
               color: AppColorV2.lpTealBrand.withOpacity(isDark ? 0.14 : 0.09),
             ),
           ),
-
           Positioned(
             top: 90,
             right: 30,
@@ -67,7 +65,6 @@ class SplashScreen extends GetView<SplashController> {
             left: 36,
             child: _Dot(color: cs.onSurface.withOpacity(isDark ? 0.10 : 0.07)),
           ),
-
           SafeArea(
             child: Center(
               child: ScaleTransition(
@@ -98,25 +95,20 @@ class SplashScreen extends GetView<SplashController> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 22),
-
                       LuvpayText(
                         text: "luvpay",
                         style: AppTextStyle.h2_f26(context),
                         textAlign: TextAlign.center,
                         maxLines: 1,
                       ),
-
                       const SizedBox(height: 6),
-
                       LuvpayText(
                         text: "Initializing secure session…",
                         style: AppTextStyle.paragraph2(context),
                         textAlign: TextAlign.center,
                         color: cs.onSurface.withOpacity(0.70),
                       ),
-
                       const SizedBox(height: 22),
                       RepaintBoundary(
                         child: Shimmer.fromColors(
@@ -132,17 +124,14 @@ class SplashScreen extends GetView<SplashController> {
                             height: 8,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
-                              color:
-                                  isDark
-                                      ? AppColorV2.darkSurface2
-                                      : AppColorV2.inactiveButton,
+                              color: isDark
+                                  ? AppColorV2.darkSurface2
+                                  : AppColorV2.inactiveButton,
                             ),
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 14),
-
                       LuvpayText(
                         text: "Please wait",
                         style: AppTextStyle.body2(context),

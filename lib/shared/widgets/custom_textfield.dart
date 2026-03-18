@@ -181,7 +181,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           hintMaxLines: 1,
           maintainHintSize: true,
           hintText: widget.hintText,
-          hintStyle: GoogleFonts.manrope(
+          hintStyle: GoogleFonts.workSans(
             color: hintColor,
             fontWeight: FontWeight.w500,
             fontSize: 14,
@@ -197,7 +197,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           return null;
         },
         style: widget.style ??
-            GoogleFonts.manrope(
+            GoogleFonts.workSans(
               fontSize: widget.fontsize ?? 14,
               fontWeight: widget.fontweight ?? FontWeight.w500,
               color: textColor,
@@ -381,7 +381,7 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
                 letterSpacing: 0,
                 text: '+63',
                 style: Platform.isAndroid
-                    ? GoogleFonts.manrope(
+                    ? GoogleFonts.workSans(
                         color: textColor,
                         fontWeight: FontWeight.w700,
                         height: 20 / 14,
@@ -400,14 +400,14 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
           hintMaxLines: 1,
           maintainHintSize: true,
           hintText: widget.hintText,
-          hintStyle: GoogleFonts.manrope(
+          hintStyle: GoogleFonts.workSans(
             color: hintColor,
             fontWeight: FontWeight.w500,
             fontSize: 14,
             height: 18 / 14,
           ),
         ),
-        style: GoogleFonts.manrope(
+        style: GoogleFonts.workSans(
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: textColor,
@@ -550,7 +550,7 @@ DropdownButtonFormField<String> customDropdown({
       hintMaxLines: 1,
       maintainHintSize: true,
       hintText: labelText,
-      hintStyle: GoogleFonts.manrope(
+      hintStyle: GoogleFonts.workSans(
         color: cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80),
         fontWeight: FontWeight.w500,
         fontSize: 14,
@@ -570,7 +570,7 @@ DropdownButtonFormField<String> customDropdown({
         borderSide: BorderSide(width: 2, color: error),
       ),
     ),
-    style: GoogleFonts.manrope(
+    style: GoogleFonts.workSans(
       fontSize: 14,
       fontWeight: FontWeight.w500,
       color: cs.onSurface,

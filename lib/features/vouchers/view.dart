@@ -94,7 +94,7 @@ class _VouchersState extends State<Vouchers> {
     final isDark = theme.brightness == Brightness.dark;
 
     return CustomScaffoldV2(
-      backgroundColor: cs.primary,
+      backgroundColor: cs.surface,
       appBarTitle: title,
       padding: EdgeInsets.zero,
       canPop: true,
@@ -198,23 +198,22 @@ class _VouchersState extends State<Vouchers> {
                 ),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 160),
-                  child:
-                      controller.text.isEmpty
-                          ? const SizedBox(width: 10)
-                          : IconButton(
-                            key: const ValueKey("clear"),
-                            onPressed: () {
-                              controller.clear();
-                              setState(() {});
-                            },
-                            splashColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            icon: Icon(
-                              Icons.close_rounded,
-                              size: 18,
-                              color: cs.onSurface.withOpacity(0.55),
-                            ),
+                  child: controller.text.isEmpty
+                      ? const SizedBox(width: 10)
+                      : IconButton(
+                          key: const ValueKey("clear"),
+                          onPressed: () {
+                            controller.clear();
+                            setState(() {});
+                          },
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          icon: Icon(
+                            Icons.close_rounded,
+                            size: 18,
+                            color: cs.onSurface.withOpacity(0.55),
                           ),
+                        ),
                 ),
                 const SizedBox(width: 6),
               ],
@@ -238,24 +237,23 @@ class _VouchersState extends State<Vouchers> {
                 context,
                 radius: 18,
                 border: Border.all(color: btnStroke, width: 1),
-                shadows:
-                    pressed
-                        ? [
-                          BoxShadow(
-                            color: (isDark ? Colors.black : cs.shadow)
-                                .withOpacity(isDark ? 0.10 : 0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                        : [
-                          BoxShadow(
-                            color: (isDark ? Colors.black : cs.shadow)
-                                .withOpacity(isDark ? 0.18 : 0.08),
-                            blurRadius: 14,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
+                shadows: pressed
+                    ? [
+                        BoxShadow(
+                          color: (isDark ? Colors.black : cs.shadow)
+                              .withOpacity(isDark ? 0.10 : 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: (isDark ? Colors.black : cs.shadow)
+                              .withOpacity(isDark ? 0.18 : 0.08),
+                          blurRadius: 14,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
               ),
               child: Center(
                 child: LuvpayText(

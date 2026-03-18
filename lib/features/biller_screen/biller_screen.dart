@@ -73,10 +73,9 @@ class _BillerScreenState extends State<BillerScreen> {
           final item0 = (root["items"] as List)[0];
           if (item0 is Map) {
             final raw = item0["amount_bal"];
-            bal =
-                raw is num
-                    ? raw.toDouble()
-                    : (double.tryParse(raw?.toString() ?? "") ?? 0.0);
+            bal = raw is num
+                ? raw.toDouble()
+                : (double.tryParse(raw?.toString() ?? "") ?? 0.0);
           }
         }
       }
@@ -283,10 +282,10 @@ class _BillerScreenState extends State<BillerScreen> {
                     balanceText: toCurrencyString(_walletBal.toString()),
                   ),
                   spacing(height: 18),
-
                   LuvpayText(
                     text: "Bill Account Number",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
+                    color: cs.onBackground.withAlpha(250),
                   ),
                   spacing(height: 10),
                   CustomTextField(
@@ -307,11 +306,11 @@ class _BillerScreenState extends State<BillerScreen> {
                       return null;
                     },
                   ),
-
                   spacing(height: 14),
                   LuvpayText(
                     text: "Bill Number",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
+                    color: cs.onBackground.withAlpha(250),
                   ),
                   spacing(height: 10),
                   CustomTextField(
@@ -321,17 +320,15 @@ class _BillerScreenState extends State<BillerScreen> {
                       UpperCaseTextFormatter(),
                       LengthLimitingTextInputFormatter(15),
                     ],
-                    validator:
-                        (value) =>
-                            (value == null || value.isEmpty)
-                                ? 'Please enter bill number'
-                                : null,
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Please enter bill number'
+                        : null,
                   ),
-
                   spacing(height: 14),
                   LuvpayText(
                     text: "Account Name",
-                    style: AppTextStyle.h3(context),
+                    style: AppTextStyle.body1(context),
+                    color: cs.onBackground.withAlpha(250),
                   ),
                   spacing(height: 10),
                   CustomTextField(
@@ -363,14 +360,14 @@ class _BillerScreenState extends State<BillerScreen> {
                       return null;
                     },
                   ),
-
                   spacing(height: 14),
                   Row(
                     children: [
                       Expanded(
                         child: LuvpayText(
                           text: "Amount",
-                          style: AppTextStyle.h3(context),
+                          color: cs.onBackground.withAlpha(250),
+                          style: AppTextStyle.body1(context),
                         ),
                       ),
                       if (hasServiceFee)
@@ -396,11 +393,9 @@ class _BillerScreenState extends State<BillerScreen> {
                     ],
                     validator: _validateAmount,
                   ),
-
                   spacing(height: 18),
                   _reviewHintCard(context, cs, borderOpacity),
                   spacing(height: 18),
-
                   CustomButton(
                     text: "Pay now",
                     onPressed: () async {
@@ -412,7 +407,6 @@ class _BillerScreenState extends State<BillerScreen> {
                       });
                     },
                   ),
-
                   spacing(height: 20),
                 ],
               ),

@@ -78,36 +78,35 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
       color: base,
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: _borderSoft(context)),
-      boxShadow:
-          inset
-              ? [
-                BoxShadow(
-                  color: _shadowDark(
-                    context,
-                  ).withAlpha(_isDark(context) ? 90 : 18),
-                  blurRadius: 10,
-                  offset: Offset(3, 3),
-                ),
-                BoxShadow(
-                  color: _shadowLight(
-                    context,
-                  ).withAlpha(_isDark(context) ? 34 : 210),
-                  blurRadius: 10,
-                  offset: Offset(-3, -3),
-                ),
-              ]
-              : [
-                BoxShadow(
-                  color: _shadowDark(context),
-                  blurRadius: 12,
-                  offset: Offset(6, 6),
-                ),
-                BoxShadow(
-                  color: _shadowLight(context),
-                  blurRadius: 12,
-                  offset: Offset(-6, -6),
-                ),
-              ],
+      boxShadow: inset
+          ? [
+              BoxShadow(
+                color: _shadowDark(
+                  context,
+                ).withAlpha(_isDark(context) ? 90 : 18),
+                blurRadius: 10,
+                offset: Offset(3, 3),
+              ),
+              BoxShadow(
+                color: _shadowLight(
+                  context,
+                ).withAlpha(_isDark(context) ? 34 : 210),
+                blurRadius: 10,
+                offset: Offset(-3, -3),
+              ),
+            ]
+          : [
+              BoxShadow(
+                color: _shadowDark(context),
+                blurRadius: 12,
+                offset: Offset(6, 6),
+              ),
+              BoxShadow(
+                color: _shadowLight(context),
+                blurRadius: 12,
+                offset: Offset(-6, -6),
+              ),
+            ],
     );
   }
 
@@ -125,33 +124,32 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
         color: active ? Colors.transparent : _borderSoft(context),
         width: 1,
       ),
-      boxShadow:
-          active
-              ? [
-                BoxShadow(
-                  color: _shadowDark(
-                    context,
-                  ).withAlpha(_isDark(context) ? 120 : 30),
-                  blurRadius: 10,
-                  offset: Offset(4, 4),
-                ),
-              ]
-              : [
-                BoxShadow(
-                  color: _shadowDark(
-                    context,
-                  ).withAlpha(_isDark(context) ? 95 : 20),
-                  blurRadius: 10,
-                  offset: Offset(4, 4),
-                ),
-                BoxShadow(
-                  color: _shadowLight(
-                    context,
-                  ).withAlpha(_isDark(context) ? 34 : 210),
-                  blurRadius: 10,
-                  offset: Offset(-4, -4),
-                ),
-              ],
+      boxShadow: active
+          ? [
+              BoxShadow(
+                color: _shadowDark(
+                  context,
+                ).withAlpha(_isDark(context) ? 120 : 30),
+                blurRadius: 10,
+                offset: Offset(4, 4),
+              ),
+            ]
+          : [
+              BoxShadow(
+                color: _shadowDark(
+                  context,
+                ).withAlpha(_isDark(context) ? 95 : 20),
+                blurRadius: 10,
+                offset: Offset(4, 4),
+              ),
+              BoxShadow(
+                color: _shadowLight(
+                  context,
+                ).withAlpha(_isDark(context) ? 34 : 210),
+                blurRadius: 10,
+                offset: Offset(-4, -4),
+              ),
+            ],
     );
   }
 
@@ -198,7 +196,8 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
   @override
   Widget build(BuildContext context) {
     final imgPath = controller.arguments["image"];
-
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return CustomScaffoldV2(
       enableToolBar: true,
       appBarTitle: "Top up",
@@ -232,33 +231,32 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                   ),
                 ),
               ),
-
               SizedBox(height: 10),
               Divider(
-                color:
-                    _isDark(context)
-                        ? Colors.white.withAlpha(14)
-                        : Colors.black.withAlpha(18),
+                color: _isDark(context)
+                    ? Colors.white.withAlpha(14)
+                    : Colors.black.withAlpha(18),
               ),
               SizedBox(height: 10),
-
               Obx(() => topupAccount(context)),
-
               SizedBox(height: 14),
-              LuvpayText(text: "Amount", style: AppTextStyle.h3(context)),
+              LuvpayText(
+                text: "Amount",
+                style: AppTextStyle.body1(context),
+                color: cs.onBackground.withAlpha(250),
+              ),
               CustomTextField(
                 controller: controller.amountController,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp("[0-9]")),
                   LengthLimitingTextInputFormatter(5),
                 ],
-                keyboardType:
-                    Platform.isAndroid
-                        ? TextInputType.number
-                        : const TextInputType.numberWithOptions(
-                          signed: true,
-                          decimal: false,
-                        ),
+                keyboardType: Platform.isAndroid
+                    ? TextInputType.number
+                    : const TextInputType.numberWithOptions(
+                        signed: true,
+                        decimal: false,
+                      ),
                 onChange: (d) => controller.onTextChange(),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -271,9 +269,7 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 20),
-
               Obx(() {
                 return Column(
                   children: [
@@ -281,20 +277,16 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          for (
-                            int j = i;
-                            j < i + 3 && j < controller.padData.length;
-                            j++
-                          )
+                          for (int j = i;
+                              j < i + 3 && j < controller.padData.length;
+                              j++)
                             myPads(context, controller.padData[j], j),
                         ],
                       ),
                   ],
                 );
               }),
-
               const SizedBox(height: 30),
-
               Obx(() {
                 if (MediaQuery.of(context).viewInsets.bottom != 0) {
                   return SizedBox.shrink();
@@ -303,10 +295,9 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
 
                 return CustomButton(
                   text: "Continue",
-                  btnColor:
-                      inactive
-                          ? AppColorV2.lpBlueBrand.withValues(alpha: .7)
-                          : AppColorV2.lpBlueBrand,
+                  btnColor: inactive
+                      ? AppColorV2.lpBlueBrand.withValues(alpha: .7)
+                      : AppColorV2.lpBlueBrand,
                   onPressed: inactive ? () {} : () => controller.onPay(),
                 );
               }),
@@ -336,24 +327,22 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                 children: [
                   controller.userImage.value.isEmpty || isUnknown
                       ? Image.asset(
-                        height: 50,
-                        "assets/images/no_whiteborder_person.png",
-                      )
+                          height: 50,
+                          "assets/images/no_whiteborder_person.png",
+                        )
                       : CircleAvatar(
-                        radius: 25,
-                        backgroundColor:
-                            controller.userImage.value.isEmpty
-                                ? Colors.white
-                                : null,
-                        backgroundImage:
-                            controller.userImage.value.isNotEmpty
-                                ? MemoryImage(
+                          radius: 25,
+                          backgroundColor: controller.userImage.value.isEmpty
+                              ? Colors.white
+                              : null,
+                          backgroundImage: controller.userImage.value.isNotEmpty
+                              ? MemoryImage(
                                   base64Decode(
                                     controller.userImage.value.toString(),
                                   ),
                                 )
-                                : null,
-                      ),
+                              : null,
+                        ),
                   Container(width: 10),
                   Expanded(
                     child: Column(
@@ -362,10 +351,9 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                         LuvpayText(maxLines: 1, text: controller.rname.text),
                         LuvpayText(
                           maxLines: 1,
-                          text:
-                              controller.email.value.contains("null")
-                                  ? "No email provided yet"
-                                  : controller.email.value,
+                          text: controller.email.value.contains("null")
+                              ? "No email provided yet"
+                              : controller.email.value,
                           color: AppColorV2.bodyTextColor,
                         ),
                       ],
@@ -375,10 +363,9 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                 ],
               ),
               Divider(
-                color:
-                    Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white.withAlpha(14)
-                        : Colors.black.withAlpha(18),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withAlpha(14)
+                    : Colors.black.withAlpha(18),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -433,18 +420,16 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                   minFontSize: 8,
                   text: "${data["value"]}",
                   fontWeight: FontWeight.w700,
-                  color:
-                      active
-                          ? _chipActiveText(context)
-                          : _chipInactiveText(context),
+                  color: active
+                      ? _chipActiveText(context)
+                      : _chipInactiveText(context),
                 ),
                 LuvpayText(
                   text: "Token",
                   fontWeight: FontWeight.w500,
-                  color:
-                      active
-                          ? _chipActiveText(context)
-                          : _textSecondary(context),
+                  color: active
+                      ? _chipActiveText(context)
+                      : _textSecondary(context),
                 ),
               ],
             ),
@@ -469,20 +454,17 @@ class PaymentMethodType extends StatelessWidget {
   bool _isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
-  Color _borderSoft(BuildContext context) =>
-      _isDark(context)
-          ? Colors.white.withAlpha(14)
-          : Colors.black.withAlpha(10);
+  Color _borderSoft(BuildContext context) => _isDark(context)
+      ? Colors.white.withAlpha(14)
+      : Colors.black.withAlpha(10);
 
-  Color _shadowDark(BuildContext context) =>
-      _isDark(context)
-          ? Colors.black.withAlpha(95)
-          : Colors.black.withAlpha(16);
+  Color _shadowDark(BuildContext context) => _isDark(context)
+      ? Colors.black.withAlpha(95)
+      : Colors.black.withAlpha(16);
 
-  Color _shadowLight(BuildContext context) =>
-      _isDark(context)
-          ? Colors.white.withAlpha(34)
-          : Colors.white.withAlpha(210);
+  Color _shadowLight(BuildContext context) => _isDark(context)
+      ? Colors.white.withAlpha(34)
+      : Colors.white.withAlpha(210);
 
   BoxDecoration _neoSheetTile(BuildContext context) {
     return BoxDecoration(
@@ -513,29 +495,28 @@ class PaymentMethodType extends StatelessWidget {
           color: AppColorV2.background,
           width: double.infinity,
           child: Column(
-            children:
-                paymentType.map((e) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        Get.back();
-                        cabllBack(e["value"]);
-                      },
-                      child: Container(
-                        decoration: _neoSheetTile(context),
-                        child: ListTile(
-                          title: LuvpayText(text: e["type"]),
-                          trailing: Icon(
-                            Icons.chevron_right_rounded,
-                            color: AppColorV2.bodyTextColor,
-                          ),
-                        ),
+            children: paymentType.map((e) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    Get.back();
+                    cabllBack(e["value"]);
+                  },
+                  child: Container(
+                    decoration: _neoSheetTile(context),
+                    child: ListTile(
+                      title: LuvpayText(text: e["type"]),
+                      trailing: Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColorV2.bodyTextColor,
                       ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ),
       ],

@@ -9,6 +9,7 @@ import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
 import 'package:luvpay/features/billers/index.dart';
 import 'package:luvpay/features/billers/utils/allbillers.dart';
@@ -50,9 +51,9 @@ class _WalletScreenState extends State<WalletScreen> {
   String firstName = "";
   List<Map<String, dynamic>> get _merchantGridItems => [
         {
-          'icon': "assets/images/luvpay_bills.png",
+          'icon': Icons.wallet,
           'label': 'Bills',
-          'color': Colors.green,
+          'color': AppColorV2.lpBlueBrand,
           'onTap': () async {
             final billController = Get.put(BillersController());
             billController.getBillers((billers) async {
@@ -69,17 +70,17 @@ class _WalletScreenState extends State<WalletScreen> {
           },
         },
         {
-          'icon': "assets/images/luvpay_topup.png",
+          'icon': Icons.add_circle,
           'label': 'Top-up',
-          'color': Colors.orange,
+          'color': AppColorV2.lpBlueBrand,
           'onTap': () {
             showTopUpMethod();
           },
         },
         {
-          'icon': "assets/images/navigation.png",
+          'icon': Icons.send_rounded,
           'label': 'Send',
-          'color': Colors.orange,
+          'color': AppColorV2.lpBlueBrand,
           'onTap': () {
             Get.toNamed(Routes.send);
           },
@@ -403,7 +404,8 @@ class _WalletScreenState extends State<WalletScreen> {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
+    return CustomScaffoldV2(
+      padding: EdgeInsets.zero,
       backgroundColor: cs.surface,
       appBar: AppBar(
         elevation: 0,
@@ -417,7 +419,7 @@ class _WalletScreenState extends State<WalletScreen> {
           statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         ),
       ),
-      body: SafeArea(
+      scaffoldBody: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
           child: Column(
@@ -485,9 +487,10 @@ class _WalletScreenState extends State<WalletScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             NeoNavIcon.icon(
-              assetPath: item['icon'],
+              iconData: item['icon'],
               onTap: item['onTap'],
               borderRadius: BorderRadius.circular(14),
+              iconColor: item['color'].withAlpha(200),
             ),
             SizedBox(height: 6),
             LuvpayText(

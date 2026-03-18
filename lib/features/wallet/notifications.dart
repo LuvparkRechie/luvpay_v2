@@ -87,14 +87,13 @@ class _WalletNotificationsState extends State<WalletNotifications> {
 
       if (response["items"] != null && response["items"].isNotEmpty) {
         setState(() {
-          notifications =
-              response["items"].map<Map<String, dynamic>>((n) {
-                return {
-                  "notification_id": n["sms_id"],
-                  "notification": n["sms_msg"],
-                  "created_on": n["created_on"],
-                };
-              }).toList();
+          notifications = response["items"].map<Map<String, dynamic>>((n) {
+            return {
+              "notification_id": n["sms_id"],
+              "notification": n["sms_msg"],
+              "created_on": n["created_on"],
+            };
+          }).toList();
           isLoading = false;
           isNetConn = true;
         });
@@ -128,10 +127,9 @@ class _WalletNotificationsState extends State<WalletNotifications> {
         setState(() => isLoading = true);
 
         try {
-          final deleteFutures =
-              selectedIndex
-                  .map((id) => deleteSingleNotification(id.toString()))
-                  .toList();
+          final deleteFutures = selectedIndex
+              .map((id) => deleteSingleNotification(id.toString()))
+              .toList();
 
           await Future.wait(deleteFutures);
 
@@ -218,10 +216,9 @@ class _WalletNotificationsState extends State<WalletNotifications> {
         allMarked = false;
         isSelectionMode = true;
       } else {
-        selectedIndex =
-            notifications
-                .map((e) => int.parse(e["notification_id"].toString()))
-                .toList();
+        selectedIndex = notifications
+            .map((e) => int.parse(e["notification_id"].toString()))
+            .toList();
         allMarked = true;
         isSelectionMode = true;
       }
@@ -273,16 +270,14 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     final hideBackBecauseFromTab = widget.fromTab == true;
 
-    final body =
-        !isNetConn
-            ? NoInternetConnected(
-              onTap: () => getNotification(showLoading: true),
-            )
-            : notifications.isEmpty
+    final body = !isNetConn
+        ? NoInternetConnected(
+            onTap: () => getNotification(showLoading: true),
+          )
+        : notifications.isEmpty
             ? Center(child: _noDataFound(cs))
             : allNotifications();
 
@@ -290,60 +285,55 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       backgroundColor: cs.surface,
       drawer: Container(),
       appBarLeadingWidth: isSelectionMode ? 50 : null,
-
-      leading:
-          isSelectionMode
-              ? Padding(
-                padding: const EdgeInsets.only(left: 10, top: 15, bottom: 10),
+      leading: isSelectionMode
+          ? Padding(
+              padding: const EdgeInsets.only(left: 10, top: 15, bottom: 10),
+              child: NeoNavIcon.icon(
+                flatten: true,
+                iconSize: 20,
+                iconData: Icons.close,
+                iconColor: cs.onSurface,
+                onTap: cancelSelectionMode,
+              ),
+            )
+          : (hideBackBecauseFromTab
+              ? const SizedBox.shrink()
+              : NeoNavIcon.icon(
+                  size: 40,
+                  iconColor: AppColorV2.lpBlueBrand,
+                  padding: const EdgeInsets.all(8),
+                  iconSize: 20,
+                  iconData: CupertinoIcons.back,
+                  onTap: () => Get.back(),
+                )),
+      enableToolBar: true,
+      appBarTitle: isSelectionMode
+          ? "${selectedIndex.length} selected"
+          : "Notifications",
+      appBarAction: isSelectionMode
+          ? [
+              Padding(
+                padding: const EdgeInsets.all(14.0),
                 child: NeoNavIcon.icon(
                   flatten: true,
-
+                  padding: const EdgeInsets.all(8.0),
                   iconSize: 20,
-                  iconData: Icons.close,
-                  iconColor: cs.onSurface,
-                  onTap: cancelSelectionMode,
+                  iconData: Icons.delete,
+                  iconColor: AppColorV2.incorrectState,
+                  onTap: deleteSelectedNotifications,
                 ),
-              )
-              : (hideBackBecauseFromTab
-                  ? const SizedBox.shrink()
-                  : NeoNavIcon.icon(
-                    size: 40,
-                    iconColor: AppColorV2.lpBlueBrand,
-                    padding: const EdgeInsets.all(8),
-                    iconSize: 20,
-                    iconData: CupertinoIcons.back,
-                    onTap: () => Get.back(),
-                  )),
-      enableToolBar: true,
-      appBarTitle:
-          isSelectionMode
-              ? "${selectedIndex.length} selected"
-              : "Notifications",
-      appBarAction:
-          isSelectionMode
-              ? [
-                Padding(
-                  padding: const EdgeInsets.all(14.0),
-                  child: NeoNavIcon.icon(
-                    flatten: true,
-                    padding: const EdgeInsets.all(8.0),
-                    iconSize: 20,
-                    iconData: Icons.delete,
-                    iconColor: AppColorV2.incorrectState,
-                    onTap: deleteSelectedNotifications,
-                  ),
+              ),
+              IconButton(
+                icon: Icon(
+                  allMarked ? Icons.check_box : Icons.check_box_outline_blank,
+                  color: cs.onSurface,
+                  size: 30,
+                  semanticLabel: allMarked ? 'Unmark all' : 'Mark all',
                 ),
-                IconButton(
-                  icon: Icon(
-                    allMarked ? Icons.check_box : Icons.check_box_outline_blank,
-                    color: cs.onSurface,
-                    size: 30,
-                    semanticLabel: allMarked ? 'Unmark all' : 'Mark all',
-                  ),
-                  onPressed: toggleMarkAll,
-                ),
-              ]
-              : [],
+                onPressed: toggleMarkAll,
+              ),
+            ]
+          : [],
       padding: const EdgeInsets.fromLTRB(19, 20, 19, 0),
       scaffoldBody: isLoading ? LoadingCard() : body,
     );

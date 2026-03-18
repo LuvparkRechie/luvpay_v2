@@ -46,6 +46,7 @@ class RegistrationPage extends GetView<RegistrationController> {
     final stroke = isDark ? AppColorV2.darkStroke : AppColorV2.boxStroke;
 
     return CustomScaffoldV2(
+      padding: EdgeInsets.all(10),
       removeBorderRadius: true,
       backgroundColor: theme.scaffoldBackgroundColor,
       useNormalBody: true,
@@ -66,175 +67,179 @@ class RegistrationPage extends GetView<RegistrationController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 50),
-                        Image(
-                          image: AssetImage("assets/images/luvpay_text.png"),
-                          height: 30,
-                          fit: BoxFit.contain,
-                        ),
-                        LuvpayText(
-                          textAlign: TextAlign.center,
-                          text: "Create an account",
-                          style: AppTextStyle.paragraph1(context),
-                          maxLines: 1,
-                          color: cs.onBackground,
-                        ),
-
-                        const VerticalHeight(height: 30),
-
-                        LuvpayText(
-                          text: "Mobile Number",
-                          style: AppTextStyle.h3(context),
-                          height: 20 / 16,
-                          color: cs.onBackground,
-                        ),
-                        CustomMobileNumber(
-                          hintText: "10 digit mobile number",
-                          controller: controller.mobileNumber,
-                          inputFormatters: [Variables.maskFormatter],
-                          onChange: (value) {
-                            controller.onMobileChanged(value);
-                          },
-                        ),
-
-                        spacing(height: 14),
-
-                        LuvpayText(
-                          text: "Password",
-                          style: AppTextStyle.h3(context),
-                          height: 20 / 16,
-                          color: cs.onBackground,
-                        ),
-                        Obx(
-                          () => CustomTextField(
-                            hintText: "Create a password",
-                            controller: controller.password,
-                            isObscure: controller.isShowPass.value,
-                            suffixIcon:
-                                controller.isShowPass.value
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                            onIconTap: () {
-                              controller.visibilityChanged(
-                                !controller.isShowPass.value,
-                              );
-                            },
-                            inputFormatters: [
-                              FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                              LengthLimitingTextInputFormatter(30),
-                            ],
-                            validator: (txtValue) {
-                              if (txtValue == null || txtValue.isEmpty) {
-                                return "Password is required";
-                              }
-                              if (txtValue.length < 8 || txtValue.length > 32) {
-                                return "Password must be between 8 and 32 characters";
-                              }
-                              return null;
-                            },
-                            onChange: (value) {
-                              controller.onPasswordChanged(value);
-                            },
-                          ),
-                        ),
-
-                        spacing(height: 14),
-
-                        Obx(
-                          () => Container(
-                            padding: const EdgeInsets.all(10),
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(
-                              color: cs.surface,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: stroke.withOpacity(isDark ? 0.55 : 1.0),
-                                width: 0.9,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(
-                                    isDark ? 0.35 : 0.06,
-                                  ),
-                                  blurRadius: isDark ? 18 : 14,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image(
+                              image: const AssetImage(
+                                  "assets/images/luvpay_logo.png"),
+                              height: 30,
+                              fit: BoxFit.contain,
                             ),
-                            child: passwordStrength(getColorForStrength),
-                          ),
+                            const SizedBox(height: 10),
+                            LuvpayText(
+                              textAlign: TextAlign.center,
+                              text: "Create an account",
+                              style: AppTextStyle.h2(context),
+                              maxLines: 1,
+                              color: cs.onBackground.withAlpha(250),
+                            ),
+                            LuvpayText(
+                              text:
+                                  "Join luvpay and experience seamless transactions and financial freedom.",
+                              color: cs.onBackground.withAlpha(120),
+                            ),
+                          ],
                         ),
-
-                        spacing(height: 14),
-                        const SizedBox(height: 46.0),
-
-                        CustomButton(
-                          text: "Continue",
-                          isInactive:
-                              Variables.getPasswordStrengthText(
-                                controller.passStrength.value,
-                              ) !=
-                              "Strong Password",
-                          textColor: Colors.white,
-                          onPressed: () {
-                            FocusScope.of(
-                              Get.context!,
-                            ).requestFocus(FocusNode());
-                            if (controller.formKeyRegister.currentState!
-                                .validate()) {
-                              if (Variables.getPasswordStrengthText(
-                                    controller.passStrength.value,
-                                  ) !=
-                                  "Strong Password") {
-                                CustomDialogStack.showInfo(
-                                  context,
-                                  "Weak Password",
-                                  "For your security, please choose a stronger password.",
-                                  () {
-                                    Get.back();
-                                  },
-                                );
-                                return;
-                              }
-                              controller.onSubmit();
-                            }
-                          },
-                        ),
-
-                        spacing(height: 30),
-
-                        Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                        const VerticalHeight(height: 30),
+                        DefaultContainer(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: LuvpayText(
-                                  style: AppTextStyle.paragraph2(context),
-                                  color: cs.onSurfaceVariant,
-                                  text: "Already have a LuvPay Wallet account?",
-                                  height: 18 / 14,
-                                  maxLines: 1,
+                              LuvpayText(
+                                text: "Mobile Number",
+                                style: AppTextStyle.body1(context),
+                                color: cs.onBackground,
+                              ),
+                              CustomMobileNumber(
+                                hintText: "10 digit mobile number",
+                                controller: controller.mobileNumber,
+                                inputFormatters: [Variables.maskFormatter],
+                                onChange: (value) {
+                                  controller.onMobileChanged(value);
+                                },
+                              ),
+                              spacing(height: 14),
+                              LuvpayText(
+                                text: "Password",
+                                style: AppTextStyle.body1(context),
+                                height: 20 / 16,
+                                color: cs.onBackground,
+                              ),
+                              Obx(
+                                () => CustomTextField(
+                                  hintText: "Create a password",
+                                  controller: controller.password,
+                                  isObscure: controller.isShowPass.value,
+                                  suffixIcon: controller.isShowPass.value
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  onIconTap: () {
+                                    controller.visibilityChanged(
+                                      !controller.isShowPass.value,
+                                    );
+                                  },
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.deny(
+                                        RegExp(r'\s')),
+                                    LengthLimitingTextInputFormatter(30),
+                                  ],
+                                  validator: (txtValue) {
+                                    if (txtValue == null || txtValue.isEmpty) {
+                                      return "Password is required";
+                                    }
+                                    if (txtValue.length < 8 ||
+                                        txtValue.length > 32) {
+                                      return "Password must be between 8 and 32 characters";
+                                    }
+                                    return null;
+                                  },
+                                  onChange: (value) {
+                                    controller.onPasswordChanged(value);
+                                  },
                                 ),
                               ),
-
-                              InkWell(
-                                onTap: () async {
-                                  Get.offNamed(Routes.login);
-                                },
-                                child: LuvpayText(
-                                  text: "Log In",
-                                  style: GoogleFonts.manrope(
-                                    fontWeight: FontWeight.w700,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: AppColorV2.lpBlueBrand,
+                              spacing(height: 14),
+                              Obx(
+                                () => Container(
+                                  padding: const EdgeInsets.all(10),
+                                  clipBehavior: Clip.antiAlias,
+                                  decoration: BoxDecoration(
+                                    color: cs.surface,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: stroke
+                                          .withOpacity(isDark ? 0.55 : 1.0),
+                                      width: 0.9,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(
+                                          isDark ? 0.35 : 0.06,
+                                        ),
+                                        blurRadius: isDark ? 18 : 14,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
                                   ),
-                                  color: AppColorV2.lpBlueBrand,
-                                  height: 18 / 14,
+                                  child: passwordStrength(getColorForStrength),
+                                ),
+                              ),
+                              spacing(height: 14),
+                              const SizedBox(height: 46.0),
+                              CustomButton(
+                                text: "Continue",
+                                isInactive: Variables.getPasswordStrengthText(
+                                      controller.passStrength.value,
+                                    ) !=
+                                    "Strong Password",
+                                textColor: Colors.white,
+                                onPressed: () {
+                                  FocusScope.of(
+                                    Get.context!,
+                                  ).requestFocus(FocusNode());
+                                  if (controller.formKeyRegister.currentState!
+                                      .validate()) {
+                                    if (Variables.getPasswordStrengthText(
+                                          controller.passStrength.value,
+                                        ) !=
+                                        "Strong Password") {
+                                      CustomDialogStack.showInfo(
+                                        context,
+                                        "Weak Password",
+                                        "For your security, please choose a stronger password.",
+                                        () {
+                                          Get.back();
+                                        },
+                                      );
+                                      return;
+                                    }
+                                    controller.onSubmit();
+                                  }
+                                },
+                              ),
+                              spacing(height: 30),
+                              Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    LuvpayText(
+                                      style: AppTextStyle.paragraph2(context),
+                                      color: cs.onSurfaceVariant,
+                                      text:
+                                          "Already have a luvpay Wallet account? ",
+                                      height: 18 / 14,
+                                      maxLines: 1,
+                                    ),
+                                    InkWell(
+                                      onTap: () async {
+                                        Get.offNamed(Routes.login);
+                                      },
+                                      child: LuvpayText(
+                                        style:
+                                            AppTextStyle.h3_semibold(context),
+                                        text: "Log In",
+                                        color: AppColorV2.lpBlueBrand,
+                                        height: 18 / 14,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
-
                         spacing(height: 30),
                       ],
                     ),
@@ -305,8 +310,8 @@ class RegistrationPage extends GetView<RegistrationController> {
                             const SizedBox(height: 10),
                             CustomTextField(
                               suffixIcon: Icons.close,
-                              onIconTap:
-                                  () => controller.referralCode.text = "",
+                              onIconTap: () =>
+                                  controller.referralCode.text = "",
                               hintText: "Enter referral code",
                               controller: controller.referralCode,
                               inputFormatters: [
@@ -319,10 +324,8 @@ class RegistrationPage extends GetView<RegistrationController> {
                             const SizedBox(height: 10),
                             CustomButton(
                               text: "Send Code",
-                              onPressed:
-                                  () async =>
-                                      controller.isApplied.value =
-                                          await controller.validateReferral(),
+                              onPressed: () async => controller.isApplied
+                                  .value = await controller.validateReferral(),
                             ),
                           ],
                         ),

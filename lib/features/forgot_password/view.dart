@@ -70,7 +70,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 spacing(height: 25),
                 LuvpayText(
                   text: "Mobile Number",
-                  style: AppTextStyle.h3(context),
+                  color: cs.onBackground.withAlpha(250),
+                  style: AppTextStyle.body1(context),
                 ),
                 CustomMobileNumber(
                   hintText: "10 digit mobile number",

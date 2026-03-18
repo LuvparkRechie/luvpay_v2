@@ -1,3 +1,5 @@
+// ignore_for_file: unreachable_switch_default
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -36,8 +38,7 @@ class ThemeController extends GetxController {
   }
 
   void toggleLightDark() {
-    final isDark =
-        themeMode.value == ThemeMode.dark ||
+    final isDark = themeMode.value == ThemeMode.dark ||
         (themeMode.value == ThemeMode.system && Get.isPlatformDarkMode == true);
 
     setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
@@ -67,25 +68,22 @@ class AppThemeV2 {
       scaffoldBackgroundColor: AppColorV2.background,
     );
 
-    final workSansTextTheme = GoogleFonts.workSansTextTheme(base.textTheme);
-    final workSansPrimaryTextTheme = GoogleFonts.workSansTextTheme(
+    final nunitoTextTheme = GoogleFonts.nunitoTextTheme(base.textTheme);
+    final nunitoPrimaryTextTheme = GoogleFonts.nunitoTextTheme(
       base.primaryTextTheme,
     );
 
     return base.copyWith(
-      textTheme: workSansTextTheme,
-      primaryTextTheme: workSansPrimaryTextTheme,
-
+      textTheme: nunitoTextTheme,
+      primaryTextTheme: nunitoPrimaryTextTheme,
       dividerTheme: DividerThemeData(
         color: Colors.grey.shade300,
         thickness: 0.5,
         space: 15,
         indent: 5,
       ),
-
       appBarTheme: AppBarTheme(
         backgroundColor: AppColorV2.lpBlueBrand,
-
         iconTheme: const IconThemeData(color: Colors.white),
       ),
     );
@@ -101,25 +99,23 @@ class AppThemeV2 {
       scaffoldBackgroundColor: AppColorV2.darkBackground,
     );
 
-    final workSansTextTheme = GoogleFonts.workSansTextTheme(base.textTheme);
-    final workSansPrimaryTextTheme = GoogleFonts.workSansTextTheme(
+    final nunitoTextTheme = GoogleFonts.nunitoTextTheme(base.textTheme);
+    final nunitoPrimaryTextTheme = GoogleFonts.nunitoTextTheme(
       base.primaryTextTheme,
     );
 
     return base.copyWith(
-      textTheme: workSansTextTheme,
-      primaryTextTheme: workSansPrimaryTextTheme,
-
+      textTheme: nunitoTextTheme,
+      primaryTextTheme: nunitoPrimaryTextTheme,
       dividerTheme: DividerThemeData(
         color: AppColorV2.darkStroke,
         thickness: 0.5,
         space: 15,
         indent: 5,
       ),
-
       appBarTheme: AppBarTheme(
         backgroundColor: AppColorV2.darkSurface2,
-        titleTextStyle: GoogleFonts.workSans(
+        titleTextStyle: GoogleFonts.nunito(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           height: 28 / 18,

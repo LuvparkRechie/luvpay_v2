@@ -61,7 +61,6 @@ class BillsPayment extends GetView<BillsPaymentController> {
                 borderOpacity: borderOpacity,
                 title: billerName,
               ),
-
               if (billerAddress.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 LuvpayText(
@@ -76,10 +75,10 @@ class BillsPayment extends GetView<BillsPaymentController> {
               ],
               Divider(),
               const SizedBox(height: 14),
-
               LuvpayText(
                 text: "Bill Account Number",
-                style: AppTextStyle.h3(context),
+                style: AppTextStyle.body1(context),
+                color: cs.onBackground.withAlpha(250),
               ),
               CustomTextField(
                 controller: controller.accNo,
@@ -98,9 +97,12 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 14),
-              LuvpayText(text: "Account Name", style: AppTextStyle.h3(context)),
+              LuvpayText(
+                text: "Account Name",
+                style: AppTextStyle.body1(context),
+                color: cs.onBackground.withAlpha(250),
+              ),
               CustomTextField(
                 controller: controller.accName,
                 hintText: "Enter account name",
@@ -130,9 +132,12 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 14),
-              LuvpayText(text: "Bill Number", style: AppTextStyle.h3(context)),
+              LuvpayText(
+                text: "Bill Number",
+                style: AppTextStyle.body1(context),
+                color: cs.onBackground.withAlpha(250),
+              ),
               CustomTextField(
                 controller: controller.billNo,
                 hintText: "Enter bill number",
@@ -141,9 +146,9 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   LengthLimitingTextInputFormatter(30),
                   TextInputFormatter.withFunction((oldValue, newValue) {
                     final filtered = newValue.text.toUpperCase().replaceAll(
-                      RegExp(r'[^A-Z0-9]'),
-                      '',
-                    );
+                          RegExp(r'[^A-Z0-9]'),
+                          '',
+                        );
                     return TextEditingValue(
                       text: filtered,
                       selection: TextSelection.collapsed(
@@ -153,14 +158,14 @@ class BillsPayment extends GetView<BillsPaymentController> {
                   }),
                 ],
               ),
-
               const SizedBox(height: 14),
               Row(
                 children: [
                   Expanded(
                     child: LuvpayText(
                       text: "Amount",
-                      style: AppTextStyle.h3(context),
+                      style: AppTextStyle.body1(context),
+                      color: cs.onBackground.withAlpha(250),
                     ),
                   ),
                   if (hasServiceFee)
@@ -197,10 +202,8 @@ class BillsPayment extends GetView<BillsPaymentController> {
                 },
               ),
               _walletBalanceCard(borderOpacity: borderOpacity),
-
               const SizedBox(height: 18),
               _reviewHintCard(context, cs, borderOpacity),
-
               const SizedBox(height: 18),
               CustomButton(
                 text: "Proceed",
@@ -226,9 +229,8 @@ class BillsPayment extends GetView<BillsPaymentController> {
                     print("objData  $objData  ");
                     if (objData == null) return;
 
-                    final ok =
-                        (objData["success"] == "Y" ||
-                            objData["status"] == "PENDING");
+                    final ok = (objData["success"] == "Y" ||
+                        objData["status"] == "PENDING");
                     if (!ok) return;
 
                     final timeExp = DateFormat(
@@ -355,7 +357,6 @@ class BillsPayment extends GetView<BillsPaymentController> {
           color: cs.onSurface,
           text:
               "${toCurrencyString(c.walletBalance.toString())} available balance",
-
           maxLines: 1,
           style: AppTextStyle.body2(Get.context!),
         );
@@ -586,9 +587,7 @@ class DownloadTicket extends GetView<BillsPaymentController> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -600,42 +599,38 @@ class DownloadTicket extends GetView<BillsPaymentController> {
                       ),
                     ),
                     child: Column(
-                      children:
-                          ticketParam.entries.map((e) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: LuvpayText(
-                                      text: "${e.key} :",
-                                      style: AppTextStyle.paragraph2(
-                                        context,
-                                      ).copyWith(fontWeight: FontWeight.w800),
-                                      color: cs.onSurface.withOpacity(0.60),
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  LuvpayText(
-                                    text: e.value.toString(),
-                                    style: AppTextStyle.h3(
-                                      context,
-                                    ).copyWith(fontWeight: FontWeight.w900),
-                                    color: cs.onSurface,
-                                    maxLines: 1,
-                                  ),
-                                ],
+                      children: ticketParam.entries.map((e) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: LuvpayText(
+                                  text: "${e.key} :",
+                                  style: AppTextStyle.paragraph2(
+                                    context,
+                                  ).copyWith(fontWeight: FontWeight.w800),
+                                  color: cs.onSurface.withOpacity(0.60),
+                                  maxLines: 1,
+                                ),
                               ),
-                            );
-                          }).toList(),
+                              const SizedBox(width: 10),
+                              LuvpayText(
+                                text: e.value.toString(),
+                                style: AppTextStyle.h3(
+                                  context,
+                                ).copyWith(fontWeight: FontWeight.w900),
+                                color: cs.onSurface,
+                                maxLines: 1,
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
-
                   const SizedBox(height: 14),
-
                   Row(
                     children: [
                       Container(

@@ -248,13 +248,10 @@ class AddWalletModalState extends State<AddWalletModal> {
       style: LuvNeu.card(
         radius: radius,
         color: cardColor,
-
         depth: isDark ? 0.55 : 1.2,
         pressedDepth: isDark ? -0.25 : -0.7,
-
         borderColor: isDark ? Colors.transparent : border,
         borderWidth: isDark ? 0 : 1,
-
         isDark: isDark,
       ),
       child: Padding(padding: padding, child: child),
@@ -282,9 +279,7 @@ class AddWalletModalState extends State<AddWalletModal> {
       borderColor:
           isDark ? Colors.transparent : cs.outlineVariant.withOpacity(0.22),
       overlayOpacity: isDark ? 0.0 : 0.02,
-
       background: isSelected ? color.withOpacity(isDark ? 0.16 : 0.12) : bg,
-
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
@@ -325,7 +320,6 @@ class AddWalletModalState extends State<AddWalletModal> {
         overlayOpacity: 0.0,
         background: cs.primary,
         borderColor: cs.primary.withOpacity(0.22),
-
         child: SizedBox(
           width: double.infinity,
           height: 56,
@@ -398,12 +392,11 @@ class AddWalletModalState extends State<AddWalletModal> {
     try {
       final walletName = _nameController.text.trim();
 
-      final double walletAmount =
-          widget.mode == WalletModalMode.edit
-              ? (widget.wallet?.balance ?? 0.0)
-              : (_balanceController.text.trim().isEmpty
-                  ? 0.0
-                  : double.parse(_balanceController.text.trim()));
+      final double walletAmount = widget.mode == WalletModalMode.edit
+          ? (widget.wallet?.balance ?? 0.0)
+          : (_balanceController.text.trim().isEmpty
+              ? 0.0
+              : double.parse(_balanceController.text.trim()));
 
       if (widget.mode == WalletModalMode.create &&
           _selectedCategoryId == null) {
@@ -417,17 +410,16 @@ class AddWalletModalState extends State<AddWalletModal> {
         return;
       }
 
-      final Map<String, dynamic> result =
-          widget.mode == WalletModalMode.create
-              ? await controller.postSubWallet(
-                categoryId: int.tryParse(_selectedCategoryId!),
-                subWalletName: walletName,
-                amount: walletAmount,
-              )
-              : await controller.editSubwallet(
-                subwalletId: int.tryParse(widget.wallet!.id),
-                subWalletName: walletName,
-              );
+      final Map<String, dynamic> result = widget.mode == WalletModalMode.create
+          ? await controller.postSubWallet(
+              categoryId: int.tryParse(_selectedCategoryId!),
+              subWalletName: walletName,
+              amount: walletAmount,
+            )
+          : await controller.editSubwallet(
+              subwalletId: int.tryParse(widget.wallet!.id),
+              subWalletName: walletName,
+            );
 
       if (result["success"] == true) {
         await controller.getUserSubWallets();
@@ -438,8 +430,7 @@ class AddWalletModalState extends State<AddWalletModal> {
       if (Get.isDialogOpen == true) Get.back();
 
       final isOk = result["success"] == true;
-      final msg =
-          (isOk ? result["message"] : result["error"])?.toString() ??
+      final msg = (isOk ? result["message"] : result["error"])?.toString() ??
           (isOk ? "Success" : "Failed");
 
       if (isOk) {
@@ -480,8 +471,7 @@ class AddWalletModalState extends State<AddWalletModal> {
 
     final nameOk = _validateName(_nameController.text) == null;
 
-    final canSubmit =
-        !_isSubmitting &&
+    final canSubmit = !_isSubmitting &&
         nameOk &&
         (widget.mode == WalletModalMode.edit
             ? true
@@ -512,14 +502,12 @@ class AddWalletModalState extends State<AddWalletModal> {
             ),
             const SizedBox(height: 20),
             LuvpayText(
-              text:
-                  widget.mode == WalletModalMode.create
-                      ? 'Create New SubWallet'
-                      : 'Edit Wallet Name',
-              style: AppTextStyle.popup(context).copyWith(color: titleColor),
+              text: widget.mode == WalletModalMode.create
+                  ? 'Create New SubWallet'
+                  : 'Edit Wallet Name',
+              style: AppTextStyle.h3(context).copyWith(color: titleColor),
             ),
             const SizedBox(height: 10),
-
             if (widget.mode == WalletModalMode.create) ...[
               Obx(
                 () => _softCard(
@@ -543,13 +531,11 @@ class AddWalletModalState extends State<AddWalletModal> {
                 ),
               ),
               const SizedBox(height: 12),
-
               LuvpayText(
                 text: 'Select Category',
                 style: AppTextStyle.h3(context).copyWith(color: titleColor),
               ),
               const SizedBox(height: 10),
-
               if (_availableCategories.isNotEmpty)
                 SizedBox(
                   height: 60,
@@ -592,23 +578,22 @@ class AddWalletModalState extends State<AddWalletModal> {
                           }
                         }
 
-                        iconWidget =
-                            bytes != null
-                                ? Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: Image.memory(
-                                    bytes,
-                                    width: 40,
-                                    height: 40,
-                                    fit: BoxFit.contain,
-                                    gaplessPlayback: true,
-                                  ),
-                                )
-                                : Icon(
-                                  Iconsax.wallet,
-                                  size: 30,
-                                  color: cs.onSurface,
-                                );
+                        iconWidget = bytes != null
+                            ? Padding(
+                                padding: const EdgeInsets.all(5),
+                                child: Image.memory(
+                                  bytes,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.contain,
+                                  gaplessPlayback: true,
+                                ),
+                              )
+                            : Icon(
+                                Iconsax.wallet,
+                                size: 30,
+                                color: cs.onSurface,
+                              );
                       } else {
                         iconWidget = Icon(
                           Iconsax.wallet,
@@ -648,7 +633,6 @@ class AddWalletModalState extends State<AddWalletModal> {
                     ).copyWith(color: bodyColor),
                   ),
                 ),
-
               if (_categoryError != null) ...[
                 const SizedBox(height: 8),
                 LuvpayText(
@@ -660,10 +644,8 @@ class AddWalletModalState extends State<AddWalletModal> {
                   ),
                 ),
               ],
-
               const SizedBox(height: 18),
             ],
-
             if (widget.mode == WalletModalMode.edit &&
                 widget.wallet != null) ...[
               _softCard(
@@ -693,8 +675,8 @@ class AddWalletModalState extends State<AddWalletModal> {
                                 widget.wallet!.imageBase64 != null &&
                                         widget.wallet!.imageBase64!.isNotEmpty
                                     ? decodeBase64Safe(
-                                      widget.wallet!.imageBase64!,
-                                    )
+                                        widget.wallet!.imageBase64!,
+                                      )
                                     : null,
                               ),
                             ),
@@ -730,7 +712,6 @@ class AddWalletModalState extends State<AddWalletModal> {
               ),
               const SizedBox(height: 18),
             ],
-
             TextField(
               controller: _nameController,
               onChanged: _validateNameOnChange,
@@ -773,7 +754,6 @@ class AddWalletModalState extends State<AddWalletModal> {
               ),
             ),
             const SizedBox(height: 16),
-
             if (widget.mode == WalletModalMode.create) ...[
               TextField(
                 controller: _balanceController,
@@ -826,23 +806,21 @@ class AddWalletModalState extends State<AddWalletModal> {
                   ).copyWith(fontSize: 12, color: bodyColor.withOpacity(0.75)),
                   errorText: _balanceError,
                   errorStyle: TextStyle(color: cs.error, fontSize: 12),
-                  suffixIcon:
-                      _balanceError != null &&
-                              _balanceError!.contains(
-                                'Insufficient main balance',
-                              )
-                          ? Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Icon(
-                              Iconsax.warning_2,
-                              color: cs.error,
-                              size: 20,
-                            ),
+                  suffixIcon: _balanceError != null &&
+                          _balanceError!.contains(
+                            'Insufficient main balance',
                           )
-                          : null,
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: Icon(
+                            Iconsax.warning_2,
+                            color: cs.error,
+                            size: 20,
+                          ),
+                        )
+                      : null,
                 ),
               ),
-
               if (_balanceError != null &&
                   _balanceError!.contains('Insufficient main balance')) ...[
                 const SizedBox(height: 8),
@@ -861,24 +839,20 @@ class AddWalletModalState extends State<AddWalletModal> {
                   ],
                 ),
               ],
-
               const SizedBox(height: 18),
             ],
-
             SizedBox(
               width: double.infinity,
               height: 56,
               child: _primaryButton(
                 enabled: canSubmit,
                 loading: _isSubmitting,
-                text:
-                    widget.mode == WalletModalMode.create
-                        ? 'Create SubWallet'
-                        : 'Save Changes',
+                text: widget.mode == WalletModalMode.create
+                    ? 'Create SubWallet'
+                    : 'Save Changes',
                 onTap: _submitForm,
               ),
             ),
-
             if (widget.mode == WalletModalMode.create) ...[
               const SizedBox(height: 14),
               _softCard(

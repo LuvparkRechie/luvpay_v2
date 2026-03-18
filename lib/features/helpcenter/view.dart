@@ -28,14 +28,15 @@ class HelpCenter extends StatefulWidget {
 
 class _HelpCenterState extends State<HelpCenter> {
   List<HelpActionItem> get _merchantGridItems => [
-    HelpActionItem(
-      icon: Iconsax.message,
-      label: 'Chat with us',
-      onTap: () async {},
-    ),
-    HelpActionItem(icon: Iconsax.call, label: 'Call us', onTap: () {}),
-    HelpActionItem(icon: Iconsax.direct_inbox, label: 'Email us', onTap: () {}),
-  ];
+        HelpActionItem(
+          icon: Iconsax.message,
+          label: 'Chat with us',
+          onTap: () async {},
+        ),
+        HelpActionItem(icon: Iconsax.call, label: 'Call us', onTap: () {}),
+        HelpActionItem(
+            icon: Iconsax.direct_inbox, label: 'Email us', onTap: () {}),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +44,6 @@ class _HelpCenterState extends State<HelpCenter> {
 
     return CustomScaffoldV2(
       appBarTitle: "Help Center",
-
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: cs.surface),
@@ -64,9 +64,7 @@ class _HelpCenterState extends State<HelpCenter> {
                 return _buildMerchantGridItem(item);
               },
             ),
-
             const SizedBox(height: 18),
-
             CustomButton(
               text: "FAQs",
               onPressed: () {
@@ -104,9 +102,7 @@ class _HelpCenterState extends State<HelpCenter> {
           onTap: item.onTap,
           borderRadius: BorderRadius.circular(14),
         ),
-
         const SizedBox(height: 6),
-
         LuvpayText(
           text: item.label,
           style: AppTextStyle.paragraph1(context),
