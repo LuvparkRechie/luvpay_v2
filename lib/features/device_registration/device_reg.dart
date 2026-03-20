@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
+import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
 
 import '../../auth/authentication.dart';
@@ -226,85 +227,84 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
         systemNavigationBarIconBrightness:
             isDark ? Brightness.light : Brightness.dark,
       ),
-      child: Scaffold(
+      child: CustomScaffoldV2(
+        enableToolBar: false,
+        padding: EdgeInsets.zero,
         backgroundColor: surface,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        children: [
-                          SvgPicture.asset(
-                            "assets/images/register_device.svg",
-                            height: 180,
+        scaffoldBody: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        SvgPicture.asset(
+                          "assets/images/register_device.svg",
+                          height: 180,
+                        ),
+                        const SizedBox(height: 18),
+                        LuvpayText(
+                          maxLines: 1,
+                          text: "New sign-in detected",
+                          textAlign: TextAlign.center,
+                          style: AppTextStyle.h1(context),
+                          color: onSurface,
+                        ),
+                        const SizedBox(height: 8),
+                        LuvpayText(
+                          text:
+                              "Register this device to keep your account secure.\nYou can always do this later.",
+                          textAlign: TextAlign.center,
+                          style: AppTextStyle.paragraph2(context).copyWith(
+                            height: 1.35,
                           ),
-                          const SizedBox(height: 18),
-                          LuvpayText(
-                            maxLines: 1,
-                            text: "New sign-in detected",
-                            textAlign: TextAlign.center,
-                            style: AppTextStyle.h1(context),
-                            color: onSurface,
-                          ),
-                          const SizedBox(height: 8),
-                          LuvpayText(
-                            text:
-                                "Register this device to keep your account secure.\nYou can always do this later.",
-                            textAlign: TextAlign.center,
-                            style: AppTextStyle.paragraph2(context).copyWith(
-                              height: 1.35,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          InfoRowTile(
-                            title: "Mobile number",
-                            onTap: () {},
-                            icon: Icons.phone_iphone_rounded,
-                            subtitle: widget.mobileNo,
-                          ),
-                          const SizedBox(height: 18),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              bordercolor: outline,
-                              text: "Register this device",
-                              onPressed: isVerifiedOtp
-                                  ? registerDevice
-                                  : onRegisterDev,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          CustomButton(
+                        ),
+                        const SizedBox(height: 16),
+                        InfoRowTile(
+                          title: "Mobile number",
+                          onTap: () {},
+                          icon: Icons.phone_iphone_rounded,
+                          subtitle: widget.mobileNo,
+                        ),
+                        const SizedBox(height: 18),
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomButton(
                             bordercolor: outline,
-                            btnColor: Colors.transparent,
-                            text: "Later",
-                            textColor: brand,
-                            onPressed: () => Get.back(),
+                            text: "Register this device",
+                            onPressed:
+                                isVerifiedOtp ? registerDevice : onRegisterDev,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 10),
+                        CustomButton(
+                          bordercolor: outline,
+                          btnColor: Colors.transparent,
+                          text: "Later",
+                          textColor: brand,
+                          onPressed: () => Get.back(),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: LuvpayText(
-                    text: "Tip: Registering helps prevent unauthorized access.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: onSurfaceVar.withOpacity(0.9),
-                    ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: LuvpayText(
+                  text: "Tip: Registering helps prevent unauthorized access.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: onSurfaceVar.withOpacity(0.9),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

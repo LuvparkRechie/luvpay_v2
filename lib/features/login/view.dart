@@ -301,6 +301,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               LuvNeuPress.rectangle(
+                                  background: cs.surface,
                                   radius: BorderRadius.circular(10),
                                   child: Padding(
                                       padding: const EdgeInsets.all(14),
@@ -321,6 +322,7 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             LuvNeuPress.rectangle(
+                                background: cs.surface,
                                 radius: BorderRadius.circular(10),
                                 child: Padding(
                                     padding: const EdgeInsets.all(14),
@@ -337,26 +339,22 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                                                       .toString(),
                                                   style:
                                                       AppTextStyle.h4(context),
-                                                  color: AppColorV2.lpBlueBrand
-                                                      .withAlpha(180),
                                                   maxLines: 1),
                                               LuvpayText(
-                                                  text: userData[0][
-                                                                  "first_name"] ==
-                                                              null ||
-                                                          userData[0]
-                                                                  ["first_name"]
-                                                              .toString()
-                                                              .isEmpty
-                                                      ? ""
-                                                      : "+63 ${ctrl.mobnum.substring(2, 5)} ${ctrl.mobnum.substring(5, 8)} ${ctrl.mobnum.substring(8)}",
-                                                  style:
-                                                      AppTextStyle.paragraph1(
-                                                          context),
-                                                  maxLines: 1,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primaryContainer),
+                                                text: userData[0][
+                                                                "first_name"] ==
+                                                            null ||
+                                                        userData[0]
+                                                                ["first_name"]
+                                                            .toString()
+                                                            .isEmpty
+                                                    ? ""
+                                                    : "+63 ${ctrl.mobnum.substring(2, 5)} ${ctrl.mobnum.substring(5, 8)} ${ctrl.mobnum.substring(8)}",
+                                                style: AppTextStyle.paragraph1(
+                                                    context),
+                                                maxLines: 1,
+                                                color: cs.onSurfaceVariant,
+                                              )
                                             ])))),
                           ]);
                     }),

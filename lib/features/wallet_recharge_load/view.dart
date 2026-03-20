@@ -5,21 +5,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_native_contact_picker/model/contact.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:lucide_icons/lucide_icons.dart';
-
-import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/colors.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 
 import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/custom_textfield.dart';
 import '../../shared/widgets/custom_scaffold.dart';
-import '../../shared/widgets/spacing.dart';
-import '../../shared/widgets/variables.dart';
-import '../../core/utils/functions/functions.dart';
 import 'controller.dart';
 
 class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
@@ -27,10 +19,6 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
 
   bool _isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
-
-  Color _surface(BuildContext context) {
-    return AppColorV2.background;
-  }
 
   Color _borderSoft(BuildContext context) {
     return _isDark(context)
@@ -66,60 +54,16 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
     return _textPrimary(context);
   }
 
-  BoxDecoration _neoCard(
-    BuildContext context, {
-    double radius = 12,
-    Color? color,
-    bool inset = false,
-  }) {
-    final base = color ?? _surface(context);
-
-    return BoxDecoration(
-      color: base,
-      borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: _borderSoft(context)),
-      boxShadow: inset
-          ? [
-              BoxShadow(
-                color: _shadowDark(
-                  context,
-                ).withAlpha(_isDark(context) ? 90 : 18),
-                blurRadius: 10,
-                offset: Offset(3, 3),
-              ),
-              BoxShadow(
-                color: _shadowLight(
-                  context,
-                ).withAlpha(_isDark(context) ? 34 : 210),
-                blurRadius: 10,
-                offset: Offset(-3, -3),
-              ),
-            ]
-          : [
-              BoxShadow(
-                color: _shadowDark(context),
-                blurRadius: 12,
-                offset: Offset(6, 6),
-              ),
-              BoxShadow(
-                color: _shadowLight(context),
-                blurRadius: 12,
-                offset: Offset(-6, -6),
-              ),
-            ],
-    );
-  }
-
   BoxDecoration _neoChip(
     BuildContext context, {
     double radius = 10,
     required bool active,
   }) {
-    final base = _surface(context);
-
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return BoxDecoration(
       borderRadius: BorderRadius.circular(radius),
-      color: active ? AppColorV2.lpBlueBrand : base,
+      color: active ? AppColorV2.lpBlueBrand : cs.surface,
       border: Border.all(
         color: active ? Colors.transparent : _borderSoft(context),
         width: 1,
@@ -153,46 +97,6 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
     );
   }
 
-  BoxDecoration _recipientNeo(BuildContext context, {required bool isUnknown}) {
-    if (isUnknown) {
-      return BoxDecoration(
-        color: _isDark(context) ? Color(0xFF3B1F1F) : Color(0xFFFFDFDF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColorV2.incorrectState.withAlpha(140)),
-        boxShadow: [
-          BoxShadow(
-            color: _shadowDark(context).withAlpha(_isDark(context) ? 120 : 18),
-            blurRadius: 10,
-            offset: Offset(4, 4),
-          ),
-          BoxShadow(
-            color: _shadowLight(context).withAlpha(_isDark(context) ? 34 : 210),
-            blurRadius: 10,
-            offset: Offset(-4, -4),
-          ),
-        ],
-      );
-    }
-
-    return BoxDecoration(
-      color: _surface(context),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: _borderSoft(context)),
-      boxShadow: [
-        BoxShadow(
-          color: _shadowDark(context).withAlpha(_isDark(context) ? 95 : 18),
-          blurRadius: 12,
-          offset: Offset(6, 6),
-        ),
-        BoxShadow(
-          color: _shadowLight(context).withAlpha(_isDark(context) ? 34 : 210),
-          blurRadius: 12,
-          offset: Offset(-6, -6),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final imgPath = controller.arguments["image"];
@@ -212,24 +116,23 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              RepaintBoundary(
-                child: Container(
-                  decoration: _neoCard(
-                    context,
-                    radius: 12,
-                    color: _surface(context),
-                  ),
-                  height: 70,
-                  width: MediaQuery.of(context).size.width / 2,
-                  padding: EdgeInsets.all(16),
-                  child: Center(
-                    child: Image.asset(
-                      imgPath,
-                      fit: BoxFit.contain,
-                      gaplessPlayback: true,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  LuvNeuPress.rectangle(
+                    radius: BorderRadius.circular(16),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width / 2,
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.asset(
+                        imgPath,
+                        fit: BoxFit.contain,
+                        gaplessPlayback: true,
+                      ),
                     ),
                   ),
-                ),
+                  SizedBox()
+                ],
               ),
               SizedBox(height: 10),
               Divider(
@@ -311,76 +214,81 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
   Widget topupAccount(BuildContext context) {
     final isUnknown = controller.rname.text.toLowerCase().contains("unknown");
 
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LuvpayText(text: "Top up tokens for", style: AppTextStyle.h3(context)),
         SizedBox(height: 10),
-        Container(
-          padding: EdgeInsets.all(12),
-          width: double.infinity,
-          decoration: _recipientNeo(context, isUnknown: isUnknown),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  controller.userImage.value.isEmpty || isUnknown
-                      ? Image.asset(
-                          height: 50,
-                          "assets/images/no_whiteborder_person.png",
-                        )
-                      : CircleAvatar(
-                          radius: 25,
-                          backgroundColor: controller.userImage.value.isEmpty
-                              ? Colors.white
-                              : null,
-                          backgroundImage: controller.userImage.value.isNotEmpty
-                              ? MemoryImage(
-                                  base64Decode(
-                                    controller.userImage.value.toString(),
-                                  ),
-                                )
-                              : null,
-                        ),
-                  Container(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        LuvpayText(maxLines: 1, text: controller.rname.text),
-                        LuvpayText(
-                          maxLines: 1,
-                          text: controller.email.value.contains("null")
-                              ? "No email provided yet"
-                              : controller.email.value,
-                          color: AppColorV2.bodyTextColor,
-                        ),
-                      ],
+        LuvNeuPress.rectangle(
+          background: cs.surface,
+          radius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    controller.userImage.value.isEmpty || isUnknown
+                        ? Image.asset(
+                            height: 50,
+                            "assets/images/no_whiteborder_person.png",
+                          )
+                        : CircleAvatar(
+                            radius: 25,
+                            backgroundColor: controller.userImage.value.isEmpty
+                                ? Colors.white
+                                : null,
+                            backgroundImage:
+                                controller.userImage.value.isNotEmpty
+                                    ? MemoryImage(
+                                        base64Decode(
+                                          controller.userImage.value.toString(),
+                                        ),
+                                      )
+                                    : null,
+                          ),
+                    Container(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LuvpayText(maxLines: 1, text: controller.rname.text),
+                          LuvpayText(
+                            maxLines: 1,
+                            text: controller.email.value.contains("null")
+                                ? "No email provided yet"
+                                : controller.email.value,
+                            color: AppColorV2.bodyTextColor,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Container(width: 5),
-                ],
-              ),
-              Divider(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white.withAlpha(14)
-                    : Colors.black.withAlpha(18),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  LuvpayText(text: "Mobile Number"),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: LuvpayText(
-                      text: "0${controller.mobNum.text}",
-                      color: AppColorV2.primaryTextColor,
+                    Container(width: 5),
+                  ],
+                ),
+                Divider(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withAlpha(14)
+                      : Colors.black.withAlpha(18),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    LuvpayText(text: "Mobile Number"),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: LuvpayText(
+                        text: "0${controller.mobNum.text}",
+                        color: cs.onSurface.withAlpha(250),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         Visibility(

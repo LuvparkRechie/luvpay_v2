@@ -33,12 +33,11 @@ class UnionBankAuthService {
       };
 
       // Encode the body
-      final encodedBody =
-          Uri(
-            queryParameters: body.map(
-              (key, value) => MapEntry(key, value.toString()),
-            ),
-          ).query;
+      final encodedBody = Uri(
+        queryParameters: body.map(
+          (key, value) => MapEntry(key, value.toString()),
+        ),
+      ).query;
 
       // Make the POST request with headers and cookies
       Map<String, String> headers = {

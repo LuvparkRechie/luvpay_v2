@@ -650,7 +650,6 @@ class LuvNeuPress extends StatefulWidget {
   }) {
     return LuvNeuPress(
       key: key,
-      child: child,
       onTap: onTap,
       radius: radius,
       depth: depth,
@@ -664,6 +663,7 @@ class LuvNeuPress extends StatefulWidget {
       pressedScale: pressedScale,
       pressedTranslateY: pressedTranslateY,
       overlayOpacity: overlayOpacity,
+      child: child,
     );
   }
 
