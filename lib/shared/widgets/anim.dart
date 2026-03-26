@@ -25,7 +25,7 @@ class _LuvPayDiagonalLinesBackgroundState
     super.initState();
 
     _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 300))
+        AnimationController(vsync: this, duration: const Duration(seconds: 600))
           ..repeat();
 
     _lines = List.generate(25, (index) {
@@ -33,7 +33,7 @@ class _LuvPayDiagonalLinesBackgroundState
         x: _rand.nextDouble(),
         y: _rand.nextDouble(),
         length: 120 + _rand.nextDouble() * 180,
-        speed: 0.00015 + _rand.nextDouble() * 0.00025,
+        speed: 0.00005 + _rand.nextDouble() * 0.00008,
         thickness: 1.0 + _rand.nextDouble() * 1.5,
       );
     });
@@ -158,13 +158,13 @@ class _GlassLinesPainterWithShimmer extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     for (var line in lines) {
-      final layers = isDark ? 2 : 3;
-
+      final layers = isDark ? 1 : 2;
       for (var i = 0; i < layers; i++) {
         final paint = Paint()
-          ..strokeWidth = line.thickness * (isDark ? 0.7 : 0.01) * (1 + i * 0.5)
+          ..strokeWidth =
+              line.thickness * (isDark ? 0.5 : 0.008) * (1 + i * 0.4)
           ..color = color.withOpacity(
-            isDark ? 0.012 / (i + 1) : 0.001 / (i + 5),
+            isDark ? 0.006 / (i + 1) : 0.0004 / (i + 6),
           )
           ..maskFilter = MaskFilter.blur(
             BlurStyle.normal,
@@ -189,13 +189,13 @@ class _GlassLinesPainterWithShimmer extends CustomPainter {
             colors: [
               Colors.transparent,
               Colors.white.withOpacity(
-                isDark ? 0.035 : 0.05,
+                isDark ? 0.015 : 0.02,
               ),
               Colors.transparent,
             ],
             stops: [
               0.0,
-              (progress + i * 0.08) % 1.0,
+              (progress * 0.5 + i * 0.08) % 1.0,
               1.0,
             ],
             begin: Alignment.topLeft,

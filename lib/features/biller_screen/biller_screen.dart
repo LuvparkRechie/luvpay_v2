@@ -46,6 +46,23 @@ class _BillerScreenState extends State<BillerScreen> {
   void initState() {
     super.initState();
     getUserData();
+
+    if (widget.data.isNotEmpty) {
+      final fav = widget.data[0];
+
+      _billAcctController.text = fav["bill_acct_no"]?.toString() ??
+          fav["account_no"]?.toString() ??
+          "";
+
+      _billNoController.text =
+          fav["bill_no"]?.toString() ?? fav["reference_no"]?.toString() ?? "";
+
+      _accountNameController.text =
+          fav["account_name"]?.toString() ?? fav["name"]?.toString() ?? "";
+
+      _amountController.text =
+          fav["amount"]?.toString() ?? fav["default_amount"]?.toString() ?? "";
+    }
   }
 
   @override
@@ -147,11 +164,15 @@ class _BillerScreenState extends State<BillerScreen> {
           },
         };
 
-        Get.to(
+        final resOtp = await Get.to(
           OtpFieldScreen(arguments: args),
           transition: Transition.rightToLeftWithFade,
           duration: const Duration(milliseconds: 400),
         );
+        if (resOtp == null) {
+          Get.back(result: true);
+          return;
+        }
       });
     } catch (e) {
       CustomDialogStack.showServerError(Get.context!, () => Get.back());
@@ -162,8 +183,9 @@ class _BillerScreenState extends State<BillerScreen> {
     if (value == null || value.trim().isEmpty) return 'Please enter an amount';
 
     final amount = double.tryParse(value);
-    if (amount == null || amount <= 0)
+    if (amount == null || amount <= 0) {
       return 'Please enter a valid amount greater than zero';
+    }
 
     if (amount > _walletBal) return 'Insufficient balance';
     return null;
@@ -223,7 +245,7 @@ class _BillerScreenState extends State<BillerScreen> {
           BillPaymentReceipt(apiResponse: returnPost, paymentParams: parameter),
         );
 
-        if (result != null) Get.back();
+        if (result != null) Get.back(result: true);
         return;
       }
 
@@ -252,9 +274,8 @@ class _BillerScreenState extends State<BillerScreen> {
 
     return CustomScaffoldV2(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      appBarTitle: "Pay Bill",
+      appBarTitle: "Pay Billers",
       onPressedLeading: () {
-        Get.back();
         Get.back();
       },
       scaffoldBody: Column(
@@ -297,12 +318,15 @@ class _BillerScreenState extends State<BillerScreen> {
                       FilteringTextInputFormatter.digitsOnly,
                     ],
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return "Account number is required";
-                      if (value.length < 5)
+                      }
+                      if (value.length < 5) {
                         return "Account number must be at least 5 digits";
-                      if (value.length > 15)
+                      }
+                      if (value.length > 15) {
                         return "Account number must not exceed 15 digits";
+                      }
                       return null;
                     },
                   ),
@@ -352,8 +376,9 @@ class _BillerScreenState extends State<BillerScreen> {
                       }),
                     ],
                     validator: (value) {
-                      if (value == null || value.isEmpty)
+                      if (value == null || value.isEmpty) {
                         return "Account name is required";
+                      }
                       if (value.startsWith(' ') || value.endsWith(' ')) {
                         return "Account name cannot start or end with a space";
                       }

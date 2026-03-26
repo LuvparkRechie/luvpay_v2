@@ -3,27 +3,39 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_multi_formatter/formatters/formatter_utils.dart';
+import 'package:flutter_multi_formatter/formatters/formatter_utils.dart'
+    hide toCurrencyString;
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
+import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
 import 'package:luvpay/features/billers/index.dart';
-import 'package:luvpay/features/billers/utils/allbillers.dart';
+import 'package:luvpay/features/biller_screen/allbillers.dart';
 import 'package:luvpay/features/routes/routes.dart';
 
 import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/colors.dart';
+import '../../shared/widgets/luvpay_conn.dart';
 import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/neumorphism.dart';
 import '../../core/utils/functions/functions.dart';
 import '../../core/network/http/api_keys.dart';
 import '../../core/network/http/http_request.dart';
+import '../biller_screen/biller_screen.dart';
+import '../profile/profile_screen.dart';
+import '../subwallet/controller.dart';
+import '../subwallet/utils/wallet_details.dart';
+import '../subwallet/view.dart';
 import 'refresh_wallet.dart';
+import 'transaction/subwallets_carousel.dart';
 import 'transaction/transaction_details.dart';
 import 'transaction/transaction_screen.dart';
 
@@ -36,6 +48,9 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
+  final BillersController billController = Get.put(BillersController());
+  List favBillers = [];
+  final subWalletController = Get.put(SubWalletController());
   bool isLoading = false;
   List userData = [];
   bool hasNet = true;
@@ -47,9 +62,37 @@ class _WalletScreenState extends State<WalletScreen> {
   final PageController _pageController = PageController();
   bool isOpen = false;
   String myprofile = "";
-  bool _isDialogVisible = false;
+
   String firstName = "";
+  String _internetMsg = "Connection lost";
+  int _loadCtr = 0;
+  bool _isActiveTmr = true;
+
   List<Map<String, dynamic>> get _merchantGridItems => [
+        {
+          'icon': Icons.add_circle,
+          'label': 'Top-up',
+          'color': AppColorV2.lpBlueBrand,
+          'onTap': () {
+            showTopUpMethod();
+          },
+        },
+        {
+          'icon': Icons.people_alt,
+          'label': 'Send',
+          'color': AppColorV2.lpBlueBrand,
+          'onTap': () {
+            Get.toNamed(Routes.send);
+          },
+        },
+        // {
+        //   'icon': Icons.receipt_long,
+        //   'label': '♡ Billers',
+        //   'color': AppColorV2.lpBlueBrand,
+        //   'onTap': () {
+        //     Get.toNamed(Routes.send);
+        //   },
+        // },
         {
           'icon': Icons.wallet,
           'label': 'Bills',
@@ -62,27 +105,9 @@ class _WalletScreenState extends State<WalletScreen> {
                 arguments: {'source': 'pay'},
               );
               if (result != null) {
-                _startAutoRefresh();
-                getUserData();
-                getLogs();
+                _refreshWallet();
               }
             });
-          },
-        },
-        {
-          'icon': Icons.add_circle,
-          'label': 'Top-up',
-          'color': AppColorV2.lpBlueBrand,
-          'onTap': () {
-            showTopUpMethod();
-          },
-        },
-        {
-          'icon': Icons.send_rounded,
-          'label': 'Send',
-          'color': AppColorV2.lpBlueBrand,
-          'onTap': () {
-            Get.toNamed(Routes.send);
           },
         },
       ];
@@ -90,17 +115,79 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   void initState() {
     super.initState();
+
     _loadUserInfo().then((_) {
       getLogs();
+      getFavorites();
     });
+
     getUserData();
     _loadProfile();
     _startAutoRefresh();
     _showFirstName();
+
     ever(WalletRefreshBus.refresh, (_) {
       getUserData();
       getLogs();
+      getFavorites();
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _timer = null;
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void disposeUyy() {
+    _timer?.cancel();
+    _timer = null;
+    _pageController.dispose();
+  }
+
+  Future<void> getFavorites() async {
+    final item = await Authentication().getUserData();
+    String userId = jsonDecode(item!)['user_id'].toString();
+
+    await billController.fetchFavorites(userId);
+  }
+
+  List<Wallet> _mapWallets(List<Map<String, dynamic>> data) {
+    return data.map((w) {
+      return Wallet(
+        id: w['id']?.toString() ?? '',
+        userId: w['user_id']?.toString() ?? '',
+        categoryId: w['category_id']?.toString() ?? '',
+        name: w['name']?.toString() ?? 'Unnamed Wallet',
+        balance: (w['amount'] as num?)?.toDouble() ?? 0.0,
+        category: w['category']?.toString() ?? 'Unknown',
+        iconBase64: w['image_base64']?.toString(),
+        color: AppColorV2.lpBlueBrand,
+        createdOn: w['created_on']?.toString() ?? '',
+        updatedOn: w['updated_on']?.toString() ?? '',
+        isActive: w['is_active']?.toString() ?? 'N',
+        categoryTitle: w['category_title']?.toString() ?? 'Unknown',
+        imageBase64: w['image_base64']?.toString(),
+        targetAmount: null,
+      );
+    }).toList();
+  }
+
+  Future<void> _refreshWallet() async {
+    if (mounted) {
+      setState(() {
+        _loadCtr = 0;
+        isLoading = true;
+        _isActiveTmr = true;
+      });
+    }
+
+    await Future.delayed(Duration(seconds: 1));
+    getUserData();
+    getLogs();
+    await getFavorites();
   }
 
   void _startAutoRefresh() {
@@ -111,8 +198,8 @@ class _WalletScreenState extends State<WalletScreen> {
         _timer = null;
         return;
       }
+
       getUserData();
-      getLogs();
     });
   }
 
@@ -123,25 +210,41 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<void> getUserData() async {
-    if (isLoading || !mounted) return;
-
-    setState(() => isLoading = true);
+    if (!mounted) return;
+    if (_loadCtr == 0) {
+      setState(() => isLoading = true);
+      if (mounted) {
+        _loadCtr++;
+      }
+    }
 
     Functions.getUserBalance2(context, (List data) {
+      if (Get.currentRoute != "/dashboard") return;
       if (!mounted) return;
-
+      if (!_isActiveTmr) return;
       try {
         final root = (data.isNotEmpty && data[0] is Map) ? data[0] as Map : {};
-        final net = root["has_net"] == true;
-        final success = root["success"] == true;
+        final net = root["has_net"];
+        final success = root["success"];
 
+        if (!success && !net) {
+          setState(() {
+            _internetMsg = "Connection lost";
+            hasNet = net;
+            userData = data;
+            isLoading = false;
+            _isActiveTmr = false;
+          });
+          _startAutoRefresh();
+          return;
+        }
         setState(() {
           hasNet = net;
           userData = data;
           isLoading = false;
+          _isActiveTmr = true;
         });
-
-        if (!success && net) {}
+        getLogs();
       } catch (e) {
         debugPrint("Error parsing balance: $e");
         if (mounted) setState(() => isLoading = false);
@@ -212,36 +315,25 @@ class _WalletScreenState extends State<WalletScreen> {
       if (!mounted) return;
 
       if (response == "No Internet") {
-        hasNet = false;
-        isLoading = false;
-        _startAutoRefresh();
-        if (!_isDialogVisible) {
-          _isDialogVisible = true;
-          CustomDialogStack.showConnectionLost(Get.context!, () {
-            _isDialogVisible = false;
-            Get.back();
-            getLogs();
+        if (mounted) {
+          setState(() {
+            hasNet = false;
+            isLoading = false;
+            _internetMsg = "Connection lost";
           });
         }
+        _startAutoRefresh();
         return;
       }
-
-      if (response is Map && response["items"].isNotEmpty) {
-        final today = (await Functions.getTimeNow())
-            .toUtc()
-            .toIso8601String()
-            .substring(0, 10);
-
-        setState(() {
-          logs = response["items"]
-              .where(
-                (e) => e['tran_date'].toString().split("T")[0] == today,
-              )
-              .take(5)
-              .toList();
-        });
-      }
+      List itemData = response["items"];
+      setState(() {
+        _internetMsg = "";
+        logs = itemData.isEmpty ? [] : itemData.take(5).toList();
+      });
     } catch (e) {
+      _internetMsg = "Error";
+      CustomDialogStack.showSnackBar(
+          context, "Error fetching logs: $e", Colors.red, () => Get.back());
       debugPrint("Error fetching logs: $e");
     }
   }
@@ -391,14 +483,6 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   @override
-  void dispose() {
-    _timer?.cancel();
-    _timer = null;
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -422,43 +506,199 @@ class _WalletScreenState extends State<WalletScreen> {
       scaffoldBody: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 10),
-              _buildBalanceCard(),
-              const SizedBox(height: 14),
-              _buildMerchantBillsGrid(),
-              const SizedBox(height: 25),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    LuvpayText(
-                      text: 'Recent Transactions',
-                      style: AppTextStyle.h3(context),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Get.to(() => TransactionHistory());
+          child: isLoading
+              ? const Center(child: LoadingCard())
+              : !isLoading && !hasNet
+                  ? ConnectionInterruption(
+                      onPressed: () {
+                        _refreshWallet();
                       },
-                      child: LuvpayText(
-                        text: 'See all',
-                        color: AppColorV2.lpBlueBrand,
-                      ),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 5),
+                        _buildBalanceCard(),
+                        _carousel(context),
+                        Obx(() {
+                          final favs = billController.favBillers;
+
+                          if (favs.isEmpty) return const SizedBox();
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 20),
+                              LuvpayText(
+                                text:
+                                    'Favorite Biller${favs.length > 1 ? 's' : ''}',
+                                style: AppTextStyle.h3(context),
+                              ),
+                              _favBillers(cs),
+                              const SizedBox(height: 25),
+                            ],
+                          );
+                        }),
+                        _buildMerchantBillsGrid(),
+                        const SizedBox(height: 25),
+                        LuvpayText(
+                          text: 'Transactions',
+                          style: AppTextStyle.h3(context),
+                        ),
+                        const SizedBox(height: 15),
+                        Expanded(child: _buildTransactionsTab()),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 15),
-              Expanded(child: _buildTransactionsTab()),
-            ],
-          ),
         ),
       ),
     );
+  }
+
+  Widget _favBillers(ColorScheme cs) {
+    return Obx(() {
+      final favs = billController.favBillers;
+
+      if (favs.isEmpty) return const SizedBox();
+
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: favs.map((fav) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 10,
+                  ),
+                  LuvNeuPress.rectangle(
+                    radius: const BorderRadius.all(Radius.circular(50)),
+                    background: cs.surface,
+                    onTap: () {
+                      CustomDialogStack.showConfirmation(
+                        textAlign: TextAlign.left,
+                        context,
+                        fav['biller_name'] ?? 'Biller',
+                        _buildFavSubtitle(fav),
+                        () => Get.back(),
+                        () async {
+                          Get.back();
+
+                          final mappedData = {
+                            "bill_acct_no": fav["account_no"],
+                            "bill_no": fav["bill_no"],
+                            "account_name": fav["account_name"],
+                            "amount": fav["amount"] ?? "0",
+                            "biller_id": fav["biller_id"],
+                            "biller_name": fav["biller_name"],
+                            "service_fee": fav["service_fee"],
+                          };
+                          final paymentHk = await Functions.getpaymentHK();
+                          if (paymentHk == null) {
+                            CustomDialogStack.showServerError(Get.context!, () {
+                              Get.back();
+                            });
+                            return;
+                          }
+                          final result = await Get.to(
+                            () => BillerScreen(
+                              paymentHk: paymentHk,
+                              data: [mappedData],
+                            ),
+                            transition: Transition.rightToLeftWithFade,
+                            duration: const Duration(milliseconds: 300),
+                          );
+
+                          if (result != null) {
+                            _refreshWallet();
+                          }
+                        },
+                        leftText: "Close",
+                        rightText: "Bill Now",
+                        isAllBlueColor: true,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      child: LuvpayText(
+                        text: fav['biller_name'] ?? 'Unnamed',
+                        style: AppTextStyle.body2(Get.context!),
+                        maxLines: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    });
+  }
+
+  String _buildFavSubtitle(Map fav) {
+    final buffer = StringBuffer();
+
+    if (fav['account_name'] != null) {
+      buffer.writeln("Account: ${fav['account_name']}");
+    }
+    if (fav['account_no'] != null) {
+      buffer.writeln("Acct No: ${fav['account_no']}");
+    }
+    if (fav['biller_address'] != null) {
+      buffer.writeln("Address: ${fav['biller_address']}");
+    }
+    if (fav['service_fee'] != null) {
+      buffer.writeln("Fee: ₱${fav['service_fee']}");
+    }
+
+    return buffer.toString().trim();
+  }
+
+  Widget _carousel(BuildContext context) {
+    return Obx(() {
+      final wallets = _mapWallets(subWalletController.userSubWallets);
+
+      if (wallets.isEmpty) {
+        return const SizedBox();
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 14),
+          SubWallerCarousel(
+            wallets: wallets,
+            onTap: (wallet) {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                ),
+                builder: (_) => WalletDetailsModal(
+                  wallet: wallet,
+                  allWallets: wallets,
+                  onAddMoney: (_) async => _reloadSubWallets(),
+                  onReturnMoney: (_) async => _reloadSubWallets(),
+                  onUpdate: (_) async => _reloadSubWallets(),
+                  onDelete: () async => _reloadSubWallets(),
+                ),
+              );
+            },
+          ),
+        ],
+      );
+    });
+  }
+
+  Future<void> _reloadSubWallets() async {
+    await subWalletController.getUserSubWallets();
   }
 
   Widget _buildMerchantBillsGrid() {
@@ -497,7 +737,6 @@ class _WalletScreenState extends State<WalletScreen> {
               text: item['label'],
               style: AppTextStyle.paragraph1(context),
               color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
               maxFontSize: 12,
               minFontSize: 8,
             ),
@@ -514,20 +753,33 @@ class _WalletScreenState extends State<WalletScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset("assets/images/luvpay_text.png", height: 30),
-                LuvpayText(
-                  text: "$greeting${firstName.isEmpty ? "" : ", $firstName"}!",
-                  style: AppTextStyle.body1(context),
-                  color: cs.onSurface.withOpacity(0.70),
+          LuvNeuPress.circle(
+            onTap: () {
+              Get.to(ProfileSettingsScreen(fromBuildHeader: true));
+            },
+            background: cs.surface,
+            borderColor: cs.primary.withOpacity(0.10),
+            child: Center(
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: LuvpayText(
+                    text: Functions().getInitials(userInfo),
+                    style: AppTextStyle.body1(context),
+                    color: cs.onSurface,
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
+          LuvNeuIconButton(
+              icon: LucideIcons.history,
+              onTap: () {
+                Get.to(Get.to(() => TransactionHistory()));
+              }),
         ],
       ),
     );
@@ -549,6 +801,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildBalanceCard() {
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
     final balanceText =
@@ -559,168 +812,38 @@ class _WalletScreenState extends State<WalletScreen> {
     final mobileText = isOpen
         ? (userInfo["mobile_no"]?.toString() ?? "• • • • • • • • • • •")
         : "• • • • • • • • • • •";
-    final brandA = AppColorV2.lpBlueBrand;
-    final brandB = AppColorV2.lpTealBrand;
 
-    return Container(
-      height: 198,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color.lerp(brandA, Colors.black, isDark ? 0.14 : 0.00)!,
-            Color.lerp(brandB, Colors.black, isDark ? 0.18 : 0.02)!,
-          ],
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(26),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -90,
-              right: -90,
-              child: Container(
-                width: 260,
-                height: 260,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withOpacity(isDark ? 0.10 : 0.16),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
+    return Padding(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              LuvpayText(
+                text: 'Total Balance',
+                style: AppTextStyle.h3_semibold(context),
+                color: cs.onSurface.withOpacity(0.60),
               ),
-            ),
-            Positioned(
-              bottom: -120,
-              left: -120,
-              child: Container(
-                width: 320,
-                height: 320,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.white.withOpacity(isDark ? 0.08 : 0.12),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.center,
-                      colors: [
-                        Colors.white.withOpacity(isDark ? 0.05 : 0.16),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(isDark ? 0.14 : 0.16),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.account_balance_wallet_rounded,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            LuvpayText(
-                              text: "luvpay Wallet",
-                              style: AppTextStyle.body1(context),
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              maxFontSize: 12,
-                              minFontSize: 10,
-                            ),
-                          ],
-                        ),
-                      ),
-                      _PremiumEyeIcon(
-                        isOpen: isOpen,
-                        onTap: () => openEye(isOpen),
-                      ),
-                    ],
+                  LuvpayText(
+                    key: ValueKey(isOpen),
+                    text: balanceText,
+                    style: AppTextStyle.h4(context),
+                    color: cs.outline,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      LuvpayText(
-                        text: 'Available Balance',
-                        style: AppTextStyle.paragraph1(context),
-                        color: Colors.white.withOpacity(0.88),
-                        fontWeight: FontWeight.w700,
-                      ),
-                      const SizedBox(height: 4),
-                      LuvpayText(
-                        key: ValueKey(isOpen),
-                        text: balanceText,
-                        fontSize: 32,
-                        style: AppTextStyle.body1(context),
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(isDark ? 0.14 : 0.16),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: LuvpayText(
-                          key: ValueKey(isOpen),
-                          minFontSize: 8,
-                          text: mobileText,
-                          style: AppTextStyle.body1(context),
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
+                  _PremiumEyeIcon(
+                    isOpen: isOpen,
+                    onTap: () => openEye(isOpen),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -880,8 +1003,10 @@ class TransactionSectionListView extends StatelessWidget {
 
     String formatDate(String dateString) {
       try {
-        final date = DateTime.parse(dateString).toLocal();
-        return DateFormat('MMM dd, yyyy • HH:mm').format(date);
+        final cleaned = dateString.replaceAll('Z', '');
+        final date = DateTime.parse(cleaned);
+
+        return DateFormat('MMM dd, yyyy • hh:mm a').format(date);
       } catch (_) {
         return dateString;
       }
@@ -956,7 +1081,8 @@ class _PremiumEyeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
 
     return Material(
       color: Colors.transparent,
@@ -964,15 +1090,13 @@ class _PremiumEyeIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Ink(
-          width: 44,
-          height: 44,
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(isDark ? 0.14 : 0.16),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Icon(
             isOpen ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-            color: Colors.white,
             size: 22,
           ),
         ),

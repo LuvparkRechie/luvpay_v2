@@ -58,7 +58,7 @@ class AutoLogoutGuard {
 
   static Future<void> handleLifecycle(AppLifecycleState state) async {
     // ignore: avoid_print
-    print("[AutoLogoutGuard] lifecycle = $state");
+    debugPrint("[AutoLogoutGuard] lifecycle = $state");
 
     final box = GetStorage();
 
@@ -81,7 +81,7 @@ class AutoLogoutGuard {
         box.write(kAwayExpired, false);
 
         // ignore: avoid_print
-        print(
+        debugPrint(
           "[AutoLogoutGuard] ENTER background -> lastBg=$bgAt expiryAt=$expiryAt; alarm? ${Platform.isAndroid}",
         );
 
@@ -106,7 +106,7 @@ class AutoLogoutGuard {
         }
       } else {
         // ignore: avoid_print
-        print(
+        debugPrint(
           "[AutoLogoutGuard] already in background, skip overwriting lastBg",
         );
       }
@@ -275,7 +275,7 @@ Future<void> awayExpireAlarmEntry() async {
   final box = GetStorage();
 
   // ignore: avoid_print
-  print("[AutoLogoutGuard] ANDROID alarm fired -> expire");
+  debugPrint("[AutoLogoutGuard] ANDROID alarm fired -> expire");
 
   box.write(AutoLogoutGuard.kAwayExpired, true);
 

@@ -74,11 +74,10 @@ class RegistrationController extends GetxController
 
     try {
       String api = "";
-      final res =
-          await HttpRequestApi(
-            api: api,
-            parameters: {"referral_code": code},
-          ).postBody();
+      final res = await HttpRequestApi(
+        api: api,
+        parameters: {"referral_code": code},
+      ).postBody();
 
       Get.back();
 
@@ -114,7 +113,6 @@ class RegistrationController extends GetxController
       "device_key": devKey.toString(),
       // "referral_code": referralCode.text,
     };
-    print("parameters $parameters");
 
     CustomDialogStack.showConfirmation(
       Get.context!,

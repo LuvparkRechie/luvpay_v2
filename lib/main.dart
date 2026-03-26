@@ -87,7 +87,7 @@ void onStart(ServiceInstance service) async {
       }
     });
   } catch (e, stack) {
-    print(stack);
+    debugPrint(stack as String?);
   }
 }
 
@@ -98,7 +98,8 @@ void sessionTimeOut(BuildContext context) {
     if (!await TamperGuard.isDialogActive()) {
       getLogSession(context);
     } else {
-      print("[Session Timeout] Skipped session log — tamper dialog active.");
+      debugPrint(
+          "[Session Timeout] Skipped session log — tamper dialog active.");
     }
   });
 }

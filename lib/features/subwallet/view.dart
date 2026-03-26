@@ -13,9 +13,9 @@ import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
-import 'package:luvpay/shared/widgets/no_internet.dart';
 
 import '../../shared/widgets/colors.dart';
+import '../../shared/widgets/luvpay_conn.dart';
 import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/neumorphism.dart';
 import 'controller.dart';
@@ -415,7 +415,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
       );
     } catch (e) {
       // ignore: avoid_print
-      print('Error creating subwallet: $e');
+      debugPrint('Error creating subwallet: $e');
       if (mounted) _err('Failed to create subwallet. Please try again.');
     }
   }
@@ -580,7 +580,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           child: !ready
               ? LoadingCard()
               : !controller.hasNet.value
-                  ? NoInternetConnected(onTap: _refreshData)
+                  ? ConnectionInterruption(onPressed: _refreshData)
                   : Stack(
                       children: [
                         RefreshIndicator.noSpinner(

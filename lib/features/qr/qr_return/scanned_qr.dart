@@ -27,7 +27,7 @@ class _ScannedQRState extends State<ScannedQR> {
       qrData = json.decode(jsonString);
     } catch (e) {
       qrData = {};
-      print('Error parsing QR data: $e');
+      debugPrint('Error parsing QR data: $e');
     }
   }
 
@@ -52,7 +52,6 @@ class _ScannedQRState extends State<ScannedQR> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-
             if (qrData.isNotEmpty) ...[
               _buildDetailRow(
                 'Merchant Name:',

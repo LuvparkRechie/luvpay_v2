@@ -6,13 +6,13 @@ import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/features/faq/index.dart';
+import 'package:luvpay/shared/widgets/luvpay_conn.dart';
 
 import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/luvpay_loading.dart';
 import '../../shared/widgets/custom_scaffold.dart';
 import '../../shared/widgets/no_data_found.dart';
-import '../../shared/widgets/no_internet.dart';
 
 class FaqPage extends GetView<FaqPageController> {
   const FaqPage({super.key});
@@ -89,28 +89,26 @@ class FaqPage extends GetView<FaqPageController> {
           ),
         ),
         padding: EdgeInsets.symmetric(horizontal: 0, vertical: 14),
-        scaffoldBody:
-            controller.isLoadingPage.value
-                ? const LoadingCard()
-                : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(10),
-                          ),
+        scaffoldBody: controller.isLoadingPage.value
+            ? const LoadingCard()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(10),
                         ),
-                        child:
-                            !controller.isNetConn.value
-                                ? NoInternetConnected(
-                                  onTap: controller.refresher,
-                                )
-                                : controller.faqsData.isEmpty ||
-                                    controller.filteredFaqs.isEmpty
-                                ? NoDataFound()
-                                : ScrollConfiguration(
+                      ),
+                      child: !controller.isNetConn.value
+                          ? ConnectionInterruption(
+                              onPressed: controller.refresher,
+                            )
+                          : controller.faqsData.isEmpty ||
+                                  controller.filteredFaqs.isEmpty
+                              ? NoDataFound()
+                              : ScrollConfiguration(
                                   behavior: ScrollBehavior().copyWith(
                                     overscroll: false,
                                   ),
@@ -118,12 +116,11 @@ class FaqPage extends GetView<FaqPageController> {
                                     axisDirection: AxisDirection.down,
                                     child: ListView.separated(
                                       itemCount: controller.filteredFaqs.length,
-
-                                      separatorBuilder:
-                                          (context, index) => Divider(
-                                            color: Colors.grey[800],
-                                            height: 1,
-                                          ),
+                                      separatorBuilder: (context, index) =>
+                                          Divider(
+                                        color: Colors.grey[800],
+                                        height: 1,
+                                      ),
                                       itemBuilder: (context, index) {
                                         var faqWrapper =
                                             controller.filteredFaqs[index];
@@ -133,16 +130,15 @@ class FaqPage extends GetView<FaqPageController> {
                                         return ExpansionTile(
                                           title: LuvpayText(
                                             maxLines: 4,
-                                            text:
-                                                faq['faq_text'] ??
+                                            text: faq['faq_text'] ??
                                                 'No text available',
                                             color: Colors.black,
                                             style: AppTextStyle.h3(context),
                                           ),
                                           trailing: Icon(
                                             controller.expandedIndexes.contains(
-                                                  originalIndex,
-                                                )
+                                              originalIndex,
+                                            )
                                                 ? Iconsax.minus
                                                 : Iconsax.add,
                                             color: AppColorV2.lpBlueBrand,
@@ -160,11 +156,11 @@ class FaqPage extends GetView<FaqPageController> {
                                               Padding(
                                                 padding:
                                                     const EdgeInsets.fromLTRB(
-                                                      15,
-                                                      0,
-                                                      15,
-                                                      15,
-                                                    ),
+                                                  15,
+                                                  0,
+                                                  15,
+                                                  15,
+                                                ),
                                                 child: Column(
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
@@ -188,17 +184,16 @@ class FaqPage extends GetView<FaqPageController> {
                                                           .asMap()
                                                           .entries
                                                           .map((entry) {
-                                                            int answerIndex =
-                                                                entry.key;
-                                                            var answer =
-                                                                entry.value;
-                                                            return LuvpayText(
-                                                              maxLines: 8,
-                                                              text:
-                                                                  '${answerIndex + 1}. ${answer['faq_ans_text'] ?? 'No answer available'}',
-                                                            );
-                                                          })
-                                                          .toList()),
+                                                        int answerIndex =
+                                                            entry.key;
+                                                        var answer =
+                                                            entry.value;
+                                                        return LuvpayText(
+                                                          maxLines: 8,
+                                                          text:
+                                                              '${answerIndex + 1}. ${answer['faq_ans_text'] ?? 'No answer available'}',
+                                                        );
+                                                      }).toList()),
                                                     const SizedBox(height: 10),
                                                     Text(
                                                       'Updated on: ${faq['updated_on'] != null ? DateFormat('MMMM d, y').format(DateTime.parse(faq['updated_on'])) : 'N/A'}',
@@ -218,10 +213,10 @@ class FaqPage extends GetView<FaqPageController> {
                                     ),
                                   ),
                                 ),
-                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -273,7 +268,6 @@ class FaqPage extends GetView<FaqPageController> {
                     controller.searchText.value = '';
                     controller.filteredFaq('');
                   },
-
                   child: Container(
                     padding: EdgeInsets.all(7),
                     decoration: BoxDecoration(

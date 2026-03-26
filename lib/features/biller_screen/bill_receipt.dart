@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -8,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:ticketcher/ticketcher.dart';
@@ -15,12 +17,17 @@ import 'package:ticketcher/ticketcher.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
 
+import '../../auth/authentication.dart';
+import '../../core/network/http/api_keys.dart';
+import '../../core/utils/functions/functions.dart';
 import '../../shared/widgets/neumorphism.dart';
 
 class BillPaymentReceipt extends StatelessWidget {
   final Map<String, dynamic> apiResponse;
   final Map<String, dynamic> paymentParams;
-
+  List favBillers = [];
+  bool isLoading = true;
+  bool isNetConn = true;
   BillPaymentReceipt({
     super.key,
     required this.apiResponse,
@@ -47,10 +54,9 @@ class BillPaymentReceipt extends StatelessWidget {
           elevation: 0,
           backgroundColor: cs.surface,
           surfaceTintColor: Colors.transparent,
-          systemOverlayStyle: (isDark
-                  ? SystemUiOverlayStyle.light
-                  : SystemUiOverlayStyle.dark)
-              .copyWith(statusBarColor: cs.surface),
+          systemOverlayStyle:
+              (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+                  .copyWith(statusBarColor: cs.surface),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -79,12 +85,33 @@ class BillPaymentReceipt extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 10),
-                    CustomButton(
-                      text: "Save Receipt",
-                      btnColor: cs.surface,
-                      textColor: cs.primary,
-                      bordercolor: cs.primary,
-                      onPressed: () => _saveReceipt(context),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomButton(
+                          width: MediaQuery.of(context).size.width / 3,
+                          text: "Save Receipt",
+                          btnColor: cs.surface,
+                          textColor: cs.primary,
+                          bordercolor: cs.primary,
+                          onPressed: () => _saveReceipt(context),
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        CustomButton(
+                          width: MediaQuery.of(context).size.width / 2,
+                          text: "Add to favorites",
+                          onPressed: () async {
+                            await addFavorites(
+                              paymentParams,
+                              paymentParams['biller_id'],
+                              paymentParams['bill_acct_no'],
+                              paymentParams['account_name'],
+                            );
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -287,6 +314,110 @@ class BillPaymentReceipt extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> addFavorites(params, billId, accountNo, nickName) async {
+    int userId = await Authentication().getUserId();
+    bool isButtonEnabled = true;
+    CustomDialogStack.showConfirmation(
+      Get.context!,
+      "Add to Favorites",
+      "Do you want to add this biller to your favorites?",
+      leftText: "No",
+      rightText: "Yes",
+      () {
+        Get.back();
+      },
+      () {
+        Get.back();
+        if (!isButtonEnabled) return;
+        isButtonEnabled = false;
+        CustomDialogStack.showLoading(Get.context!);
+        var parameter = {
+          "user_id": userId,
+          "biller_id": billId,
+          "account_no": accountNo,
+          "account_name": nickName.toString(),
+        };
+        HttpRequestApi(api: ApiKeys.postAddFavBiller, parameters: parameter)
+            .postBody()
+            .then((returnPost) async {
+          Get.back();
+          if (returnPost == "No Internet") {
+            CustomDialogStack.showConnectionLost(Get.context!, () {
+              Get.back();
+            });
+            return {"response": returnPost, "data": []};
+          }
+          if (returnPost == null) {
+            CustomDialogStack.showServerError(Get.context!, () {
+              Get.back();
+            });
+            return {"response": returnPost, "data": []};
+          }
+          if (returnPost["success"] == 'Y') {
+            CustomDialogStack.showSuccess(
+              Get.context!,
+              "Success",
+              "Successfully added to favorites.",
+              leftText: "Okay",
+              () {
+                if (params["source"] == "fav") {
+                  Functions.popPage(3);
+                  getFavorites();
+                } else {
+                  Get.back();
+                  getFavorites();
+                }
+              },
+            );
+          } else {
+            CustomDialogStack.showError(
+              Get.context!,
+              "luvpark",
+              returnPost["msg"],
+              () {
+                if (params["source"] == "fav") {
+                  Functions.popPage(2);
+                } else {
+                  Get.back();
+                  getFavorites();
+                }
+              },
+            );
+          }
+        }).whenComplete(() {
+          Future.delayed(const Duration(seconds: 2), () {
+            isButtonEnabled = true;
+          });
+        });
+      },
+    );
+  }
+
+  Future<void> getFavorites() async {
+    final item = await Authentication().getUserData();
+    String userId = jsonDecode(item!)['user_id'].toString();
+    String subApi = "${ApiKeys.getFavBiller}?user_id=$userId";
+    HttpRequestApi(api: subApi).get().then((response) async {
+      if (response == "No Internet") {
+        isLoading = false;
+        isNetConn = false;
+        return;
+      }
+      if (response == null) {
+        isLoading = false;
+        isNetConn = true;
+        favBillers = [];
+        CustomDialogStack.showServerError(Get.context!, () {
+          Get.back();
+        });
+        return;
+      }
+      favBillers = response["items"];
+      isNetConn = true;
+      isLoading = false;
+    });
   }
 
   Future<void> _saveReceipt(BuildContext context) async {

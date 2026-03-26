@@ -34,6 +34,11 @@ class Functions {
 
   static Future<List> getUserBalance() async {
     final respo = await Authentication().getUserData2().then((userData) async {
+      if (userData == null) {
+        return [
+          {"has_net": true, "success": false, "items": []},
+        ];
+      }
       String subApi = "${ApiKeys.getUserBalance}${userData["user_id"]}";
 
       final response = await HttpRequestApi(api: subApi).get();
@@ -386,11 +391,10 @@ class Functions {
       "session_id": sessionId,
     };
 
-    final response =
-        await HttpRequestApi(
-          api: ApiKeys.putLogout,
-          parameters: putLogoutParam,
-        ).putBody();
+    final response = await HttpRequestApi(
+      api: ApiKeys.putLogout,
+      parameters: putLogoutParam,
+    ).putBody();
     Get.back();
     if (response == "No Internet") {
       cb({"is_true": false, "data": 0});
@@ -411,11 +415,10 @@ class Functions {
       final userLogin = await Authentication().getUserLogin();
       if (userLogin != null) {
         List userData = [userLogin];
-        userData =
-            userData.map((e) {
-              e["is_login"] = "N";
-              return e;
-            }).toList();
+        userData = userData.map((e) {
+          e["is_login"] = "N";
+          return e;
+        }).toList();
         await Authentication().setLogin(jsonEncode(userData[0]));
       }
 
@@ -439,11 +442,10 @@ class Functions {
       "session_id": sessionId,
     };
 
-    final response =
-        await HttpRequestApi(
-          api: ApiKeys.putLogout,
-          parameters: putLogoutParam,
-        ).putBody();
+    final response = await HttpRequestApi(
+      api: ApiKeys.putLogout,
+      parameters: putLogoutParam,
+    ).putBody();
 
     if (response == "No Internet") {
       cb({"is_true": false, "data": 0});
@@ -539,11 +541,10 @@ class Functions {
             if (returnData["status"] == "LOCKED") {
               List mapData = [returnData];
 
-              mapData =
-                  mapData.map((e) {
-                    e["mobile_no"] = param["mobile_no"];
-                    return e;
-                  }).toList();
+              mapData = mapData.map((e) {
+                e["mobile_no"] = param["mobile_no"];
+                return e;
+              }).toList();
 
               Future.delayed(Duration(milliseconds: 200), () {
                 Get.offAllNamed(Routes.lockScreen, arguments: mapData);
@@ -619,11 +620,10 @@ class Functions {
       } else {
         if (returnData["items"].isNotEmpty) {
           List seqData = returnData["items"];
-          seqData =
-              seqData.map((e) {
-                e["secq_no"] = myRan;
-                return e;
-              }).toList();
+          seqData = seqData.map((e) {
+            e["secq_no"] = myRan;
+            return e;
+          }).toList();
 
           cb(seqData);
         } else {
@@ -690,8 +690,8 @@ class Functions {
             vehicleTypes.toString().toLowerCase().contains("light")) {
           return 'assets/details_logo/blue/blue_cmp.png';
         } else if (vehicleTypes.toString().toLowerCase().contains(
-          "Motorcycle",
-        )) {
+              "Motorcycle",
+            )) {
           return 'assets/details_logo/blue/blue_mp.png';
         } else {
           return 'assets/details_logo/blue/blue_cp.png';
@@ -701,8 +701,8 @@ class Functions {
             vehicleTypes.toString().toLowerCase().contains("light")) {
           return 'assets/details_logo/orange/orange_cmp.png';
         } else if (vehicleTypes.toString().toLowerCase().contains(
-          "motorcycle",
-        )) {
+              "motorcycle",
+            )) {
           return 'assets/details_logo/orange/orange_mp.png';
         } else {
           return 'assets/details_logo/orange/orange_cp.png';
@@ -712,8 +712,8 @@ class Functions {
             vehicleTypes.toString().toLowerCase().contains("light")) {
           return 'assets/details_logo/green/green_cmp.png';
         } else if (vehicleTypes.toString().toLowerCase().contains(
-          "motorcycle",
-        )) {
+              "motorcycle",
+            )) {
           return 'assets/details_logo/green/green_mp.png';
         } else {
           return 'assets/details_logo/green/green_cp.png';
@@ -751,8 +751,8 @@ class Functions {
             vehicleTypes.toString().toLowerCase().contains("light")) {
           return 'assets/details_logo/green/green_cm.png';
         } else if (vehicleTypes.toString().toLowerCase().contains(
-          "motorcycle",
-        )) {
+              "motorcycle",
+            )) {
           return 'assets/details_logo/green/green_motor.png';
         } else {
           return 'assets/details_logo/green/green_car.png';
@@ -898,12 +898,11 @@ class Functions {
     final last = user['last_name'] ?? '';
     final mobile = user['mobile_no'] ?? '';
 
-    final fullName =
-        [
-          first,
-          middle.toString().isNotEmpty ? "${middle[0]}." : middle,
-          last,
-        ].where((e) => e.toString().trim().isNotEmpty).join(' ').trim();
+    final fullName = [
+      first,
+      middle.toString().isNotEmpty ? "${middle[0]}." : middle,
+      last,
+    ].where((e) => e.toString().trim().isNotEmpty).join(' ').trim();
 
     if (fullName.isNotEmpty) return fullName;
 
@@ -912,6 +911,32 @@ class Functions {
     }
 
     return "Wallet User";
+  }
+
+  String getInitials(Map<String, dynamic> user) {
+    final first = user['first_name']?.toString().trim() ?? '';
+    final middle = user['middle_name']?.toString().trim() ?? '';
+    final last = user['last_name']?.toString().trim() ?? '';
+    final mobile = user['mobile_no'] ?? '';
+
+    String firstInitial = '';
+    String lastInitial = '';
+    if (first.isNotEmpty) {
+      firstInitial = first[0].toUpperCase();
+    }
+    if (last.isNotEmpty) {
+      lastInitial = last[0].toUpperCase();
+    }
+    if (lastInitial.isEmpty && middle.isNotEmpty) {
+      lastInitial = middle[0].toUpperCase();
+    }
+    String initials = "$firstInitial$lastInitial";
+
+    if (initials.isNotEmpty) return initials;
+    if (mobile.isNotEmpty && mobile.length >= 4) {
+      return mobile.substring(mobile.length - 2);
+    }
+    return "WU";
   }
 
   String getFirstSurnameLetter(Map<String, dynamic> user) {
@@ -944,5 +969,35 @@ class Functions {
     }
 
     return "luvpay User";
+  }
+
+  static Future<dynamic> getpaymentHK() async {
+    final userID = await Authentication().getUserId();
+    final paymentKey =
+        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
+
+    if (paymentKey == "No Internet") {
+      CustomDialogStack.showConnectionLost(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+
+    if (paymentKey == null) {
+      CustomDialogStack.showServerError(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+
+    final items = (paymentKey is Map) ? paymentKey["items"] : null;
+    if (items is List && items.isNotEmpty) {
+      return items[0]["payment_hk"]?.toString();
+    }
+
+    CustomDialogStack.showServerError(Get.context!, () {
+      Get.back();
+    });
+    return null;
   }
 }

@@ -7,12 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../../auth/authentication.dart';
 import '../../core/utils/functions/functions.dart';
 import '../../core/network/http/api_keys.dart';
-import 'utils/allbillers.dart';
+import '../biller_screen/allbillers.dart';
 import 'utils/receipt_billing.dart';
 
 class BillersController extends GetxController {
@@ -32,18 +33,29 @@ class BillersController extends GetxController {
   var fav = <int, bool>{}.obs;
   RxList filteredBillers = [].obs;
 
-  //for sorting
   RxString selectedSortOption = "Biller Name".obs;
   RxBool isAscending = true.obs;
   var searchQuery = ''.obs;
-
   @override
   void onInit() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      loadFavoritesAndBillers();
-    });
-
     super.onInit();
+    loadFavoritesAndBillers();
+  }
+
+  Future<void> fetchFavorites(String userId) async {
+    String subApi = "${ApiKeys.getFavBiller}?user_id=$userId";
+    final response = await HttpRequestApi(api: subApi).get();
+
+    if (response != null && response != "No Internet") {
+      favBillers.value = response["items"] ?? [];
+    } else {
+      favBillers.clear();
+    }
+  }
+
+  Future<void> loadFavoritesAndBillers() async {
+    isLoading.value = true;
+    await getFavorites();
   }
 
   void clearFields() {
@@ -51,11 +63,6 @@ class BillersController extends GetxController {
     billerAccountName.clear();
     billNo.clear();
     amount.clear();
-  }
-
-  Future<void> loadFavoritesAndBillers() async {
-    isLoading.value = true;
-    await getFavorites();
   }
 
   Future<void> getBillers(Function cb) async {
@@ -91,8 +98,8 @@ class BillersController extends GetxController {
       filteredBillers.assignAll(
         billers.where((biller) {
           return biller['biller_name'].toLowerCase().contains(
-            query.toLowerCase(),
-          );
+                query.toLowerCase(),
+              );
         }).toList(),
       );
     }
@@ -156,170 +163,180 @@ class BillersController extends GetxController {
         HttpRequestApi(api: ApiKeys.postAddFavBiller, parameters: parameter)
             .postBody()
             .then((returnPost) async {
+          Get.back();
+          if (returnPost == "No Internet") {
+            CustomDialogStack.showConnectionLost(Get.context!, () {
               Get.back();
-              if (returnPost == "No Internet") {
-                CustomDialogStack.showConnectionLost(Get.context!, () {
-                  Get.back();
-                });
-                return {"response": returnPost, "data": []};
-              }
-              if (returnPost == null) {
-                CustomDialogStack.showServerError(Get.context!, () {
-                  Get.back();
-                });
-                return {"response": returnPost, "data": []};
-              }
-              if (returnPost["success"] == 'Y') {
-                CustomDialogStack.showSuccess(
-                  Get.context!,
-                  "Success",
-                  "Successfully added to favorites.",
-                  leftText: "Okay",
-                  () {
-                    if (params["source"] == "fav") {
-                      Functions.popPage(3);
-                      getFavorites();
-                    } else {
-                      Get.back();
-                      getFavorites();
-                    }
-                  },
-                );
-              } else {
-                CustomDialogStack.showError(
-                  Get.context!,
-                  "luvpark",
-                  returnPost["msg"],
-                  () {
-                    if (params["source"] == "fav") {
-                      Functions.popPage(2);
-                    } else {
-                      Get.back();
-                      getFavorites();
-                    }
-                  },
-                );
-              }
-            })
-            .whenComplete(() {
-              Future.delayed(const Duration(seconds: 2), () {
-                isButtonEnabled = true;
-              });
             });
+            return {"response": returnPost, "data": []};
+          }
+          if (returnPost == null) {
+            CustomDialogStack.showServerError(Get.context!, () {
+              Get.back();
+            });
+            return {"response": returnPost, "data": []};
+          }
+          if (returnPost["success"] == 'Y') {
+            CustomDialogStack.showSuccess(
+              Get.context!,
+              "Success",
+              "Successfully added to favorites.",
+              leftText: "Okay",
+              () {
+                if (params["source"] == "fav") {
+                  Functions.popPage(3);
+                  getFavorites();
+                } else {
+                  Get.back();
+                  getFavorites();
+                }
+              },
+            );
+          } else {
+            CustomDialogStack.showError(
+              Get.context!,
+              "luvpark",
+              returnPost["msg"],
+              () {
+                if (params["source"] == "fav") {
+                  Functions.popPage(2);
+                } else {
+                  Get.back();
+                  getFavorites();
+                }
+              },
+            );
+          }
+        }).whenComplete(() {
+          Future.delayed(const Duration(seconds: 2), () {
+            isButtonEnabled = true;
+          });
+        });
       },
     );
   }
 
-  Future<void> onPay(args) async {
-    FocusManager.instance.primaryFocus?.unfocus();
+  // Future<void> onPay(args) async {
+  //   FocusManager.instance.primaryFocus?.unfocus();
 
-    CustomDialogStack.showLoading(Get.context!);
-    final response = await Functions.generateQr();
+  //   CustomDialogStack.showLoading(Get.context!);
+  //   final response = await Functions.generateQr();
 
-    if (response["response"] == "Success") {
-      double serviceFee =
-          double.tryParse(args['service_fee'].toString()) ?? 0.0;
-      double userAmount = double.tryParse(amount.text) ?? 0.0;
-      double addedAmount = serviceFee + userAmount;
-      String totalAmount = addedAmount.toStringAsFixed(2);
-      int userId = await Authentication().getUserId();
-      CustomDialogStack.showConfirmation(
-        Get.context!,
-        "Pay Bills",
-        "Are you sure you want to continue?",
-        leftText: "No",
-        rightText: "Okay",
-        () {
-          Get.back();
-        },
-        () async {
-          Get.back();
-          var parameter = {
-            "luvpay_id": userId.toString(),
-            "biller_id": args["biller_id"].toString(),
-            "bill_acct_no": billAccNo.text,
-            "amount": totalAmount,
-            "payment_hk": response["data"],
-            "bill_no": billNo.text,
-            "account_name": billerAccountName.text,
-            'original_amount': amount.text,
-          };
+  //   if (response["response"] == "Success") {
+  //     double serviceFee =
+  //         double.tryParse(args['service_fee'].toString()) ?? 0.0;
+  //     double userAmount = double.tryParse(amount.text) ?? 0.0;
+  //     double addedAmount = serviceFee + userAmount;
+  //     String totalAmount = addedAmount.toStringAsFixed(2);
+  //     int userId = await Authentication().getUserId();
+  //     CustomDialogStack.showConfirmation(
+  //       Get.context!,
+  //       "Pay Bills",
+  //       "Are you sure you want to continue?",
+  //       leftText: "No",
+  //       rightText: "Okay",
+  //       () {
+  //         Get.back();
+  //       },
+  //       () async {
+  //         Get.back();
+  //         var parameter = {
+  //           "luvpay_id": userId.toString(),
+  //           "biller_id": args["biller_id"].toString(),
+  //           "bill_acct_no": billAccNo.text,
+  //           "amount": totalAmount,
+  //           "payment_hk": response["data"],
+  //           "bill_no": billNo.text,
+  //           "account_name": billerAccountName.text,
+  //           'original_amount': amount.text,
+  //         };
 
-          CustomDialogStack.showLoading(Get.context!);
+  //         CustomDialogStack.showLoading(Get.context!);
 
-          HttpRequestApi(
-            api: ApiKeys.postPayBills,
-            parameters: parameter,
-          ).postBody().then((returnPost) async {
-            Get.back();
-            if (returnPost == "No Internet") {
-              isLoading.value = false;
-              isNetConn.value = false;
-              CustomDialogStack.showConnectionLost(Get.context!, () {
-                Get.back();
-              });
-            } else if (returnPost == null) {
-              isLoading.value = false;
-              isNetConn.value = true;
-              CustomDialogStack.showServerError(Get.context!, () {
-                Get.back();
-              });
-            } else {
-              if (returnPost["success"] == 'Y') {
-                var params = {
-                  "user_id": userId,
-                  "biller_id": args["biller_id"].toString(),
-                  "account_no": billAccNo.text,
-                  "biller_name": args["biller_name"],
-                  "biller_address": args["biller_address"],
-                  'user_biller_id': args['user_biller_id'],
-                  'amount': totalAmount.toString(),
-                  "account_name": billerAccountName.text,
-                  "service_fee": args['service_fee'].toString(),
-                  "original_amount": amount.text,
-                };
-                Get.to(TicketUI(), arguments: params);
-              } else {
-                CustomDialogStack.showError(
-                  Get.context!,
-                  "Error",
-                  returnPost["msg"],
-                  () {
-                    Get.back();
-                  },
-                );
-              }
-            }
-            isNetConn.value = true;
-          });
-        },
-      );
-    }
-  }
+  //         HttpRequestApi(
+  //           api: ApiKeys.postPayBills,
+  //           parameters: parameter,
+  //         ).postBody().then((returnPost) async {
+  //           Get.back();
+  //           if (returnPost == "No Internet") {
+  //             isLoading.value = false;
+  //             isNetConn.value = false;
+  //             CustomDialogStack.showConnectionLost(Get.context!, () {
+  //               Get.back();
+  //             });
+  //           } else if (returnPost == null) {
+  //             isLoading.value = false;
+  //             isNetConn.value = true;
+  //             CustomDialogStack.showServerError(Get.context!, () {
+  //               Get.back();
+  //             });
+  //           } else {
+  //             if (returnPost["success"] == 'Y') {
+  //               var params = {
+  //                 "user_id": userId,
+  //                 "biller_id": args["biller_id"].toString(),
+  //                 "account_no": billAccNo.text,
+  //                 "biller_name": args["biller_name"],
+  //                 "biller_address": args["biller_address"],
+  //                 'user_biller_id': args['user_biller_id'],
+  //                 'amount': totalAmount.toString(),
+  //                 "account_name": billerAccountName.text,
+  //                 "service_fee": args['service_fee'].toString(),
+  //                 "original_amount": amount.text,
+  //               };
+  //               Get.to(TicketUI(), arguments: params);
+  //             } else {
+  //               CustomDialogStack.showError(
+  //                 Get.context!,
+  //                 "Error",
+  //                 returnPost["msg"],
+  //                 () {
+  //                   Get.back();
+  //                 },
+  //               );
+  //             }
+  //           }
+  //           isNetConn.value = true;
+  //         });
+  //       },
+  //     );
+  //   }
+  // }
 
   Future<void> getFavorites() async {
-    final item = await Authentication().getUserData();
-    String userId = jsonDecode(item!)['user_id'].toString();
-    String subApi = "${ApiKeys.getFavBiller}?user_id=$userId";
-    HttpRequestApi(api: subApi).get().then((response) async {
-      if (response == "No Internet") {
+    try {
+      final item = await Authentication().getUserData();
+
+      if (item == null) {
+        favBillers.value = [];
+        isNetConn.value = true;
         isLoading.value = false;
-        isNetConn.value = false;
         return;
       }
-      if (response == null) {
-        isLoading.value = false;
-        isNetConn.value = true;
+
+      String userId = jsonDecode(item)['user_id'].toString();
+      String subApi = "${ApiKeys.getFavBiller}?user_id=$userId";
+
+      final response = await HttpRequestApi(api: subApi).get();
+      if (response == "No Internet") {
         favBillers.value = [];
+        isNetConn.value = false;
+      } else if (response == null) {
+        favBillers.value = [];
+        isNetConn.value = true;
         CustomDialogStack.showServerError(Get.context!, () {
           Get.back();
         });
-        return;
+      } else {
+        favBillers.value = response["items"] ?? [];
+        isNetConn.value = true;
       }
-      favBillers.value = response["items"];
+    } catch (e) {
+      favBillers.value = [];
       isNetConn.value = true;
+    } finally {
       isLoading.value = false;
-    });
+    }
   }
 
   Future<void> getTemplate(billerData) async {

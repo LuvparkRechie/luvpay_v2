@@ -24,7 +24,7 @@ import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 
 import '../../shared/widgets/luvpay_text.dart';
-import '../../shared/widgets/no_internet.dart';
+
 import '../../core/utils/functions/functions.dart';
 import '../../shared/components/otp_field/view.dart';
 import '../../core/security/security/app_security.dart';
@@ -46,11 +46,15 @@ class _PayMerchantState extends State<PayMerchant> {
   List userData = [];
   bool isLoadingMerch = true;
   bool hasNet = true;
+  String _msg = "";
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _setCursorToEnd());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setCursorToEnd();
+      _getUserBal();
+    });
   }
 
   @override
@@ -66,6 +70,41 @@ class _PayMerchantState extends State<PayMerchant> {
     );
   }
 
+  Future<void> _getUserBal() async {
+    try {
+      final userId = await Authentication().getUserId();
+      String subApi = "${ApiKeys.getUserBalance}$userId";
+
+      final response = await HttpRequestApi(api: subApi).get();
+
+      if (response == "No Internet") {
+        if (mounted) {
+          setState(() {
+            _msg = "No Internet";
+          });
+        }
+        return;
+      }
+      if (response == null) {
+        if (mounted) {
+          setState(() {
+            _msg = "null";
+          });
+        }
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _msg = "";
+          userData = response["items"];
+          isLoadingMerch = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching user data: $e");
+    }
+  }
+
   String? _validateAmount(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter an amount';
@@ -79,10 +118,9 @@ class _PayMerchantState extends State<PayMerchant> {
     if (userData.isEmpty) return 'Balance unavailable';
 
     final balanceRaw = userData[0]["amount_bal"];
-    final balance =
-        balanceRaw is num
-            ? balanceRaw.toDouble()
-            : (double.tryParse(balanceRaw.toString()) ?? 0.0);
+    final balance = balanceRaw is num
+        ? balanceRaw.toDouble()
+        : (double.tryParse(balanceRaw.toString()) ?? 0.0);
 
     if (amount > balance) return 'Insufficient balance';
     return null;
@@ -151,151 +189,140 @@ class _PayMerchantState extends State<PayMerchant> {
         Get.back();
       },
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      scaffoldBody:
-          isLoadingMerch
-              ? const LoadingCard(text: "Loading…")
-              : !hasNet
-              ? NoInternetConnected()
-              : Column(
-                children: [
-                  _merchantHeaderCard(context, cs, borderOpacity),
-                  spacing(height: 12),
-                  Expanded(
-                    child: Form(
-                      key: _formKey,
-                      child: ListView(
-                        physics: const BouncingScrollPhysics(),
-                        children: [
-                          _balanceCard(context, cs, borderOpacity),
-                          spacing(height: 18),
-
-                          LuvpayText(
-                            text: "Amount",
-                            style: AppTextStyle.h3(context),
+      scaffoldBody: isLoadingMerch
+          ? const LoadingCard(text: "Loading…")
+          : Column(
+              children: [
+                _merchantHeaderCard(context, cs, borderOpacity),
+                spacing(height: 12),
+                Expanded(
+                  child: Form(
+                    key: _formKey,
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      children: [
+                        _balanceCard(context, cs, borderOpacity),
+                        spacing(height: 18),
+                        LuvpayText(
+                          text: "Amount",
+                          style: AppTextStyle.h3(context),
+                        ),
+                        spacing(height: 10),
+                        CustomTextField(
+                          hintText: "Enter payment amount",
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
                           ),
-                          spacing(height: 10),
-                          CustomTextField(
-                            hintText: "Enter payment amount",
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            controller: amountController,
-                            inputFormatters: [AutoDecimalInputFormatter()],
-                            validator: _validateAmount,
-                          ),
+                          controller: amountController,
+                          inputFormatters: [AutoDecimalInputFormatter()],
+                          validator: _validateAmount,
+                        ),
+                        spacing(height: 14),
+                        LuvpayText(
+                          text: "Order Number (Optional)",
+                          style: AppTextStyle.h3(context),
+                        ),
+                        spacing(height: 10),
+                        CustomTextField(
+                          hintText: "Enter order number",
+                          keyboardType: TextInputType.number,
+                          controller: orderNumberController,
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(20),
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                        ),
+                        spacing(height: 22),
+                        CustomButton(
+                          text: "Pay now",
+                          onPressed: () async {
+                            FocusManager.instance.primaryFocus?.unfocus();
 
-                          spacing(height: 14),
+                            if (!(_formKey.currentState?.validate() ?? false)) {
+                              return;
+                            }
 
-                          LuvpayText(
-                            text: "Order Number (Optional)",
-                            style: AppTextStyle.h3(context),
-                          ),
-                          spacing(height: 10),
-                          CustomTextField(
-                            hintText: "Enter order number",
-                            keyboardType: TextInputType.number,
-                            controller: orderNumberController,
-                            inputFormatters: [
-                              LengthLimitingTextInputFormatter(20),
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                          ),
+                            final isEnabledBioTrans =
+                                await Authentication().getBiometricStatus();
+                            final data =
+                                await Authentication().getEncryptedKeys();
+                            final uData = await Authentication().getUserData2();
 
-                          spacing(height: 22),
-
-                          CustomButton(
-                            text: "Pay now",
-                            onPressed: () async {
-                              FocusManager.instance.primaryFocus?.unfocus();
-
-                              if (!(_formKey.currentState?.validate() ??
-                                  false)) {
-                                return;
+                            if (isEnabledBioTrans == true) {
+                              final ok = await AppSecurity.authenticateBio();
+                              if (ok) {
+                                await payMerchantVerify(isAuth: data["pwd"]);
                               }
+                              return;
+                            }
 
-                              final isEnabledBioTrans =
-                                  await Authentication().getBiometricStatus();
-                              final data =
-                                  await Authentication().getEncryptedKeys();
-                              final uData =
-                                  await Authentication().getUserData2();
+                            // OTP path
+                            CustomDialogStack.showLoading(Get.context!);
+                            final timeNow = await Functions.getTimeNow();
+                            final requestParam = <String, String>{
+                              "mobile_no": data["mobile_no"],
+                              "pwd": data["pwd"],
+                            };
+                            Get.back();
 
-                              if (isEnabledBioTrans == true) {
-                                final ok = await AppSecurity.authenticateBio();
-                                if (ok) {
-                                  await payMerchantVerify(isAuth: data["pwd"]);
-                                }
-                                return;
+                            Functions().requestOtp(requestParam, (
+                              objData,
+                            ) async {
+                              final timeExp = DateFormat(
+                                "yyyy-MM-dd hh:mm:ss a",
+                              ).parse(objData["otp_exp_dt"].toString());
+
+                              final otpExpiry = DateTime(
+                                timeExp.year,
+                                timeExp.month,
+                                timeExp.day,
+                                timeExp.hour,
+                                timeExp.minute,
+                                timeExp.second,
+                              );
+
+                              final difference = otpExpiry.difference(
+                                timeNow,
+                              );
+
+                              if (objData["success"] == "Y" ||
+                                  objData["status"] == "PENDING") {
+                                final putParam = <String, String>{
+                                  "mobile_no": uData["mobile_no"].toString(),
+                                  "otp": objData["otp"].toString(),
+                                  "req_type": "SR",
+                                };
+
+                                final args = {
+                                  "time_duration": difference,
+                                  "mobile_no": uData["mobile_no"].toString(),
+                                  "req_otp_param": requestParam,
+                                  "verify_param": putParam,
+                                  "callback": (otp) async {
+                                    if (otp != null) {
+                                      await payMerchantVerify();
+                                    }
+                                  },
+                                };
+
+                                Get.to(
+                                  OtpFieldScreen(arguments: args),
+                                  transition: Transition.rightToLeftWithFade,
+                                  duration: const Duration(milliseconds: 400),
+                                );
                               }
-
-                              // OTP path
-                              CustomDialogStack.showLoading(Get.context!);
-                              final timeNow = await Functions.getTimeNow();
-                              final requestParam = <String, String>{
-                                "mobile_no": data["mobile_no"],
-                                "pwd": data["pwd"],
-                              };
-                              Get.back();
-
-                              Functions().requestOtp(requestParam, (
-                                objData,
-                              ) async {
-                                final timeExp = DateFormat(
-                                  "yyyy-MM-dd hh:mm:ss a",
-                                ).parse(objData["otp_exp_dt"].toString());
-
-                                final otpExpiry = DateTime(
-                                  timeExp.year,
-                                  timeExp.month,
-                                  timeExp.day,
-                                  timeExp.hour,
-                                  timeExp.minute,
-                                  timeExp.second,
-                                );
-
-                                final difference = otpExpiry.difference(
-                                  timeNow,
-                                );
-
-                                if (objData["success"] == "Y" ||
-                                    objData["status"] == "PENDING") {
-                                  final putParam = <String, String>{
-                                    "mobile_no": uData["mobile_no"].toString(),
-                                    "otp": objData["otp"].toString(),
-                                    "req_type": "SR",
-                                  };
-
-                                  final args = {
-                                    "time_duration": difference,
-                                    "mobile_no": uData["mobile_no"].toString(),
-                                    "req_otp_param": requestParam,
-                                    "verify_param": putParam,
-                                    "callback": (otp) async {
-                                      if (otp != null) {
-                                        await payMerchantVerify();
-                                      }
-                                    },
-                                  };
-
-                                  Get.to(
-                                    OtpFieldScreen(arguments: args),
-                                    transition: Transition.rightToLeftWithFade,
-                                    duration: const Duration(milliseconds: 400),
-                                  );
-                                }
-                              });
-                            },
-                          ),
-
-                          spacing(height: 24),
-                          _hintCard(context, cs, borderOpacity),
-                          spacing(height: 20),
-                        ],
-                      ),
+                            });
+                          },
+                        ),
+                        spacing(height: 24),
+                        _hintCard(context, cs, borderOpacity),
+                        spacing(height: 20),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
     );
   }
 

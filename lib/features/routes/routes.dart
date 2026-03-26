@@ -36,7 +36,7 @@ class Routes {
   static const helpfeedback = "/help_feedback";
   static const lockScreen = "/lock_screen";
   static const send = "/send_screen_send";
-  static const billers = "/billers";
+  // static const billers = "/billers";
   static const myQR = "/myQR";
   static const merchantQR = "/merchantQR";
   static const paywithQR = "/paywithQR";
@@ -44,7 +44,6 @@ class Routes {
   static const merchantReceipt = "/merchantReceipt";
   static const merchant = "/merchant";
   static const otpField = "/otp_field";
-  static const billsPayment = "/bills_payment";
   static const dashboard = "/dashboard";
   static const securitySettings = "/security_settings";
   static const subwallet = "/subwallet";

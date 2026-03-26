@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' as dtTime;
-import 'package:luvpay/shared/widgets/no_internet.dart';
+import 'package:luvpay/shared/widgets/luvpay_conn.dart';
 import 'package:luvpay/shared/widgets/spacing.dart' show spacing;
 import 'package:pinput/pinput.dart';
 
@@ -356,207 +356,202 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       backgroundColor: cs.surface,
       useNormalBody: true,
       enableToolBar: true,
-      scaffoldBody:
-          isLoading
-              ? LoadingCard()
-              : !isNetConn
-              ? NoInternetConnected(onTap: getOtpRequest)
+      scaffoldBody: isLoading
+          ? LoadingCard()
+          : !isNetConn
+              ? ConnectionInterruption(onPressed: getOtpRequest)
               : ScrollConfiguration(
-                behavior: ScrollBehavior().copyWith(overscroll: false),
-                child: StretchingOverscrollIndicator(
-                  axisDirection: AxisDirection.down,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        spacing(height: 18),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Center(
-                              child: Container(
-                                height: 92,
-                                width: 92,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: cs.surface,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      blurRadius: 18,
-                                      offset: Offset(0, 10),
-                                      color: cs.shadow.withOpacity(
-                                        isDark ? 0.35 : 0.10,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.verified_user_rounded,
-                                    size: 46,
-                                    color: brand,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            spacing(height: 14),
-                            Center(
-                              child: LuvpayText(
-                                text: "OTP Verification",
-                                style: AppTextStyle.h2(context),
-                                height: 28 / 24,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            RichText(
-                              textAlign: TextAlign.center,
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text:
-                                        "We have sent an OTP to your registered\nmobile number",
-                                    style: GoogleFonts.openSans(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
-                                      height: 18 / 14,
-                                      color: cs.onSurfaceVariant,
-                                    ),
-                                    children: <TextSpan>[
-                                      TextSpan(
-                                        text:
-                                            " +${widget.arguments["mobile_no"].toString()}",
-                                        style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.w800,
-                                          color: brand,
-                                          fontSize: 14,
-                                          height: 18 / 14,
+                  behavior: ScrollBehavior().copyWith(overscroll: false),
+                  child: StretchingOverscrollIndicator(
+                    axisDirection: AxisDirection.down,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          spacing(height: 18),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Center(
+                                child: Container(
+                                  height: 92,
+                                  width: 92,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: cs.surface,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 18,
+                                        offset: Offset(0, 10),
+                                        color: cs.shadow.withOpacity(
+                                          isDark ? 0.35 : 0.10,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        spacing(height: 26),
-                        Center(
-                          child: Directionality(
-                            textDirection: TextDirection.ltr,
-                            child: Pinput(
-                              length: 6,
-                              controller: pinController,
-                              autofocus: true,
-                              showCursor: true,
-                              closeKeyboardWhenCompleted: false,
-                              smsRetriever: null,
-                              autofillHints: const [],
-                              keyboardType: TextInputType.number,
-                              textInputAction: TextInputAction.done,
-                              defaultPinTheme: getDefaultPinTheme(
-                                borderColor: borderColor,
-                                textColor: textColor,
-                              ),
-                              hapticFeedbackType:
-                                  HapticFeedbackType.lightImpact,
-                              onChanged: (value) => onInputChanged(value),
-                              onCompleted: (pin) => onInputChanged(pin),
-                              focusedPinTheme: getDefaultPinTheme(
-                                borderColor: brand,
-                                textColor: textColor,
-                              ).copyWith(
-                                decoration: getDefaultPinTheme(
-                                  borderColor: brand,
-                                  textColor: textColor,
-                                ).decoration!.copyWith(
-                                  border: Border.all(color: brand, width: 2),
-                                ),
-                              ),
-                              errorPinTheme: getDefaultPinTheme(
-                                borderColor: danger,
-                                textColor: danger,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const VerticalHeight(height: 26),
-                        CustomButton(
-                          isInactive:
-                              pinController.text.isEmpty ||
-                              pinController.text.length != 6,
-                          text: "Verify",
-                          onPressed: verifyAccount,
-                        ),
-                        spacing(height: 34),
-                        Center(
-                          child: LuvpayText(
-                            text: "Didn’t receive any code?",
-                            style: AppTextStyle.paragraph2(context),
-                            color: cs.onSurface,
-                          ),
-                        ),
-                        spacing(height: 6),
-                        Center(
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(14),
-                            onTap:
-                                paramOtpExp.inSeconds <= 0
-                                    ? () {
-                                      restartTimer();
-                                      pinController.clear();
-                                    }
-                                    : null,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(14),
-                                color: cs.surface,
-                                border: Border.all(
-                                  color: stroke.withOpacity(0.01),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 10,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.refresh_rounded,
-                                      size: 18,
-                                      color:
-                                          paramOtpExp.inSeconds <= 0
-                                              ? brand
-                                              : brand.withOpacity(0.55),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.verified_user_rounded,
+                                      size: 46,
+                                      color: brand,
                                     ),
-                                    SizedBox(width: 8),
-                                    LuvpayText(
+                                  ),
+                                ),
+                              ),
+                              spacing(height: 14),
+                              Center(
+                                child: LuvpayText(
+                                  text: "OTP Verification",
+                                  style: AppTextStyle.h2(context),
+                                  height: 28 / 24,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
                                       text:
-                                          paramOtpExp.inSeconds <= 0
-                                              ? "Resend OTP"
-                                              : "Resend in ${formatDuration(paramOtpExp)}",
-                                      color:
-                                          paramOtpExp.inSeconds <= 0
-                                              ? brand
-                                              : brand.withOpacity(0.65),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
+                                          "We have sent an OTP to your registered\nmobile number",
+                                      style: GoogleFonts.openSans(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                        height: 18 / 14,
+                                        color: cs.onSurfaceVariant,
+                                      ),
+                                      children: <TextSpan>[
+                                        TextSpan(
+                                          text:
+                                              " +${widget.arguments["mobile_no"].toString()}",
+                                          style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.w800,
+                                            color: brand,
+                                            fontSize: 14,
+                                            height: 18 / 14,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
+                            ],
+                          ),
+                          spacing(height: 26),
+                          Center(
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: Pinput(
+                                length: 6,
+                                controller: pinController,
+                                autofocus: true,
+                                showCursor: true,
+                                closeKeyboardWhenCompleted: false,
+                                smsRetriever: null,
+                                autofillHints: const [],
+                                keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.done,
+                                defaultPinTheme: getDefaultPinTheme(
+                                  borderColor: borderColor,
+                                  textColor: textColor,
+                                ),
+                                hapticFeedbackType:
+                                    HapticFeedbackType.lightImpact,
+                                onChanged: (value) => onInputChanged(value),
+                                onCompleted: (pin) => onInputChanged(pin),
+                                focusedPinTheme: getDefaultPinTheme(
+                                  borderColor: brand,
+                                  textColor: textColor,
+                                ).copyWith(
+                                  decoration: getDefaultPinTheme(
+                                    borderColor: brand,
+                                    textColor: textColor,
+                                  ).decoration!.copyWith(
+                                        border:
+                                            Border.all(color: brand, width: 2),
+                                      ),
+                                ),
+                                errorPinTheme: getDefaultPinTheme(
+                                  borderColor: danger,
+                                  textColor: danger,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                        spacing(height: 34),
-                      ],
+                          const VerticalHeight(height: 26),
+                          CustomButton(
+                            isInactive: pinController.text.isEmpty ||
+                                pinController.text.length != 6,
+                            text: "Verify",
+                            onPressed: verifyAccount,
+                          ),
+                          spacing(height: 34),
+                          Center(
+                            child: LuvpayText(
+                              text: "Didn’t receive any code?",
+                              style: AppTextStyle.paragraph2(context),
+                              color: cs.onSurface,
+                            ),
+                          ),
+                          spacing(height: 6),
+                          Center(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: paramOtpExp.inSeconds <= 0
+                                  ? () {
+                                      restartTimer();
+                                      pinController.clear();
+                                    }
+                                  : null,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  color: cs.surface,
+                                  border: Border.all(
+                                    color: stroke.withOpacity(0.01),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 10,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.refresh_rounded,
+                                        size: 18,
+                                        color: paramOtpExp.inSeconds <= 0
+                                            ? brand
+                                            : brand.withOpacity(0.55),
+                                      ),
+                                      SizedBox(width: 8),
+                                      LuvpayText(
+                                        text: paramOtpExp.inSeconds <= 0
+                                            ? "Resend OTP"
+                                            : "Resend in ${formatDuration(paramOtpExp)}",
+                                        color: paramOtpExp.inSeconds <= 0
+                                            ? brand
+                                            : brand.withOpacity(0.65),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          spacing(height: 34),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
     );
   }
 }

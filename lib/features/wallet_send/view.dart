@@ -20,8 +20,8 @@ import '../../shared/widgets/luvpay_loading.dart';
 import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/neumorphism.dart';
 import '../../shared/widgets/variables.dart';
-import '../billers/utils/allbillers.dart';
-import 'controller.dart' hide CustomMobileNumber;
+import '../biller_screen/allbillers.dart';
+import 'controller.dart';
 
 class WalletSend extends GetView<WalletSendController> {
   const WalletSend({super.key});
@@ -55,159 +55,155 @@ class WalletSend extends GetView<WalletSendController> {
 
     return ScrollConfiguration(
       behavior: ScrollBehavior().copyWith(overscroll: false),
-      child:
-          controller.isLoading.value
-              ? Center(child: LoadingCard())
-              : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Form(
-                      key: controller.formKeySend,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 14),
-                          UserDetails(isEdit: false),
-                          const SizedBox(height: 14),
-                          Obx(() {
-                            final recipientReady =
-                                controller.recipientData.isNotEmpty &&
-                                controller.isValidUser.value == true &&
-                                controller.recipientData[0]["mobile_no"] !=
-                                    null;
+      child: controller.isLoading.value
+          ? Center(child: LoadingCard())
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Form(
+                    key: controller.formKeySend,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 14),
+                        UserDetails(isEdit: false),
+                        const SizedBox(height: 14),
+                        Obx(() {
+                          final recipientReady = controller
+                                  .recipientData.isNotEmpty &&
+                              controller.isValidUser.value == true &&
+                              controller.recipientData[0]["mobile_no"] != null;
 
-                            if (!recipientReady) return const SizedBox.shrink();
+                          if (!recipientReady) return const SizedBox.shrink();
 
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                LuvpayText(text: "Amount", color: onSurface),
-                                CustomTextField(
-                                  hintText: "Enter amount",
-                                  controller: controller.tokenAmount,
-                                  inputFormatters: [
-                                    AutoDecimalInputFormatter(),
-                                  ],
-                                  keyboardType:
-                                      Platform.isAndroid
-                                          ? TextInputType.number
-                                          : const TextInputType.numberWithOptions(
-                                            signed: true,
-                                            decimal: false,
-                                          ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return "Amount is required";
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              LuvpayText(text: "Amount", color: onSurface),
+                              CustomTextField(
+                                hintText: "Enter amount",
+                                controller: controller.tokenAmount,
+                                inputFormatters: [
+                                  AutoDecimalInputFormatter(),
+                                ],
+                                keyboardType: Platform.isAndroid
+                                    ? TextInputType.number
+                                    : const TextInputType.numberWithOptions(
+                                        signed: true,
+                                        decimal: false,
+                                      ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Amount is required";
+                                  }
+
+                                  double parsedValue;
+                                  try {
+                                    parsedValue = double.parse(value);
+                                  } catch (_) {
+                                    return "Invalid amount";
+                                  }
+
+                                  double availableBalance;
+                                  try {
+                                    availableBalance = double.parse(
+                                      controller.userData.isEmpty
+                                          ? "0.0"
+                                          : controller.userData[0]["amount_bal"]
+                                              .toString(),
+                                    );
+                                  } catch (_) {
+                                    return "Error retrieving balance";
+                                  }
+
+                                  if (parsedValue < 10) {
+                                    return "Amount can’t be less than 10";
+                                  }
+                                  if (parsedValue > availableBalance) {
+                                    return "You don't have enough balance to proceed";
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  LuvpayText(
+                                    text: "Description",
+                                    color: onSurface,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  LuvpayText(
+                                    text: "(Optional)",
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: onSurfaceVar.withOpacity(0.8),
+                                  ),
+                                ],
+                              ),
+                              CustomTextField(
+                                inputFormatters: [
+                                  LengthLimitingTextInputFormatter(30),
+                                ],
+                                maxLength: 30,
+                                controller: controller.message,
+                                maxLines: 5,
+                                minLines: 3,
+                              ),
+                              const SizedBox(height: 30),
+                              CustomButton(
+                                text: "Continue",
+                                btnColor: AppColorV2.lpBlueBrand,
+                                onPressed: () async {
+                                  if (controller.formKeySend.currentState!
+                                      .validate()) {
+                                    final item =
+                                        await Authentication().getUserData2();
+
+                                    if (controller.recipientData.isNotEmpty &&
+                                        item["mobile_no"].toString() ==
+                                            controller.recipientData[0]
+                                                    ["mobile_no"]
+                                                .toString()) {
+                                      controller.isValidUser.value = false;
+                                      return;
                                     }
 
-                                    double parsedValue;
-                                    try {
-                                      parsedValue = double.parse(value);
-                                    } catch (_) {
-                                      return "Invalid amount";
-                                    }
-
-                                    double availableBalance;
-                                    try {
-                                      availableBalance = double.parse(
-                                        controller.userData.isEmpty
-                                            ? "0.0"
-                                            : controller
-                                                .userData[0]["amount_bal"]
-                                                .toString(),
+                                    if (double.parse(
+                                          controller.userData.isEmpty
+                                              ? "0.0"
+                                              : controller.userData[0]
+                                                      ["amount_bal"]
+                                                  .toString(),
+                                        ) <
+                                        double.parse(
+                                          controller.tokenAmount.text
+                                              .toString()
+                                              .removeAllWhitespace,
+                                        )) {
+                                      CustomDialogStack.showSnackBar(
+                                        Get.context!,
+                                        "Insufficient balance.",
+                                        Colors.red,
+                                        () {},
                                       );
-                                    } catch (_) {
-                                      return "Error retrieving balance";
+                                      return;
                                     }
 
-                                    if (parsedValue < 10) {
-                                      return "Amount can’t be less than 10";
-                                    }
-                                    if (parsedValue > availableBalance) {
-                                      return "You don't have enough balance to proceed";
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 14),
-                                Row(
-                                  children: [
-                                    LuvpayText(
-                                      text: "Description",
-                                      color: onSurface,
-                                    ),
-                                    const SizedBox(width: 5),
-                                    LuvpayText(
-                                      text: "(Optional)",
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: onSurfaceVar.withOpacity(0.8),
-                                    ),
-                                  ],
-                                ),
-                                CustomTextField(
-                                  inputFormatters: [
-                                    LengthLimitingTextInputFormatter(30),
-                                  ],
-                                  maxLength: 30,
-                                  controller: controller.message,
-                                  maxLines: 5,
-                                  minLines: 3,
-                                ),
-                                const SizedBox(height: 30),
-                                CustomButton(
-                                  text: "Continue",
-                                  btnColor: AppColorV2.lpBlueBrand,
-                                  onPressed: () async {
-                                    if (controller.formKeySend.currentState!
-                                        .validate()) {
-                                      final item =
-                                          await Authentication().getUserData2();
-
-                                      if (controller.recipientData.isNotEmpty &&
-                                          item["mobile_no"].toString() ==
-                                              controller
-                                                  .recipientData[0]["mobile_no"]
-                                                  .toString()) {
-                                        controller.isValidUser.value = false;
-                                        return;
-                                      }
-
-                                      if (double.parse(
-                                            controller.userData.isEmpty
-                                                ? "0.0"
-                                                : controller
-                                                    .userData[0]["amount_bal"]
-                                                    .toString(),
-                                          ) <
-                                          double.parse(
-                                            controller.tokenAmount.text
-                                                .toString()
-                                                .removeAllWhitespace,
-                                          )) {
-                                        CustomDialogStack.showSnackBar(
-                                          Get.context!,
-                                          "Insufficient balance.",
-                                          Colors.red,
-                                          () {},
-                                        );
-                                        return;
-                                      }
-
-                                      await controller.proceedToOtp();
-                                    }
-                                  },
-                                ),
-                              ],
-                            );
-                          }),
-                        ],
-                      ),
+                                    await controller.proceedToOtp();
+                                  }
+                                },
+                              ),
+                            ],
+                          );
+                        }),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
     );
   }
 }
@@ -463,8 +459,8 @@ class _UserDetailsState extends State<UserDetails> {
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
                               itemCount: list.length,
-                              separatorBuilder:
-                                  (_, __) => const SizedBox(width: 10),
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 10),
                               itemBuilder: (context, i) {
                                 final item = list[i];
                                 final name = (item["name"] ?? "").toString();
@@ -473,10 +469,9 @@ class _UserDetailsState extends State<UserDetails> {
 
                                 final title =
                                     name.isEmpty ? "Recent recipient" : name;
-                                final subtitle =
-                                    mobile.startsWith("63")
-                                        ? "+$mobile"
-                                        : mobile;
+                                final subtitle = mobile.startsWith("63")
+                                    ? "+$mobile"
+                                    : mobile;
 
                                 return _chip(title, subtitle, () async {
                                   FocusManager.instance.primaryFocus?.unfocus();
@@ -562,8 +557,7 @@ class _UserDetailsState extends State<UserDetails> {
                           final loading = ct.isRecipientLookupLoading.value;
                           final valid = ct.isValidUser.value;
                           final name = ct.userName.value;
-                          final hasRecipient =
-                              ct.recipientData.isNotEmpty &&
+                          final hasRecipient = ct.recipientData.isNotEmpty &&
                               ct.recipientData[0]["mobile_no"] != null;
 
                           if (loading) {
@@ -617,11 +611,10 @@ class _UserDetailsState extends State<UserDetails> {
                           }
 
                           if (valid && hasRecipient) {
-                            final displayName =
-                                (name.isEmpty ||
-                                        name.toLowerCase().contains("unknown"))
-                                    ? "Verified account"
-                                    : name;
+                            final displayName = (name.isEmpty ||
+                                    name.toLowerCase().contains("unknown"))
+                                ? "Verified account"
+                                : name;
 
                             final isUnverified = displayName
                                 .toLowerCase()
@@ -634,10 +627,9 @@ class _UserDetailsState extends State<UserDetails> {
                                   Icon(
                                     Icons.verified_rounded,
                                     size: 16,
-                                    color:
-                                        isUnverified
-                                            ? cs.onSurfaceVariant
-                                            : AppColorV2.lpBlueBrand,
+                                    color: isUnverified
+                                        ? cs.onSurfaceVariant
+                                        : AppColorV2.lpBlueBrand,
                                   ),
                                   const SizedBox(width: 6),
                                   Expanded(
@@ -645,10 +637,9 @@ class _UserDetailsState extends State<UserDetails> {
                                       text: displayName,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
-                                      color:
-                                          isUnverified
-                                              ? cs.onSurfaceVariant
-                                              : AppColorV2.lpBlueBrand,
+                                      color: isUnverified
+                                          ? cs.onSurfaceVariant
+                                          : AppColorV2.lpBlueBrand,
                                       maxLines: 1,
                                     ),
                                   ),

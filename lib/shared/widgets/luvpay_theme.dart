@@ -68,14 +68,14 @@ class AppThemeV2 {
       scaffoldBackgroundColor: AppColorV2.background,
     );
 
-    final nunitoTextTheme = GoogleFonts.nunitoTextTheme(base.textTheme);
-    final nunitoPrimaryTextTheme = GoogleFonts.nunitoTextTheme(
+    final manropeTextTheme = GoogleFonts.manropeTextTheme(base.textTheme);
+    final manropePrimaryTextTheme = GoogleFonts.manropeTextTheme(
       base.primaryTextTheme,
     );
 
     return base.copyWith(
-      textTheme: nunitoTextTheme,
-      primaryTextTheme: nunitoPrimaryTextTheme,
+      textTheme: manropeTextTheme,
+      primaryTextTheme: manropePrimaryTextTheme,
       dividerTheme: DividerThemeData(
         color: Colors.grey.shade300,
         thickness: 0.5,
@@ -99,14 +99,14 @@ class AppThemeV2 {
       scaffoldBackgroundColor: AppColorV2.darkBackground,
     );
 
-    final nunitoTextTheme = GoogleFonts.nunitoTextTheme(base.textTheme);
-    final nunitoPrimaryTextTheme = GoogleFonts.nunitoTextTheme(
+    final manropeTextTheme = GoogleFonts.manropeTextTheme(base.textTheme);
+    final manropePrimaryTextTheme = GoogleFonts.manropeTextTheme(
       base.primaryTextTheme,
     );
 
     return base.copyWith(
-      textTheme: nunitoTextTheme,
-      primaryTextTheme: nunitoPrimaryTextTheme,
+      textTheme: manropeTextTheme,
+      primaryTextTheme: manropePrimaryTextTheme,
       dividerTheme: DividerThemeData(
         color: AppColorV2.darkStroke,
         thickness: 0.5,
@@ -115,7 +115,7 @@ class AppThemeV2 {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColorV2.darkSurface2,
-        titleTextStyle: GoogleFonts.nunito(
+        titleTextStyle: GoogleFonts.manrope(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           height: 28 / 18,

@@ -29,7 +29,7 @@ class ScannerScreenV2 extends StatefulWidget {
   final VoidCallback? onScanStart;
   final bool isBack;
 
-  const ScannerScreenV2({
+  ScannerScreenV2({
     super.key,
     required this.onchanged,
     this.onScanStart,
@@ -47,6 +47,7 @@ class ScannerScreenV2 extends StatefulWidget {
 
 class _ScannerScreenV2State extends State<ScannerScreenV2>
     with SingleTickerProviderStateMixin {
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   final ImagePicker _picker = ImagePicker();
   bool isLoading = true;
   bool isScanning = false;
@@ -80,7 +81,7 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
       await checkCameraPermission();
       load();
     } catch (e) {
-      print("Scanner initialization error: $e");
+      debugPrint("Scanner initialization error: $e");
       setState(() {
         isLoading = false;
       });
@@ -96,7 +97,7 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         AppSettings.openAppSettings();
       }
     } catch (e) {
-      print("Permission error: $e");
+      debugPrint("Permission error: $e");
     }
   }
 
@@ -119,7 +120,7 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         }
       }
     } catch (e) {
-      print("Flash toggle error: $e");
+      debugPrint("Flash toggle error: $e");
     }
   }
 
@@ -144,7 +145,6 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         appBar: AppBar(
           elevation: 0,
           backgroundColor: AppColorV2.lpBlueBrand,
-
           title: Text(
             "QR Scanner",
             style: GoogleFonts.inter(
@@ -154,51 +154,44 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
             ),
           ),
           centerTitle: true,
-          leading:
-              widget.isBack
-                  ? Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: IconButton(
-                      onPressed: () => Get.back(),
-                      icon: Icon(
-                        CupertinoIcons.back,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                      splashColor: AppColorV2.lpBlueBrand.withAlpha(50),
-                    ),
-                  )
-                  : const SizedBox(),
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: IconButton(
+              onPressed: () => Get.back(),
+              icon: Icon(
+                CupertinoIcons.back,
+                color: Colors.white,
+                size: 24,
+              ),
+              splashColor: AppColorV2.lpBlueBrand.withAlpha(50),
+            ),
+          ),
           actions: [],
         ),
         body: Container(
           width: double.infinity,
           height: double.infinity,
           color: Colors.white,
-          child:
-              (isLoading || _animationController == null)
-                  ? _buildLoadingState()
-                  : Stack(
-                    children: [
-                      QRView(
-                        key: GlobalKey(debugLabel: 'QR'),
-                        onQRViewCreated: _onQRViewCreated,
-                        overlay: QrScannerOverlayShape(
-                          borderColor: AppColorV2.lpBlueBrand,
-                          borderRadius: 16,
-                          borderLength: 40,
-                          borderWidth: 6,
-                          cutOutSize: 280,
-                        ),
+          child: (isLoading || _animationController == null)
+              ? _buildLoadingState()
+              : Stack(
+                  children: [
+                    QRView(
+                      key: qrKey,
+                      onQRViewCreated: _onQRViewCreated,
+                      overlay: QrScannerOverlayShape(
+                        borderColor: AppColorV2.lpBlueBrand,
+                        borderRadius: 16,
+                        borderLength: 40,
+                        borderWidth: 6,
+                        cutOutSize: 280,
                       ),
-
-                      _buildAnimatedScanLine(),
-
-                      _buildInstructions(),
-
-                      _buildBottomControls(),
-                    ],
-                  ),
+                    ),
+                    _buildAnimatedScanLine(),
+                    _buildInstructions(),
+                    _buildBottomControls(),
+                  ],
+                ),
         ),
       ),
     );
@@ -351,7 +344,7 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         _handleScannedData(scanData);
       },
       onError: (error) {
-        print("QR Scan error: $error");
+        debugPrint("QR Scan error: $error");
       },
     );
   }
@@ -359,12 +352,16 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
   void _handleScannedData(Barcode scanData) async {
     if (isScanning || scanData.code == null || !mounted) return;
 
-    setState(() => isScanning = true);
+    setState(() {
+      isScanning = true;
+      isLoading = true;
+    });
 
     widget.onScanStart?.call();
 
     try {
       await controller?.pauseCamera();
+      await controller?.stopCamera();
     } catch (_) {}
 
     try {
@@ -432,7 +429,7 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         try {
           await File(pickedFile.path).delete();
         } catch (e) {
-          print("Error deleting temp file: $e");
+          debugPrint("Error deleting temp file: $e");
         }
       }
     } catch (e) {
@@ -463,22 +460,21 @@ class ScanLinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = color
-          ..strokeWidth = 2
-          ..shader = LinearGradient(
-            colors: [
-              color.withValues(alpha: 0.1),
-              color,
-              color.withValues(alpha: 0.1),
-            ],
-          ).createShader(
-            Rect.fromPoints(
-              Offset(0, size.height * scanPosition),
-              Offset(size.width, size.height * scanPosition + 2),
-            ),
-          );
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2
+      ..shader = LinearGradient(
+        colors: [
+          color.withValues(alpha: 0.1),
+          color,
+          color.withValues(alpha: 0.1),
+        ],
+      ).createShader(
+        Rect.fromPoints(
+          Offset(0, size.height * scanPosition),
+          Offset(size.width, size.height * scanPosition + 2),
+        ),
+      );
 
     canvas.drawLine(
       Offset(0, size.height * scanPosition),
@@ -486,10 +482,9 @@ class ScanLinePainter extends CustomPainter {
       paint,
     );
 
-    final glowPaint =
-        Paint()
-          ..color = color.withValues(alpha: 0.3)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
 
     canvas.drawLine(
       Offset(0, size.height * scanPosition),

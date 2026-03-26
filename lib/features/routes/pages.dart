@@ -3,7 +3,6 @@ import 'package:luvpay/features/helpcenter/index.dart';
 import 'package:luvpay/features/wallet_send/index.dart';
 import 'package:luvpay/shared/components/otp_field/index.dart';
 import 'package:luvpay/features/billers/index.dart';
-import 'package:luvpay/features/bills_payment/index.dart';
 import 'package:luvpay/features/faq/index.dart';
 import 'package:luvpay/features/forgot_password/index.dart';
 import 'package:luvpay/features/forgot_password/utils/create_new/index.dart';
@@ -33,24 +32,14 @@ class AppPages {
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
-
-    GetPage(
-      name: Routes.billers,
-      page: () => Billers(),
-      binding: BillersBinding(),
-      transition: Transition.rightToLeftWithFade,
-      transitionDuration: Duration(milliseconds: 300),
-      preventDuplicates: true,
-    ),
-    GetPage(
-      name: Routes.billsPayment,
-      page: () => const BillsPayment(),
-      binding: BillsPaymentBinding(),
-      transition: Transition.rightToLeftWithFade, // Smooth slide transition
-      transitionDuration: Duration(milliseconds: 300),
-      preventDuplicates: true,
-    ),
-
+    // GetPage(
+    //   name: Routes.billers,
+    //   page: () => Billers(),
+    //   binding: BillersBinding(),
+    //   transition: Transition.rightToLeftWithFade,
+    //   transitionDuration: Duration(milliseconds: 300),
+    //   preventDuplicates: true,
+    // ),
     GetPage(
       name: Routes.login,
       page: () => const LoginScreen(),
@@ -61,7 +50,6 @@ class AppPages {
         milliseconds: 300,
       ), // Speed of animation  preventDuplicates: true,
     ),
-
     GetPage(
       name: Routes.registration,
       page: () => const RegistrationPage(),
@@ -70,7 +58,6 @@ class AppPages {
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
-
     GetPage(
       name: Routes.splash,
       page: () => const SplashScreen(),
@@ -95,7 +82,6 @@ class AppPages {
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
-
     GetPage(
       name: Routes.otpField,
       page: () => const OtpFieldScreen(),
@@ -124,7 +110,6 @@ class AppPages {
       name: Routes.createNewPass,
       page: () => const CreateNewPassword(),
       binding: CreateNewPasswordBinding(),
-
       transition: Transition.rightToLeftWithFade,
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
@@ -169,7 +154,6 @@ class AppPages {
       transitionDuration: Duration(milliseconds: 300),
       preventDuplicates: true,
     ),
-
     GetPage(
       name: Routes.walletrechargeload,
       page: () => const WalletRechargeLoadScreen(),

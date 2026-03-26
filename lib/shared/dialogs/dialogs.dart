@@ -114,15 +114,18 @@ class CustomDialogStack {
                         maxLines: 1,
                       ),
                       const SizedBox(height: 5),
-                      AutoSizeText(
-                        subtitle,
-                        minFontSize: 12,
-                        textAlign: textAlign ?? TextAlign.center,
-                        style: GoogleFonts.manrope(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          height: 18 / 14,
-                          color: cs.onSurfaceVariant,
+                      SizedBox(
+                        width: double.infinity,
+                        child: AutoSizeText(
+                          subtitle,
+                          minFontSize: 12,
+                          textAlign: textAlign ?? TextAlign.center,
+                          style: GoogleFonts.manrope(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            height: 18 / 14,
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -133,18 +136,15 @@ class CustomDialogStack {
                               context: context,
                               text: leftText,
                               onPressed: leftButtonAction,
-                              fg:
-                                  !showRightButton
-                                      ? cs.onPrimary
-                                      : (leftTextColor ??
-                                          AppColorV2.lpBlueBrand),
-                              bg:
-                                  !showRightButton
-                                      ? AppColorV2.lpBlueBrand
-                                      : (leftBtnColor ??
-                                          AppColorV2.lpBlueBrand.withOpacity(
-                                            0.12,
-                                          )),
+                              fg: !showRightButton
+                                  ? cs.onPrimary
+                                  : (leftTextColor ?? AppColorV2.lpBlueBrand),
+                              bg: !showRightButton
+                                  ? AppColorV2.lpBlueBrand
+                                  : (leftBtnColor ??
+                                      AppColorV2.lpBlueBrand.withOpacity(
+                                        0.12,
+                                      )),
                             ),
                           ),
                           if (showRightButton) const SizedBox(width: 10),
@@ -154,17 +154,15 @@ class CustomDialogStack {
                                 context: context,
                                 text: rightText,
                                 onPressed: rightButtonAction!,
-                                fg:
-                                    isAllBlueColor
-                                        ? cs.onPrimary
-                                        : (rightTextColor ??
-                                            AppColorV2.incorrectState),
-                                bg:
-                                    isAllBlueColor
-                                        ? AppColorV2.lpBlueBrand
-                                        : (rightBtnColor ??
-                                            AppColorV2.incorrectState
-                                                .withOpacity(0.12)),
+                                fg: isAllBlueColor
+                                    ? cs.onPrimary
+                                    : (rightTextColor ??
+                                        AppColorV2.incorrectState),
+                                bg: isAllBlueColor
+                                    ? AppColorV2.lpBlueBrand
+                                    : (rightBtnColor ??
+                                        AppColorV2.incorrectState
+                                            .withOpacity(0.12)),
                               ),
                             ),
                         ],

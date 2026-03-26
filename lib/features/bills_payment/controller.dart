@@ -34,7 +34,6 @@ class BillsPaymentController extends GetxController {
     accName.text = arguments["account_name"];
     getUserBalance();
     super.onInit();
-    print("arguments : $arguments");
   }
 
   @override
@@ -197,7 +196,6 @@ class BillsPaymentController extends GetxController {
       Get.to(
         Scaffold(
           backgroundColor: AppColorV2.background,
-
           body: PayMerchant(data: itemData),
         ),
       );
@@ -230,43 +228,42 @@ class BillsPaymentController extends GetxController {
         HttpRequestApi(api: ApiKeys.postAddFavBiller, parameters: parameter)
             .postBody()
             .then((returnPost) async {
+          Get.back();
+          if (returnPost == "No Internet") {
+            CustomDialogStack.showConnectionLost(Get.context!, () {
               Get.back();
-              if (returnPost == "No Internet") {
-                CustomDialogStack.showConnectionLost(Get.context!, () {
-                  Get.back();
-                });
-                return {"response": returnPost, "data": []};
-              }
-              if (returnPost == null) {
-                CustomDialogStack.showServerError(Get.context!, () {
-                  Get.back();
-                });
-                return {"response": returnPost, "data": []};
-              }
-              if (returnPost["success"] == 'Y') {
-                CustomDialogStack.showSuccess(
-                  Get.context!,
-                  "Success",
-                  "Successfully added to favorites.",
-                  leftText: "Okay",
-                  () {
-                    Get.back();
-                  },
-                );
-              } else {
-                CustomDialogStack.showError(
-                  Get.context!,
-                  "luvpark",
-                  returnPost["msg"],
-                  () {
-                    Get.back();
-                  },
-                );
-              }
-            })
-            .whenComplete(() {
-              Future.delayed(const Duration(seconds: 2), () {});
             });
+            return {"response": returnPost, "data": []};
+          }
+          if (returnPost == null) {
+            CustomDialogStack.showServerError(Get.context!, () {
+              Get.back();
+            });
+            return {"response": returnPost, "data": []};
+          }
+          if (returnPost["success"] == 'Y') {
+            CustomDialogStack.showSuccess(
+              Get.context!,
+              "Success",
+              "Successfully added to favorites.",
+              leftText: "Okay",
+              () {
+                Get.back();
+              },
+            );
+          } else {
+            CustomDialogStack.showError(
+              Get.context!,
+              "luvpark",
+              returnPost["msg"],
+              () {
+                Get.back();
+              },
+            );
+          }
+        }).whenComplete(() {
+          Future.delayed(const Duration(seconds: 2), () {});
+        });
       },
     );
   }
@@ -280,22 +277,22 @@ class BillsPaymentController extends GetxController {
     ScreenshotController()
         .captureFromWidget(ddWidget, delay: const Duration(seconds: 3))
         .then((image) async {
-          final dir = await getApplicationDocumentsDirectory();
-          final imagePath = await File('${dir.path}/$fname').create();
-          await imagePath.writeAsBytes(image);
-          GallerySaver.saveImage(imagePath.path).then((result) {
+      final dir = await getApplicationDocumentsDirectory();
+      final imagePath = await File('${dir.path}/$fname').create();
+      await imagePath.writeAsBytes(image);
+      GallerySaver.saveImage(imagePath.path).then((result) {
+        Get.back();
+        CustomDialogStack.showSuccess(
+          Get.context!,
+          "Success",
+          "Receipt has been saved. Please check your gallery.",
+          leftText: "Okay",
+          () {
             Get.back();
-            CustomDialogStack.showSuccess(
-              Get.context!,
-              "Success",
-              "Receipt has been saved. Please check your gallery.",
-              leftText: "Okay",
-              () {
-                Get.back();
-              },
-            );
-          });
-        });
+          },
+        );
+      });
+    });
   }
 
   double get walletBalance {

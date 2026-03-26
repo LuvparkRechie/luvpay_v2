@@ -2,6 +2,7 @@
 
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/shared/widgets/longprint.dart';
 import '../../auth/authentication.dart';
@@ -49,7 +50,7 @@ class SubWalletController extends GetxController
         getUserSubWallets(),
       ]);
     } catch (e) {
-      print('Error refreshing data: $e');
+      debugPrint('Error refreshing data: $e');
     } finally {
       isLoading.value = false;
     }
@@ -105,12 +106,10 @@ class SubWalletController extends GetxController
           });
         }
         userSubWallets.sort((a, b) {
-          final aDate =
-              DateTime.tryParse(a['created_on'] ?? '') ??
+          final aDate = DateTime.tryParse(a['created_on'] ?? '') ??
               DateTime.fromMillisecondsSinceEpoch(0);
 
-          final bDate =
-              DateTime.tryParse(b['created_on'] ?? '') ??
+          final bDate = DateTime.tryParse(b['created_on'] ?? '') ??
               DateTime.fromMillisecondsSinceEpoch(0);
 
           return bDate.compareTo(aDate);
@@ -121,7 +120,7 @@ class SubWalletController extends GetxController
 
       update();
     } catch (e) {
-      print('Error fetching user subwallets: $e');
+      debugPrint('Error fetching user subwallets: $e');
       if (Get.context != null) {
         CustomDialogStack.showError(
           Get.context!,
@@ -170,7 +169,6 @@ class SubWalletController extends GetxController
         return {"success": false, "error": retValue["msg"]};
       }
     } catch (e) {
-      print(e);
       return {
         "success": false,
         "error": "An error occurred while creating wallet",
@@ -206,12 +204,13 @@ class SubWalletController extends GetxController
       }
 
       if (res["success"] == "Y") {
+        await getUserSubWallets();
         return {"success": true, "message": res["msg"]};
       } else {
         return {"success": false, "error": res["msg"]};
       }
     } catch (e) {
-      print('Error editing subwallet: $e');
+      debugPrint('Error editing subwallet: $e');
       return {
         "success": false,
         "error": "An error occurred while editing wallet",
@@ -247,11 +246,10 @@ class SubWalletController extends GetxController
 
       isLoading.value = true;
 
-      final res =
-          await HttpRequestApi(
-            api: ApiKeys.subwalletTransfer,
-            parameters: params,
-          ).postBody();
+      final res = await HttpRequestApi(
+        api: ApiKeys.subwalletTransfer,
+        parameters: params,
+      ).postBody();
 
       if (res == "No Internet") {
         hasNet.value = false;
@@ -291,7 +289,7 @@ class SubWalletController extends GetxController
         "message": msg.isNotEmpty ? msg : "Success",
       };
     } catch (e) {
-      print("transferSubWallet error: $e");
+      debugPrint("transferSubWallet error: $e");
       return {
         "success": false,
         "code": "EXCEPTION",
@@ -373,7 +371,7 @@ class SubWalletController extends GetxController
 
       update();
     } catch (e) {
-      print('Error fetching LuvPay balance: $e');
+      debugPrint('Error fetching LuvPay balance: $e');
     }
   }
 
@@ -456,7 +454,7 @@ class SubWalletController extends GetxController
     } catch (e) {
       if (Get.isDialogOpen == true) Get.back();
 
-      print('Error deleting subwallet: $e');
+      debugPrint('Error deleting subwallet: $e');
       return {
         "success": false,
         "error": "An error occurred while deleting wallet",
@@ -502,8 +500,7 @@ class SubWalletController extends GetxController
           id: map["wallet_transfer_id"]?.toString() ?? '',
           description: desc,
           amount: rawAmount,
-          date:
-              DateTime.tryParse(map["transfer_date"]?.toString() ?? '') ??
+          date: DateTime.tryParse(map["transfer_date"]?.toString() ?? '') ??
               DateTime.now(),
           isIncome: isIncome,
           raw: map,

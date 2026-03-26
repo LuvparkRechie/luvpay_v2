@@ -75,51 +75,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return const SubWalletScreen();
 
       case 2:
-        return ScannerScreenV2(
-          isBack: false,
-          onScanStart: () {},
-          onchanged: (args) async {
-            if (_scanHandled) return;
-
-            final raw = args.trim();
-            if (raw.isEmpty) return;
-
-            _scanHandled = true;
-
-            try {
-              final normalized = normalizePhMobile(raw);
-
-              if (isValidPhMobile(normalized)) {
-                controller.changePage(0);
-                Get.toNamed(
-                  Routes.send,
-                  arguments: {"mobile": normalized, "source": "qr_scan"},
-                );
-                return;
-              }
-
-              await getService(raw);
-            } catch (e) {
-              debugPrint("Dashboard scan error: $e");
-              CustomDialogStack.showError(
-                Get.context!,
-                "Scan Error",
-                "Something went wrong. Please try again.",
-                () => Get.back(),
-              );
-            } finally {
-              Future.delayed(const Duration(milliseconds: 1200), () {
-                _scanHandled = false;
-              });
-            }
-          },
+        return Scaffold(
+          body: SizedBox.shrink(),
         );
 
       case 3:
         return const WalletNotifications(fromTab: true);
 
       case 4:
-        return ProfileSettingsScreen();
+        return ProfileSettingsScreen(
+          fromBuildHeader: false,
+        );
 
       default:
         return const SizedBox();
@@ -139,7 +105,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final apiBill = "${ApiKeys.postPayBills}?biller_key=$args";
       final billerResponse = await getScannedQr(apiBill);
-
+      Get.back();
       if (billerResponse == "No Internet") {
         _handleScanError(
           "Error",
@@ -152,15 +118,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           (billerResponse is Map) ? billerResponse["items"] : null;
       if (billerItems is List && billerItems.isNotEmpty) {
         _safeCloseLoading();
-        Get.to(
+        Get.back();
+        final resBill = await Get.to(
           BillerScreen(data: billerItems, paymentHk: await getpaymentHK()),
         );
+
+        controller.changePage(0);
+        debugPrint("resBill : $resBill");
         return;
       }
 
       final apiMerchant = "${ApiKeys.getMerchantScan}?merchant_key=$args";
       final merchantResponse = await getScannedQr(apiMerchant);
-
       if (merchantResponse == "No Internet") {
         _handleScanError(
           "Error",
@@ -169,15 +138,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return;
       }
 
-      final merchantItems =
-          (merchantResponse is Map) ? merchantResponse["items"] : null;
-      if (merchantItems is List && merchantItems.isNotEmpty) {
+      if (merchantResponse != null) {
         _safeCloseLoading();
         Get.to(
           PayMerchant(
             data: [
               {
-                "data": merchantItems[0],
+                "data": merchantResponse["items"][0],
                 "merchant_key": args,
                 "payment_key": await getpaymentHK(),
               },
@@ -192,6 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         "This QR code is not registered in the system.",
       );
     } catch (e) {
+      Get.back();
       debugPrint("getService error: $e");
       _handleScanError("Scan Error", "Something went wrong. Please try again.");
     } finally {
@@ -247,11 +215,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
           .copyWith(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness:
-                isDark ? Brightness.light : Brightness.dark,
-            statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-          ),
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      ),
       child: PopScope(
         canPop: false,
         onPopInvokedWithResult: (bool didPop, dynamic result) {
@@ -348,7 +315,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   inactiveIconData: Icons.qr_code_outlined,
                   active: i == 2,
                   inactiveColor: inactiveColor,
-                  onTap: () => controller.changePage(2),
+                  onTap: () {
+                    Get.to(ScannerScreenV2(
+                      isBack: true,
+                      onScanStart: () {},
+                      onchanged: (args) async {
+                        if (_scanHandled) return;
+
+                        final raw = args.trim();
+                        if (raw.isEmpty) return;
+
+                        _scanHandled = true;
+
+                        try {
+                          final normalized = normalizePhMobile(raw);
+
+                          if (isValidPhMobile(normalized)) {
+                            Get.back();
+                            await Get.toNamed(
+                              Routes.send,
+                              arguments: {
+                                "mobile": normalized,
+                                "source": "qr_scan"
+                              },
+                            );
+
+                            return;
+                          }
+
+                          await getService(raw);
+                        } catch (e) {
+                          debugPrint("Dashboard scan error: $e");
+                          CustomDialogStack.showError(
+                            Get.context!,
+                            "Scan Error",
+                            "Something went wrong. Please try again.",
+                            () => Get.back(),
+                          );
+                        } finally {
+                          Future.delayed(const Duration(milliseconds: 1200),
+                              () {
+                            _scanHandled = false;
+                          });
+                        }
+                      },
+                    ));
+                  },
                 ),
               ),
               Expanded(

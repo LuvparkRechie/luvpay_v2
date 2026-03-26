@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ntp_dart/ntp_dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -152,8 +153,7 @@ class TamperGuard {
 
       await prefs.setInt(_kPrefLastTrustedEpochMs, nowEpoch);
     } catch (e, stack) {
-      print("TamperGuard error: $e");
-      print(stack);
+      debugPrint("TamperGuard error: $e");
     } finally {
       _running = false;
     }

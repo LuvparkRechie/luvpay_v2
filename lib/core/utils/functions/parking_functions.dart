@@ -54,8 +54,7 @@ class ParkingFunctions {
 
     final countDown = timeLapse.difference(now).inSeconds;
 
-    bool gabby =
-        ((countDown ~/ 60) + (countDown % 60 > 0 ? 1 : 0)) <=
+    bool gabby = ((countDown ~/ 60) + (countDown % 60 > 0 ? 1 : 0)) <=
             minsCanIssueTicket() &&
         now.isBefore(timeLapse);
 
@@ -144,16 +143,14 @@ class ParkingFunctions {
         overnightAmt = subscriptionAmt;
       }
 
-      overnightAmt +=
-          (isAllowOverNight()
+      overnightAmt += (isAllowOverNight()
               ? noNights >= 0
                   ? noNights
                   : 0
               : 0) *
           parkRatesData.overnightRate;
 
-      _no_hours =
-          parkingTimeData.regularHours +
+      _no_hours = parkingTimeData.regularHours +
           (!isAllowOverNight() || parkingTimeData.overnightTime.isNotEmpty
               ? parkingTimeData.overnightHours
               : 0);
@@ -165,8 +162,7 @@ class ParkingFunctions {
         regAmt = subscriptionType == 'E' ? subscriptionAmt : 0;
 
         regAmt += calculateRegAmt(
-          noHours:
-              _no_hours -
+          noHours: _no_hours -
               (subscriptionType == 'E' ? parkingTimeData.firstDayRegHrs : 0),
           baseHours: parkRatesData.baseHours,
           noOfDays:
@@ -191,19 +187,18 @@ class ParkingFunctions {
       voucherAmt: voucherAmt,
     );
 
-    final theLastMsg =
-        is24Hrs()
-            ? parkRatesData.succeedingRate == 0
-                ? 'A parking rate of ${parkRatesData.baseRate.toStringAsFixed(2)} applies for every ${parkRatesData.baseHours} hour(s). Note: any fraction of the base hour will be charged as a full hour.'
-                : 'A succeeding rate of ${parkRatesData.succeedingRate.toStringAsFixed(2)} will start after ${DateFormat('h:mm a').format(timeOut).toString()}, ${DateFormat('MMM dd yyyy').format(timeOut)}.'
-            : (parkingCountdownData.todayCloseTime.isAtSameMomentAs(timeOut) ||
+    final theLastMsg = is24Hrs()
+        ? parkRatesData.succeedingRate == 0
+            ? 'A parking rate of ${parkRatesData.baseRate.toStringAsFixed(2)} applies for every ${parkRatesData.baseHours} hour(s). Note: any fraction of the base hour will be charged as a full hour.'
+            : 'A succeeding rate of ${parkRatesData.succeedingRate.toStringAsFixed(2)} will start after ${DateFormat('h:mm a').format(timeOut).toString()}, ${DateFormat('MMM dd yyyy').format(timeOut)}.'
+        : (parkingCountdownData.todayCloseTime.isAtSameMomentAs(timeOut) ||
                     subscriptionType == 'E') &&
                 !(parkingCountdownData.isOvernight &&
                     parkingCountdownData.isAllowOvernight)
             ? 'An overnight rate of ${parkRatesData.overnightRate.toStringAsFixed(2)} will be charged after ${DateFormat('h:mm a').format(parkingCountdownData.todayCloseTime)}, ${DateFormat('MMM dd yyyy').format(parkingCountdownData.todayCloseTime)}.'
             : parkRatesData.succeedingRate == 0
-            ? 'A parking rate of ${parkRatesData.baseRate.toStringAsFixed(2)} will apply starting from the opening time.'
-            : 'A succeeding rate of ${parkRatesData.succeedingRate.toStringAsFixed(2)} will start after ${DateFormat('h:mm a').format(timeOut).toString()}, ${DateFormat('MMM dd yyyy').format(timeOut)}.';
+                ? 'A parking rate of ${parkRatesData.baseRate.toStringAsFixed(2)} will apply starting from the opening time.'
+                : 'A succeeding rate of ${parkRatesData.succeedingRate.toStringAsFixed(2)} will start after ${DateFormat('h:mm a').format(timeOut).toString()}, ${DateFormat('MMM dd yyyy').format(timeOut)}.';
 
     return TicketData(
       dateIn: timeIn.toString().split('.')[0],
@@ -245,8 +240,7 @@ class ParkingFunctions {
 
     final baseRateAmt = baseRate * (noOfDays >= 0 ? noOfDays : 0);
 
-    final _succeedingRate =
-        ((_succedingHr ~/ succeedingHours) +
+    final _succeedingRate = ((_succedingHr ~/ succeedingHours) +
             (_succedingHr % succeedingHours > 0 ? 1 : 0)) *
         succeedingRate;
 
@@ -261,8 +255,7 @@ class ParkingFunctions {
       regAmt = baseRate;
 
       if (_succeedingRate > 0) {
-        regAmt +=
-            ((resHrs ~/ succeedingHours) +
+        regAmt += ((resHrs ~/ succeedingHours) +
                 (resHrs % succeedingHours > 0 ? 1 : 0)) *
             succeedingRate;
       } else {
@@ -333,14 +326,13 @@ class ParkingFunctions {
         '${numHour <= 0 && numSecs >= 0 && numMins > 0 ? ' & ' : ''}'
         '${numHour <= 0 && numSecs >= 0 ? '$numSecs sec${numSecs > 1 ? 's' : ''}' : ''}';
 
-    final trailingText =
-        is24Hrs()
-            ? 'Open 24 hours a day'
-            : isOverNight && isAllowOverNight()
+    final trailingText = is24Hrs()
+        ? 'Open 24 hours a day'
+        : isOverNight && isAllowOverNight()
             ? 'Remaining overnight parking: $trailingString'
             : isOverNight && !isAllowOverNight()
-            ? 'Remaining time until parking opens: $trailingString'
-            : 'Remaining regular parking: $trailingString';
+                ? 'Remaining time until parking opens: $trailingString'
+                : 'Remaining regular parking: $trailingString';
 
     return ParkingCountdownData(
       now: bookingTime,
@@ -381,8 +373,8 @@ class ParkingFunctions {
     while (current.isBefore(end)) {
       final List<String> regStartTimeParts = openTime().split(':');
       final List<String> regEndTimeParts = closedTime().split(':');
-      final List<String> overNightTimeParts = (overnightTime() ?? '00:00')
-          .split(':');
+      final List<String> overNightTimeParts =
+          (overnightTime() ?? '00:00').split(':');
 
       final DateTime onTime = DateTime(
         current.year,
@@ -425,14 +417,14 @@ class ParkingFunctions {
           (regular.inMinutes < 0 ? 0 : regular.inMinutes % 60) >= grace
               ? (regular.inHours < 0 ? 0 : regular.inHours) +
                   (isBeforeClosing(
-                        time: regularEffectiveStart,
-                        timeStart: closedTime(),
-                      )
+                    time: regularEffectiveStart,
+                    timeStart: closedTime(),
+                  )
                       ? 0
                       : 1)
               : regular.inHours < 0
-              ? 0
-              : regular.inHours;
+                  ? 0
+                  : regular.inHours;
 
       regularHours += regularInHrs;
 
@@ -450,13 +442,10 @@ class ParkingFunctions {
       if (current.isBefore(regStart) && !is24Hrs()) {
         final night = regStart.difference(current);
 
-        final otHrs =
-            (night.inMinutes < 0 ? 0 : night.inMinutes % 60) >= grace
-                ? (night.inHours < 0 ? 0 : night.inHours) +
-                    (isBeforeClosing(time: current, timeStart: openTime())
-                        ? 0
-                        : 1)
-                : night.inHours < 0
+        final otHrs = (night.inMinutes < 0 ? 0 : night.inMinutes % 60) >= grace
+            ? (night.inHours < 0 ? 0 : night.inHours) +
+                (isBeforeClosing(time: current, timeStart: openTime()) ? 0 : 1)
+            : night.inHours < 0
                 ? 0
                 : night.inHours;
 
@@ -474,10 +463,9 @@ class ParkingFunctions {
           current.isAfter(regEnd) ? current : regEnd,
         );
 
-        final otHrs =
-            (night.inMinutes < 0 ? 0 : night.inMinutes % 60) >= grace
-                ? night.inHours + 1
-                : night.inHours;
+        final otHrs = (night.inMinutes < 0 ? 0 : night.inMinutes % 60) >= grace
+            ? night.inHours + 1
+            : night.inHours;
 
         overnightHours += otHrs;
 
@@ -490,10 +478,9 @@ class ParkingFunctions {
     }
 
     if (is24Hrs()) {
-      regularHours =
-          (_overAllMins < 0 ? 0 : _overAllMins % 60) >= grace
-              ? (_overAllHrs < 0 ? 0 : _overAllHrs) + 1
-              : (_overAllHrs < 0 ? 0 : _overAllHrs);
+      regularHours = (_overAllMins < 0 ? 0 : _overAllMins % 60) >= grace
+          ? (_overAllHrs < 0 ? 0 : _overAllHrs) + 1
+          : (_overAllHrs < 0 ? 0 : _overAllHrs);
     }
 
     return ParkingTimeData(
@@ -539,21 +526,18 @@ class ParkingFunctions {
     return ParkingRateData(
       succeedingRate: _succeedingRate(),
       freePeriod: _freePeriod() == 0 ? 1 : _freePeriod(),
-      gracePeriod:
-          (parkRates["grace_period"] ?? 0) > 0
-              ? (parkRates["grace_period"] ?? 0)
-              : 2,
+      gracePeriod: (parkRates["grace_period"] ?? 0) > 0
+          ? (parkRates["grace_period"] ?? 0)
+          : 2,
       baseRate: _baseRate(),
       discountRate: _discountRate(),
       overnightRate: parkRates["overnight_rate"] ?? 0,
-      baseHours:
-          (parkRates["base_hours"] ?? 0) > 0
-              ? (parkRates["base_hours"] ?? 0)
-              : 1,
-      succeedingHours:
-          (parkRates["succeeding_hours"] ?? 1) == 0
-              ? 1
-              : (parkRates["succeeding_hours"] ?? 1),
+      baseHours: (parkRates["base_hours"] ?? 0) > 0
+          ? (parkRates["base_hours"] ?? 0)
+          : 1,
+      succeedingHours: (parkRates["succeeding_hours"] ?? 1) == 0
+          ? 1
+          : (parkRates["succeeding_hours"] ?? 1),
     );
   }
 
@@ -573,10 +557,9 @@ class ParkingFunctions {
 
     num discountAmt = 0.0;
     int? promoId;
-    num discountRate =
-        _parkRates.discountRate > bookDiscPct
-            ? _parkRates.discountRate
-            : bookDiscPct;
+    num discountRate = _parkRates.discountRate > bookDiscPct
+        ? _parkRates.discountRate
+        : bookDiscPct;
 
     if (customerType == 'S' || customerType == 'P') {
       discountAmt =
@@ -609,14 +592,12 @@ class ParkingFunctions {
       baseHours: parkRates["base_hours"] ?? 1,
       discountAmount: double.parse(discountAmt.toStringAsFixed(2)),
       vatAmount: double.parse(vatAmt.toStringAsFixed(2)),
-      vatSalesAmount:
-          (customerType == 'S' || customerType == 'P')
-              ? 0
-              : double.parse(vatableSales.toStringAsFixed(2)),
-      vatExemptAmount:
-          (customerType == 'S' || customerType == 'P')
-              ? double.parse(vatableSales.toStringAsFixed(2))
-              : 0,
+      vatSalesAmount: (customerType == 'S' || customerType == 'P')
+          ? 0
+          : double.parse(vatableSales.toStringAsFixed(2)),
+      vatExemptAmount: (customerType == 'S' || customerType == 'P')
+          ? double.parse(vatableSales.toStringAsFixed(2))
+          : 0,
       totalAmount: double.parse(totalAmt.toStringAsFixed(2)),
       vatRate: vatRate(),
     );

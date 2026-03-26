@@ -89,18 +89,17 @@ class WalletSendController extends GetxController {
     }
   }
 
-  final List dataList =
-      [
-        {"value": 20, "is_active": false},
-        {"value": 30, "is_active": false},
-        {"value": 50, "is_active": false},
-        {"value": 100, "is_active": false},
-        {"value": 200, "is_active": false},
-        {"value": 250, "is_active": false},
-        {"value": 300, "is_active": false},
-        {"value": 500, "is_active": false},
-        {"value": 1000, "is_active": false},
-      ].obs;
+  final List dataList = [
+    {"value": 20, "is_active": false},
+    {"value": 30, "is_active": false},
+    {"value": 50, "is_active": false},
+    {"value": 100, "is_active": false},
+    {"value": 200, "is_active": false},
+    {"value": 250, "is_active": false},
+    {"value": 300, "is_active": false},
+    {"value": 500, "is_active": false},
+    {"value": 1000, "is_active": false},
+  ].obs;
 
   @override
   void onInit() {
@@ -391,11 +390,10 @@ class WalletSendController extends GetxController {
 
     dynamic retvalue;
     try {
-      retvalue =
-          await HttpRequestApi(
-            api: ApiKeys.postShareToken,
-            parameters: parameters,
-          ).postBody();
+      retvalue = await HttpRequestApi(
+        api: ApiKeys.postShareToken,
+        parameters: parameters,
+      ).postBody();
     } catch (_) {
       retvalue = null;
     }

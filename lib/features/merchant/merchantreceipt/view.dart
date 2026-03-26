@@ -211,14 +211,12 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
                 ],
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: DashedLine(
                 color: cs.onSurface.withOpacity(isDark ? 0.18 : 0.12),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.all(22),
               child: _buildTransactionDetails(context, cs: cs),
@@ -421,7 +419,11 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
       await file.writeAsBytes(image);
       await GallerySaver.saveImage(file.path);
 
-      if (Get.isDialogOpen == true) Get.back();
+      if (Get.isDialogOpen == true) {
+        Get.back();
+        return;
+      }
+      Get.back();
       CustomDialogStack.showSuccess(
         Get.context!,
         "Saved",

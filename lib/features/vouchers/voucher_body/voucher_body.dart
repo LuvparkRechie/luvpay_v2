@@ -476,7 +476,6 @@ class VouchersBodyState extends State<VouchersBody>
       final availableApi = "${ApiKeys.vouchers}?user_id=$userId";
       final usedApi = "${ApiKeys.vouchersUsed}?user_id=$userId";
       final expiredApi = "${ApiKeys.vouchersExpired}?user_id=$userId";
-      print("API: $availableApi");
       final results = await Future.wait([
         HttpRequestApi(api: availableApi).get(),
         HttpRequestApi(api: usedApi).get(),

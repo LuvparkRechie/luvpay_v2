@@ -90,13 +90,12 @@ class AddFavoritesWidget extends GetView<BillersController> {
                       return oldValue;
                     }),
                   ],
-                  keyboardType:
-                      Platform.isAndroid
-                          ? TextInputType.numberWithOptions(decimal: true)
-                          : const TextInputType.numberWithOptions(
-                            signed: true,
-                            decimal: true,
-                          ),
+                  keyboardType: Platform.isAndroid
+                      ? TextInputType.numberWithOptions(decimal: true)
+                      : const TextInputType.numberWithOptions(
+                          signed: true,
+                          decimal: true,
+                        ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return "Account number is required";

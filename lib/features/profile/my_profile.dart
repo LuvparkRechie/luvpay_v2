@@ -594,125 +594,14 @@ class _MyProfileState extends State<MyProfile> {
                     : "${userData["brgy_name"]}, ${userData["city_name"]}, ${userData["province_name"]}, ${userData["zip_code"]}",
                 isMultiLine: true,
               ),
-              if (isVerified) ...[
-                const SizedBox(height: 32),
-                Container(
-                  margin: const EdgeInsets.only(left: 10, right: 10),
-                  child: Neumorphic(
-                    style: LuvNeu.card(
-                      radius: BorderRadius.circular(18),
-                      color: surface,
-                      borderColor: stroke,
-                      borderWidth: 1,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.card_giftcard_rounded,
-                                color: cs.primary,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              LuvpayText(
-                                text: 'My Referral Code',
-                                style: AppTextStyle.h3(
-                                  context,
-                                ).copyWith(fontWeight: FontWeight.w800),
-                                color: cs.onSurface,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: LuvpayText(
-                                  text: "CMDSI-RG08099800",
-                                  style: AppTextStyle.h3(
-                                    context,
-                                  ).copyWith(letterSpacing: 1.5),
-                                  minFontSize: 8,
-                                  color: cs.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              GestureDetector(
-                                onTap: () {
-                                  Clipboard.setData(
-                                    const ClipboardData(text: "ABCD-1234"),
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: const Text(
-                                        'Copied to clipboard',
-                                      ),
-                                      backgroundColor: cs.primary,
-                                      behavior: SnackBarBehavior.floating,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Icon(
-                                  Iconsax.copy,
-                                  size: 22,
-                                  color: cs.onSurface.withOpacity(0.70),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          LuvpayText(
-                            text:
-                                "Share your code with friends and earn rewards when they sign up!",
-                            style: AppTextStyle.body1(context),
-                            color: cs.onSurface.withOpacity(0.72),
-                          ),
-                          const SizedBox(height: 8),
-                          LuvpayText(
-                            text: "Terms and conditions Apply",
-                            style: AppTextStyle.body2(context),
-                            color: cs.primary,
-                          ),
-                          const SizedBox(height: 18),
-                          LuvpayText(
-                            text: "Did someone refer you?",
-                            style: AppTextStyle.body2(context),
-                            color: cs.onSurface.withOpacity(0.72),
-                          ),
-                          CustomTextField(
-                            controller: referralController,
-                            hintText: "Enter your friend's referral code",
-                            keyboardType: TextInputType.text,
-                            inputFormatters: [
-                              UpperCaseTextFormatter(),
-                              FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                              LengthLimitingTextInputFormatter(15),
-                            ],
-                            onChange: (value) {},
-                          ),
-                          const SizedBox(height: 10),
-                          CustomButton(
-                            width: MediaQuery.of(context).size.width / 3,
-                            text: "Submit",
-                            onPressed: () async {
-                              CustomDialogStack.showComingSoon(context, () {
-                                Get.back();
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              // if (isVerified) ...[
+              //   const SizedBox(height: 32),
+              //   Referral(
+              //       surface: surface,
+              //       stroke: stroke,
+              //       cs: cs,
+              //       referralController: referralController),
+              // ],
               const SizedBox(height: 40),
             ],
           ),
@@ -735,6 +624,141 @@ class _MyProfileState extends State<MyProfile> {
         icon: icon,
         title: title,
         subtitle: value,
+      ),
+    );
+  }
+}
+
+class Referral extends StatelessWidget {
+  const Referral({
+    super.key,
+    required this.surface,
+    required this.stroke,
+    required this.cs,
+    required this.referralController,
+  });
+
+  final Color surface;
+  final Color stroke;
+  final ColorScheme cs;
+  final TextEditingController referralController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 10, right: 10),
+      child: Neumorphic(
+        style: LuvNeu.card(
+          radius: BorderRadius.circular(18),
+          color: surface,
+          borderColor: stroke,
+          borderWidth: 1,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.card_giftcard_rounded,
+                    color: cs.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  LuvpayText(
+                    text: 'My Referral Code',
+                    style: AppTextStyle.h3(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.w800),
+                    color: cs.onSurface,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: LuvpayText(
+                      text: "CMDSI-RG08099800",
+                      style: AppTextStyle.h3(
+                        context,
+                      ).copyWith(letterSpacing: 1.5),
+                      minFontSize: 8,
+                      color: cs.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(
+                        const ClipboardData(text: "ABCD-1234"),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'Copied to clipboard',
+                          ),
+                          backgroundColor: cs.primary,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Icon(
+                      Iconsax.copy,
+                      size: 22,
+                      color: cs.onSurface.withOpacity(0.70),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              LuvpayText(
+                text:
+                    "Share your code with friends and earn rewards when they sign up!",
+                style: AppTextStyle.body1(context),
+                color: cs.onSurface.withOpacity(0.72),
+              ),
+              const SizedBox(height: 8),
+              LuvpayText(
+                text: "Terms and conditions Apply",
+                style: AppTextStyle.body2(context),
+                color: cs.primary,
+              ),
+              const SizedBox(height: 18),
+              LuvpayText(
+                text: "Did someone refer you?",
+                style: AppTextStyle.body2(context),
+                color: cs.onSurface.withOpacity(0.72),
+              ),
+              CustomTextField(
+                controller: referralController,
+                hintText: "Enter your friend's referral code",
+                keyboardType: TextInputType.text,
+                inputFormatters: [
+                  UpperCaseTextFormatter(),
+                  FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                  LengthLimitingTextInputFormatter(15),
+                ],
+                onChange: (value) {},
+              ),
+              const SizedBox(height: 10),
+              CustomButton(
+                width: MediaQuery.of(context).size.width / 3,
+                text: "Submit",
+                onPressed: () async {
+                  CustomDialogStack.showComingSoon(context, () {
+                    Get.back();
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

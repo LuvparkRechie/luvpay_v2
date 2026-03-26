@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/shared/widgets/luvpay_conn.dart';
 import '../../shared/widgets/custom_scaffold.dart';
 import '../../shared/widgets/luvpay_text.dart';
-import '../../shared/widgets/no_internet.dart';
+
 import '../../shared/widgets/spacing.dart';
 import 'controller.dart';
 
@@ -18,36 +19,35 @@ class LockScreen extends GetView<LockScreenController> {
       enableToolBar: false,
       canPop: false,
       scaffoldBody: Obx(
-        () =>
-            !controller.hasNet.value
-                ? NoInternetConnected(onTap: controller.unlockAccount)
-                : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset(
-                      "assets/images/account_locked.svg",
-                      width: MediaQuery.of(context).size.width / 2,
-                      height: MediaQuery.of(context).size.width / 2,
-                    ),
-                    spacing(height: 30),
-                    LuvpayText(
-                      text: "Account Locked",
-                      color: Color(0xFF0078FF),
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    spacing(height: 10),
-                    LuvpayText(
-                      textAlign: TextAlign.center,
-                      text: controller.formattedTime.value,
-                    ),
-                    spacing(height: MediaQuery.of(context).size.height * .15),
-                    CustomButton(
-                      text: "Switch Account",
-                      onPressed: controller.switchAccount,
-                    ),
-                  ],
-                ),
+        () => !controller.hasNet.value
+            ? ConnectionInterruption(onPressed: controller.unlockAccount)
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    "assets/images/account_locked.svg",
+                    width: MediaQuery.of(context).size.width / 2,
+                    height: MediaQuery.of(context).size.width / 2,
+                  ),
+                  spacing(height: 30),
+                  LuvpayText(
+                    text: "Account Locked",
+                    color: Color(0xFF0078FF),
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  spacing(height: 10),
+                  LuvpayText(
+                    textAlign: TextAlign.center,
+                    text: controller.formattedTime.value,
+                  ),
+                  spacing(height: MediaQuery.of(context).size.height * .15),
+                  CustomButton(
+                    text: "Switch Account",
+                    onPressed: controller.switchAccount,
+                  ),
+                ],
+              ),
       ),
     );
   }

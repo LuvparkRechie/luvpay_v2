@@ -83,7 +83,7 @@ class _VouchersState extends State<Vouchers> {
       setState(() {});
     } catch (error) {
       // ignore: avoid_print
-      print("Error claiming voucher: $error");
+      debugPrint("Error claiming voucher: $error");
     }
   }
 

@@ -32,7 +32,7 @@ class MerchantQRRController extends GetxController
 
   @override
   void onInit() {
-    print("parameter $parameter");
+    debugPrint("parameter $parameter");
     super.onInit();
   }
 }

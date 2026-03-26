@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/shared/widgets/luvpay_conn.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 
@@ -15,7 +16,7 @@ import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/custom_scaffold.dart';
 import '../../shared/widgets/luvpay_text.dart';
-import '../../shared/widgets/no_internet.dart';
+
 import '../../core/network/http/api_keys.dart';
 import '../../core/network/http/http_request.dart';
 
@@ -274,8 +275,8 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     final hideBackBecauseFromTab = widget.fromTab == true;
 
     final body = !isNetConn
-        ? NoInternetConnected(
-            onTap: () => getNotification(showLoading: true),
+        ? ConnectionInterruption(
+            onPressed: () => getNotification(showLoading: true),
           )
         : notifications.isEmpty
             ? Center(child: _noDataFound(cs))

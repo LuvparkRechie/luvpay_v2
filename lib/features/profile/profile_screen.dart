@@ -27,7 +27,8 @@ import '../wallet/notifications.dart';
 import 'my_profile.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
-  const ProfileSettingsScreen({super.key});
+  final bool? fromBuildHeader;
+  const ProfileSettingsScreen({super.key, this.fromBuildHeader});
 
   @override
   State<ProfileSettingsScreen> createState() => _ProfileSettingsScreenState();
@@ -188,7 +189,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
     return CustomScaffoldV2(
       padding: EdgeInsets.zero,
-      showAppBar: false,
+      showAppBar: widget.fromBuildHeader == true ? true : false,
       scaffoldBody: isLoading
           ? const LoadingCard()
           : Padding(
@@ -268,6 +269,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return SliverAppBar(
+      leading: null,
+      automaticallyImplyLeading: false,
       pinned: true,
       floating: true,
       snap: false,

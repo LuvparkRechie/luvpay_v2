@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:luvpay/shared/widgets/luvpay_conn.dart';
 
 import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/neumorphism.dart';
@@ -12,11 +13,11 @@ import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/luvpay_loading.dart';
 import '../../shared/widgets/custom_scaffold.dart';
 import '../../shared/widgets/no_data_found.dart';
-import '../../shared/widgets/no_internet.dart';
+
 import '../../core/utils/functions/functions.dart';
+import '../biller_screen/allbillers.dart';
 import '../routes/routes.dart';
 import 'controller.dart';
-import 'utils/allbillers.dart';
 
 class Billers extends StatelessWidget {
   const Billers({Key? key}) : super(key: key);
@@ -27,81 +28,80 @@ class Billers extends StatelessWidget {
     return CustomScaffoldV2(
       appBarTitle: "Billers",
       enableToolBar: true,
-
       scaffoldBody: Obx(
-        () =>
-            !controller.isNetConn.value
-                ? NoInternetConnected(onTap: controller.loadFavoritesAndBillers)
-                : RefreshIndicator(
-                  onRefresh: () async {
-                    await controller.loadFavoritesAndBillers();
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      LuvpayText(
-                        style: AppTextStyle.h3(context),
-                        text: "Pay Bills",
-                      ),
-                      SizedBox(height: 14),
-                      InkWell(
-                        onTap: () {
-                          controller.getBillers((isSuccess) async {
-                            if (isSuccess) {
-                              final result = await Get.to(
-                                () => Allbillers(),
-                                arguments: {'source': 'pay'},
-                              );
-                              if (result != null) {
-                                Get.back(result: true);
-                              }
+        () => !controller.isNetConn.value
+            ? ConnectionInterruption(
+                onPressed: controller.loadFavoritesAndBillers)
+            : RefreshIndicator(
+                onRefresh: () async {
+                  await controller.loadFavoritesAndBillers();
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LuvpayText(
+                      style: AppTextStyle.h3(context),
+                      text: "Pay Bills",
+                    ),
+                    SizedBox(height: 14),
+                    InkWell(
+                      onTap: () {
+                        controller.getBillers((isSuccess) async {
+                          if (isSuccess) {
+                            final result = await Get.to(
+                              () => Allbillers(),
+                              arguments: {'source': 'pay'},
+                            );
+                            if (result != null) {
+                              Get.back(result: true);
                             }
-                          });
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              width: 2,
-                              color: AppColorV2.lpBlueBrand,
-                            ),
-                          ),
-                          padding: EdgeInsets.all(12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.payment_outlined,
-                                    color: AppColorV2.lpBlueBrand,
-                                  ),
-                                  SizedBox(width: 10),
-                                  LuvpayText(
-                                    text: "Select Biller",
-                                    color: AppColorV2.lpBlueBrand,
-                                  ),
-                                ],
-                              ),
-                              Icon(
-                                CupertinoIcons.forward,
-                                color: AppColorV2.lpBlueBrand,
-                              ),
-                            ],
+                          }
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            width: 2,
+                            color: AppColorV2.lpBlueBrand,
                           ),
                         ),
+                        padding: EdgeInsets.all(12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.payment_outlined,
+                                  color: AppColorV2.lpBlueBrand,
+                                ),
+                                SizedBox(width: 10),
+                                LuvpayText(
+                                  text: "Select Biller",
+                                  color: AppColorV2.lpBlueBrand,
+                                ),
+                              ],
+                            ),
+                            Icon(
+                              CupertinoIcons.forward,
+                              color: AppColorV2.lpBlueBrand,
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 30),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          LuvpayText(
-                            style: AppTextStyle.h3(context),
-                            text: "Favorites",
-                          ),
-                          controller.favBillers.isEmpty
-                              ? SizedBox.shrink()
-                              : Container(
+                    ),
+                    SizedBox(height: 30),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        LuvpayText(
+                          style: AppTextStyle.h3(context),
+                          text: "Favorites",
+                        ),
+                        controller.favBillers.isEmpty
+                            ? SizedBox.shrink()
+                            : Container(
                                 width: 150,
                                 padding: EdgeInsets.all(8),
                                 decoration: BoxDecoration(
@@ -144,15 +144,14 @@ class Billers extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                        ],
-                      ),
-                      Expanded(
-                        child:
-                            controller.isLoading.value
-                                ? const LoadingCard()
-                                : controller.favBillers.isEmpty
-                                ? NoDataFound()
-                                : Padding(
+                      ],
+                    ),
+                    Expanded(
+                      child: controller.isLoading.value
+                          ? const LoadingCard()
+                          : controller.favBillers.isEmpty
+                              ? NoDataFound()
+                              : Padding(
                                   padding: const EdgeInsets.only(top: 15.0),
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -172,55 +171,54 @@ class Billers extends StatelessWidget {
                                             accountNo.length <= 3
                                                 ? accountNo
                                                 : accountNo.replaceAll(
-                                                  RegExp(r'.(?=.{3})'),
-                                                  '*',
-                                                );
+                                                    RegExp(r'.(?=.{3})'),
+                                                    '*',
+                                                  );
 
                                         return GestureDetector(
                                           onTap: () async {
                                             Map<String, String> billerData = {
-                                              'biller_name':
-                                                  controller
-                                                      .favBillers[index]["biller_name"]
-                                                      .toString(),
-                                              'biller_id':
-                                                  controller
-                                                      .favBillers[index]["biller_id"]
-                                                      .toString(),
-                                              'biller_code':
-                                                  controller
-                                                      .favBillers[index]["biller_code"]
-                                                      .toString(),
-                                              'biller_address':
-                                                  controller
-                                                      .favBillers[index]["biller_address"]
-                                                      .toString(),
-                                              'service_fee':
-                                                  controller
-                                                      .favBillers[index]["service_fee"]
-                                                      .toString(),
-                                              'accountno':
-                                                  controller
-                                                      .favBillers[index]["account_no"]
-                                                      .toString(),
-                                              'full_url':
-                                                  controller
-                                                      .favBillers[index]["full_url"]
-                                                      .toString(),
+                                              'biller_name': controller
+                                                  .favBillers[index]
+                                                      ["biller_name"]
+                                                  .toString(),
+                                              'biller_id': controller
+                                                  .favBillers[index]
+                                                      ["biller_id"]
+                                                  .toString(),
+                                              'biller_code': controller
+                                                  .favBillers[index]
+                                                      ["biller_code"]
+                                                  .toString(),
+                                              'biller_address': controller
+                                                  .favBillers[index]
+                                                      ["biller_address"]
+                                                  .toString(),
+                                              'service_fee': controller
+                                                  .favBillers[index]
+                                                      ["service_fee"]
+                                                  .toString(),
+                                              'accountno': controller
+                                                  .favBillers[index]
+                                                      ["account_no"]
+                                                  .toString(),
+                                              'full_url': controller
+                                                  .favBillers[index]["full_url"]
+                                                  .toString(),
                                               "account_name":
-                                                  controller
-                                                      .favBillers[index]["account_name"],
+                                                  controller.favBillers[index]
+                                                      ["account_name"],
                                               "type": "use_fav",
                                             };
 
-                                            final res = await Get.toNamed(
-                                              Routes.billsPayment,
-                                              arguments: billerData,
-                                            );
+                                            // final res = await Get.toNamed(
+                                            //   Routes.billsPayment,
+                                            //   arguments: billerData,
+                                            // );
 
-                                            if (res != null) {
-                                              Get.back(result: true);
-                                            }
+                                            // if (res != null) {
+                                            //   Get.back(result: true);
+                                            // }
                                           },
                                           child: Container(
                                             margin: EdgeInsets.only(bottom: 10),
@@ -251,9 +249,8 @@ class Billers extends StatelessWidget {
                                                     children: [
                                                       LuvpayText(
                                                         fontSize: 14,
-                                                        color:
-                                                            AppColorV2
-                                                                .primaryTextColor,
+                                                        color: AppColorV2
+                                                            .primaryTextColor,
                                                         fontWeight:
                                                             FontWeight.w800,
                                                         minFontSize: 10,
@@ -269,31 +266,30 @@ class Billers extends StatelessWidget {
                                                     Icon(
                                                       LucideIcons.mapPin,
                                                       size: 15,
-                                                      color:
-                                                          AppColorV2
-                                                              .bodyTextColor,
+                                                      color: AppColorV2
+                                                          .bodyTextColor,
                                                     ),
                                                     Expanded(
                                                       child: LuvpayText(
                                                         fontSize: 10,
-                                                        text:
-                                                            controller.favBillers[index]["biller_address"] !=
-                                                                    null
-                                                                ? "${controller.favBillers[index]["biller_address"]}"
-                                                                : "Address not specified",
+                                                        text: controller.favBillers[
+                                                                        index][
+                                                                    "biller_address"] !=
+                                                                null
+                                                            ? "${controller.favBillers[index]["biller_address"]}"
+                                                            : "Address not specified",
                                                         maxLines: 1,
-                                                        overflow:
-                                                            TextOverflow
-                                                                .ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                                 SizedBox(height: 5),
                                                 Visibility(
-                                                  visible:
-                                                      controller
-                                                          .favBillers[index]['account_name'] !=
+                                                  visible: controller
+                                                              .favBillers[index]
+                                                          ['account_name'] !=
                                                       null,
                                                   child: Column(
                                                     crossAxisAlignment:
@@ -305,14 +301,13 @@ class Billers extends StatelessWidget {
                                                         color: Colors.green,
                                                         fontWeight:
                                                             FontWeight.w500,
-                                                        text:
-                                                            controller
-                                                                .favBillers[index]['account_name'] ??
+                                                        text: controller.favBillers[
+                                                                    index][
+                                                                'account_name'] ??
                                                             '',
                                                         maxLines: 1,
-                                                        overflow:
-                                                            TextOverflow
-                                                                .ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                       ),
                                                       SizedBox(height: 5),
                                                     ],
@@ -324,9 +319,8 @@ class Billers extends StatelessWidget {
                                                           .spaceBetween,
                                                   children: [
                                                     LuvpayText(
-                                                      color:
-                                                          AppColorV2
-                                                              .bodyTextColor,
+                                                      color: AppColorV2
+                                                          .bodyTextColor,
                                                       fontSize: 14,
                                                       text: maskedAccountNo,
                                                       textAlign: TextAlign.end,
@@ -338,29 +332,32 @@ class Billers extends StatelessWidget {
                                                       onTap: () {
                                                         controller
                                                             .deleteFavoriteBiller(
-                                                              int.parse(
-                                                                controller
-                                                                    .favBillers[index]['user_biller_id']
-                                                                    .toString(),
-                                                              ),
-                                                            );
+                                                          int.parse(
+                                                            controller
+                                                                .favBillers[
+                                                                    index][
+                                                                    'user_biller_id']
+                                                                .toString(),
+                                                          ),
+                                                        );
                                                       },
                                                       child: Container(
-                                                        padding:
-                                                            EdgeInsets.symmetric(
-                                                              vertical: 5,
-                                                              horizontal: 8,
-                                                            ),
-                                                        decoration: BoxDecoration(
+                                                        padding: EdgeInsets
+                                                            .symmetric(
+                                                          vertical: 5,
+                                                          horizontal: 8,
+                                                        ),
+                                                        decoration:
+                                                            BoxDecoration(
                                                           border: Border.all(
-                                                            color:
-                                                                AppColorV2
-                                                                    .incorrectState,
+                                                            color: AppColorV2
+                                                                .incorrectState,
                                                           ),
                                                           borderRadius:
-                                                              BorderRadius.circular(
-                                                                30,
-                                                              ),
+                                                              BorderRadius
+                                                                  .circular(
+                                                            30,
+                                                          ),
                                                         ),
                                                         child: Row(
                                                           children: [
@@ -368,15 +365,13 @@ class Billers extends StatelessWidget {
                                                               size: 16,
                                                               Iconsax
                                                                   .close_circle,
-                                                              color:
-                                                                  AppColorV2
-                                                                      .incorrectState,
+                                                              color: AppColorV2
+                                                                  .incorrectState,
                                                             ),
                                                             SizedBox(width: 5),
                                                             LuvpayText(
-                                                              color:
-                                                                  AppColorV2
-                                                                      .incorrectState,
+                                                              color: AppColorV2
+                                                                  .incorrectState,
                                                               fontSize: 12,
                                                               text: "delete",
                                                               textAlign:
@@ -397,16 +392,15 @@ class Billers extends StatelessWidget {
                                           ),
                                         );
                                       },
-                                      separatorBuilder:
-                                          (context, index) =>
-                                              SizedBox(height: 5),
+                                      separatorBuilder: (context, index) =>
+                                          SizedBox(height: 5),
                                     ),
                                   ),
                                 ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ),
       ),
     );
   }
