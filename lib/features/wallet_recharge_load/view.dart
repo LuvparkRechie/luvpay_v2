@@ -38,20 +38,12 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
         : Colors.white.withAlpha(180);
   }
 
-  Color _textPrimary(BuildContext context) {
-    return AppColorV2.primaryTextColor;
-  }
-
   Color _textSecondary(BuildContext context) {
     return AppColorV2.bodyTextColor;
   }
 
   Color _chipActiveText(BuildContext context) {
     return Colors.white;
-  }
-
-  Color _chipInactiveText(BuildContext context) {
-    return _textPrimary(context);
   }
 
   BoxDecoration _neoChip(
@@ -170,6 +162,27 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                     return "Minimum of ${controller.minTopUp.value} tokens";
                   }
                   return null;
+                },
+              ),
+              ValueListenableBuilder(
+                valueListenable: controller.amountController,
+                builder: (context, TextEditingValue value, child) {
+                  final amount = double.tryParse(value.text);
+                  final maxFee = controller.arguments["max_fee"];
+                  final shouldShowFee =
+                      controller.arguments.containsKey("service_fee") &&
+                          (maxFee == null ||
+                              amount == null ||
+                              amount > double.parse(maxFee.toString()));
+
+                  return shouldShowFee
+                      ? LuvpayText(
+                          text:
+                              "+${controller.arguments["service_fee"]} service fee",
+                          style: AppTextStyle.body2(context),
+                          color: cs.onSurface.withAlpha(250),
+                        )
+                      : const SizedBox.shrink();
                 },
               ),
               const SizedBox(height: 20),
@@ -330,7 +343,7 @@ class WalletRechargeLoadScreen extends GetView<WalletRechargeLoadController> {
                   fontWeight: FontWeight.w700,
                   color: active
                       ? _chipActiveText(context)
-                      : _chipInactiveText(context),
+                      : _textSecondary(context),
                 ),
                 LuvpayText(
                   text: "Token",

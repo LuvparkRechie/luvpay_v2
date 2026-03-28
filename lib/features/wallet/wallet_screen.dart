@@ -62,20 +62,44 @@ class _WalletScreenState extends State<WalletScreen> {
   final PageController _pageController = PageController();
   bool isOpen = false;
   String myprofile = "";
-
+  List<Map<String, dynamic>> userDetails = [];
   String firstName = "";
   String _internetMsg = "Connection lost";
   int _loadCtr = 0;
   bool _isActiveTmr = true;
-
+  String serviceFee = "0.00";
+  String maxFee = "0.00";
   List<Map<String, dynamic>> get _merchantGridItems => [
         {
           'icon': Icons.add_circle,
           'label': 'Top-up',
           'color': AppColorV2.lpBlueBrand,
-          'onTap': () {
-            showTopUpMethod();
-          },
+          'onTap': userDetails[0]["email"] == null ||
+                  userDetails[0]["first_name"] == null
+              ? () {
+                  CustomDialogStack.showConfirmation(
+                      Get.context!,
+                      "Update Profile",
+                      "Please update your profile to continue using this feature. Would you like to update now?",
+                      leftText: "Cancel",
+                      rightText: "Update", () {
+                    Get.back();
+                  }, () async {
+                    Get.back();
+
+                    final regions = await Functions().fetchRegions(context);
+
+                    if (regions.isEmpty) return;
+
+                    Get.toNamed(
+                      Routes.updProfile,
+                      arguments: regions,
+                    );
+                  });
+                }
+              : () {
+                  showTopUpMethod();
+                },
         },
         {
           'icon': Icons.people_alt,
@@ -85,14 +109,6 @@ class _WalletScreenState extends State<WalletScreen> {
             Get.toNamed(Routes.send);
           },
         },
-        // {
-        //   'icon': Icons.receipt_long,
-        //   'label': '♡ Billers',
-        //   'color': AppColorV2.lpBlueBrand,
-        //   'onTap': () {
-        //     Get.toNamed(Routes.send);
-        //   },
-        // },
         {
           'icon': Icons.wallet,
           'label': 'Bills',
@@ -125,7 +141,6 @@ class _WalletScreenState extends State<WalletScreen> {
     _loadProfile();
     _startAutoRefresh();
     _showFirstName();
-
     ever(WalletRefreshBus.refresh, (_) {
       getUserData();
       getLogs();
@@ -149,8 +164,9 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Future<void> getFavorites() async {
     final item = await Authentication().getUserData();
-    String userId = jsonDecode(item!)['user_id'].toString();
-
+    final decodedItem = jsonDecode(item!);
+    String userId = decodedItem['user_id'].toString();
+    userDetails = [decodedItem];
     await billController.fetchFavorites(userId);
   }
 
@@ -338,6 +354,37 @@ class _WalletScreenState extends State<WalletScreen> {
     }
   }
 
+  Future<bool> getServiceFee() async {
+    CustomDialogStack.showLoading(Get.context!);
+
+    final response = await HttpRequestApi(api: ApiKeys.getServiceFee).get();
+    Get.back();
+
+    if (response == "No Internet") {
+      CustomDialogStack.showConnectionLost(Get.context!, () {
+        Get.back();
+      });
+      return false;
+    }
+
+    if (response == null) {
+      CustomDialogStack.showServerError(Get.context!, () {
+        Get.back();
+      });
+      return false;
+    }
+
+    setState(() {
+      final fee = response["service_fee"];
+      maxFee = response["max_topup_free"].toString();
+      if (fee == null) return;
+      serviceFee = fee == null
+          ? "0.00"
+          : double.tryParse(fee.toString())?.toStringAsFixed(2) ?? "0.00";
+    });
+    return true;
+  }
+
   Future<void> showTopUpMethod() async {
     final banks = [
       {
@@ -386,16 +433,23 @@ class _WalletScreenState extends State<WalletScreen> {
         },
       },
       {
+        'api': ApiKeys.getServiceFee,
         'name': 'Landbank',
         'image': 'assets/images/w_landbank.png',
         'color': AppColorV2.correctState,
-        'onTap': () {
+        'onTap': () async {
+          final success = await getServiceFee();
+
+          if (!success) return;
+
           Get.toNamed(
             Routes.walletrechargeload,
             arguments: {
               "bank_type": "Landbank",
               "image": "assets/images/wt_landbank.png",
               "bank_code": " LandBank",
+              "service_fee": serviceFee.toString(),
+              "max_fee": maxFee.toString(),
             },
           );
         },
@@ -976,9 +1030,8 @@ class TransactionSectionListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (transactions.isEmpty) {
-      return NoDataFound();
+      return Center(child: NoDataFound());
     }
-
     return Container(
       padding: EdgeInsets.zero,
       child: ListView.builder(
@@ -988,6 +1041,7 @@ class TransactionSectionListView extends StatelessWidget {
         itemCount: transactions.length,
         itemBuilder: (context, index) {
           final transaction = transactions[index];
+
           return _buildTransactionItem(context, transaction);
         },
       ),

@@ -4,32 +4,30 @@ class ApiKeys {
   static final bool isProduction = dotenv.env['IS_PRODUCTION'] == 'true';
   static final String luvApi =
       isProduction ? dotenv.env['LUV_API_PROD']! : dotenv.env['LUV_API_TEST']!;
-  static final String parkSpaceApi =
-      isProduction
-          ? dotenv.env['PARK_SPACE_API_PROD']!
-          : dotenv.env['PARK_SPACE_API_TEST']!;
-  static final String gApiURL =
-      isProduction
-          ? dotenv.env['G_API_URL_PROD']!
-          : dotenv.env['G_API_URL_TEST']!;
+  static final String parkSpaceApi = isProduction
+      ? dotenv.env['PARK_SPACE_API_PROD']!
+      : dotenv.env['PARK_SPACE_API_TEST']!;
+  static final String gApiURL = isProduction
+      ? dotenv.env['G_API_URL_PROD']!
+      : dotenv.env['G_API_URL_TEST']!;
 
   static final String getPaymentKey = dotenv.env['GET_PAYMENT_KEY']!.replaceAll(
     '{LUV_API}',
     luvApi,
   );
-  static final String generatePayKey = dotenv.env['GENERATE_PAY_KEY']!
-      .replaceAll('{LUV_API}', luvApi); //
+  static final String generatePayKey =
+      dotenv.env['GENERATE_PAY_KEY']!.replaceAll('{LUV_API}', luvApi); //
 
   static final String getSecQue = dotenv.env['GET_SEC_QUE']!.replaceAll(
     '{LUV_API}',
     luvApi,
   );
-  static final String getSecDropdown = dotenv.env['GET_SEC_DROPDOWN']!
-      .replaceAll('{LUV_API}', luvApi);
-  static final String getUserBalance = dotenv.env['GET_USER_BALANCE']!
-      .replaceAll('{LUV_API}', luvApi);
-  static final String verifyUserAccount = dotenv.env['VERIFY_USER_ACCOUNT']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String getSecDropdown =
+      dotenv.env['GET_SEC_DROPDOWN']!.replaceAll('{LUV_API}', luvApi);
+  static final String getUserBalance =
+      dotenv.env['GET_USER_BALANCE']!.replaceAll('{LUV_API}', luvApi);
+  static final String verifyUserAccount =
+      dotenv.env['VERIFY_USER_ACCOUNT']!.replaceAll('{LUV_API}', luvApi);
   static final String getIdle = dotenv.env['GET_IDLE']!.replaceAll(
     '{LUV_API}',
     luvApi,
@@ -54,8 +52,8 @@ class ApiKeys {
   static final String getSuggestedParking = dotenv.env['GET_SUGGESTED_PARKING']!
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
 
-  static final String getDropdownRadius = dotenv.env['GET_DD_RADIUS']!
-      .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
+  static final String getDropdownRadius =
+      dotenv.env['GET_DD_RADIUS']!.replaceAll('{PARK_SPACE_API}', parkSpaceApi);
   static final String getParkingTypes = dotenv.env['GET_PARKING_TYPES']!
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
 
@@ -79,20 +77,19 @@ class ApiKeys {
     '{LUV_API}',
     luvApi,
   );
-  static final String postThirdPartyPayment = dotenv
-      .env['POST_THIRD_PARTY_PAYMENT']!
-      .replaceAll('{LUV_API}', luvApi);
-  static final String getUserAccStatus = dotenv.env['GET_USER_ACC_STATUS']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String postThirdPartyPayment =
+      dotenv.env['POST_THIRD_PARTY_PAYMENT']!.replaceAll('{LUV_API}', luvApi);
+  static final String getUserAccStatus =
+      dotenv.env['GET_USER_ACC_STATUS']!.replaceAll('{LUV_API}', luvApi);
 
-  static final String getBankDetails = dotenv.env['GET_BANK_DETAILS']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String getBankDetails =
+      dotenv.env['GET_BANK_DETAILS']!.replaceAll('{LUV_API}', luvApi);
   static final String getBankParam = dotenv.env['GET_BANK_PARAM']!.replaceAll(
     '{LUV_API}',
     luvApi,
   );
-  static final String postShareToken = dotenv.env['POST_SHARE_TOKEN']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String postShareToken =
+      dotenv.env['POST_SHARE_TOKEN']!.replaceAll('{LUV_API}', luvApi);
   static final String getParkingRates = dotenv.env['GET_PARKING_RATES']!
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
   static final String postUserReg = dotenv.env['POST_USER_REG']!.replaceAll(
@@ -100,13 +97,12 @@ class ApiKeys {
     luvApi,
   );
 
-  static final String putUpdateUserProf = dotenv.env['PUT_UPDATE_USER_PROF']!
-      .replaceAll('{LUV_API}', luvApi);
-  static final String getRegisteredVehicle = dotenv
-      .env['GET_REGISTERED_VEHICLE']!
-      .replaceAll('{LUV_API}', luvApi);
-  static final String postRegisterVehicle = dotenv.env['POST_REGISTER_VEHICLE']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String putUpdateUserProf =
+      dotenv.env['PUT_UPDATE_USER_PROF']!.replaceAll('{LUV_API}', luvApi);
+  static final String getRegisteredVehicle =
+      dotenv.env['GET_REGISTERED_VEHICLE']!.replaceAll('{LUV_API}', luvApi);
+  static final String postRegisterVehicle =
+      dotenv.env['POST_REGISTER_VEHICLE']!.replaceAll('{LUV_API}', luvApi);
   static final String deleteRegVh = dotenv.env['DELETE_REG_VH']!.replaceAll(
     '{LUV_API}',
     luvApi,
@@ -149,8 +145,8 @@ class ApiKeys {
     '{LUV_API}',
     luvApi,
   );
-  static final String putReadPaMessages = dotenv.env['PUT_READ_PA_MESSAGES']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String putReadPaMessages =
+      dotenv.env['PUT_READ_PA_MESSAGES']!.replaceAll('{LUV_API}', luvApi);
   static final String getFAQ = dotenv.env['GET_FAQ']!.replaceAll(
     '{PARK_SPACE_API}',
     parkSpaceApi,
@@ -159,8 +155,8 @@ class ApiKeys {
     '{PARK_SPACE_API}',
     parkSpaceApi,
   );
-  static final String postDeleteUserAcct = dotenv.env['POST_DELETE_USER_ACCT']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String postDeleteUserAcct =
+      dotenv.env['POST_DELETE_USER_ACCT']!.replaceAll('{LUV_API}', luvApi);
   static final String getParkingAmenities = dotenv.env['GET_PARKING_AMENITIES']!
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
   static final String getAllAmenities = dotenv.env['GET_ALL_AMENITIES']!
@@ -185,14 +181,14 @@ class ApiKeys {
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
   static final String getVhSubscription = dotenv.env['GET_VH_SUBSCRIPTION']!
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
-  static final String postAddFavBiller = dotenv.env['POST_ADD_FAV_BILLER']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String postAddFavBiller =
+      dotenv.env['POST_ADD_FAV_BILLER']!.replaceAll('{LUV_API}', luvApi);
   static final String getFavBiller = dotenv.env['GET_FAV_BILLER']!.replaceAll(
     '{LUV_API}',
     luvApi,
   );
-  static final String deleteFavBiller = dotenv.env['DELETE_FAV_BILLER']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String deleteFavBiller =
+      dotenv.env['DELETE_FAV_BILLER']!.replaceAll('{LUV_API}', luvApi);
   static final String postPayBills = dotenv.env['POST_PAY_BILLS']!.replaceAll(
     '{LUV_API}',
     luvApi,
@@ -201,8 +197,8 @@ class ApiKeys {
     '{LUV_API}',
     luvApi,
   );
-  static final String getMerchantScan = dotenv.env['GET_MERCHANT_SCAN']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String getMerchantScan =
+      dotenv.env['GET_MERCHANT_SCAN']!.replaceAll('{LUV_API}', luvApi);
   static final String getMerchants = dotenv.env['GET_MERCHANTS']!.replaceAll(
     '{LUV_API}',
     luvApi,
@@ -215,8 +211,8 @@ class ApiKeys {
     '{LUV_API}',
     luvApi,
   );
-  static final String postGenerateOtp = dotenv.env['POST_GENERATE_OTP']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String postGenerateOtp =
+      dotenv.env['POST_GENERATE_OTP']!.replaceAll('{LUV_API}', luvApi);
   static final String putVerifyOtp = dotenv.env['PUT_VERIFY_OTP']!.replaceAll(
     '{LUV_API}',
     luvApi,
@@ -230,16 +226,16 @@ class ApiKeys {
     luvApi,
   );
 
-  static final String notificationApi = dotenv.env['WALLET_NOTIFICATIONS']!
-      .replaceAll('{LUV_API}', luvApi);
-  static final String postMayaIntegration = dotenv.env['POST_MAYA_END_POINT']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String notificationApi =
+      dotenv.env['WALLET_NOTIFICATIONS']!.replaceAll('{LUV_API}', luvApi);
+  static final String postMayaIntegration =
+      dotenv.env['POST_MAYA_END_POINT']!.replaceAll('{LUV_API}', luvApi);
   static final String postGetMayaRef = dotenv.env['POST_MAYA_REF']!.replaceAll(
     '{LUV_API}',
     luvApi,
   );
-  static final String updateMayaBalance = dotenv.env['POST_UPDATE_MAYA_BAL']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String updateMayaBalance =
+      dotenv.env['POST_UPDATE_MAYA_BAL']!.replaceAll('{LUV_API}', luvApi);
 
   static final String vouchers = dotenv.env['VOUCHERS']!.replaceAll(
     '{LUV_API}',
@@ -247,8 +243,8 @@ class ApiKeys {
   );
 
   /// API endpoint: /ords/{LUV_API}/wv2/voucher/expired/
-  static final String vouchersExpired = dotenv.env['VOUCHERS_EXPIRED']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String vouchersExpired =
+      dotenv.env['VOUCHERS_EXPIRED']!.replaceAll('{LUV_API}', luvApi);
 
   /// API endpoint: /ords/{LUV_API}/wv2/voucher/use/?user_id
   static final String vouchersUsed = dotenv.env['VOUCHERS_USED']!.replaceAll(
@@ -263,19 +259,25 @@ class ApiKeys {
     '{LUV_API}',
     luvApi,
   );
-  static final String postLandBankTrans = dotenv.env['POST_LANDBANK_END_POINT']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String postLandBankTrans =
+      dotenv.env['POST_LANDBANK_END_POINT']!.replaceAll('{LUV_API}', luvApi);
 
   static final String parkAreaSubs = dotenv.env['PARKING_AREA_SUBSCRIPTION']!
       .replaceAll('{PARK_SPACE_API}', luvApi);
 
   ///sub wallet
-  static final String getSubWalletCategories = dotenv.env['GET_CATEGORIES']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String getSubWalletCategories =
+      dotenv.env['GET_CATEGORIES']!.replaceAll('{LUV_API}', luvApi);
   static final String subWallets = dotenv.env['SUBCATEGORIES']!.replaceAll(
     '{LUV_API}',
     luvApi,
   );
-  static final String subwalletTransfer = dotenv.env['SUBCATEGORIES_TRANSFER']!
-      .replaceAll('{LUV_API}', luvApi);
+  static final String subwalletTransfer =
+      dotenv.env['SUBCATEGORIES_TRANSFER']!.replaceAll('{LUV_API}', luvApi);
+
+  ///landbank service fee
+  static final String getServiceFee = dotenv.env['SERVICE_FEE']!.replaceAll(
+    '{LUV_API}',
+    parkSpaceApi,
+  );
 }

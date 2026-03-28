@@ -328,31 +328,6 @@ class _MyProfileState extends State<MyProfile> {
     });
   }
 
-  void getRegions() async {
-    final ctx = Get.overlayContext ?? context;
-    CustomDialogStack.showLoading(ctx);
-
-    final returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
-    Get.back();
-
-    if (returnData == "No Internet") {
-      CustomDialogStack.showConnectionLost(ctx, () => Get.back());
-      return;
-    }
-
-    if (returnData == null) {
-      CustomDialogStack.showServerError(ctx, () => Get.back());
-      return;
-    }
-
-    if (returnData["items"].isNotEmpty) {
-      regionData = returnData["items"];
-      Navigator.pushNamed(context, Routes.updProfile, arguments: regionData);
-    } else {
-      CustomDialogStack.showServerError(ctx, () => Get.back());
-    }
-  }
-
   void getProvince(regionId) async {
     final ctx = Get.overlayContext ?? context;
     final params = "${ApiKeys.getProvince}?p_region_id=$regionId";
@@ -506,7 +481,16 @@ class _MyProfileState extends State<MyProfile> {
                     const SizedBox(height: 16),
                     LuvNeuPress.rectangle(
                       radius: BorderRadius.circular(30),
-                      onTap: () => getRegions(),
+                      onTap: () async {
+                        final regions = await Functions().fetchRegions(context);
+
+                        if (regions.isEmpty) return;
+
+                        Get.toNamed(
+                          Routes.updProfile,
+                          arguments: regions,
+                        );
+                      },
                       background: surface,
                       borderColor: stroke,
                       child: Padding(

@@ -21,7 +21,7 @@ class ExpiryConfig {
 class AutoLogoutGuard {
   static const ExpiryConfig awayExpiry = ExpiryConfig(
     5,
-    ExpiryUnit.days,
+    ExpiryUnit.minutes,
   ); //number and unit
 
   static const int _awayAlarmId = 92001;

@@ -1000,4 +1000,25 @@ class Functions {
     });
     return null;
   }
+
+  Future<List> fetchRegions(BuildContext context) async {
+    final ctx = Get.overlayContext ?? context;
+    CustomDialogStack.showLoading(ctx);
+
+    final returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
+
+    Get.back();
+
+    if (returnData == "No Internet") {
+      CustomDialogStack.showConnectionLost(ctx, () => Get.back());
+      return [];
+    }
+
+    if (returnData == null) {
+      CustomDialogStack.showServerError(ctx, () => Get.back());
+      return [];
+    }
+
+    return returnData["items"] ?? [];
+  }
 }

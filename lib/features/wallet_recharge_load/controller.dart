@@ -75,6 +75,7 @@ class WalletRechargeLoadController extends GetxController
       onTextChange();
       getData();
     });
+
     super.onInit();
   }
 
@@ -355,7 +356,7 @@ class WalletRechargeLoadController extends GetxController
     }
   }
 
-  ////select paymentType
+  //select paymentType
   void paymentType(Function cb) async {
     final response = await getUserTnx2();
     final bankType = arguments;
