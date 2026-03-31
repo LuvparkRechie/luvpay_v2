@@ -181,13 +181,6 @@ class CustomScaffoldV2 extends StatelessWidget {
           : null,
       shape: null,
       bottomOpacity: 1,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: _stroke(cs, isDark), width: 1),
-          ),
-        ),
-      ),
       systemOverlayStyle: systemOverlayStyle ??
           SystemUiOverlayStyle(
             statusBarColor: bg,

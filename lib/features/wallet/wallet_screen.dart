@@ -342,9 +342,16 @@ class _WalletScreenState extends State<WalletScreen> {
         return;
       }
       List itemData = response["items"];
+
+      itemData.sort((a, b) {
+        final dateA = DateTime.tryParse(a["tran_date"] ?? "") ?? DateTime(0);
+        final dateB = DateTime.tryParse(b["tran_date"] ?? "") ?? DateTime(0);
+        return dateB.compareTo(dateA);
+      });
+
       setState(() {
         _internetMsg = "";
-        logs = itemData.isEmpty ? [] : itemData.take(5).toList();
+        logs = itemData.take(5).toList();
       });
     } catch (e) {
       _internetMsg = "Error";
@@ -543,20 +550,39 @@ class _WalletScreenState extends State<WalletScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return CustomScaffoldV2(
+      appBarBackgroundColor: Colors.transparent,
       padding: EdgeInsets.zero,
       backgroundColor: cs.surface,
-      appBar: AppBar(
-        elevation: 0,
-        toolbarHeight: 0,
-        backgroundColor: Colors.transparent,
-        systemOverlayStyle:
-            (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
-                .copyWith(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      leading: Padding(
+        padding: const EdgeInsets.all(10),
+        child: LuvNeuPress.circle(
+          onTap: () {
+            Get.to(ProfileSettingsScreen(fromBuildHeader: true));
+          },
+          background: cs.surface,
+          borderColor: cs.primary.withOpacity(0.10),
+          child: Center(
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Center(
+                child: LuvpayText(
+                  text: Functions().getInitials(userInfo),
+                  style: AppTextStyle.body1(context),
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
+      appBarAction: [
+        LuvNeuIconButton(
+            icon: LucideIcons.history,
+            onTap: () {
+              Get.to(Get.to(() => TransactionHistory()));
+            }),
+      ],
       scaffoldBody: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
@@ -568,41 +594,42 @@ class _WalletScreenState extends State<WalletScreen> {
                         _refreshWallet();
                       },
                     )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(),
-                        const SizedBox(height: 5),
-                        _buildBalanceCard(),
-                        _carousel(context),
-                        Obx(() {
-                          final favs = billController.favBillers;
+                  : SingleChildScrollView(
+                      physics: BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildBalanceCard(),
+                          _carousel(context),
+                          Obx(() {
+                            final favs = billController.favBillers;
 
-                          if (favs.isEmpty) return const SizedBox();
+                            if (favs.isEmpty) return const SizedBox();
 
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 20),
-                              LuvpayText(
-                                text:
-                                    'Favorite Biller${favs.length > 1 ? 's' : ''}',
-                                style: AppTextStyle.h3(context),
-                              ),
-                              _favBillers(cs),
-                              const SizedBox(height: 25),
-                            ],
-                          );
-                        }),
-                        _buildMerchantBillsGrid(),
-                        const SizedBox(height: 25),
-                        LuvpayText(
-                          text: 'Transactions',
-                          style: AppTextStyle.h3(context),
-                        ),
-                        const SizedBox(height: 15),
-                        Expanded(child: _buildTransactionsTab()),
-                      ],
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 20),
+                                LuvpayText(
+                                  text:
+                                      'Favorite Biller${favs.length > 1 ? 's' : ''}',
+                                  style: AppTextStyle.h3(context),
+                                ),
+                                _favBillers(cs),
+                                const SizedBox(height: 25),
+                              ],
+                            );
+                          }),
+                          _buildMerchantBillsGrid(),
+                          const SizedBox(height: 25),
+                          LuvpayText(
+                            text: 'Transactions',
+                            style: AppTextStyle.h3(context),
+                          ),
+                          const SizedBox(height: 15),
+                          _buildTransactionsTab(),
+                        ],
+                      ),
                     ),
         ),
       ),

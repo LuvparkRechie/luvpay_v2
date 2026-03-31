@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -121,6 +121,7 @@ class _BillerScreenState extends State<BillerScreen> {
       Get.back();
 
       Functions().requestOtp(requestParam, (objData) async {
+        print("objData  $objData  ");
         if (objData == null) return;
 
         final isOk =

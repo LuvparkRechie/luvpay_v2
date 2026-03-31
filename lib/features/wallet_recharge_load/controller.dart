@@ -75,7 +75,7 @@ class WalletRechargeLoadController extends GetxController
       onTextChange();
       getData();
     });
-
+    print("arguments ${arguments}");
     super.onInit();
   }
 

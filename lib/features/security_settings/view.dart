@@ -23,63 +23,61 @@ class Security extends GetView<SecuritySettingsController> {
       enableToolBar: true,
       padding: EdgeInsets.zero,
       scaffoldBody: Obx(
-        () =>
-            controller.isLoading.value
-                ? const LoadingCard()
-                : StretchingOverscrollIndicator(
-                  axisDirection: AxisDirection.down,
-                  child: ScrollConfiguration(
-                    behavior: ScrollBehavior().copyWith(overscroll: false),
-                    child: ListView(
-                      padding: EdgeInsets.only(left: 10, right: 10, top: 30),
-                      children: [
-                        Column(
-                          spacing: 8,
-                          children: [
-                            InfoRowTile(
-                              icon: LucideIcons.lock,
-                              title: 'Update Password',
-                              subtitle:
-                                  "Secure your account with a new password.",
-                              subtitleMaxlines: 2,
-                              onTap: controller.verifyMobile,
-                            ),
-                            InfoRowTile(
-                              icon: LucideIcons.fingerprint,
-                              title: "Security Preference",
-                              subtitleMaxlines: 2,
-                              subtitle:
-                                  "Use biometrics for secure transactions.",
-                              onTap: () async {
-                                CustomDialogStack.showLoading(context);
-                                await Future.delayed(
-                                  const Duration(milliseconds: 500),
-                                );
-                                Get.back();
-                                Get.to(const OTPPreference());
-                              },
-                            ),
-                            InfoRowTile(
-                              icon: LucideIcons.fileX,
-                              title: "Delete your account",
-                              subtitleMaxlines: 2,
-                              subtitle:
-                                  "Remove your account and all stored data.",
-                              onTap: () {
-                                CustomDialogStack.showInfo(
-                                  Get.context!,
-                                  "🛠️ Delete Account",
-                                  "The account deletion feature is currently under development and will be available soon.",
-                                  () => Get.back(),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+        () => controller.isLoading.value
+            ? const LoadingCard()
+            : StretchingOverscrollIndicator(
+                axisDirection: AxisDirection.down,
+                child: ScrollConfiguration(
+                  behavior: ScrollBehavior().copyWith(overscroll: false),
+                  child: ListView(
+                    padding: EdgeInsets.only(left: 10, right: 10, top: 30),
+                    children: [
+                      Column(
+                        spacing: 8,
+                        children: [
+                          InfoRowTile(
+                            icon: LucideIcons.lock,
+                            title: 'Update Password',
+                            subtitle:
+                                "Secure your account with a new password.",
+                            subtitleMaxlines: 2,
+                            onTap: controller.verifyMobile,
+                          ),
+                          InfoRowTile(
+                            icon: LucideIcons.fingerprint,
+                            title: "Security Preference",
+                            subtitleMaxlines: 2,
+                            subtitle: "Use biometrics for secure transactions.",
+                            onTap: () async {
+                              CustomDialogStack.showLoading(context);
+                              await Future.delayed(
+                                const Duration(milliseconds: 500),
+                              );
+                              Get.back();
+                              Get.to(const OTPPreference());
+                            },
+                          ),
+                          InfoRowTile(
+                            icon: LucideIcons.fileX,
+                            title: "Delete your account",
+                            subtitleMaxlines: 2,
+                            subtitle:
+                                "Remove your account and all stored data.",
+                            onTap: () {
+                              CustomDialogStack.showInfo(
+                                Get.context!,
+                                "🛠️ Delete Account",
+                                "The account deletion feature is currently under development and will be available soon.",
+                                () => Get.back(),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
+              ),
       ),
     );
   }

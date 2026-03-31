@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
 
@@ -37,8 +39,7 @@ class NoDataFound extends StatelessWidget {
           const SizedBox(height: 5),
           LuvpayText(
             text: text ?? "No data found",
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+            style: AppTextStyle.body1(context),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 6),
