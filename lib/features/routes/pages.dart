@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:luvpay/features/helpcenter/index.dart';
 import 'package:luvpay/features/wallet_send/index.dart';
 import 'package:luvpay/shared/components/otp_field/index.dart';
-import 'package:luvpay/features/billers/index.dart';
 import 'package:luvpay/features/faq/index.dart';
 import 'package:luvpay/features/forgot_password/index.dart';
 import 'package:luvpay/features/forgot_password/utils/create_new/index.dart';

@@ -121,7 +121,6 @@ class _BillerScreenState extends State<BillerScreen> {
       Get.back();
 
       Functions().requestOtp(requestParam, (objData) async {
-        print("objData  $objData  ");
         if (objData == null) return;
 
         final isOk =

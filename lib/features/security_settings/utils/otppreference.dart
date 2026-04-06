@@ -67,57 +67,57 @@ class _OTPPreferenceState extends State<OTPPreference> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    InfoRowTile(
-                      icon: LucideIcons.user,
-                      title: 'In-app OTP',
-                      subtitle:
-                          "Turn on to use in-app OTP authentication (default is SMS OTP).",
-                      subtitleMaxlines: 2,
-                      onTap: () {
-                        controller.toggleBiometricAuthentication(
-                          !controller.isToggle.value,
-                        );
-                      },
-                      trailing: Container(
-                        width: 50,
-                        height: 25,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: controller.isToggle.value
-                              ? AppColorV2.lpBlueBrand
-                              : AppColorV2.inactiveButton,
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            AnimatedPositioned(
-                              duration: Duration(milliseconds: 200),
-                              left: controller.isToggle.value ? 30 : 5,
-                              child: Container(
-                                width: 15,
-                                height: 15,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 2.0,
-                                      spreadRadius: 1.0,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      trailingOnTap: () {
-                        controller.toggleBiometricAuthentication(
-                          !controller.isToggle.value,
-                        );
-                      },
-                    ),
+                    // InfoRowTile(
+                    //   icon: LucideIcons.user,
+                    //   title: 'In-app OTP',
+                    //   subtitle:
+                    //       "Turn on to use in-app OTP authentication (default is SMS OTP).",
+                    //   subtitleMaxlines: 2,
+                    //   onTap: () {
+                    //     // controller.toggleBiometricAuthentication(
+                    //     //   !controller.isToggle.value,
+                    //     // );
+                    //   },
+                    //   trailing: Container(
+                    //     width: 50,
+                    //     height: 25,
+                    //     decoration: BoxDecoration(
+                    //       borderRadius: BorderRadius.circular(30),
+                    //       color: controller.isToggle.value
+                    //           ? AppColorV2.lpBlueBrand
+                    //           : AppColorV2.inactiveButton,
+                    //     ),
+                    //     child: Stack(
+                    //       alignment: Alignment.center,
+                    //       children: [
+                    //         AnimatedPositioned(
+                    //           duration: Duration(milliseconds: 200),
+                    //           left: controller.isToggle.value ? 30 : 5,
+                    //           child: Container(
+                    //             width: 15,
+                    //             height: 15,
+                    //             decoration: BoxDecoration(
+                    //               color: Colors.white,
+                    //               borderRadius: BorderRadius.circular(30),
+                    //               boxShadow: [
+                    //                 BoxShadow(
+                    //                   color: Colors.black26,
+                    //                   blurRadius: 2.0,
+                    //                   spreadRadius: 1.0,
+                    //                 ),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    //   trailingOnTap: () {
+                    //     // controller.toggleBiometricAuthentication(
+                    //     //   !controller.isToggle.value,
+                    //     // );
+                    //   },
+                    // ),
                     InfoRowTile(
                       icon: LucideIcons.shield,
                       title: 'Login Security',

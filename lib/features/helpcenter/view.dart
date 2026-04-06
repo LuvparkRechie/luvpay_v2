@@ -5,7 +5,11 @@ import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 
 import '../../shared/widgets/luvpay_text.dart';
+import '../../shared/widgets/tap_guard.dart';
 import '../routes/routes.dart';
+import 'controller.dart';
+import 'utils/call_us_screen.dart';
+import 'utils/chat/chat_screen.dart';
 
 class HelpActionItem {
   final IconData icon;
@@ -27,15 +31,44 @@ class HelpCenter extends StatefulWidget {
 }
 
 class _HelpCenterState extends State<HelpCenter> {
+  final HelpCenterController controller = Get.put(HelpCenterController());
+
+  static const String chatKey = "chat_support";
+  static const String callKey = "call_support";
+  static const String emailKey = "email_support";
+
   List<HelpActionItem> get _merchantGridItems => [
         HelpActionItem(
           icon: Iconsax.message,
           label: 'Chat with us',
-          onTap: () async {},
+          onTap: () {
+            Get.to(() => const ChatScreen());
+          },
         ),
-        HelpActionItem(icon: Iconsax.call, label: 'Call us', onTap: () {}),
         HelpActionItem(
-            icon: Iconsax.direct_inbox, label: 'Email us', onTap: () {}),
+          icon: Iconsax.call,
+          label: 'Call us',
+          onTap: () {
+            TapGuard.run(
+              key: callKey,
+              action: () async {
+                Get.to(() => const CallUsScreen());
+              },
+            );
+          },
+        ),
+        HelpActionItem(
+          icon: Iconsax.direct_inbox,
+          label: 'Email us',
+          onTap: () {
+            TapGuard.run(
+              key: emailKey,
+              action: () async {
+                await controller.sendEmail();
+              },
+            );
+          },
+        ),
       ];
 
   @override
@@ -99,7 +132,14 @@ class _HelpCenterState extends State<HelpCenter> {
       children: [
         NeoNavIcon.icon(
           iconData: item.icon,
-          onTap: item.onTap,
+          onTap: () {
+            TapGuard.run(
+              key: item.label,
+              action: () async {
+                item.onTap();
+              },
+            );
+          },
           borderRadius: BorderRadius.circular(14),
         ),
         const SizedBox(height: 6),

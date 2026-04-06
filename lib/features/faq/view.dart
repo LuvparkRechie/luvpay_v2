@@ -19,6 +19,7 @@ class FaqPage extends GetView<FaqPageController> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Obx(
       () => CustomScaffoldV2(
         enableToolBar: false,
@@ -132,7 +133,7 @@ class FaqPage extends GetView<FaqPageController> {
                                             maxLines: 4,
                                             text: faq['faq_text'] ??
                                                 'No text available',
-                                            color: Colors.black,
+                                            color: cs.onSurface,
                                             style: AppTextStyle.h3(context),
                                           ),
                                           trailing: Icon(

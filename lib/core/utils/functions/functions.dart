@@ -769,7 +769,7 @@ class Functions {
       final result = await InternetAddress.lookup('app.luvpay.ph');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {}
     } catch (e) {
-      print('Failed to get IP: $e');
+      debugPrint('Failed to get IP: $e');
     }
   }
 

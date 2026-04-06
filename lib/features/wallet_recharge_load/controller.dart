@@ -75,7 +75,6 @@ class WalletRechargeLoadController extends GetxController
       onTextChange();
       getData();
     });
-    print("arguments ${arguments}");
     super.onInit();
   }
 
@@ -674,7 +673,7 @@ class WalletRechargeLoadController extends GetxController
         }
         isPaid = true;
       } catch (e) {
-        print("Error polling Landbank status: $e");
+        debugPrint("Error polling Landbank status: $e");
         isPaid = true;
       }
 

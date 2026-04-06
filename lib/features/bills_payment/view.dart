@@ -226,7 +226,6 @@
 //                   Get.back();
 
 //                   Functions().requestOtp(requestParam, (objData) async {
-//                     print("objData  $objData  ");
 //                     if (objData == null) return;
 
 //                     final ok = (objData["success"] == "Y" ||

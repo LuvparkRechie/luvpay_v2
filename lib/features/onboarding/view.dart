@@ -370,7 +370,7 @@ class _MyOnboardingPageState extends State<MyOnboardingPage> {
                                   style: AppTextStyle.paragraph1(
                                     context,
                                   ).copyWith(
-                                    color: currentPageColor,
+                                    color: AppColorV2.lpBlueBrand,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 15,
                                   ),

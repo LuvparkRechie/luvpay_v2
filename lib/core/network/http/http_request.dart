@@ -20,14 +20,12 @@ class HttpRequestApi {
       Variables.showSecurityPopUp(appSecurity[0]["msg"]);
     } else {
       try {
-        var response = await http
-            .get(
-              Uri.parse(
-                Uri.decodeFull(Uri.https(ApiKeys.gApiURL, api).toString()),
-              ),
-              headers: {"Content-Type": 'application/json; charset=utf-8'},
-            )
-            .timeout(Duration(seconds: 20));
+        var response = await http.get(
+          Uri.parse(
+            Uri.decodeFull(Uri.https(ApiKeys.gApiURL, api).toString()),
+          ),
+          headers: {"Content-Type": 'application/json; charset=utf-8'},
+        ).timeout(Duration(seconds: 20));
         if (response.statusCode == 200) {
           return jsonDecode(
             utf8.decode(response.bodyBytes, allowMalformed: true),
@@ -211,12 +209,10 @@ class HttpRequestApi {
       Variables.showSecurityPopUp(appSecurity[0]["msg"]);
     } else {
       try {
-        var response = await http
-            .get(
-              Uri.https("luvpark.ph", "/terms-of-use"),
-              headers: {"Content-Type": 'application/json; charset=utf-8'},
-            )
-            .timeout(Duration(seconds: 10));
+        var response = await http.get(
+          Uri.https("luvpark.ph", "/terms-of-use"),
+          headers: {"Content-Type": 'application/json; charset=utf-8'},
+        ).timeout(Duration(seconds: 10));
         if (response.statusCode == 200) {
           return "Success";
         } else {

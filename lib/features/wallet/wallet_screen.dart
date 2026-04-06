@@ -13,7 +13,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
 import 'package:luvpay/features/billers/index.dart';
@@ -448,17 +447,14 @@ class _WalletScreenState extends State<WalletScreen> {
           final success = await getServiceFee();
 
           if (!success) return;
-
-          Get.toNamed(
-            Routes.walletrechargeload,
-            arguments: {
-              "bank_type": "Landbank",
-              "image": "assets/images/wt_landbank.png",
-              "bank_code": " LandBank",
-              "service_fee": serviceFee.toString(),
-              "max_fee": maxFee.toString(),
-            },
-          );
+          final arguments = {
+            "bank_type": "Landbank",
+            "image": "assets/images/wt_landbank.png",
+            "bank_code": " LandBank",
+            "service_fee": serviceFee.toString(),
+            "max_fee": maxFee.toString(),
+          };
+          Get.toNamed(Routes.walletrechargeload, arguments: arguments);
         },
       },
       {
