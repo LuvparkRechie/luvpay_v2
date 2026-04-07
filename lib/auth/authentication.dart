@@ -133,15 +133,14 @@ class Authentication {
     if (data.length == 5) {
       data.removeAt(0);
     }
-    bool isExist =
-        data
-            .where(
-              (e) =>
-                  (e["park_area_id"] == dataString[0]["park_area_id"]) &&
-                  (e["vehicle_plate_no"] == dataString[0]["vehicle_plate_no"]),
-            )
-            .toList()
-            .isNotEmpty;
+    bool isExist = data
+        .where(
+          (e) =>
+              (e["park_area_id"] == dataString[0]["park_area_id"]) &&
+              (e["vehicle_plate_no"] == dataString[0]["vehicle_plate_no"]),
+        )
+        .toList()
+        .isNotEmpty;
     if (isExist) return;
     data.addAll(dataString);
     await prefs.setString("last_booking", json.encode(data));
@@ -310,5 +309,16 @@ class Authentication {
     } else {
       return isLogout;
     }
+  }
+
+  ///THIS IS FPR IN APP OTP
+  Future<void> setInAppOtp(bool value) async {
+    final pref = await SharedPreferences.getInstance();
+    await pref.setBool("in_app_otp", value);
+  }
+
+  Future<bool?> getInAppOtp() async {
+    final pref = await SharedPreferences.getInstance();
+    return pref.getBool("in_app_otp");
   }
 }

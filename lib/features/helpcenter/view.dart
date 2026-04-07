@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 
@@ -42,7 +43,15 @@ class _HelpCenterState extends State<HelpCenter> {
           icon: Iconsax.message,
           label: 'Chat with us',
           onTap: () {
-            Get.to(() => const ChatScreen());
+            TapGuard.run(
+              key: chatKey,
+              action: () async {
+                // Get.to(() => const ChatScreen());
+                CustomDialogStack.showUnderDevelopment(Get.context!, () {
+                  Get.back();
+                });
+              },
+            );
           },
         ),
         HelpActionItem(

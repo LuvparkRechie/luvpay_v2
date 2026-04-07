@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import '../../../../shared/widgets/luvpay_text.dart';
 import 'chat_screen.dart';
 
@@ -13,15 +14,15 @@ class ChatListScreen extends StatelessWidget {
       {"ticket": "LP-0002", "status": "Resolved", "category": "Refund"},
     ];
 
-    return Scaffold(
+    return CustomScaffoldV2(
       appBar: AppBar(title: const LuvpayText(text: "My Support Tickets")),
-      floatingActionButton: FloatingActionButton(
+      floatingButton: FloatingActionButton(
         onPressed: () {
           Get.toNamed("/chatCategory");
         },
         child: const Icon(Icons.add),
       ),
-      body: ListView.builder(
+      scaffoldBody: ListView.builder(
         itemCount: tickets.length,
         itemBuilder: (context, index) {
           final item = tickets[index];

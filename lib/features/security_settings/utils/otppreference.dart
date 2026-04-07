@@ -19,6 +19,9 @@ class OTPPreference extends StatefulWidget {
 
 class _OTPPreferenceState extends State<OTPPreference> {
   bool? isBioTrans = false;
+
+  bool isInAppOtp = false;
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +30,10 @@ class _OTPPreferenceState extends State<OTPPreference> {
 
   void initializeBioMetric() async {
     isBioTrans = await Authentication().getBiometricTrans();
+
+    ///this is for in-app otp
+    isInAppOtp = await Authentication().getInAppOtp() ?? false;
+
     setState(() {});
   }
 
@@ -50,10 +57,27 @@ class _OTPPreferenceState extends State<OTPPreference> {
     }
   }
 
+  ///inap otp
+  void toggleInAppOtp() async {
+    bool isAuthenticated = await AppSecurity.authenticateBio();
+
+    if (!isAuthenticated) {
+      AppSettings.openAppSettings();
+      return;
+    }
+
+    setState(() {
+      isInAppOtp = !isInAppOtp;
+    });
+
+    await Authentication().setInAppOtp(isInAppOtp);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final controller = Get.put(SecuritySettingsController());
+
     return CustomScaffoldV2(
       appBarTitle: "Security Preference",
       enableToolBar: true,
@@ -67,57 +91,50 @@ class _OTPPreferenceState extends State<OTPPreference> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // InfoRowTile(
-                    //   icon: LucideIcons.user,
-                    //   title: 'In-app OTP',
-                    //   subtitle:
-                    //       "Turn on to use in-app OTP authentication (default is SMS OTP).",
-                    //   subtitleMaxlines: 2,
-                    //   onTap: () {
-                    //     // controller.toggleBiometricAuthentication(
-                    //     //   !controller.isToggle.value,
-                    //     // );
-                    //   },
-                    //   trailing: Container(
-                    //     width: 50,
-                    //     height: 25,
-                    //     decoration: BoxDecoration(
-                    //       borderRadius: BorderRadius.circular(30),
-                    //       color: controller.isToggle.value
-                    //           ? AppColorV2.lpBlueBrand
-                    //           : AppColorV2.inactiveButton,
-                    //     ),
-                    //     child: Stack(
-                    //       alignment: Alignment.center,
-                    //       children: [
-                    //         AnimatedPositioned(
-                    //           duration: Duration(milliseconds: 200),
-                    //           left: controller.isToggle.value ? 30 : 5,
-                    //           child: Container(
-                    //             width: 15,
-                    //             height: 15,
-                    //             decoration: BoxDecoration(
-                    //               color: Colors.white,
-                    //               borderRadius: BorderRadius.circular(30),
-                    //               boxShadow: [
-                    //                 BoxShadow(
-                    //                   color: Colors.black26,
-                    //                   blurRadius: 2.0,
-                    //                   spreadRadius: 1.0,
-                    //                 ),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    //   trailingOnTap: () {
-                    //     // controller.toggleBiometricAuthentication(
-                    //     //   !controller.isToggle.value,
-                    //     // );
-                    //   },
-                    // ),
+                    InfoRowTile(
+                      icon: LucideIcons.user,
+                      title: 'In-app OTP Generator',
+                      subtitle:
+                          "Turn on to use in-app OTP authentication (default is SMS OTP).",
+                      subtitleMaxlines: 2,
+                      onTap: toggleInAppOtp,
+                      trailing: Container(
+                        width: 50,
+                        height: 25,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: isInAppOtp
+                              ? AppColorV2.lpBlueBrand
+                              : AppColorV2.inactiveButton,
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            AnimatedPositioned(
+                              duration: Duration(milliseconds: 200),
+                              left: isInAppOtp ? 30 : 5,
+                              child: Container(
+                                width: 15,
+                                height: 15,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(30),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 2.0,
+                                      spreadRadius: 1.0,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      trailingOnTap: toggleInAppOtp,
+                    ),
+
                     InfoRowTile(
                       icon: LucideIcons.shield,
                       title: 'Login Security',

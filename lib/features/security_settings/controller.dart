@@ -71,7 +71,6 @@ class SecuritySettingsController extends GetxController {
       final bool authenticated = await auth.authenticate(
         biometricOnly: true,
         persistAcrossBackgrounding: true,
-
         localizedReason: 'Please authenticate to continue',
         authMessages: const <AuthMessages>[
           AndroidAuthMessages(
@@ -111,11 +110,10 @@ class SecuritySettingsController extends GetxController {
       mobileNo.value = mydata["mobile_no"];
 
       Map<String, String> param = {"mobile_no": mobileNo.value};
-      var returnData =
-          await HttpRequestApi(
-            api: ApiKeys.postDeleteUserAcct,
-            parameters: param,
-          ).deleteData();
+      var returnData = await HttpRequestApi(
+        api: ApiKeys.postDeleteUserAcct,
+        parameters: param,
+      ).deleteData();
 
       Get.back();
 
@@ -170,11 +168,10 @@ class SecuritySettingsController extends GetxController {
                   await Future.delayed(const Duration(seconds: 3));
 
                   final userLogin = await Authentication().getUserLogin();
-                  List userDataList =
-                      [userLogin].map((e) {
-                        e["is_login"] = "N";
-                        return e;
-                      }).toList();
+                  List userDataList = [userLogin].map((e) {
+                    e["is_login"] = "N";
+                    return e;
+                  }).toList();
 
                   await Authentication().setLogin(jsonEncode(userDataList[0]));
 
