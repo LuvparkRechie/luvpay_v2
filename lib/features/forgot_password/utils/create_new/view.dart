@@ -283,7 +283,7 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
                             FocusScope.of(context).requestFocus(FocusNode());
                             if (controller.formKeyCreatePass.currentState!
                                 .validate()) {
-                              controller.requestOtp();
+                              controller.otpRequest();
                             }
                           },
                   ),

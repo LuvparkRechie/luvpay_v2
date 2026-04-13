@@ -70,7 +70,59 @@ class CreateNewPassController extends GetxController {
     update();
   }
 
-  Future<void> requestOtp() async {
+  Future<void> otpRequest() async {
+    final isInAppOtp = await Authentication().getInAppOtp() ?? false;
+
+    if (isInAppOtp) {
+      Object args = {
+        "time_duration": Duration(seconds: 30),
+        "mobile_no": mobileNoParam,
+        "req_otp_param": {},
+        "verify_param": {
+          "mobile_no": mobileNoParam.toString(),
+          "new_pwd": newPass.text,
+        },
+        "is_forget_vfd_pass": true,
+        "callback": (otp) {
+          if (otp != null) {
+            CustomDialogStack.showLoading(Get.context!);
+
+            Map<String, dynamic> postParam = {
+              "mobile_no": mobileNoParam.toString(),
+              "otp": otp.toString(),
+              "new_pwd": newPass.text,
+            };
+
+            HttpRequestApi(
+              api: ApiKeys.putLogin,
+              parameters: postParam,
+            ).putBody().then((retvalue) {
+              Get.back();
+
+              if (retvalue["success"] == "Y") {
+                CustomDialogStack.showSuccess(
+                  Get.context!,
+                  "Success!",
+                  "Your password has been updated",
+                  leftText: "Okay",
+                  () async {
+                    Get.offAllNamed(Routes.login);
+                  },
+                );
+              }
+            });
+          }
+        },
+      };
+
+      Get.to(
+        OtpFieldScreen(arguments: args),
+        transition: Transition.rightToLeftWithFade,
+        duration: Duration(milliseconds: 400),
+      );
+
+      return;
+    }
     CustomDialogStack.showLoading(Get.context!);
     DateTime timeNow = await Functions.getTimeNow();
     Get.back();

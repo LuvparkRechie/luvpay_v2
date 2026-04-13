@@ -690,8 +690,10 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                             }, childCount: wallets.length + 1),
                                           ),
                               ),
-                              const SliverToBoxAdapter(
-                                child: SizedBox(height: 30),
+                              SliverToBoxAdapter(
+                                child: SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.13),
                               ),
                             ],
                           ),

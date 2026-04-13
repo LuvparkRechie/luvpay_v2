@@ -190,11 +190,10 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                       }
 
                       List userData = [userLogin];
-                      userData =
-                          userData.map((e) {
-                            e["is_login"] = "N";
-                            return e;
-                          }).toList();
+                      userData = userData.map((e) {
+                        e["is_login"] = "N";
+                        return e;
+                      }).toList();
 
                       await Authentication().setLogin(jsonEncode(userData[0]));
                       await Authentication().setBiometricStatus(false);
@@ -276,10 +275,9 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                     hintText: "Create your new password",
                     controller: newPassword,
                     isObscure: !isShowNewPass.value,
-                    suffixIcon:
-                        !isShowNewPass.value
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                    suffixIcon: !isShowNewPass.value
+                        ? Icons.visibility_off
+                        : Icons.visibility,
                     onChange: (value) => onPasswordChanged(value),
                     onIconTap: () => onToggleNewPass(!isShowNewPass.value),
                     inputFormatters: [
@@ -313,14 +311,12 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                     hintText: "Confirm your new password",
                     controller: newConfirmPassword,
                     isObscure: !isShowNewPassConfirm.value,
-                    suffixIcon:
-                        !isShowNewPassConfirm.value
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                    suffixIcon: !isShowNewPassConfirm.value
+                        ? Icons.visibility_off
+                        : Icons.visibility,
                     onChange: (value) => onPasswordConfirmChanged(value),
-                    onIconTap:
-                        () =>
-                            onToggleConfirmNewPass(!isShowNewPassConfirm.value),
+                    onIconTap: () =>
+                        onToggleConfirmNewPass(!isShowNewPassConfirm.value),
                     inputFormatters: [
                       FilteringTextInputFormatter.deny(RegExp(r'\s')),
                     ],

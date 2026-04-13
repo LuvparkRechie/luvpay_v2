@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_exit_app/flutter_exit_app.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
@@ -19,7 +20,7 @@ import '../profile/profile_screen.dart';
 import '../routes/routes.dart';
 import '../subwallet/controller.dart';
 import '../subwallet/view.dart';
-import '../wallet/notifications.dart';
+import '../wallet/transaction/transaction_screen.dart';
 import '../wallet/wallet_screen.dart';
 import 'controller.dart';
 
@@ -57,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return true;
   }
 
-  final DashboardController controller = Get.put(DashboardController());
+  final DashboardController controller = Get.find<DashboardController>();
   bool _serviceBusy = false;
   bool _scanHandled = false;
   @override
@@ -80,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
 
       case 3:
-        return const WalletNotifications(fromTab: true);
+        return const TransactionHistory(fromTab: true);
 
       case 4:
         return ProfileSettingsScreen(
@@ -220,53 +221,121 @@ class _DashboardScreenState extends State<DashboardScreen> {
         statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
       ),
       child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, dynamic result) {
-          CustomDialogStack.showConfirmation(
-            context,
-            "Close Application",
-            "Are you sure you want to close application?",
-            leftText: "No",
-            rightText: "Yes",
-            () => Get.back(),
-            () {
-              Get.back();
-              Future.delayed(const Duration(milliseconds: 500), () {
-                FlutterExitApp.exitApp(iosForceExit: true);
-              });
-            },
-          );
-        },
-        child: Scaffold(
-          body: PageView.builder(
-            controller: controller.pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 5,
-            itemBuilder: (_, index) {
-              return Obx(() {
-                return controller.currentIndex.value == index
-                    ? _buildScreen(index)
-                    : const SizedBox();
-              });
-            },
-          ),
-          persistentFooterDecoration: BoxDecoration(
-            color: navBg,
-            border: Border(
-              top: BorderSide(
-                color: cs.outlineVariant.withOpacity(isDark ? 0.05 : 0.01),
-                width: 0.8,
+          canPop: false,
+          onPopInvokedWithResult: (bool didPop, dynamic result) {
+            CustomDialogStack.showConfirmation(
+              context,
+              "Close Application",
+              "Are you sure you want to close application?",
+              leftText: "No",
+              rightText: "Yes",
+              () => Get.back(),
+              () {
+                Get.back();
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  FlutterExitApp.exitApp(iosForceExit: true);
+                });
+              },
+            );
+          },
+          child: Scaffold(
+            body: Stack(children: [
+              PageView.builder(
+                controller: controller.pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 5,
+                itemBuilder: (_, index) {
+                  return Obx(() {
+                    return controller.currentIndex.value == index
+                        ? _buildScreen(index)
+                        : const SizedBox();
+                  });
+                },
               ),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: navShadow,
-                blurRadius: 10,
-                offset: const Offset(0, -2),
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 16,
+                child: Obx(() => _buildFooterNav()),
               ),
+              Positioned(
+                bottom: MediaQuery.of(context).padding.bottom +
+                    (Platform.isIOS ? 45 : 35),
+                left: MediaQuery.of(context).size.width / 2 - 32,
+                child: _buildFloatingQR(),
+              ),
+            ]),
+          )),
+    );
+  }
+
+  Widget _buildFloatingQR() {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: () {
+        Get.to(ScannerScreenV2(
+          isBack: true,
+          onScanStart: () {},
+          onchanged: (args) async {
+            if (_scanHandled) return;
+
+            final raw = args.trim();
+            if (raw.isEmpty) return;
+
+            _scanHandled = true;
+
+            try {
+              final normalized = normalizePhMobile(raw);
+
+              if (isValidPhMobile(normalized)) {
+                Get.back();
+                await Get.toNamed(
+                  Routes.send,
+                  arguments: {"mobile": normalized, "source": "qr_scan"},
+                );
+                return;
+              }
+
+              await getService(raw);
+            } catch (e) {
+              debugPrint("Dashboard scan error: $e");
+              CustomDialogStack.showError(
+                Get.context!,
+                "Scan Error",
+                "Something went wrong. Please try again.",
+                () => Get.back(),
+              );
+            } finally {
+              Future.delayed(const Duration(milliseconds: 1200), () {
+                _scanHandled = false;
+              });
+            }
+          },
+        ));
+      },
+      child: Container(
+        height: 64,
+        width: 64,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF0EA5E9),
+              Color(0xFF22D3EE),
             ],
           ),
-          persistentFooterButtons: [Obx(() => _buildFooterNav())],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.cyan.withOpacity(0.6),
+              blurRadius: 6,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Icon(
+          LucideIcons.qrCode,
+          size: 32,
+          color: cs.surface,
         ),
       ),
     );
@@ -286,105 +355,70 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
-          child: Row(
-            children: [
-              Expanded(
-                child: NeoNavIcon.tab(
-                  size: Platform.isIOS ? 60 : 48,
-                  activeIconData: Icons.home,
-                  inactiveIconData: Icons.home_outlined,
-                  active: i == 0,
-                  inactiveColor: inactiveColor,
-                  onTap: () => controller.changePage(0),
-                ),
+          child: Container(
+              padding: const EdgeInsets.symmetric(
+                vertical: 8,
               ),
-              Expanded(
-                child: NeoNavIcon.tab(
-                  size: Platform.isIOS ? 60 : 48,
-                  activeIconData: Icons.wallet,
-                  inactiveIconData: Icons.wallet_outlined,
-                  active: i == 1,
-                  inactiveColor: inactiveColor,
-                  onTap: () => controller.changePage(1),
-                ),
+              decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(40),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.45 : 0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              Expanded(
-                child: NeoNavIcon.tab(
-                  size: Platform.isIOS ? 60 : 48,
-                  activeIconData: Icons.qr_code,
-                  inactiveIconData: Icons.qr_code_outlined,
-                  active: i == 2,
-                  inactiveColor: inactiveColor,
-                  onTap: () {
-                    Get.to(ScannerScreenV2(
-                      isBack: true,
-                      onScanStart: () {},
-                      onchanged: (args) async {
-                        if (_scanHandled) return;
-
-                        final raw = args.trim();
-                        if (raw.isEmpty) return;
-
-                        _scanHandled = true;
-
-                        try {
-                          final normalized = normalizePhMobile(raw);
-
-                          if (isValidPhMobile(normalized)) {
-                            Get.back();
-                            await Get.toNamed(
-                              Routes.send,
-                              arguments: {
-                                "mobile": normalized,
-                                "source": "qr_scan"
-                              },
-                            );
-
-                            return;
-                          }
-
-                          await getService(raw);
-                        } catch (e) {
-                          debugPrint("Dashboard scan error: $e");
-                          CustomDialogStack.showError(
-                            Get.context!,
-                            "Scan Error",
-                            "Something went wrong. Please try again.",
-                            () => Get.back(),
-                          );
-                        } finally {
-                          Future.delayed(const Duration(milliseconds: 1200),
-                              () {
-                            _scanHandled = false;
-                          });
-                        }
-                      },
-                    ));
-                  },
-                ),
-              ),
-              Expanded(
-                child: NeoNavIcon.tab(
-                  size: Platform.isIOS ? 60 : 48,
-                  activeIconData: Icons.notifications,
-                  inactiveIconData: Icons.notifications_outlined,
-                  active: i == 3,
-                  onTap: () => controller.changePage(3),
-                  inactiveColor: inactiveColor,
-                ),
-              ),
-              Expanded(
-                child: NeoNavIcon.tab(
-                  size: Platform.isIOS ? 60 : 48,
-                  activeIconData: Icons.person,
-                  inactiveIconData: Icons.person_outlined,
-                  active: i == 4,
-                  inactiveColor: inactiveColor,
-                  onTap: () => controller.changePage(4),
-                ),
-              ),
-            ],
-          ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: NeoNavIcon.tab(
+                      borderRadius: BorderRadius.circular(40),
+                      size: Platform.isIOS ? 60 : 48,
+                      activeIconData: Icons.home,
+                      inactiveIconData: Icons.home_outlined,
+                      active: i == 0,
+                      inactiveColor: inactiveColor,
+                      onTap: () => controller.changePage(0),
+                    ),
+                  ),
+                  Expanded(
+                    child: NeoNavIcon.tab(
+                      borderRadius: BorderRadius.circular(40),
+                      size: Platform.isIOS ? 60 : 48,
+                      activeIconData: Icons.wallet,
+                      inactiveIconData: Icons.wallet_outlined,
+                      active: i == 1,
+                      inactiveColor: inactiveColor,
+                      onTap: () => controller.changePage(1),
+                    ),
+                  ),
+                  const SizedBox(width: 60),
+                  Expanded(
+                    child: NeoNavIcon.tab(
+                      borderRadius: BorderRadius.circular(40),
+                      size: Platform.isIOS ? 60 : 48,
+                      activeIconData: Icons.history,
+                      inactiveIconData: Icons.history_outlined,
+                      active: i == 3,
+                      onTap: () => controller.changePage(3),
+                      inactiveColor: inactiveColor,
+                    ),
+                  ),
+                  Expanded(
+                    child: NeoNavIcon.tab(
+                      borderRadius: BorderRadius.circular(40),
+                      size: Platform.isIOS ? 60 : 48,
+                      activeIconData: Icons.person,
+                      inactiveIconData: Icons.person_outlined,
+                      active: i == 4,
+                      inactiveColor: inactiveColor,
+                      onTap: () => controller.changePage(4),
+                    ),
+                  ),
+                ],
+              )),
         ),
       ),
     );

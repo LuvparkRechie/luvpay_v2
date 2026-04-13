@@ -20,9 +20,10 @@ class SubWallerCarousel extends StatelessWidget {
 
     return CarouselSlider(
       options: CarouselOptions(
+        scrollPhysics: const BouncingScrollPhysics(),
         height: 120,
         enableInfiniteScroll: false,
-        viewportFraction: 0.78,
+        viewportFraction: 0.55,
         padEnds: false,
         disableCenter: true,
         enlargeCenterPage: true,

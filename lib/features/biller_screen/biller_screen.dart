@@ -598,5 +598,5 @@ String _capitalize(String text) {
 
 String toCurrencyString(String amount) {
   final number = double.tryParse(amount) ?? 0.0;
-  return '₱${number.toStringAsFixed(2)}';
+  return number.toStringAsFixed(2);
 }

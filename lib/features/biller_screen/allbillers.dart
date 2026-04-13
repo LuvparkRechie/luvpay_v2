@@ -45,11 +45,6 @@ class Allbillers extends GetView<BillersController> {
     Color line([double o = 0.10]) => brand.withOpacity(o);
 
     return CustomScaffoldV2(
-      floatingButton: FloatingActionButton(
-        backgroundColor: brand,
-        child: const Icon(LucideIcons.plus),
-        onPressed: () => Get.to(Billers()),
-      ),
       onPressedLeading: () {
         Get.back();
         controller.filterBillers('');

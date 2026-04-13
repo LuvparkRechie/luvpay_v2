@@ -490,9 +490,9 @@ class Functions {
 
   Future<void> requestOtp(Map<String, String> param, Function cb) async {
     CustomDialogStack.showLoading(Get.context!);
-
+    final api = ApiKeys.postGenerateOtp;
     HttpRequestApi(
-      api: ApiKeys.postGenerateOtp,
+      api: api,
       parameters: param,
     ).postBody().then((returnData) async {
       Get.back();
@@ -934,7 +934,7 @@ class Functions {
 
     if (initials.isNotEmpty) return initials;
     if (mobile.isNotEmpty && mobile.length >= 4) {
-      return mobile.substring(mobile.length - 2);
+      return "LP";
     }
     return "WU";
   }

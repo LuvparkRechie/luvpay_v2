@@ -29,7 +29,8 @@ import '../../../core/utils/functions/functions.dart';
 import 'transaction_details.dart';
 
 class TransactionHistory extends StatefulWidget {
-  const TransactionHistory({super.key});
+  final bool? fromTab;
+  const TransactionHistory({super.key, this.fromTab});
   @override
   State<TransactionHistory> createState() => _TransactionHistoryState();
 }
@@ -763,6 +764,10 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                     ),
                                   ),
                                   const SizedBox(height: 20),
+                                  SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.15),
                                 ],
                               );
                             }
@@ -913,6 +918,18 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                   );
 
     return CustomScaffoldV2(
+      leading: widget.fromTab == true
+          ? SizedBox.shrink()
+          : NeoNavIcon.icon(
+              size: 40,
+              iconColor: AppColorV2.lpBlueBrand,
+              padding: const EdgeInsets.all(8),
+              iconSize: 20,
+              iconData: Icons.arrow_back_ios_new_rounded,
+              onTap: () {
+                Get.back();
+              },
+            ),
       backgroundColor: cs.surface,
       padding: EdgeInsets.zero,
       enableToolBar: true,

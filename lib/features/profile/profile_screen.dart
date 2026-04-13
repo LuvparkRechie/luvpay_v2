@@ -254,6 +254,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.10),
                       ],
                     ),
                   ),
