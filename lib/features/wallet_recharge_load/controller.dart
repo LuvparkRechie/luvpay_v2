@@ -687,19 +687,19 @@ class WalletRechargeLoadController extends GetxController
         barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
-            title: const Text("Payment Failed"),
-            content: const Text(
-              "Due to unconfirmed payment or exceeded time limit,\n"
-              "this transaction will now be closed.\n\n"
-              "Please check your Landbank app or try again later.",
+            title: const LuvpayText(text: "Payment Failed"),
+            content: const LuvpayText(
+              text: "Due to unconfirmed payment or exceeded time limit,\n"
+                  "this transaction will now be closed.\n\n"
+                  "Please check your Landbank app or try again later.",
             ),
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // close dialog
-                  Get.back(); // close payment/QR page
+                  Navigator.of(context).pop();
+                  Get.back();
                 },
-                child: const Text("OK"),
+                child: const LuvpayText(text: "OK"),
               ),
             ],
           );

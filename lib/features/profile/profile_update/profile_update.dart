@@ -115,10 +115,9 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
     //address dropdown
     _regionId =
         widget.userData['region_id'] == 0 ? null : widget.userData['region_id'];
-    _provinceId =
-        widget.userData['province_id'] == 0
-            ? null
-            : widget.userData['province_id'];
+    _provinceId = widget.userData['province_id'] == 0
+        ? null
+        : widget.userData['province_id'];
     _cityId =
         widget.userData['city_id'] == 0 ? null : widget.userData['city_id'];
     _brgyId =
@@ -235,10 +234,9 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
       "last_name": myData["last_name"],
       "first_name": myData["first_name"],
       "middle_name": myData["middle_name"],
-      "birthday":
-          myData["birthday"].toString() == 'null'
-              ? ''
-              : myData["birthday"].toString().split("T")[0],
+      "birthday": myData["birthday"].toString() == 'null'
+          ? ''
+          : myData["birthday"].toString().split("T")[0],
       "gender": myData["gender"],
       "civil_status": myData["civil_status"],
       "address1": myData["address1"],
@@ -291,8 +289,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
   Future<void> _selectBirthday() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate:
-          _selectedBirthday ??
+      initialDate: _selectedBirthday ??
           DateTime.now().subtract(const Duration(days: 365 * 18)),
       firstDate: DateTime(1900),
       lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
@@ -335,7 +332,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: cs.error,
-          content: const Text('Please fill in required fields'),
+          content: const LuvpayText(text: 'Please fill in required fields'),
         ),
       );
       return false;
@@ -350,7 +347,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: cs.error,
-          content: const Text('Please select 3 unique security questions'),
+          content: const LuvpayText(
+              text: 'Please select 3 unique security questions'),
         ),
       );
       return false;
@@ -362,8 +360,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: cs.error,
-            content: const Text(
-              'Please provide valid answers for all questions',
+            content: const LuvpayText(
+              text: 'Please provide valid answers for all questions',
             ),
           ),
         );
@@ -434,8 +432,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Profile',
+              LuvpayText(
+                text: 'Profile',
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight:
@@ -443,8 +441,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                   color: _currentPage == 0 ? cs.primary : inactiveText,
                 ),
               ),
-              Text(
-                'Security',
+              LuvpayText(
+                text: 'Security',
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight:
@@ -452,8 +450,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                   color: _currentPage == 1 ? cs.primary : inactiveText,
                 ),
               ),
-              Text(
-                'Selfie',
+              LuvpayText(
+                text: 'Selfie',
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight:
@@ -553,13 +551,12 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                 prefixIcon: Icon(Icons.lock_outline_rounded, color: cs.primary),
                 hintText: 'Enter your answer',
                 hintStyle: GoogleFonts.inter(color: hintText),
-                suffixIcon:
-                    _answerControllers[index].text.isNotEmpty
-                        ? Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColorV2.correctState,
-                        )
-                        : null,
+                suffixIcon: _answerControllers[index].text.isNotEmpty
+                    ? Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColorV2.correctState,
+                      )
+                    : null,
               ),
               style: GoogleFonts.inter(fontSize: 14, color: cs.onSurface),
               validator: (value) {
@@ -705,12 +702,11 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
             prefixIcon: const Icon(Icons.location_on),
             isDisabled: false,
             labelText: "Region",
-            items:
-                widget.regionData.map((e) {
-                  e["text"] = e["region_name"];
-                  e["value"] = e["region_id"];
-                  return e;
-                }).toList(),
+            items: widget.regionData.map((e) {
+              e["text"] = e["region_name"];
+              e["value"] = e["region_id"];
+              return e;
+            }).toList(),
             selectedValue: _regionId,
             onChanged: (value) async {
               List respo = await getAddressData(
@@ -867,8 +863,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Security Setup',
+                      LuvpayText(
+                        text: 'Security Setup',
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -876,14 +872,14 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'Choose 3 unique security questions and provide answers that are memorable but hard to guess.',
+                      LuvpayText(
+                        text:
+                            'Choose 3 unique security questions and provide answers that are memorable but hard to guess.',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color:
-                              isDark
-                                  ? AppColorV2.darkBodyText
-                                  : AppColorV2.bodyTextColor,
+                          color: isDark
+                              ? AppColorV2.darkBodyText
+                              : AppColorV2.bodyTextColor,
                         ),
                       ),
                     ],
@@ -925,8 +921,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
         children: [
           Icon(icon, color: cs.primary, size: 20),
           const SizedBox(width: 8),
-          Text(
-            title,
+          LuvpayText(
+            text: title,
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -948,15 +944,14 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
     return Scaffold(
       backgroundColor: bg,
-
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: cs.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Update Profile',
+        title: LuvpayText(
+          text: 'Update Profile',
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -1018,8 +1013,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                           ),
                           side: BorderSide(color: cs.primary),
                         ),
-                        child: Text(
-                          'Back',
+                        child: LuvpayText(
+                          text: 'Back',
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -1055,12 +1050,12 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(
-                          _currentPage == 0
+                        child: LuvpayText(
+                          text: _currentPage == 0
                               ? 'Continue to Security'
                               : _currentPage == 1
-                              ? 'Continue to Selfie'
-                              : 'Submit',
+                                  ? 'Continue to Selfie'
+                                  : 'Submit',
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

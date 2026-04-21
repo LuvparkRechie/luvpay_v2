@@ -13,6 +13,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 
+import '../../../shared/widgets/luvpay_text.dart';
 import 'controller.dart';
 
 class TicketClipper extends CustomClipper<Path> {
@@ -152,8 +153,8 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
           child: Icon(Icons.check_rounded, color: cs.primary, size: 32),
         ),
         const SizedBox(height: 12),
-        Text(
-          'Payment Successful',
+        LuvpayText(
+          text: 'Payment Successful',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w900,
@@ -162,8 +163,8 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          'Keep this receipt for your records',
+        LuvpayText(
+          text: 'Keep this receipt for your records',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
@@ -233,6 +234,12 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
     required bool isDark,
     required double borderOpacity,
   }) {
+    String merchantName =
+        controller.parameter["merchant_name"]?.toString().trim() ?? "";
+
+    if (merchantName.isEmpty) {
+      merchantName = "Merchant";
+    }
     final borderColor = cs.onSurface.withOpacity(borderOpacity);
 
     return Row(
@@ -252,8 +259,8 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'PAID TO',
+              LuvpayText(
+                text: 'PAID TO',
                 style: TextStyle(
                   fontSize: 10,
                   letterSpacing: 0.8,
@@ -262,10 +269,8 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                _capitalize(
-                  controller.parameter["merchant_name"] ?? "Merchant",
-                ),
+              LuvpayText(
+                text: _capitalize(merchantName),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
@@ -283,12 +288,12 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
 
   Widget _buildAmountSection(BuildContext context, {required ColorScheme cs}) {
     final amt =
-        double.tryParse(controller.parameter["amount"]?.toString() ?? '0') ?? 0;
-
+        double.tryParse(controller.parameter["amount"]?.toString() ?? '') ??
+            0.0;
     return Column(
       children: [
-        Text(
-          'AMOUNT PAID',
+        LuvpayText(
+          text: 'AMOUNT PAID',
           style: TextStyle(
             fontSize: 12,
             letterSpacing: 1,
@@ -297,8 +302,8 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
           ),
         ),
         const SizedBox(height: 6),
-        Text(
-          _formatCurrency(amt),
+        LuvpayText(
+          text: _formatCurrency(amt),
           style: TextStyle(
             fontSize: 34,
             fontWeight: FontWeight.w900,
@@ -315,25 +320,42 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
     required ColorScheme cs,
   }) {
     DateTime? dt;
+
+    final raw = controller.parameter["date_time"]?.toString();
+
     try {
-      dt = DateTime.tryParse(
-        controller.parameter["date_time"]?.toString() ?? "",
-      );
+      dt = DateTime.tryParse(raw ?? "");
+
+      if (dt == null && raw != null && raw.isNotEmpty) {
+        dt = DateFormat("yyyy-MM-dd HH:mm:ss").parse(raw);
+      }
     } catch (_) {}
 
     final dateTxt = dt != null ? controller.formatDate(dt) : "N/A";
     final timeTxt = dt != null ? DateFormat('hh:mm a').format(dt) : "N/A";
 
+    final walletName = (controller.parameter["wallet_name"] == null ||
+            controller.parameter["wallet_name"].toString().trim().isEmpty)
+        ? "Main Wallet"
+        : controller.parameter["wallet_name"].toString();
+
+    final reference = (controller.parameter["reference_no"] == null ||
+            controller.parameter["reference_no"].toString().trim().isEmpty)
+        ? "N/A"
+        : controller.parameter["reference_no"].toString();
+
+    final orderNo = (controller.parameter["order_no"] == null ||
+            controller.parameter["order_no"].toString().trim().isEmpty)
+        ? "N/A"
+        : controller.parameter["order_no"].toString();
+
     return Column(
       children: [
         _detailRow(context, cs, 'Date', dateTxt),
         _detailRow(context, cs, 'Time', timeTxt),
-        _detailRow(
-          context,
-          cs,
-          'Reference',
-          controller.parameter["reference_no"] ?? 'N/A',
-        ),
+        _detailRow(context, cs, 'Reference', reference),
+        _detailRow(context, cs, 'Order No', orderNo),
+        _detailRow(context, cs, 'Paid From', walletName),
       ],
     );
   }
@@ -349,8 +371,8 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
+          LuvpayText(
+            text: label,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
@@ -359,8 +381,8 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              value,
+            child: LuvpayText(
+              text: value,
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 11,
@@ -386,7 +408,7 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
       height: 52,
       child: OutlinedButton.icon(
         icon: const Icon(Icons.download_rounded),
-        label: const Text('Save Receipt'),
+        label: const LuvpayText(text: 'Save Receipt'),
         style: OutlinedButton.styleFrom(
           foregroundColor: cs.primary,
           side: BorderSide(color: cs.primary.withOpacity(isDark ? 0.55 : 0.75)),

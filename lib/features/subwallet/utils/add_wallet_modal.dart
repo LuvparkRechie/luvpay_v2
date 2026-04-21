@@ -5,11 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:luvpay/features/subwallet/utils/subwalllet_card.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
 import 'package:luvpay/shared/widgets/upper_case_formatter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/utils/functions/functions.dart';
 import '../../../shared/widgets/colors.dart';
 import '../../../shared/widgets/neumorphism.dart';
 import '../controller.dart';
@@ -36,6 +39,7 @@ class AddWalletModal extends StatefulWidget {
 class AddWalletModalState extends State<AddWalletModal> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
+  String _selectedThemeKey = "default";
 
   String? _selectedCategoryId;
   String? _selectedCategoryName;
@@ -64,17 +68,17 @@ class AddWalletModalState extends State<AddWalletModal> {
     if (widget.existingWallets != null) {
       existingWallets = widget.existingWallets!;
     }
-
     if (widget.mode == WalletModalMode.edit && widget.wallet != null) {
       final w = widget.wallet!;
       _nameController.text = w.name;
+
+      _selectedThemeKey = w.colorTheme;
 
       _selectedCategoryId = null;
       _selectedCategoryName = null;
       _selectedColor = null;
       _selectedIconBytes = null;
     }
-
     _balanceFocusNode.addListener(_validateBalanceOnBlur);
 
     if (widget.mode == WalletModalMode.create) {
@@ -83,6 +87,11 @@ class AddWalletModalState extends State<AddWalletModal> {
         setState(_loadCategories);
       });
     }
+  }
+
+  Future<void> saveWalletTheme(String walletName, String key) async {
+    final sp = await SharedPreferences.getInstance();
+    await sp.setString("wallet_theme_$walletName", key);
   }
 
   void _loadCategories() {
@@ -415,13 +424,17 @@ class AddWalletModalState extends State<AddWalletModal> {
               categoryId: int.tryParse(_selectedCategoryId!),
               subWalletName: walletName,
               amount: walletAmount,
+              themeKey: _selectedThemeKey,
             )
           : await controller.editSubwallet(
               subwalletId: int.tryParse(widget.wallet!.id),
               subWalletName: walletName,
+              themeKey: _selectedThemeKey,
             );
 
       if (result["success"] == true) {
+        await saveWalletTheme(walletName, _selectedThemeKey);
+
         await controller.getUserSubWallets();
         await controller.luvpayBalance();
         widget.onWalletCreated?.call();
@@ -477,6 +490,16 @@ class AddWalletModalState extends State<AddWalletModal> {
             ? true
             : _validateBalance(_balanceController.text) == null &&
                 _validateCategory(_selectedCategoryId) == null);
+    Future<List<Color>> resolveWalletGradient(String walletId) async {
+      final key = await getWalletColor(walletId);
+
+      final theme = walletThemes.firstWhere(
+        (e) => e.key == key,
+        orElse: () => walletThemes.first,
+      );
+
+      return theme.gradient;
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -712,6 +735,40 @@ class AddWalletModalState extends State<AddWalletModal> {
               ),
               const SizedBox(height: 18),
             ],
+            LuvpayText(
+              text: 'Select Color (Optional)',
+              style: AppTextStyle.h3(context).copyWith(color: titleColor),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 10,
+              children: walletThemes.map((theme) {
+                final isSelected = _selectedThemeKey == theme.key;
+
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedThemeKey = theme.key;
+                    });
+                  },
+                  child: Container(
+                    width: 40,
+                    height: isSelected ? 50 : 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: theme.gradient,
+                      ),
+                      border: isSelected
+                          ? Border.all(color: cs.onSurface, width: 3)
+                          : null,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 18),
             TextField(
               controller: _nameController,
               onChanged: _validateNameOnChange,

@@ -16,6 +16,7 @@ import 'package:pointycastle/export.dart' as crypto;
 import 'package:screenshot/screenshot.dart';
 
 import '../../core/utils/functions/functions.dart';
+import 'luvpay_text.dart';
 
 class Variables {
   static Timer? inactiveTmr;
@@ -474,12 +475,11 @@ class Variables {
     );
     Uint8List pngBytes = bytes.buffer.asUint8List();
 
-    markerBeytes =
-        isOval
-            // ignore: use_build_context_synchronously
-            ? await createOvalImage(context, base64Encode(pngBytes), size)
-            // ignore: use_build_context_synchronously
-            : await getMarkerIcon(context, base64Encode(pngBytes), size);
+    markerBeytes = isOval
+        // ignore: use_build_context_synchronously
+        ? await createOvalImage(context, base64Encode(pngBytes), size)
+        // ignore: use_build_context_synchronously
+        : await getMarkerIcon(context, base64Encode(pngBytes), size);
 
     return markerBeytes;
   }
@@ -747,9 +747,9 @@ class Variables {
         content: Wrap(
           children: [
             Center(
-              child: Text(
-                'Your device is $msg. '
-                'For security reasons, the app will now close.',
+              child: LuvpayText(
+                text: 'Your device is $msg. '
+                    'For security reasons, the app will now close.',
               ),
             ),
           ],
@@ -760,15 +760,13 @@ class Variables {
       FlutterExitApp.exitApp(iosForceExit: true);
     });
   }
-  // haversineDistance Formula to get distance between lat long
 
   double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
-    const double R = 6371; // Radius of Earth in kilometers
+    const double R = 6371;
     double dLat = _degreesToRadians(lat2 - lat1);
     double dLon = _degreesToRadians(lon2 - lon1);
 
-    double a =
-        sin(dLat / 2) * sin(dLat / 2) +
+    double a = sin(dLat / 2) * sin(dLat / 2) +
         cos(_degreesToRadians(lat1)) *
             cos(_degreesToRadians(lat2)) *
             sin(dLon / 2) *
@@ -797,7 +795,7 @@ class Variables {
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7.0)),
-        content: Wrap(children: [Center(child: Text(msg))]),
+        content: Wrap(children: [Center(child: LuvpayText(text: msg))]),
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../shared/widgets/luvpay_text.dart';
 import '../../../routes/routes.dart';
 
 class UpdateInfoSuccess extends StatefulWidget {
@@ -87,10 +88,9 @@ class _UpdateInfoSuccessState extends State<UpdateInfoSuccess>
     final card = cs.surfaceContainerHighest;
     final stroke = cs.onSurface.withOpacity(borderOpacity);
 
-    final shadowColor =
-        isDark
-            ? Colors.black.withOpacity(0.45)
-            : Colors.black.withOpacity(0.10);
+    final shadowColor = isDark
+        ? Colors.black.withOpacity(0.45)
+        : Colors.black.withOpacity(0.10);
 
     return PopScope(
       canPop: false,
@@ -183,11 +183,9 @@ class _UpdateInfoSuccessState extends State<UpdateInfoSuccess>
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 16),
-
-                      Text(
-                        "Congratulations!",
+                      LuvpayText(
+                        text: "Congratulations!",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 18,
@@ -196,11 +194,10 @@ class _UpdateInfoSuccessState extends State<UpdateInfoSuccess>
                           letterSpacing: -0.2,
                         ),
                       ),
-
                       const SizedBox(height: 8),
-
-                      Text(
-                        "You have successfully updated your account.\nWe’re redirecting you to the Login page.",
+                      LuvpayText(
+                        text:
+                            "You have successfully updated your account.\nWe’re redirecting you to the Login page.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,
@@ -209,9 +206,7 @@ class _UpdateInfoSuccessState extends State<UpdateInfoSuccess>
                           color: fg.withOpacity(0.70),
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
                       Container(
                         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                         decoration: BoxDecoration(
@@ -224,24 +219,24 @@ class _UpdateInfoSuccessState extends State<UpdateInfoSuccess>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(
-                                  "Redirecting in ",
+                                LuvpayText(
+                                  text: "Redirecting in ",
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w800,
                                     color: fg.withOpacity(0.70),
                                   ),
                                 ),
-                                Text(
-                                  seconds,
+                                LuvpayText(
+                                  text: seconds,
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w900,
                                     color: cs.primary,
                                   ),
                                 ),
-                                Text(
-                                  "s",
+                                LuvpayText(
+                                  text: "s",
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w800,
@@ -267,9 +262,7 @@ class _UpdateInfoSuccessState extends State<UpdateInfoSuccess>
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
                       TextButton(
                         onPressed: () => Get.offAllNamed(Routes.login),
                         style: TextButton.styleFrom(
@@ -278,7 +271,7 @@ class _UpdateInfoSuccessState extends State<UpdateInfoSuccess>
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        child: const Text("Go to Login now"),
+                        child: const LuvpayText(text: "Go to Login now"),
                       ),
                     ],
                   ),

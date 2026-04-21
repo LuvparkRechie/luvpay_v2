@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 
 import 'package:luvpay/shared/widgets/neumorphism.dart';
-import 'anim.dart';
 import 'luvpay_text.dart';
 
 class CustomScaffoldV2 extends StatelessWidget {
@@ -122,14 +121,27 @@ class CustomScaffoldV2 extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context) {
-    return LuvPayDiagonalLinesBackground(
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: padding ?? const EdgeInsets.all(24),
-          child: scaffoldBody,
+    return Stack(
+      children: [
+        Positioned.fill(
+          top: 10,
+          child: Container(
+            alignment: Alignment.topCenter,
+            child: Image.asset(
+              "assets/images/lp_faint2.png",
+              fit: BoxFit.contain,
+              color: Color(0xFF80B8FF).withAlpha(15),
+            ),
+          ),
         ),
-      ),
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(24),
+            child: scaffoldBody,
+          ),
+        ),
+      ],
     );
   }
 

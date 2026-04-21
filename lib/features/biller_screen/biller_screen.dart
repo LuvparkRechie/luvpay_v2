@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/upper_case_formatter.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -21,6 +22,8 @@ import 'package:luvpay/features/biller_screen/bill_receipt.dart';
 
 import '../../shared/widgets/neumorphism.dart';
 import '../../shared/components/otp_field/view.dart';
+import '../subwallet/controller.dart';
+import '../wallet/refresh_wallet.dart';
 
 class BillerScreen extends StatefulWidget {
   final List data;
@@ -40,8 +43,13 @@ class _BillerScreenState extends State<BillerScreen> {
   final TextEditingController _amountController = TextEditingController();
 
   bool isLoading = false;
-  double _walletBal = 0.0;
+  String selectedWalletName = "Main Wallet";
+  double selectedWalletBalance = 0.0;
+  double mainWalletBalance = 0.0;
+  List<Map<String, dynamic>> subWallets = [];
+  String selectedWalletId = "";
 
+  final subWalletController = Get.put(SubWalletController());
   @override
   void initState() {
     super.initState();
@@ -81,7 +89,8 @@ class _BillerScreenState extends State<BillerScreen> {
     try {
       final data = await Functions.getUserBalance();
 
-      double bal = 0.0;
+      double mainBal = 0.0;
+
       if (data.isNotEmpty) {
         final root = data[0];
         if (root is Map &&
@@ -90,15 +99,23 @@ class _BillerScreenState extends State<BillerScreen> {
           final item0 = (root["items"] as List)[0];
           if (item0 is Map) {
             final raw = item0["amount_bal"];
-            bal = raw is num
+            mainBal = raw is num
                 ? raw.toDouble()
                 : (double.tryParse(raw?.toString() ?? "") ?? 0.0);
           }
         }
       }
 
+      await subWalletController.getUserSubWallets();
+
       if (!mounted) return;
-      setState(() => _walletBal = bal);
+
+      setState(() {
+        mainWalletBalance = mainBal;
+        selectedWalletBalance = mainBal;
+        selectedWalletName = "Main Wallet";
+        subWallets = subWalletController.userSubWallets;
+      });
     } catch (e) {
       debugPrint("Error fetching user data: $e");
     } finally {
@@ -180,14 +197,24 @@ class _BillerScreenState extends State<BillerScreen> {
   }
 
   String? _validateAmount(String? value) {
-    if (value == null || value.trim().isEmpty) return 'Please enter an amount';
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter an amount';
+    }
 
     final amount = double.tryParse(value);
     if (amount == null || amount <= 0) {
       return 'Please enter a valid amount greater than zero';
     }
 
-    if (amount > _walletBal) return 'Insufficient balance';
+    final serviceFee =
+        double.tryParse(widget.data[0]['service_fee'].toString()) ?? 0.0;
+
+    final total = amount + serviceFee;
+
+    if (total > selectedWalletBalance) {
+      return 'Insufficient funds';
+    }
+
     return null;
   }
 
@@ -217,14 +244,16 @@ class _BillerScreenState extends State<BillerScreen> {
       "bill_no": billNo,
       "account_name": accountName,
       "original_amount": amount,
+      "user_sub_wallet_id": selectedWalletId,
+      "wallet_name": selectedWalletName,
     };
-
+    String api = ApiKeys.postPayBills;
     HttpRequestApi(
-      api: ApiKeys.postPayBills,
+      api: api,
       parameters: parameter,
     ).postBody().then((returnPost) async {
       Get.back();
-
+      longPrint("parameterss $api $parameter $returnPost");
       if (returnPost == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
         return;
@@ -242,10 +271,14 @@ class _BillerScreenState extends State<BillerScreen> {
         _amountController.clear();
 
         final result = await Get.to(
-          BillPaymentReceipt(apiResponse: returnPost, paymentParams: parameter),
+          BillPaymentReceipt(
+            apiResponse: returnPost,
+            paymentParams: parameter,
+          ),
         );
 
         if (result != null) Get.back(result: true);
+        WalletRefreshBus.refresher();
         return;
       }
 
@@ -294,21 +327,12 @@ class _BillerScreenState extends State<BillerScreen> {
               child: ListView(
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  _balanceCard(
-                    context,
-                    cs: cs,
-                    isDark: isDark,
-                    borderOpacity: borderOpacity,
-                    isLoading: isLoading,
-                    balanceText: toCurrencyString(_walletBal.toString()),
-                  ),
                   spacing(height: 18),
                   LuvpayText(
                     text: "Bill Account Number",
                     style: AppTextStyle.body1(context),
                     color: cs.onBackground.withAlpha(250),
                   ),
-                  spacing(height: 10),
                   CustomTextField(
                     keyboardType: TextInputType.number,
                     controller: _billAcctController,
@@ -336,7 +360,6 @@ class _BillerScreenState extends State<BillerScreen> {
                     style: AppTextStyle.body1(context),
                     color: cs.onBackground.withAlpha(250),
                   ),
-                  spacing(height: 10),
                   CustomTextField(
                     controller: _billNoController,
                     hintText: 'Enter bill number',
@@ -354,7 +377,6 @@ class _BillerScreenState extends State<BillerScreen> {
                     style: AppTextStyle.body1(context),
                     color: cs.onBackground.withAlpha(250),
                   ),
-                  spacing(height: 10),
                   CustomTextField(
                     controller: _accountNameController,
                     hintText: 'Enter account name',
@@ -405,7 +427,6 @@ class _BillerScreenState extends State<BillerScreen> {
                         ),
                     ],
                   ),
-                  spacing(height: 10),
                   CustomTextField(
                     controller: _amountController,
                     hintText: "Enter payment amount",
@@ -418,6 +439,14 @@ class _BillerScreenState extends State<BillerScreen> {
                     ],
                     validator: _validateAmount,
                   ),
+                  spacing(height: 14),
+                  LuvpayText(
+                    text: "Pay from",
+                    style: AppTextStyle.body1(context),
+                    color: cs.onBackground.withAlpha(250),
+                  ),
+                  spacing(height: 10),
+                  myWallet(context),
                   spacing(height: 18),
                   _reviewHintCard(context, cs, borderOpacity),
                   spacing(height: 18),
@@ -439,6 +468,122 @@ class _BillerScreenState extends State<BillerScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  InfoRowTile myWallet(BuildContext context) {
+    return InfoRowTile(
+      onTap: () {
+        showModalBottomSheet(
+          isScrollControlled: true,
+          useSafeArea: true,
+          context: context,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (context) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.5,
+              minChildSize: 0.4,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (context, controller) {
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView(
+                          controller: controller,
+                          children: [
+                            LuvpayText(
+                              text: "Select Wallet",
+                              style: AppTextStyle.h3(context)
+                                  .copyWith(fontWeight: FontWeight.w900),
+                            ),
+                            const SizedBox(height: 16),
+                            InfoRowTile(
+                              onTap: () {
+                                setState(() {
+                                  selectedWalletName = "Main Wallet";
+                                  selectedWalletBalance = mainWalletBalance;
+                                  selectedWalletId = "";
+                                });
+                                _formKey.currentState?.validate();
+                                Get.back();
+                              },
+                              title: "Main Wallet",
+                              subtitle: toCurrencyString(
+                                  mainWalletBalance.toString()),
+                              trailing: selectedWalletName == "Main Wallet"
+                                  ? Icon(Icons.check,
+                                      color:
+                                          Theme.of(context).colorScheme.primary)
+                                  : null,
+                            ),
+                            const SizedBox(height: 10),
+                            if (subWallets.isNotEmpty)
+                              LuvpayText(
+                                text: "Subwallets",
+                                style: AppTextStyle.body1(context)
+                                    .copyWith(fontWeight: FontWeight.w800),
+                              ),
+                            const SizedBox(height: 10),
+                            ...subWallets.map((wallet) {
+                              final name = wallet["name"] ?? "Subwallet";
+                              final bal = wallet["amount"] ?? 0;
+                              final isSelected = selectedWalletName == name;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: InfoRowTile(
+                                  onTap: () {
+                                    setState(() {
+                                      selectedWalletName = name;
+                                      selectedWalletBalance =
+                                          double.tryParse(bal.toString()) ??
+                                              0.0;
+                                      selectedWalletId =
+                                          wallet["id"].toString();
+                                    });
+
+                                    _formKey.currentState?.validate();
+                                    Get.back();
+                                  },
+                                  title: name,
+                                  subtitle: toCurrencyString(bal.toString()),
+                                  trailing: isSelected
+                                      ? Icon(Icons.check,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary)
+                                      : null,
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+      title: selectedWalletName,
+      subtitle: toCurrencyString(selectedWalletBalance.toString()),
+      trailing: Icon(Icons.keyboard_arrow_down),
     );
   }
 

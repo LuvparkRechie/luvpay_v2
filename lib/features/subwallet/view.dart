@@ -13,6 +13,7 @@ import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/luvpay_conn.dart';
@@ -20,6 +21,7 @@ import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/neumorphism.dart';
 import 'controller.dart';
 import 'utils/add_wallet_modal.dart';
+import 'utils/subwallet_transactions.dart';
 import 'utils/subwalllet_card.dart';
 import 'utils/wallet_details.dart';
 
@@ -28,6 +30,7 @@ enum WalletModalMode { create, edit }
 enum TransferType { toSubwallet, toMain }
 
 class Wallet {
+  final String colorTheme;
   final String id,
       userId,
       categoryId,
@@ -41,8 +44,13 @@ class Wallet {
   final String? iconBase64, imageBase64;
   final Color color;
   final double? targetAmount;
+  final String? sharedUser;
+
+  bool get isShared => sharedUser != null && sharedUser!.trim().isNotEmpty;
 
   const Wallet({
+    this.sharedUser,
+    required this.colorTheme,
     required this.id,
     required this.userId,
     required this.categoryId,
@@ -65,6 +73,7 @@ class Wallet {
     String? name,
     double? balance,
     Object? targetAmount = _sentinel,
+    String? sharedUser,
   }) {
     return Wallet(
       id: id,
@@ -83,6 +92,8 @@ class Wallet {
       targetAmount: targetAmount == _sentinel
           ? this.targetAmount
           : targetAmount as double?,
+      colorTheme: colorTheme,
+      sharedUser: sharedUser ?? this.sharedUser,
     );
   }
 
@@ -113,18 +124,7 @@ class Wallet {
       case 'accent':
         return AppColorV2.accent;
       case 'teal':
-      case 'lptealbrand':
         return AppColorV2.lpTealBrand;
-      case 'success':
-        return AppColorV2.success;
-      case 'warning':
-        return AppColorV2.warning;
-      case 'correct':
-      case 'correctstate':
-        return AppColorV2.correctState;
-      case 'mint':
-      case 'darkmintaccent':
-        return AppColorV2.darkMintAccent;
       default:
         return AppColorV2.lpBlueBrand;
     }
@@ -135,7 +135,7 @@ class Wallet {
     final Color color = rawColor is int
         ? Color(rawColor)
         : rawColor is String
-            ? getColorFromString(rawColor)
+            ? Wallet.getColorFromString(rawColor)
             : AppColorV2.lpBlueBrand;
 
     return Wallet(
@@ -153,6 +153,8 @@ class Wallet {
       categoryTitle: json['category_title']?.toString() ?? 'Unknown',
       imageBase64: json['image_base64']?.toString(),
       targetAmount: (json['target_amount'] as num?)?.toDouble(),
+      colorTheme: json['color_theme']?.toString() ?? 'default',
+      sharedUser: json['shared_user']?.toString(),
     );
   }
 }
@@ -211,6 +213,8 @@ class SubWalletScreen extends StatefulWidget {
   @override
   State<SubWalletScreen> createState() => _SubWalletScreenState();
 }
+
+const double walletCardRatio = 1.3;
 
 class _SubWalletScreenState extends State<SubWalletScreen>
     with TickerProviderStateMixin {
@@ -297,6 +301,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
       wallets = controller.userSubWallets.map((w) {
         final id = w['id']?.toString() ?? '';
+        final sharedUser = w['shared_user']?.toString();
+
         return Wallet(
           id: id,
           userId: w['user_id']?.toString() ?? '',
@@ -306,12 +312,14 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           category: w['category']?.toString() ?? 'Unknown',
           iconBase64: w['image_base64']?.toString(),
           color: AppColorV2.lpBlueBrand,
+          colorTheme: w['color_theme']?.toString() ?? 'default',
           createdOn: w['created_on']?.toString() ?? '',
           updatedOn: w['updated_on']?.toString() ?? '',
           isActive: w['is_active']?.toString() ?? 'N',
           categoryTitle: w['category_title']?.toString() ?? 'Unknown',
           imageBase64: w['image_base64']?.toString(),
           targetAmount: null,
+          sharedUser: sharedUser,
         );
       }).toList();
 
@@ -539,7 +547,6 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final bg = cs.surface;
     final sheetBg = cs.surface;
 
@@ -596,9 +603,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                 child: SizedBox(height: hasWallets ? 104 : 10),
                               ),
                               SliverPadding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 14),
                                 sliver: isRefreshing
                                     ? SliverFillRemaining(
                                         hasScrollBody: false,
@@ -620,19 +626,17 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                                 buttonIcon: Iconsax.add,
                                                 onTap: () =>
                                                     _showAddWalletModal(
-                                                  context,
-                                                ),
+                                                        context),
                                               ),
                                             ),
                                           )
                                         : SliverGrid(
                                             gridDelegate:
-                                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                                SliverGridDelegateWithFixedCrossAxisCount(
                                               crossAxisCount: 2,
                                               crossAxisSpacing: 15,
                                               mainAxisSpacing: 20,
-                                              childAspectRatio: 1.35,
-                                              mainAxisExtent: 120,
+                                              childAspectRatio: walletCardRatio,
                                             ),
                                             delegate:
                                                 SliverChildBuilderDelegate((
@@ -646,8 +650,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                                 return CreateSubwalletTile(
                                                   onTap: () =>
                                                       _showAddWalletModal(
-                                                    context,
-                                                  ),
+                                                          context),
                                                 );
                                               }
 
@@ -656,8 +659,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                                   (w.imageBase64?.isNotEmpty ??
                                                           false)
                                                       ? decodeBase64Safe(
-                                                          w.imageBase64!,
-                                                        )
+                                                          w.imageBase64!)
                                                       : null;
 
                                               final categoryLabel = (w
@@ -666,16 +668,12 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                                       .isNotEmpty
                                                   ? w.categoryTitle
                                                   : w.category);
-
                                               return SubWalletCard(
                                                 wallet: w,
                                                 onTap: () => _showWalletDetails(
-                                                  context,
-                                                  w,
-                                                  sheetBg,
-                                                ),
+                                                    context, w, sheetBg),
                                                 iconBytes: iconBytes,
-                                                base: w.color,
+                                                themeKey: w.colorTheme,
                                                 titleColor: cs.onSurface,
                                                 amountColor: cs.onSurface
                                                     .withOpacity(0.72),
@@ -692,8 +690,9 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                               ),
                               SliverToBoxAdapter(
                                 child: SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.13),
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.13,
+                                ),
                               ),
                             ],
                           ),
@@ -770,8 +769,8 @@ class CreateSubwalletTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                "Add new SubWallet",
+              LuvpayText(
+                text: "Add new SubWallet",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

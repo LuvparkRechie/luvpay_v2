@@ -377,7 +377,7 @@ class CustomDialogStack {
 
     final snackBar = SnackBar(
       backgroundColor: color ?? cs.error,
-      content: Text(text, style: TextStyle(color: cs.onError)),
+      content: LuvpayText(text: text, style: TextStyle(color: cs.onError)),
       duration: const Duration(seconds: 1),
       action: SnackBarAction(
         textColor: cs.onError,

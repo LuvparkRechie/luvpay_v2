@@ -7,6 +7,7 @@ import 'package:luvpay/features/my_account/utils/index.dart';
 
 import '../../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
+import '../../../shared/widgets/luvpay_text.dart';
 import '../../../shared/widgets/variables.dart';
 import '../../../core/utils/functions/functions.dart';
 import '../../../core/network/http/api_keys.dart';
@@ -122,10 +123,9 @@ class UpdateProfileController extends GetxController {
     return text
         .split(' ')
         .map(
-          (word) =>
-              word.isNotEmpty
-                  ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-                  : '',
+          (word) => word.isNotEmpty
+              ? word[0].toUpperCase() + word.substring(1).toLowerCase()
+              : '',
         )
         .join(' ');
   }
@@ -134,44 +134,38 @@ class UpdateProfileController extends GetxController {
     final userData = await Authentication().getUserData2();
 
     String getQuestion(id) {
-      String quest =
-          questionData.where((obj) {
-            return obj["secq_id"] == id;
-          }).toList()[0]["question"];
+      String quest = questionData.where((obj) {
+        return obj["secq_id"] == id;
+      }).toList()[0]["question"];
       return quest;
     }
 
-    firstName.text =
-        userData["first_name"] != null &&
-                userData["first_name"].toString().isNotEmpty
-            ? userData["first_name"].toString()
-            : "";
+    firstName.text = userData["first_name"] != null &&
+            userData["first_name"].toString().isNotEmpty
+        ? userData["first_name"].toString()
+        : "";
 
-    middleName.text =
-        userData["middle_name"] != null &&
-                userData["middle_name"].toString().isNotEmpty
-            ? userData["middle_name"].toString().trim()
-            : "";
-    lastName.text =
-        userData["last_name"] != null &&
-                userData["last_name"].toString().isNotEmpty
-            ? userData["last_name"].toString().trim()
-            : "";
+    middleName.text = userData["middle_name"] != null &&
+            userData["middle_name"].toString().isNotEmpty
+        ? userData["middle_name"].toString().trim()
+        : "";
+    lastName.text = userData["last_name"] != null &&
+            userData["last_name"].toString().isNotEmpty
+        ? userData["last_name"].toString().trim()
+        : "";
     email.text =
         userData["email"] != null && userData["email"].toString().isNotEmpty
             ? userData["email"].toString().trim()
             : "";
-    bday.text =
-        userData["birthday"] != null &&
-                userData["birthday"].toString().isNotEmpty
-            ? userData["birthday"].toString().split("T")[0].trim()
-            : "";
+    bday.text = userData["birthday"] != null &&
+            userData["birthday"].toString().isNotEmpty
+        ? userData["birthday"].toString().split("T")[0].trim()
+        : "";
     if (userData["civil_status"] != null) {
-      selectedCivil.value =
-          civilData.where((objData) {
-            return objData["value"].toString().toLowerCase() ==
-                userData["civil_status"].toString().toLowerCase();
-          }).toList()[0]["value"];
+      selectedCivil.value = civilData.where((objData) {
+        return objData["value"].toString().toLowerCase() ==
+            userData["civil_status"].toString().toLowerCase();
+      }).toList()[0]["value"];
     }
     if (userData["region_id"] != 0) {
       selectedRegion.value = userData["region_id"].toString();
@@ -279,8 +273,7 @@ class UpdateProfileController extends GetxController {
       selectedDate = datePicker;
 
       final today = timeNow;
-      final age =
-          today.year -
+      final age = today.year -
           datePicker.year -
           (today.month > datePicker.month ||
                   (today.month == datePicker.month &&
@@ -293,16 +286,16 @@ class UpdateProfileController extends GetxController {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: const Text('Age Restriction'),
-              content: const Text(
-                'You must be at least 12 years old to proceed.',
+              title: const LuvpayText(text: 'Age Restriction'),
+              content: const LuvpayText(
+                text: 'You must be at least 12 years old to proceed.',
               ),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text('OK'),
+                  child: const LuvpayText(text: 'OK'),
                 ),
               ],
             );
@@ -354,10 +347,9 @@ class UpdateProfileController extends GetxController {
     cityData.value = [];
     brgyData.value = [];
     CustomDialogStack.showLoading(Get.context!);
-    var returnData =
-        await HttpRequestApi(
-          api: "${ApiKeys.getProvince}?p_region_id=$id",
-        ).get();
+    var returnData = await HttpRequestApi(
+      api: "${ApiKeys.getProvince}?p_region_id=$id",
+    ).get();
     Get.back();
     if (returnData == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -547,10 +539,9 @@ class UpdateProfileController extends GetxController {
     int id2 = seq2.value;
     int id3 = seq3.value;
     List<int> selectedIds = [id1, id2, id3];
-    List filteredObjects =
-        data
-            .where((object) => !selectedIds.contains(object["secq_id"]))
-            .toList();
+    List filteredObjects = data
+        .where((object) => !selectedIds.contains(object["secq_id"]))
+        .toList();
     return filteredObjects;
   }
 

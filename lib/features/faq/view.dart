@@ -196,8 +196,9 @@ class FaqPage extends GetView<FaqPageController> {
                                                         );
                                                       }).toList()),
                                                     const SizedBox(height: 10),
-                                                    Text(
-                                                      'Updated on: ${faq['updated_on'] != null ? DateFormat('MMMM d, y').format(DateTime.parse(faq['updated_on'])) : 'N/A'}',
+                                                    LuvpayText(
+                                                      text:
+                                                          'Updated on: ${faq['updated_on'] != null ? DateFormat('MMMM d, y').format(DateTime.parse(faq['updated_on'])) : 'N/A'}',
                                                       style: TextStyle(
                                                         color: Colors.grey,
                                                         fontSize: 12,

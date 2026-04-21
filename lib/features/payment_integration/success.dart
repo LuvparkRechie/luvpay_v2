@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../shared/widgets/luvpay_loading.dart';
 import '../../shared/widgets/custom_scaffold.dart';
+import '../../shared/widgets/luvpay_text.dart';
 
 class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
@@ -58,26 +59,24 @@ class _SuccessPageState extends State<SuccessPage>
       enableToolBar: false,
       canPop: true,
       appBar: null,
-
-      scaffoldBody:
-          pageLoad
-              ? Center(child: Text("Loading..."))
-              : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedBuilder(
-                    animation: _controller,
-                    builder:
-                        (context, child) => Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            LoadingCard(),
-                            Text(_timerText, style: TextStyle(fontSize: 24)),
-                          ],
-                        ),
+      scaffoldBody: pageLoad
+          ? Center(child: LuvpayText(text: "Loading..."))
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) => Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      LoadingCard(),
+                      LuvpayText(
+                          text: _timerText, style: TextStyle(fontSize: 24)),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
     );
   }
 }

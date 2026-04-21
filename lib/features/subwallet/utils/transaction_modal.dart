@@ -51,7 +51,6 @@ class TransferDetailsModal extends StatelessWidget {
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
-
               Row(
                 children: [
                   Expanded(
@@ -72,17 +71,13 @@ class TransferDetailsModal extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 14),
-
               ListView(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _summaryCard(context),
-
                   const SizedBox(height: 12),
-
                   _tile(
                     context,
                     title: "Balance before",
@@ -93,30 +88,28 @@ class TransferDetailsModal extends StatelessWidget {
                     title: "Balance after",
                     value: _formatMoney(data["amount_bal_after"]),
                   ),
-
                   _tile(
                     context,
                     title: "Reference no.",
-                    onTap:
-                        refNo.isEmpty
-                            ? null
-                            : () async {
-                              await Clipboard.setData(
-                                ClipboardData(text: refNo),
-                              );
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text(
-                                      "Reference number copied",
-                                    ),
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: const Duration(seconds: 1),
-                                    margin: const EdgeInsets.all(16),
+                    onTap: refNo.isEmpty
+                        ? null
+                        : () async {
+                            await Clipboard.setData(
+                              ClipboardData(text: refNo),
+                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const LuvpayText(
+                                    text: "Reference number copied",
                                   ),
-                                );
-                              }
-                            },
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 1),
+                                  margin: const EdgeInsets.all(16),
+                                ),
+                              );
+                            }
+                          },
                     valueWidget: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -140,13 +133,12 @@ class TransferDetailsModal extends StatelessWidget {
                         isDark ? Colors.transparent : stroke.withOpacity(0.02),
                     overlayOpacity: isDark ? 0.0 : 0.02,
                   ),
-
                   if (refNo.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Padding(
                       padding: const EdgeInsets.only(left: 6),
-                      child: Text(
-                        "Tap reference number to copy",
+                      child: LuvpayText(
+                        text: "Tap reference number to copy",
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
@@ -216,7 +208,6 @@ class TransferDetailsModal extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,9 +231,7 @@ class TransferDetailsModal extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(width: 12),
-
             LuvpayText(
               text: amountStr,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
@@ -285,8 +274,7 @@ class TransferDetailsModal extends StatelessWidget {
         pressedScale: canTap ? 0.985 : 1.0,
         pressedTranslateY: canTap ? 1.0 : 0.0,
         background: background ?? _tileBg(cs),
-        borderColor:
-            borderColor ??
+        borderColor: borderColor ??
             (isDark ? Colors.transparent : stroke.withOpacity(0.02)),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -306,8 +294,7 @@ class TransferDetailsModal extends StatelessWidget {
               const SizedBox(width: 12),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 220),
-                child:
-                    valueWidget ??
+                child: valueWidget ??
                     LuvpayText(
                       text: value ?? "—",
                       style: TextStyle(

@@ -681,8 +681,8 @@ class Referral extends StatelessWidget {
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: const Text(
-                            'Copied to clipboard',
+                          content: const LuvpayText(
+                            text: 'Copied to clipboard',
                           ),
                           backgroundColor: cs.primary,
                           behavior: SnackBarBehavior.floating,

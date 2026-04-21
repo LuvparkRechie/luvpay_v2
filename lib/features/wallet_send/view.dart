@@ -538,8 +538,8 @@ class _UserDetailsState extends State<UserDetails> {
                                     maxLines: 1,
                                   ),
                                 ),
-                                Text(
-                                  "${clean.length}/10",
+                                LuvpayText(
+                                  text: "${clean.length}/10",
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,

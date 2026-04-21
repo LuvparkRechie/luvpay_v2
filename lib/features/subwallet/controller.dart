@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/colors.dart';
@@ -98,6 +98,7 @@ class SubWalletController extends GetxController
             'category_id': item['category_id']?.toString() ?? '',
             'name': item['sub_wallet_name']?.toString() ?? 'Unnamed Wallet',
             'amount': amount,
+            'color_theme': item['color_theme']?.toString() ?? 'default',
             'created_on': item['created_on']?.toString() ?? '',
             'updated_on': item['updated_on']?.toString() ?? '',
             'is_active': item['is_active']?.toString() ?? 'N',
@@ -138,6 +139,7 @@ class SubWalletController extends GetxController
     int? categoryId,
     String? subWalletName,
     double? amount,
+    String? themeKey,
   }) async {
     try {
       final userID = await Authentication().getUserId();
@@ -147,6 +149,7 @@ class SubWalletController extends GetxController
         "category_id": categoryId,
         "sub_wallet_name": subWalletName,
         "amount": amount,
+        "color_theme": themeKey ?? "default",
       };
 
       String api = ApiKeys.subWallets;
@@ -181,16 +184,17 @@ class SubWalletController extends GetxController
   Future<Map<String, dynamic>> editSubwallet({
     int? subwalletId,
     String? subWalletName,
+    String? themeKey,
   }) async {
     try {
       final parameters = <String, dynamic>{
         "user_sub_wallet_id": subwalletId,
         "sub_wallet_name": subWalletName,
+        "color_theme": themeKey ?? "default",
       };
       String api = ApiKeys.subWallets;
       final res =
           await HttpRequestApi(api: api, parameters: parameters).putBody();
-
       if (res == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
           Get.back();
@@ -356,10 +360,7 @@ class SubWalletController extends GetxController
       categoryList.value = processedCategories;
 
       update();
-    } catch (e, s) {
-      longPrint('Error fetching subwallet categories: $e');
-      longPrint('$s');
-    }
+    } catch (e, s) {}
   }
 
   Future<void> luvpayBalance() async {
@@ -473,7 +474,6 @@ class SubWalletController extends GetxController
       final api =
           "${ApiKeys.subwalletTransfer}?user_sub_wallet_id=$subWalletId";
       final res = await HttpRequestApi(api: api).get();
-
       if (res == "No Internet") {
         hasNet.value = false;
         return <Transaction>[];

@@ -148,7 +148,6 @@ class AppSecurity {
       authenticated = await auth.authenticate(
         biometricOnly: true,
         persistAcrossBackgrounding: true,
-
         localizedReason: 'Please authenticate to continue',
         authMessages: const <AuthMessages>[
           AndroidAuthMessages(

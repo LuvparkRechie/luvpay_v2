@@ -240,7 +240,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
           statusBarBrightness: Brightness.dark,
           statusBarIconBrightness: Brightness.light,
         ),
-        title: Text("Reset password"),
+        title: LuvpayText(text: "Reset password"),
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Get.back(),

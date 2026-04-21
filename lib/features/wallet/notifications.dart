@@ -280,12 +280,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
           )
         : notifications.isEmpty
             ? Center(child: _noDataFound(cs))
-            : Column(
-                children: [
-                  Expanded(child: allNotifications()),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.13),
-                ],
-              );
+            : allNotifications();
 
     return CustomScaffoldV2(
       backgroundColor: cs.surface,

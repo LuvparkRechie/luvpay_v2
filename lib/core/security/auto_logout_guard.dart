@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:luvpay/shared/dialogs/dialogs.dart';
 
 import '../../auth/authentication.dart';
 import '../../features/routes/routes.dart';
@@ -148,33 +149,18 @@ class AutoLogoutGuard {
         if (_isOnLoginRoute()) return;
 
         if (Get.isDialogOpen == true) return;
-
-        Get.dialog(
-          PopScope(
-            canPop: false,
-            child: AlertDialog(
-              title: const Text('Session Ended'),
-              content: Text(
-                'To keep your account secure, you have been logged out due to inactivity.\n\n'
+        CustomDialogStack.showInfo(
+            Get.context!,
+            "Session Ended",
+            'To keep your account secure, you have been logged out due to inactivity.\n\n'
                 'You were away for $awayLabel, which exceeded the allowed limit.\n\n'
-                'Please sign in again to continue.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    if (Get.isDialogOpen == true) Get.back();
+                'Please sign in again to continue.', () {
+          if (Get.isDialogOpen == true) Get.back();
 
-                    if (!_isOnLoginRoute()) {
-                      Get.offAllNamed(Routes.login);
-                    }
-                  },
-                  child: const Text('Sign In'),
-                ),
-              ],
-            ),
-          ),
-          barrierDismissible: false,
-        );
+          if (!_isOnLoginRoute()) {
+            Get.offAllNamed(Routes.login);
+          }
+        }, leftText: "Sign In");
       });
     }
   }

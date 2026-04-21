@@ -232,8 +232,8 @@ class UpdateProfile extends GetView<UpdateProfileController> {
                             ),
                           ),
                           child: Center(
-                            child: Text(
-                              '${i + 1}',
+                            child: LuvpayText(
+                              text: '${i + 1}',
                               style: TextStyle(
                                 color: cs.primary,
                                 fontWeight: FontWeight.w900,
@@ -553,11 +553,11 @@ class Stepp1 extends StatelessWidget {
                                 items: const [
                                   DropdownMenuItem(
                                     value: "M",
-                                    child: Text("Male"),
+                                    child: LuvpayText(text: "Male"),
                                   ),
                                   DropdownMenuItem(
                                     value: "F",
-                                    child: Text("Female"),
+                                    child: LuvpayText(text: "Female"),
                                   ),
                                 ],
                                 onChanged: (v) {

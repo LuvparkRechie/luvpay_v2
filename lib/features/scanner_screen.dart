@@ -145,8 +145,8 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
         appBar: AppBar(
           elevation: 0,
           backgroundColor: AppColorV2.lpBlueBrand,
-          title: Text(
-            "QR Scanner",
+          title: LuvpayText(
+            text: "QR Scanner",
             style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: 20,

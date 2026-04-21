@@ -1022,3 +1022,14 @@ class Functions {
     return returnData["items"] ?? [];
   }
 }
+
+///subwallet colors
+Future<void> saveWalletColor(String walletId, String themeKey) async {
+  final sp = await SharedPreferences.getInstance();
+  await sp.setString('wallet_color_$walletId', themeKey);
+}
+
+Future<String?> getWalletColor(String walletId) async {
+  final sp = await SharedPreferences.getInstance();
+  return sp.getString('wallet_color_$walletId');
+}

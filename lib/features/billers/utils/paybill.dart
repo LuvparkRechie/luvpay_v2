@@ -126,7 +126,7 @@
 //           statusBarBrightness: Brightness.dark,
 //           statusBarIconBrightness: Brightness.light,
 //         ),
-//         title: Text(
+//         title: LuvpayText(text:
 //           args["source"] == "fav" ? "Add to Favorites" : "Pay Biller",
 //         ),
 //         centerTitle: true,

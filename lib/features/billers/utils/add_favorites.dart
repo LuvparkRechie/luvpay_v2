@@ -31,7 +31,7 @@ class AddFavoritesWidget extends GetView<BillersController> {
           statusBarBrightness: Brightness.dark,
           statusBarIconBrightness: Brightness.light,
         ),
-        title: Text("Favorite Biller"),
+        title: LuvpayText(text: "Favorite Biller"),
         centerTitle: true,
         leading: IconButton(
           onPressed: () {

@@ -3,8 +3,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
@@ -15,6 +17,7 @@ import '../../../features/subwallet/controller.dart';
 import '../../../features/subwallet/view.dart';
 import '../../../features/subwallet/utils/add_wallet_modal.dart';
 import '../../../features/subwallet/utils/transaction_modal.dart';
+import 'subwallet_transactions.dart';
 
 class WalletDetailsModal extends StatefulWidget {
   final Wallet wallet;
@@ -39,6 +42,7 @@ class WalletDetailsModal extends StatefulWidget {
 }
 
 class _WalletDetailsModalState extends State<WalletDetailsModal> {
+  String? sharedUser;
   late Wallet _wallet;
   final SubWalletController mainController = Get.find<SubWalletController>();
   late Future<List<Transaction>> _txFuture;
@@ -51,7 +55,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
   @override
   void initState() {
     super.initState();
+
     _wallet = widget.wallet;
+    sharedUser = _wallet.sharedUser;
+
     _txFuture = _loadTx();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -67,6 +74,15 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     setState(() {
       _wallet = _wallet.copyWith(targetAmount: v);
     });
+  }
+
+  bool _isValidMobile(String input) {
+    final value = input.trim();
+
+    if (value.length != 10) return false;
+    if (!value.startsWith('9')) return false;
+
+    return true;
   }
 
   Future<void> _saveLocalTarget(double? targetAmount) async {
@@ -121,6 +137,9 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
   }
 
   Future<void> _handleReturnMoney(double amount) async {
+    if (_wallet.sharedUser != null && _wallet.sharedUser!.isNotEmpty) {
+      return _showSnack('Shared subwallet cannot transfer to main wallet');
+    }
     amount = double.parse(amount.toStringAsFixed(2));
     if (amount <= 0) return _showSnack('Enter a valid amount');
 
@@ -233,10 +252,9 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     required Future<void> Function() onRemove,
   }) {
     final amountCtrl = TextEditingController(
-      text:
-          (_wallet.targetAmount ?? 0) > 0
-              ? (_wallet.targetAmount!).toStringAsFixed(2)
-              : '',
+      text: (_wallet.targetAmount ?? 0) > 0
+          ? (_wallet.targetAmount!).toStringAsFixed(2)
+          : '',
     );
 
     String? errorText;
@@ -318,8 +336,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            title,
+                          child: LuvpayText(
+                            text: title,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
@@ -349,24 +367,22 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                       ],
                     ),
                     const SizedBox(height: 12),
-
                     Container(
                       padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                       decoration: BoxDecoration(
                         color: surface2,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color:
-                              errorText != null
-                                  ? cs.error.withOpacity(0.55)
-                                  : stroke,
+                          color: errorText != null
+                              ? cs.error.withOpacity(0.55)
+                              : stroke,
                         ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Target amount",
+                          LuvpayText(
+                            text: "Target amount",
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
@@ -401,8 +417,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                 ),
                                 child: Center(
                                   widthFactor: 0,
-                                  child: Text(
-                                    "₱",
+                                  child: LuvpayText(
+                                    text: "₱",
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
@@ -427,8 +443,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
-                                    errorText!,
+                                  child: LuvpayText(
+                                    text: errorText!,
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w800,
@@ -442,12 +458,12 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Current balance: ₱ ${_wallet.balance.toStringAsFixed(2)}',
+                      child: LuvpayText(
+                        text:
+                            'Current balance: ₱ ${_wallet.balance.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
@@ -455,7 +471,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -473,12 +488,11 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                 await _loadLocalTarget();
                               },
                               background: cs.error.withOpacity(0.10),
-
                               child: SizedBox(
                                 height: 50,
                                 child: Center(
-                                  child: Text(
-                                    "Remove",
+                                  child: LuvpayText(
+                                    text: "Remove",
                                     style: TextStyle(
                                       fontWeight: FontWeight.w900,
                                       color: cs.error,
@@ -498,14 +512,12 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                             borderColor: isDark ? Colors.transparent : stroke,
                             radius: BorderRadius.circular(16),
                             onTap: () => Navigator.of(context).pop(),
-
                             background: cs.surfaceContainerHighest,
-
                             child: SizedBox(
                               height: 50,
                               child: Center(
-                                child: Text(
-                                  "Cancel",
+                                child: LuvpayText(
+                                  text: "Cancel",
                                   style: TextStyle(
                                     fontWeight: FontWeight.w800,
                                     color: cs.onSurface.withOpacity(0.75),
@@ -523,25 +535,21 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                             overlayOpacity: isDark ? 0.0 : 0.02,
                             borderColor: isDark ? Colors.transparent : stroke,
                             radius: BorderRadius.circular(16),
-                            onTap:
-                                canConfirm
-                                    ? () async {
-                                      final v = _parse();
-                                      Navigator.of(context).pop();
-                                      await onConfirm(v);
-                                    }
-                                    : null,
-
-                            background:
-                                canConfirm
-                                    ? cs.primary
-                                    : cs.primary.withOpacity(0.45),
-
+                            onTap: canConfirm
+                                ? () async {
+                                    final v = _parse();
+                                    Navigator.of(context).pop();
+                                    await onConfirm(v);
+                                  }
+                                : null,
+                            background: canConfirm
+                                ? cs.primary
+                                : cs.primary.withOpacity(0.45),
                             child: SizedBox(
                               height: 50,
                               child: Center(
-                                child: Text(
-                                  "Save",
+                                child: LuvpayText(
+                                  text: "Save",
                                   style: TextStyle(
                                     fontWeight: FontWeight.w900,
                                     color: cs.onPrimary,
@@ -577,18 +585,211 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
-      builder:
-          (_) => AddWalletModal(
-            mode: WalletModalMode.edit,
-            wallet: _wallet,
-            existingWallets: otherWallets,
-          ),
+      builder: (_) => AddWalletModal(
+        mode: WalletModalMode.edit,
+        wallet: _wallet,
+        existingWallets: otherWallets,
+      ),
     );
 
     if (result != true) return;
 
     await _refreshWalletAndTx();
     widget.onUpdate?.call(_wallet);
+  }
+
+  Widget _sharedSection() {
+    final cs = Theme.of(context).colorScheme;
+
+    final hasSharedUser = sharedUser != null && sharedUser!.trim().isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        LuvpayText(
+          text: "Shared Access",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w900,
+            color: cs.onSurface,
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (hasSharedUser)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: LuvNeuPress.rectangle(
+              background: cs.surfaceContainerHighest,
+              radius: BorderRadius.circular(14),
+              child: ListTile(
+                leading: const CircleAvatar(
+                  child: Icon(Icons.person),
+                ),
+                title: LuvpayText(text: sharedUser!),
+                trailing: IconButton(
+                  icon: const Icon(Icons.remove_circle, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      sharedUser = null;
+                      _wallet = _wallet.copyWith(sharedUser: null);
+                    });
+                  },
+                ),
+              ),
+            ),
+          ),
+        LuvNeuPress.rectangle(
+          onTap: hasSharedUser ? null : _openInviteModal,
+          background: hasSharedUser
+              ? cs.surfaceContainerHighest
+              : cs.primary.withOpacity(0.1),
+          radius: BorderRadius.circular(14),
+          child: SizedBox(
+            height: 50,
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_add,
+                      color: hasSharedUser
+                          ? cs.onSurface.withOpacity(0.4)
+                          : cs.primary),
+                  const SizedBox(width: 8),
+                  LuvpayText(
+                    text: hasSharedUser ? "Already shared" : "Invite user",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: hasSharedUser
+                          ? cs.onSurface.withOpacity(0.5)
+                          : cs.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _openInviteModal() {
+    final controller = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        final cs = Theme.of(context).colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 46,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(
+                    color: cs.onSurface.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: LuvpayText(
+                        text: "Share SubWallet",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: cs.onSurface,
+                        ),
+                      ),
+                    ),
+                    LuvNeuIconButton(
+                      icon: Icons.close_rounded,
+                      onTap: () => Navigator.pop(context),
+                      size: 40,
+                      iconSize: 18,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                LuvNeuPress.rectangle(
+                  background: cs.surfaceContainerHighest,
+                  radius: BorderRadius.circular(16),
+                  child: TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    decoration: const InputDecoration(
+                      hintText: "Enter mobile number",
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(14),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                LuvNeuPress.rectangle(
+                  onTap: () {
+                    final input = controller.text.trim();
+
+                    if (!_isValidMobile(input)) {
+                      _showSnack("Enter valid mobile number (9XXXXXXXXX)");
+                      return;
+                    }
+
+                    if (sharedUser != null && sharedUser!.isNotEmpty) {
+                      _showSnack("Already shared");
+                      return;
+                    }
+                    setState(() {
+                      final value = "+63${controller.text}";
+                      sharedUser = value;
+                      _wallet = _wallet.copyWith(sharedUser: value);
+                    });
+
+                    Navigator.pop(context);
+                  },
+                  background: cs.primary,
+                  radius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    height: 50,
+                    child: Center(
+                      child: LuvpayText(
+                        text: "Share",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: cs.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _deleteWallet(BuildContext context) async {
@@ -686,14 +887,15 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
             _BalanceCard(
               balanceText: "₱ ${_wallet.balance.toStringAsFixed(2)}",
+              wallet: _wallet,
             ),
-
             const SizedBox(height: 12),
             // TargetCard(
             //   balance: _wallet.balance,
             //   target: _wallet.targetAmount,
             //   onTapSet: _openTargetDialog,
             // ),
+            _sharedSection(),
             const SizedBox(height: 14),
 
             Row(
@@ -767,10 +969,9 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                         depth: isDark ? 0.55 : 1.4,
                         pressedDepth: isDark ? -0.25 : -0.75,
                         overlayOpacity: isDark ? 0.0 : 0.02,
-                        borderColor:
-                            isDark
-                                ? Colors.transparent
-                                : stroke.withOpacity(0.02),
+                        borderColor: isDark
+                            ? Colors.transparent
+                            : stroke.withOpacity(0.02),
                         radius: BorderRadius.circular(18),
                         onTap: () {
                           showModalBottomSheet(
@@ -807,8 +1008,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      t.description,
+                                    LuvpayText(
+                                      text: t.description,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -830,8 +1031,9 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    '$sign₱ ${t.amount.abs().toStringAsFixed(2)}',
+                                  LuvpayText(
+                                    text:
+                                        '$sign₱ ${t.amount.abs().toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w900,
@@ -969,12 +1171,11 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                         color: surface2,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color:
-                              errorText != null
-                                  ? cs.error.withOpacity(isDark ? 0.45 : 0.55)
-                                  : (isDark
-                                      ? cs.onSurface.withOpacity(0.08)
-                                      : stroke),
+                          color: errorText != null
+                              ? cs.error.withOpacity(isDark ? 0.45 : 0.55)
+                              : (isDark
+                                  ? cs.onSurface.withOpacity(0.08)
+                                  : stroke),
                         ),
                       ),
                       child: Column(
@@ -1016,8 +1217,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                 ),
                                 child: Center(
                                   widthFactor: 0,
-                                  child: Text(
-                                    "₱",
+                                  child: LuvpayText(
+                                    text: "₱",
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
@@ -1042,8 +1243,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
-                                    errorText!,
+                                  child: LuvpayText(
+                                    text: errorText!,
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w800,
@@ -1084,7 +1285,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                             radius: BorderRadius.circular(16),
                             onTap: () => Navigator.of(context).pop(),
                             background: cs.surfaceContainerHighest,
-
                             child: SizedBox(
                               height: 50,
                               child: Center(
@@ -1107,19 +1307,16 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                             overlayOpacity: isDark ? 0.0 : 0.02,
                             borderColor: isDark ? Colors.transparent : stroke,
                             radius: BorderRadius.circular(16),
-                            onTap:
-                                canConfirm
-                                    ? () async {
-                                      final value = _parseAmount();
-                                      Navigator.of(context).pop();
-                                      await onConfirm(value);
-                                    }
-                                    : null,
-
-                            background:
-                                canConfirm
-                                    ? cs.primary
-                                    : cs.primary.withOpacity(0.45),
+                            onTap: canConfirm
+                                ? () async {
+                                    final value = _parseAmount();
+                                    Navigator.of(context).pop();
+                                    await onConfirm(value);
+                                  }
+                                : null,
+                            background: canConfirm
+                                ? cs.primary
+                                : cs.primary.withOpacity(0.45),
                             child: SizedBox(
                               height: 50,
                               child: Center(
@@ -1211,9 +1408,7 @@ class _HeaderCard extends StatelessWidget {
       borderColor: isDark ? Colors.transparent : stroke,
       radius: radius,
       onTap: null,
-
       background: tileBg,
-
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
@@ -1224,10 +1419,8 @@ class _HeaderCard extends StatelessWidget {
               background: tileBg,
               borderColor: isDark ? Colors.transparent : stroke,
               overlayOpacity: isDark ? 0.0 : 0.02,
-
               radius: avatarRadius,
               onTap: null,
-
               child: SizedBox(
                 width: 52,
                 height: 52,
@@ -1243,7 +1436,6 @@ class _HeaderCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1281,9 +1473,12 @@ class _HeaderCard extends StatelessWidget {
 
 class _BalanceCard extends StatelessWidget {
   final String balanceText;
+  final Wallet wallet;
 
-  const _BalanceCard({required this.balanceText});
-
+  const _BalanceCard({
+    required this.balanceText,
+    required this.wallet,
+  });
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -1315,27 +1510,50 @@ class _BalanceCard extends StatelessWidget {
               ],
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Subwallet balance",
-                style: TextStyle(
-                  color: cs.onPrimary.withOpacity(0.86),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  LuvpayText(
+                    text: "Subwallet balance",
+                    style: TextStyle(
+                      color: cs.onPrimary.withOpacity(0.86),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  LuvpayText(
+                    text: balanceText,
+                    style: TextStyle(
+                      color: cs.onPrimary,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                balanceText,
-                style: TextStyle(
-                  color: cs.onPrimary,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.2,
+              LuvNeuPress.circle(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(
+                    Icons.history,
+                    color: AppColorV2.lpBlueBrand,
+                  ),
                 ),
-              ),
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).push(
+                    MaterialPageRoute(
+                      builder: (_) => SubWalletTransactions(
+                        subWalletId: wallet.id,
+                        walletName: wallet.name,
+                      ),
+                    ),
+                  );
+                },
+              )
             ],
           ),
         ),
@@ -1373,7 +1591,6 @@ class _EmptyState extends StatelessWidget {
         borderColor: isDark ? Colors.transparent : stroke,
         onTap: null,
         background: cs.surfaceContainerHighest,
-
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -1381,8 +1598,8 @@ class _EmptyState extends StatelessWidget {
             children: [
               Icon(icon, size: 58, color: cs.onSurface.withOpacity(0.30)),
               const SizedBox(height: 14),
-              Text(
-                title,
+              LuvpayText(
+                text: title,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w900,
@@ -1390,8 +1607,8 @@ class _EmptyState extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
-                subtitle,
+              LuvpayText(
+                text: subtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12,

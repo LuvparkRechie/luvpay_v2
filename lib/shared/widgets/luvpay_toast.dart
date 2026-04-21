@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 
+import 'luvpay_text.dart';
+
 class FloatingToastManager {
   static OverlayEntry? _currentToast;
   static OverlayState? _overlayState;
@@ -51,23 +53,22 @@ class FloatingToastManager {
     final size = box.size;
 
     _currentToast = OverlayEntry(
-      builder:
-          (context) => Positioned(
-            top: position.dy + size.height + 8,
-            left: position.dx,
-            width: size.width,
-            child: Material(
-              color: Colors.transparent,
-              child: ToastWidget(
-                imageAsset: "assets/images/$image.png",
-                message: message,
-                primaryColor: textColor,
-                backgroundColor: backgroundColor ?? Colors.white,
-                showCloseButton: showCloseButton,
-                onDismiss: _removeCurrentToast,
-              ),
-            ),
+      builder: (context) => Positioned(
+        top: position.dy + size.height + 8,
+        left: position.dx,
+        width: size.width,
+        child: Material(
+          color: Colors.transparent,
+          child: ToastWidget(
+            imageAsset: "assets/images/$image.png",
+            message: message,
+            primaryColor: textColor,
+            backgroundColor: backgroundColor ?? Colors.white,
+            showCloseButton: showCloseButton,
+            onDismiss: _removeCurrentToast,
           ),
+        ),
+      ),
     );
 
     _overlayState!.insert(_currentToast!);
@@ -135,8 +136,8 @@ class ToastWidget extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                message,
+              child: LuvpayText(
+                text: message,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

@@ -155,6 +155,21 @@ class BillPaymentReceipt extends StatelessWidget {
     final amount = double.tryParse(amountStr) ?? 0.0;
 
     final borderColor = cs.onSurface.withOpacity(borderOpacity);
+    String safeText(dynamic value, {String fallback = "N/A"}) {
+      if (value == null) return fallback;
+      final str = value.toString().trim();
+      return str.isEmpty ? fallback : str;
+    }
+
+    final walletName =
+        safeText(paymentParams['wallet_name'], fallback: "Main Wallet");
+    final reference = (apiResponse['lp_ref_no'] == null ||
+            apiResponse['lp_ref_no'].toString().trim().isEmpty)
+        ? "N/A"
+        : apiResponse['lp_ref_no'].toString();
+    final safeBiller = billerName.trim().isEmpty
+        ? (paymentParams['biller_id']?.toString() ?? "Biller")
+        : billerName;
 
     return Ticketcher.vertical(
       notchRadius: 14,
@@ -239,35 +254,17 @@ class BillPaymentReceipt extends StatelessWidget {
                 _formatTime(apiResponse['payment_dt']),
               ),
               const SizedBox(height: 10),
-              _buildReceiptRow(
-                context,
-                cs,
-                'REFERENCE NO.',
-                apiResponse['lp_ref_no']?.toString() ?? 'N/A',
-              ),
+              _buildReceiptRow(context, cs, 'REFERENCE NO.', reference),
               const SizedBox(height: 10),
-              _buildReceiptRow(
-                context,
-                cs,
-                'BILLER',
-                billerName.isNotEmpty ? billerName : 'One Communities',
-              ),
+              _buildReceiptRow(context, cs, 'BILLER', safeBiller),
               const SizedBox(height: 10),
-              _buildReceiptRow(
-                context,
-                cs,
-                'ACCOUNT NAME',
-                paymentParams['account_name']?.toString() ?? 'N/A',
-              ),
+              _buildReceiptRow(context, cs, 'ACCOUNT NAME',
+                  safeText(paymentParams['account_name'])),
               const SizedBox(height: 10),
-              _buildReceiptRow(
-                context,
-                cs,
-                'ACCOUNT NO.',
-                paymentParams['bill_acct_no']?.toString() ?? 'N/A',
-              ),
+              _buildReceiptRow(context, cs, 'ACCOUNT NO.',
+                  safeText(paymentParams['bill_acct_no'])),
               const SizedBox(height: 10),
-              _buildReceiptRow(context, cs, 'PAYMENT METHOD', 'LUVPARK Wallet'),
+              _buildReceiptRow(context, cs, 'PAYMENT METHOD', walletName),
             ],
           ),
         ),
@@ -555,25 +552,27 @@ class BillPaymentReceipt extends StatelessWidget {
 
   String _formatDate(dynamic dateTime) {
     if (dateTime == null) return 'N/A';
+
     try {
-      final inputFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
-      final outputFormat = DateFormat('MMM dd, yyyy');
-      final date = inputFormat.parse(dateTime.toString());
-      return outputFormat.format(date);
+      final dt = DateTime.tryParse(dateTime.toString()) ??
+          DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateTime.toString());
+
+      return DateFormat('MMM dd, yyyy').format(dt);
     } catch (_) {
-      return dateTime.toString();
+      return 'N/A';
     }
   }
 
   String _formatTime(dynamic dateTime) {
     if (dateTime == null) return 'N/A';
+
     try {
-      final inputFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
-      final outputFormat = DateFormat('hh:mm a');
-      final date = inputFormat.parse(dateTime.toString());
-      return outputFormat.format(date);
+      final dt = DateTime.tryParse(dateTime.toString()) ??
+          DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateTime.toString());
+
+      return DateFormat('hh:mm a').format(dt);
     } catch (_) {
-      return dateTime.toString();
+      return 'N/A';
     }
   }
 

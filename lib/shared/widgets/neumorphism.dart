@@ -150,8 +150,10 @@ class NeoNavIcon extends StatelessWidget {
           "assets/images/$name.png",
           width: iconSize,
           height: iconSize,
-          color: isActive ? (activeColor ?? brand) : inactive,
-          colorBlendMode: BlendMode.srcIn,
+          color: isActive ? activeColor : inactiveColor,
+          colorBlendMode: (isActive ? activeColor : inactiveColor) != null
+              ? BlendMode.srcIn
+              : null,
         );
       }
 
@@ -197,8 +199,8 @@ class NeoNavIcon extends StatelessWidget {
             ],
           ),
           child: Center(
-            child: Text(
-              text,
+            child: LuvpayText(
+              text: text,
               style: TextStyle(
                 color: badgeFg,
                 fontWeight: FontWeight.w900,
@@ -897,8 +899,8 @@ class LuvNeuPillButton extends StatelessWidget {
             children: [
               Icon(icon, size: 20, color: fg),
               const SizedBox(width: 10),
-              Text(
-                label,
+              LuvpayText(
+                text: label,
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
@@ -1038,8 +1040,7 @@ class CustomRowTile extends StatelessWidget {
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
-
+  final VoidCallback? onPressed;
   final Color? btnColor;
   final bool? loading;
   final Color? bordercolor;

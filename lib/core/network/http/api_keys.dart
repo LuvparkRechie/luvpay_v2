@@ -275,6 +275,9 @@ class ApiKeys {
   static final String subwalletTransfer =
       dotenv.env['SUBCATEGORIES_TRANSFER']!.replaceAll('{LUV_API}', luvApi);
 
+  static final String subTransactions =
+      dotenv.env['SUBTRANSACTIONS']!.replaceAll('{LUV_API}', luvApi);
+
   ///landbank service fee
   static final String getServiceFee = dotenv.env['SERVICE_FEE']!.replaceAll(
     '{LUV_API}',

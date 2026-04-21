@@ -93,107 +93,102 @@ class _WebviewPageState extends State<WebviewPage> {
       },
       padding:
           widget.bodyPadding ?? EdgeInsets.only(top: 10, left: 0, right: 0),
-      scaffoldBody:
-          isLoading
-              ? Center(
-                child: SizedBox(
-                  height: 30,
-                  width: 30,
-                  child: CircularProgressIndicator(
+      scaffoldBody: isLoading
+          ? Center(
+              child: SizedBox(
+                height: 30,
+                width: 30,
+                child: CircularProgressIndicator(
+                  color: AppColorV2.lpBlueBrand,
+                ),
+              ),
+            )
+          : WebViewWidget(
+              controller: _controller!,
+              key: _key,
+              gestureRecognizers: gestureRecognizers,
+            ),
+      bottomNavigationBar: widget.urlDirect
+                  .toLowerCase()
+                  .contains("landbank") &&
+              !isLoading &&
+              !hasError &&
+              widget.lbReturn?["status"]?.toString().toLowerCase() == "success"
+          ? Container(
+              height: MediaQuery.of(context).size.height * 0.45,
+              padding: EdgeInsets.all(8),
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  LuvpayText(
+                    text: "Transfer fees may apply",
+                    style: AppTextStyle.body1(context),
+                  ),
+                  SizedBox(height: 15),
+                  LuvpayText(
+                    text: "${widget.userData?["name"] ?? ""}",
+                    style: AppTextStyle.h2(context),
                     color: AppColorV2.lpBlueBrand,
                   ),
-                ),
-              )
-              : WebViewWidget(
-                controller: _controller!,
-                key: _key,
-                gestureRecognizers: gestureRecognizers,
-              ),
-      bottomNavigationBar:
-          widget.urlDirect.toLowerCase().contains("landbank") &&
-                  !isLoading &&
-                  !hasError &&
-                  widget.lbReturn?["status"]?.toString().toLowerCase() ==
-                      "success"
-              ? Container(
-                height: MediaQuery.of(context).size.height * 0.45,
-                padding: EdgeInsets.all(8),
-                alignment: Alignment.bottomCenter,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    LuvpayText(
-                      text: "Transfer fees may apply",
-                      style: AppTextStyle.body1(context),
-                    ),
-                    SizedBox(height: 15),
-                    LuvpayText(
-                      text: "${widget.userData?["name"] ?? ""}",
-                      style: AppTextStyle.h2(context),
-                      color: AppColorV2.lpBlueBrand,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        LuvpayText(text: "Mobile No: "),
-                        LuvpayText(
-                          text:
-                              (() {
-                                final n =
-                                    widget.userData?["to_mobile_no"] ?? "";
-                                return n.length < 4
-                                    ? n
-                                    : n.replaceRange(
-                                      n.length - 4,
-                                      n.length,
-                                      "••••",
-                                    );
-                              })(),
-                          style: AppTextStyle.body1(context),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        LuvpayText(text: "Reference No: "),
-                        LuvpayText(
-                          text:
-                              (() {
-                                final n =
-                                    widget.lbReturn?["reference_no"]
-                                        ?.toString() ??
-                                    "";
-                                return n.length < 10
-                                    ? "•" * n.length
-                                    : n.replaceRange(0, 10, "•" * 10);
-                              })(),
-                          style: AppTextStyle.body1(context),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 15),
-                    LuvpayText(
-                      text: "${widget.lbReturn?["amount"] ?? ""}",
-                      style: AppTextStyle.h2(context),
-                    ),
-                    if (widget.lbReturn?["service_fee"] != null &&
-                        widget.lbReturn!["service_fee"] != "0")
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          LuvpayText(text: "Service Fee: "),
-                          LuvpayText(
-                            text: "${widget.lbReturn?["service_fee"]}",
-                            style: AppTextStyle.body1(context),
-                          ),
-                        ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      LuvpayText(text: "Mobile No: "),
+                      LuvpayText(
+                        text: (() {
+                          final n = widget.userData?["to_mobile_no"] ?? "";
+                          return n.length < 4
+                              ? n
+                              : n.replaceRange(
+                                  n.length - 4,
+                                  n.length,
+                                  "••••",
+                                );
+                        })(),
+                        style: AppTextStyle.body1(context),
                       ),
-                  ],
-                ),
-              )
-              : null,
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      LuvpayText(text: "Reference No: "),
+                      LuvpayText(
+                        text: (() {
+                          final n =
+                              widget.lbReturn?["reference_no"]?.toString() ??
+                                  "";
+                          return n.length < 10
+                              ? "•" * n.length
+                              : n.replaceRange(0, 10, "•" * 10);
+                        })(),
+                        style: AppTextStyle.body1(context),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 15),
+                  LuvpayText(
+                    text: "${widget.lbReturn?["amount"] ?? ""}",
+                    style: AppTextStyle.h2(context),
+                  ),
+                  if (widget.lbReturn?["service_fee"] != null &&
+                      widget.lbReturn!["service_fee"] != "0")
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        LuvpayText(text: "Service Fee: "),
+                        LuvpayText(
+                          text: "${widget.lbReturn?["service_fee"]}",
+                          style: AppTextStyle.body1(context),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            )
+          : null,
     );
   }
 
@@ -201,9 +196,9 @@ class _WebviewPageState extends State<WebviewPage> {
     final PlatformWebViewControllerCreationParams params =
         WebViewPlatform.instance is WebKitWebViewPlatform
             ? WebKitWebViewControllerCreationParams(
-              allowsInlineMediaPlayback: true,
-              mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
-            )
+                allowsInlineMediaPlayback: true,
+                mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
+              )
             : const PlatformWebViewControllerCreationParams();
 
     final WebViewController controller =
@@ -252,7 +247,8 @@ class _WebviewPageState extends State<WebviewPage> {
           } else {
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(SnackBar(content: Text(message.message)));
+            ).showSnackBar(
+                SnackBar(content: LuvpayText(text: message.message)));
           }
         },
       )

@@ -14,6 +14,7 @@ import 'package:luvpay/features/merchant/pay_merchant.dart';
 import 'package:luvpay/features/scanner_screen.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
+import 'package:luvpay/shared/widgets/colors.dart';
 import '../../shared/widgets/neumorphism.dart';
 import '../biller_screen/biller_screen.dart';
 import '../profile/profile_screen.dart';
@@ -255,12 +256,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Positioned(
                 left: 16,
                 right: 16,
-                bottom: 16,
+                bottom: Platform.isIOS ? 0 : 16,
                 child: Obx(() => _buildFooterNav()),
               ),
               Positioned(
                 bottom: MediaQuery.of(context).padding.bottom +
-                    (Platform.isIOS ? 45 : 35),
+                    (Platform.isIOS ? 30 : 35),
                 left: MediaQuery.of(context).size.width / 2 - 32,
                 child: _buildFloatingQR(),
               ),
@@ -287,14 +288,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             try {
               final normalized = normalizePhMobile(raw);
 
-              if (isValidPhMobile(normalized)) {
-                Get.back();
-                await Get.toNamed(
-                  Routes.send,
-                  arguments: {"mobile": normalized, "source": "qr_scan"},
-                );
-                return;
-              }
+              ///do not renmove.. needed ;ater
+              // if (isValidPhMobile(normalized)) {
+              //   Get.back();
+              //   await Get.toNamed(
+              //     Routes.send,
+              //     arguments: {"mobile": normalized, "source": "qr_scan"},
+              //   );
+              //   return;
+              // }
 
               await getService(raw);
             } catch (e) {
@@ -335,7 +337,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Icon(
           LucideIcons.qrCode,
           size: 32,
-          color: cs.surface,
+          color: AppColorV2.background,
         ),
       ),
     );
@@ -374,46 +376,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: NeoNavIcon.tab(
+                      flatten: true,
                       borderRadius: BorderRadius.circular(40),
                       size: Platform.isIOS ? 60 : 48,
-                      activeIconData: Icons.home,
-                      inactiveIconData: Icons.home_outlined,
+                      activeIconName: "luvpay_home",
+                      inactiveIconName: "luvpay_home_inactive",
                       active: i == 0,
-                      inactiveColor: inactiveColor,
                       onTap: () => controller.changePage(0),
                     ),
                   ),
                   Expanded(
                     child: NeoNavIcon.tab(
+                      flatten: true,
                       borderRadius: BorderRadius.circular(40),
                       size: Platform.isIOS ? 60 : 48,
-                      activeIconData: Icons.wallet,
-                      inactiveIconData: Icons.wallet_outlined,
+                      activeIconName: "luvpay_subwallet",
+                      inactiveIconName: "luvpay_subwallet_inactive",
                       active: i == 1,
-                      inactiveColor: inactiveColor,
                       onTap: () => controller.changePage(1),
                     ),
                   ),
                   const SizedBox(width: 60),
                   Expanded(
                     child: NeoNavIcon.tab(
+                      flatten: true,
                       borderRadius: BorderRadius.circular(40),
                       size: Platform.isIOS ? 60 : 48,
-                      activeIconData: Icons.history,
-                      inactiveIconData: Icons.history_outlined,
+                      activeIconName: "luvpay_transaction",
+                      inactiveIconName: "luvpay_transaction_inactive",
                       active: i == 3,
                       onTap: () => controller.changePage(3),
-                      inactiveColor: inactiveColor,
                     ),
                   ),
                   Expanded(
                     child: NeoNavIcon.tab(
+                      flatten: true,
                       borderRadius: BorderRadius.circular(40),
                       size: Platform.isIOS ? 60 : 48,
-                      activeIconData: Icons.person,
-                      inactiveIconData: Icons.person_outlined,
+                      activeIconName: "luvpay_profile",
+                      inactiveIconName: "luvpay_profile_inactive",
                       active: i == 4,
-                      inactiveColor: inactiveColor,
                       onTap: () => controller.changePage(4),
                     ),
                   ),

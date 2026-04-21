@@ -42,7 +42,7 @@
 //           statusBarBrightness: Brightness.dark,
 //           statusBarIconBrightness: Brightness.light,
 //         ),
-//         title: Text("Pay Biller"),
+//         title: LuvpayText(text:"Pay Biller"),
 //         centerTitle: true,
 //         leading: IconButton(
 //           onPressed: () {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 
+import '../../../shared/widgets/luvpay_text.dart';
 import '../../../shared/widgets/neumorphism.dart';
 
 class TargetCard extends StatelessWidget {
@@ -42,8 +43,8 @@ class TargetCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    "Target",
+                  child: LuvpayText(
+                    text: "Target",
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
@@ -73,8 +74,8 @@ class TargetCard extends StatelessWidget {
                           color: AppColorV2.lpBlueBrand,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          hasTarget ? "Update" : "Set target",
+                        LuvpayText(
+                          text: hasTarget ? "Update" : "Set target",
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w900,
@@ -87,14 +88,14 @@ class TargetCard extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    hasTarget ? "₱ ${t.toStringAsFixed(2)}" : "No target set",
+                  child: LuvpayText(
+                    text: hasTarget
+                        ? "₱ ${t.toStringAsFixed(2)}"
+                        : "No target set",
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
@@ -114,8 +115,8 @@ class TargetCard extends StatelessWidget {
                         color: AppColorV2.lpBlueBrand.withAlpha(40),
                       ),
                     ),
-                    child: Text(
-                      percentText,
+                    child: LuvpayText(
+                      text: percentText,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
@@ -125,7 +126,6 @@ class TargetCard extends StatelessWidget {
                   ),
               ],
             ),
-
             if (hasTarget) ...[
               const SizedBox(height: 10),
               ClipRRect(
@@ -140,8 +140,8 @@ class TargetCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Text(
-                    "Saved: ₱ ${balance.toStringAsFixed(2)}",
+                  LuvpayText(
+                    text: "Saved: ₱ ${balance.toStringAsFixed(2)}",
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
@@ -149,8 +149,9 @@ class TargetCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  Text(
-                    "Remaining: ₱ ${(t - balance).clamp(0, double.infinity).toStringAsFixed(2)}",
+                  LuvpayText(
+                    text:
+                        "Remaining: ₱ ${(t - balance).clamp(0, double.infinity).toStringAsFixed(2)}",
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,

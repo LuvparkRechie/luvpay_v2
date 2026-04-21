@@ -166,7 +166,7 @@ class _ChatScreenState extends State<ChatScreen> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey.shade300),
         ),
-        child: Text(text),
+        child: LuvpayText(text: text),
       ),
     );
   }
