@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import '../../../shared/widgets/neumorphism.dart';
 import '../../subwallet/utils/transaction_modal.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
@@ -85,15 +86,6 @@ class _SubWalletTransactionsState extends State<SubWalletTransactions> {
       transactions = items;
       isLoading = false;
     });
-  }
-
-  String formatDate(String date) {
-    try {
-      return DateFormat('MMM dd, yyyy • HH:mm')
-          .format(DateTime.parse(date).toLocal());
-    } catch (_) {
-      return date;
-    }
   }
 
   @override
@@ -196,7 +188,8 @@ class _SubWalletTransactionsState extends State<SubWalletTransactions> {
                                         ),
                                         const SizedBox(height: 4),
                                         LuvpayText(
-                                          text: formatDate(tx["tran_date"]),
+                                          text: Functions.formatSmartPHDateTime(
+                                              tx["tran_date"]),
                                           fontSize: 11,
                                           color: cs.onSurface.withOpacity(
                                               isDark ? 0.60 : 0.55),

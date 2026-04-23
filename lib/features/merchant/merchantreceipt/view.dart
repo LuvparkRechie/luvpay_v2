@@ -12,7 +12,9 @@ import 'package:screenshot/screenshot.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
+import 'package:ticketcher/ticketcher.dart';
 
+import '../../../core/utils/functions/functions.dart';
 import '../../../shared/widgets/luvpay_text.dart';
 import 'controller.dart';
 
@@ -108,13 +110,6 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              _buildHeader(
-                context,
-                cs: cs,
-                isDark: isDark,
-                borderOpacity: borderOpacity,
-              ),
-              const SizedBox(height: 20),
               Screenshot(
                 controller: _ticketController,
                 child: _buildTicketReceiptCard(
@@ -134,48 +129,6 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
     );
   }
 
-  Widget _buildHeader(
-    BuildContext context, {
-    required ColorScheme cs,
-    required bool isDark,
-    required double borderOpacity,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
-            shape: BoxShape.circle,
-            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-          ),
-          child: Icon(Icons.check_rounded, color: cs.primary, size: 32),
-        ),
-        const SizedBox(height: 12),
-        LuvpayText(
-          text: 'Payment Successful',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.2,
-            color: cs.onSurface,
-          ),
-        ),
-        const SizedBox(height: 4),
-        LuvpayText(
-          text: 'Keep this receipt for your records',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: cs.onSurface.withOpacity(0.60),
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
   Widget _buildTicketReceiptCard(
     BuildContext context, {
     required ColorScheme cs,
@@ -184,47 +137,179 @@ class MerchantQRReceipt extends GetView<MerchantQRRController> {
   }) {
     final borderColor = cs.onSurface.withOpacity(borderOpacity);
 
-    return PhysicalShape(
-      clipper: TicketClipper(notchRadius: 14),
-      elevation: 10,
-      color: cs.surface,
-      shadowColor: cs.shadow.withOpacity(isDark ? 0.30 : 0.10),
-      child: Container(
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, width: 1),
+    final merchantName =
+        controller.parameter["merchant_name"]?.toString().trim().isEmpty ?? true
+            ? "Merchant"
+            : controller.parameter["merchant_name"].toString();
+
+    final amount =
+        double.tryParse(controller.parameter["amount"]?.toString() ?? '') ??
+            0.0;
+
+    final reference = controller.parameter["reference_no"]?.toString() ?? "N/A";
+
+    final orderNo = controller.parameter["order_no"]?.toString() ?? "N/A";
+
+    final walletName =
+        controller.parameter["wallet_name"]?.toString().trim().isEmpty ?? true
+            ? "Main Wallet"
+            : controller.parameter["wallet_name"].toString();
+
+    final raw = controller.parameter["date_time"];
+
+    return Ticketcher.vertical(
+      notchRadius: 14,
+      decoration: TicketcherDecoration(
+        backgroundColor: cs.surface,
+        borderRadius: const TicketRadius(radius: 16),
+        border: Border.all(color: borderColor, width: 1),
+        shadow: BoxShadow(
+          color: cs.shadow.withOpacity(isDark ? 0.30 : 0.10),
+          blurRadius: 22,
+          offset: const Offset(0, 12),
         ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(22),
-              child: Column(
-                children: [
-                  _buildMerchantInfo(
-                    context,
-                    cs: cs,
-                    isDark: isDark,
-                    borderOpacity: borderOpacity,
-                  ),
-                  const SizedBox(height: 18),
-                  _buildAmountSection(context, cs: cs),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: DashedLine(
-                color: cs.onSurface.withOpacity(isDark ? 0.18 : 0.12),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(22),
-              child: _buildTransactionDetails(context, cs: cs),
-            ),
-          ],
+        divider: TicketDivider.dashed(
+          color: cs.onSurface.withOpacity(isDark ? 0.18 : 0.12),
+          thickness: 1,
+          dashWidth: 8,
+          dashSpace: 6,
+          padding: 10,
         ),
       ),
+      sections: [
+        Section(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+          child: Column(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: borderColor),
+                ),
+                child: Icon(Icons.check_rounded, color: cs.primary, size: 32),
+              ),
+              const SizedBox(height: 14),
+              LuvpayText(
+                text: 'Payment Successful',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: cs.onSurface,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  LuvpayText(
+                    text: "AMOUNT PAID",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: cs.onSurface.withOpacity(0.60),
+                    ),
+                  ),
+                  LuvpayText(
+                    text: _formatCurrency(amount),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: cs.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Section(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          child: Column(
+            children: [
+              _row(cs, 'STATUS', 'COMPLETED', bold: true),
+              const SizedBox(height: 10),
+              _row(cs, 'DATE', Functions.formatPHDate(raw)),
+              const SizedBox(height: 10),
+              _row(cs, 'TIME', Functions.formatPHTime(raw)),
+              const SizedBox(height: 10),
+              _row(cs, 'MERCHANT', merchantName),
+              const SizedBox(height: 10),
+              _row(cs, 'REFERENCE', reference),
+              const SizedBox(height: 10),
+              if (orderNo.isNotEmpty) _row(cs, 'ORDER NO.', orderNo),
+              const SizedBox(height: 10),
+              _row(cs, 'PAID FROM', walletName),
+            ],
+          ),
+        ),
+        Section(
+          padding: const EdgeInsets.fromLTRB(20, 25, 20, 16),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Column(
+                  children: [
+                    Image.asset("assets/images/logo.png", height: 38),
+                    const SizedBox(height: 8),
+                    LuvpayText(
+                      text: 'Thank you for your payment!',
+                      style: TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 4),
+                    LuvpayText(
+                      text: 'Keep this receipt for your records',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: cs.onSurface.withOpacity(0.60),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _row(ColorScheme cs, String title, String value, {bool bold = false}) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 4,
+          child: LuvpayText(
+            text: title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: cs.onSurface.withOpacity(0.58),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 6,
+          child: LuvpayText(
+            text: value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: bold ? FontWeight.w900 : FontWeight.w800,
+              color: cs.onSurface,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

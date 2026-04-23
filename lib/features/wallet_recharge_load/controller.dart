@@ -6,6 +6,7 @@ import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
 
 import '../../auth/authentication.dart';
 import '../../auth/ub_auth.dart';
@@ -90,7 +91,6 @@ class WalletRechargeLoadController extends GetxController
 
     currentPayment.value = payment;
     var userData = await Authentication().getUserData();
-
     var item = jsonDecode(userData!);
     email.value = item["email"].toString();
     emailController.text = item["email"] == null ? "" : email.value;
@@ -592,6 +592,7 @@ class WalletRechargeLoadController extends GetxController
     final String api = ApiKeys.postLandBankTrans;
     final response =
         await HttpRequestApi(api: api, parameters: postParam).postBody();
+    longPrint("response $response");
     Get.back();
     if (response == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {

@@ -13,15 +13,14 @@ import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/luvpay_conn.dart';
 import '../../shared/widgets/luvpay_text.dart';
 import '../../shared/widgets/neumorphism.dart';
+import '../wallet/refresh_wallet.dart';
 import 'controller.dart';
 import 'utils/add_wallet_modal.dart';
-import 'utils/subwallet_transactions.dart';
 import 'utils/subwalllet_card.dart';
 import 'utils/wallet_details.dart';
 
@@ -30,6 +29,10 @@ enum WalletModalMode { create, edit }
 enum TransferType { toSubwallet, toMain }
 
 class Wallet {
+  final String? ownerName;
+  final String? ownerMobile;
+  final String? userName;
+  final String? mobileNo;
   final String colorTheme;
   final String id,
       userId,
@@ -45,10 +48,18 @@ class Wallet {
   final Color color;
   final double? targetAmount;
   final String? sharedUser;
+  bool get isShared {
+    return (sharedUserName?.trim().isNotEmpty ?? false) ||
+        (sharedMobileNo?.trim().isNotEmpty ?? false);
+  }
 
-  bool get isShared => sharedUser != null && sharedUser!.trim().isNotEmpty;
-
+  final String? sharedUserName;
+  final String? sharedMobileNo;
   const Wallet({
+    this.userName,
+    this.mobileNo,
+    this.ownerName,
+    this.ownerMobile,
     this.sharedUser,
     required this.colorTheme,
     required this.id,
@@ -65,6 +76,8 @@ class Wallet {
     required this.categoryTitle,
     required this.imageBase64,
     this.targetAmount,
+    this.sharedUserName,
+    this.sharedMobileNo,
   });
 
   static const Object _sentinel = Object();
@@ -74,6 +87,8 @@ class Wallet {
     double? balance,
     Object? targetAmount = _sentinel,
     String? sharedUser,
+    String? sharedUserName,
+    String? sharedMobileNo,
   }) {
     return Wallet(
       id: id,
@@ -94,6 +109,8 @@ class Wallet {
           : targetAmount as double?,
       colorTheme: colorTheme,
       sharedUser: sharedUser ?? this.sharedUser,
+      sharedUserName: sharedUserName ?? this.sharedUserName,
+      sharedMobileNo: sharedMobileNo ?? this.sharedMobileNo,
     );
   }
 
@@ -154,7 +171,12 @@ class Wallet {
       imageBase64: json['image_base64']?.toString(),
       targetAmount: (json['target_amount'] as num?)?.toDouble(),
       colorTheme: json['color_theme']?.toString() ?? 'default',
-      sharedUser: json['shared_user']?.toString(),
+      sharedUser: json['shared_to_user_id']?.toString(),
+      sharedUserName: json['shared_to_user_name']?.toString(),
+      ownerName: json['user_name']?.toString(),
+      ownerMobile: json['mobile_no']?.toString(),
+      userName: json['user_name']?.toString(),
+      mobileNo: json['mobile_no']?.toString(),
     );
   }
 }
@@ -255,7 +277,12 @@ class _SubWalletScreenState extends State<SubWalletScreen>
   @override
   void initState() {
     super.initState();
+
     _initializeData();
+
+    ever(WalletRefreshBus.refresh, (_) async {
+      await _refreshData();
+    });
   }
 
   @override
@@ -301,8 +328,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
 
       wallets = controller.userSubWallets.map((w) {
         final id = w['id']?.toString() ?? '';
-        final sharedUser = w['shared_user']?.toString();
-
+        final sharedUser = w['shared_to_user_id']?.toString();
+        final sharedMobile = w['shared_to_mobile_no']?.toString();
         return Wallet(
           id: id,
           userId: w['user_id']?.toString() ?? '',
@@ -318,8 +345,11 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           isActive: w['is_active']?.toString() ?? 'N',
           categoryTitle: w['category_title']?.toString() ?? 'Unknown',
           imageBase64: w['image_base64']?.toString(),
-          targetAmount: null,
-          sharedUser: sharedUser,
+          sharedUser: w['shared_to_user_id']?.toString(),
+          sharedUserName: w['shared_to_user_name']?.toString(),
+          sharedMobileNo: w['shared_to_mobile_no']?.toString(),
+          ownerName: w['user_name']?.toString(),
+          ownerMobile: w['mobile_no']?.toString(),
         );
       }).toList();
 
@@ -435,6 +465,7 @@ class _SubWalletScreenState extends State<SubWalletScreen>
     final sheetBg = cs.surface;
 
     showModalBottomSheet(
+      showDragHandle: true,
       context: context,
       isScrollControlled: true,
       backgroundColor: sheetBg,

@@ -14,9 +14,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/utils/functions/functions.dart';
 import '../../../shared/widgets/colors.dart';
+import '../../../shared/widgets/custom_textfield.dart';
 import '../../../shared/widgets/neumorphism.dart';
 import '../controller.dart';
 import '../view.dart';
+import 'share_user_bottomsheet.dart';
 
 class AddWalletModal extends StatefulWidget {
   final WalletModalMode mode;
@@ -40,7 +42,9 @@ class AddWalletModalState extends State<AddWalletModal> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
   String _selectedThemeKey = "default";
-
+  String? sharedMobileNo;
+  String? sharedDisplayName;
+  bool isValidUser = true;
   String? _selectedCategoryId;
   String? _selectedCategoryName;
   Color? _selectedColor;
@@ -87,6 +91,11 @@ class AddWalletModalState extends State<AddWalletModal> {
         setState(_loadCategories);
       });
     }
+  }
+
+  bool _isValidMobile(String input) {
+    final value = input.trim();
+    return value.length == 10 && value.startsWith('9');
   }
 
   Future<void> saveWalletTheme(String walletName, String key) async {
@@ -425,6 +434,8 @@ class AddWalletModalState extends State<AddWalletModal> {
               subWalletName: walletName,
               amount: walletAmount,
               themeKey: _selectedThemeKey,
+              sharedToMobileNo:
+                  sharedMobileNo != null ? "+63$sharedMobileNo" : null,
             )
           : await controller.editSubwallet(
               subwalletId: int.tryParse(widget.wallet!.id),
@@ -433,6 +444,14 @@ class AddWalletModalState extends State<AddWalletModal> {
             );
 
       if (result["success"] == true) {
+        if (sharedMobileNo != null && sharedMobileNo!.isNotEmpty) {
+          final sp = await SharedPreferences.getInstance();
+
+          await sp.setString(
+            "shared_${_nameController.text.trim()}",
+            "+63$sharedMobileNo",
+          );
+        }
         await saveWalletTheme(walletName, _selectedThemeKey);
 
         await controller.getUserSubWallets();
@@ -502,10 +521,10 @@ class AddWalletModalState extends State<AddWalletModal> {
     }
 
     return Container(
+      height: MediaQuery.of(context).size.height / 1.2,
       padding: const EdgeInsets.all(20),
-      color: bg,
+      decoration: BoxDecoration(),
       child: SingleChildScrollView(
-        reverse: true,
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
@@ -513,17 +532,6 @@ class AddWalletModalState extends State<AddWalletModal> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 60,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: stroke,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
             LuvpayText(
               text: widget.mode == WalletModalMode.create
                   ? 'Create New SubWallet'
@@ -721,12 +729,9 @@ class AddWalletModalState extends State<AddWalletModal> {
                           ),
                           const SizedBox(height: 2),
                           LuvpayText(
-                            text: widget.wallet!.categoryTitle,
-                            style: AppTextStyle.h3(context).copyWith(
                               color: titleColor,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+                              text: widget.wallet!.categoryTitle,
+                              style: AppTextStyle.body1(context)),
                         ],
                       ),
                     ),
@@ -736,7 +741,7 @@ class AddWalletModalState extends State<AddWalletModal> {
               const SizedBox(height: 18),
             ],
             LuvpayText(
-              text: 'Select Color (Optional)',
+              text: 'Select Color',
               style: AppTextStyle.h3(context).copyWith(color: titleColor),
             ),
             const SizedBox(height: 10),
@@ -761,7 +766,8 @@ class AddWalletModalState extends State<AddWalletModal> {
                         colors: theme.gradient,
                       ),
                       border: isSelected
-                          ? Border.all(color: cs.onSurface, width: 3)
+                          ? Border.all(
+                              color: cs.onSurface.withAlpha(150), width: 3)
                           : null,
                     ),
                   ),
@@ -896,8 +902,80 @@ class AddWalletModalState extends State<AddWalletModal> {
                   ],
                 ),
               ],
-              const SizedBox(height: 18),
             ],
+            if (widget.mode == WalletModalMode.create) ...[
+              const SizedBox(height: 16),
+              LuvpayText(
+                text: "Shared Access",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (sharedMobileNo != null) ...[
+                LuvNeuPress.rectangle(
+                    background: cs.surfaceContainerHighest,
+                    radius: BorderRadius.circular(14),
+                    child: ListTile(
+                      leading: Icon(
+                        isValidUser ? Icons.verified : Icons.error,
+                        color: isValidUser ? Colors.blue : cs.error,
+                      ),
+                      title: LuvpayText(
+                        text: sharedDisplayName ?? "",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: isValidUser ? Colors.blue : cs.error,
+                        ),
+                      ),
+                      subtitle: LuvpayText(
+                        text: "+63$sharedMobileNo",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: cs.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon:
+                            const Icon(Icons.remove_circle, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            sharedMobileNo = null;
+                            sharedDisplayName = null;
+                          });
+                        },
+                      ),
+                    ))
+              ] else ...[
+                LuvNeuPress.rectangle(
+                  onTap: _openInviteModal,
+                  background: cs.primary.withOpacity(0.1),
+                  radius: BorderRadius.circular(14),
+                  child: SizedBox(
+                    height: 50,
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.person_add, color: cs.primary),
+                          const SizedBox(width: 8),
+                          LuvpayText(
+                            text: "Invite user",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: cs.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ]
+            ],
+            const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
               height: 56,
@@ -933,6 +1011,24 @@ class AddWalletModalState extends State<AddWalletModal> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  void _openInviteModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ShareUserBottomSheet(
+        initialValue: sharedMobileNo != null ? "+63$sharedMobileNo" : null,
+        onSelected: (mobile, name, valid) {
+          setState(() {
+            sharedMobileNo = mobile.replaceFirst("63", "");
+            sharedDisplayName = name;
+            isValidUser = valid;
+          });
+        },
       ),
     );
   }

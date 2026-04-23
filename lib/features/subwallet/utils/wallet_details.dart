@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
+import '../../../shared/widgets/custom_textfield.dart';
 import '../../../shared/widgets/luvpay_text.dart';
 import '../../../shared/widgets/neumorphism.dart';
 
@@ -17,6 +19,8 @@ import '../../../features/subwallet/controller.dart';
 import '../../../features/subwallet/view.dart';
 import '../../../features/subwallet/utils/add_wallet_modal.dart';
 import '../../../features/subwallet/utils/transaction_modal.dart';
+import '../../wallet/refresh_wallet.dart';
+import 'share_user_bottomsheet.dart';
 import 'subwallet_transactions.dart';
 
 class WalletDetailsModal extends StatefulWidget {
@@ -46,7 +50,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
   late Wallet _wallet;
   final SubWalletController mainController = Get.find<SubWalletController>();
   late Future<List<Transaction>> _txFuture;
-
+  bool isLoading = false;
   String get _targetKey {
     final normalizedId = int.tryParse(_wallet.id)?.toString() ?? _wallet.id;
     return 'subwallet_target_$normalizedId';
@@ -57,7 +61,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     super.initState();
 
     _wallet = widget.wallet;
-    sharedUser = _wallet.sharedUser;
 
     _txFuture = _loadTx();
 
@@ -117,10 +120,14 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     if (!mounted) return;
 
     setState(() {
-      if (updated != null) _wallet = Wallet.fromJson(updated);
+      if (updated != null) {
+        final newWallet = Wallet.fromJson(updated);
+
+        _wallet = newWallet;
+      }
+
       _txFuture = _loadTx();
     });
-
     await _loadLocalTarget();
   }
 
@@ -140,6 +147,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     if (_wallet.sharedUser != null && _wallet.sharedUser!.isNotEmpty) {
       return _showSnack('Shared subwallet cannot transfer to main wallet');
     }
+
     amount = double.parse(amount.toStringAsFixed(2));
     if (amount <= 0) return _showSnack('Enter a valid amount');
 
@@ -180,7 +188,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     }
 
     if (result["success"] == true) {
-      await _refreshWalletAndTx();
+      _refreshWalletAndTx();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         CustomDialogStack.showSuccess(
@@ -207,7 +215,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
           Get.back();
         });
       } else {
-        CustomDialogStack.showError(ctx, "luvpay", err, () => Get.back());
+        CustomDialogStack.showError(ctx, "luvpay", err, () {
+          Get.back();
+          Get.back();
+        });
       }
     });
 
@@ -216,7 +227,16 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
   void _showSnack(String msg) {
     if (!mounted) return;
-    CustomDialogStack.showInfo(context, "luvpay", msg, () => Get.back());
+    CustomDialogStack.showInfo(
+      context,
+      "luvpay",
+      msg,
+      () {
+        if (Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        }
+      },
+    );
   }
 
   Future<void> _openAddDialog() async {
@@ -600,8 +620,32 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
   Widget _sharedSection() {
     final cs = Theme.of(context).colorScheme;
+    final isShared = (_wallet.sharedUser ?? '').isNotEmpty ||
+        (_wallet.sharedMobileNo ?? '').isNotEmpty;
+    final isOwner = _wallet.userId == mainController.currentUserId;
+    String displayName = '';
+    String displayMobile = '';
+    String label = '';
 
-    final hasSharedUser = sharedUser != null && sharedUser!.trim().isNotEmpty;
+    if (isShared) {
+      if (isOwner) {
+        displayName = (_wallet.sharedUserName ?? '').trim().isNotEmpty
+            ? _wallet.sharedUserName!
+            : "Unregistered user";
+
+        displayMobile = (_wallet.sharedMobileNo ?? '').trim();
+        label = "Shared to";
+      } else {
+        displayName = (_wallet.ownerName ?? '').trim().isNotEmpty
+            ? _wallet.ownerName!
+            : "Unregistered user";
+
+        displayMobile = (_wallet.ownerMobile ?? '').trim();
+        label = "Shared from";
+      }
+    }
+
+    final hasSharedUser = isShared;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,169 +670,141 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                 leading: const CircleAvatar(
                   child: Icon(Icons.person),
                 ),
-                title: LuvpayText(text: sharedUser!),
-                trailing: IconButton(
-                  icon: const Icon(Icons.remove_circle, color: Colors.red),
-                  onPressed: () {
-                    setState(() {
-                      sharedUser = null;
-                      _wallet = _wallet.copyWith(sharedUser: null);
-                    });
-                  },
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (displayName.isNotEmpty)
+                      LuvpayText(
+                        text: maskName(displayName),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    if (displayMobile.isNotEmpty)
+                      LuvpayText(
+                        text: displayMobile,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: cs.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                  ],
+                ),
+                trailing: isOwner
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {
+                          final cs = Theme.of(context).colorScheme;
+
+                          CustomDialogStack.showConfirmation(
+                            context,
+                            "Remove Shared Access",
+                            "Are you sure you want to remove this user from the subwallet?",
+                            () => Get.back(),
+                            () async {
+                              Get.back();
+
+                              final success = await mainController.deleteShared(
+                                subWalletId: _wallet.id,
+                              );
+
+                              if (success) {
+                                setState(() {
+                                  _wallet = _wallet.copyWith(
+                                    sharedUser: '',
+                                    sharedUserName: '',
+                                    sharedMobileNo: '',
+                                  );
+                                });
+
+                                await _refreshWalletAndTx();
+
+                                WalletRefreshBus.refresher();
+
+                                CustomDialogStack.showSuccess(
+                                  context,
+                                  "Removed",
+                                  "Shared user removed successfully",
+                                  () {
+                                    if (Navigator.canPop(context))
+                                      Navigator.pop(context);
+                                  },
+                                );
+                              }
+                            },
+                            leftText: "Cancel",
+                            rightText: "Remove",
+                            isAllBlueColor: false,
+                            rightTextColor: cs.error,
+                            rightBtnColor: cs.error.withOpacity(0.10),
+                          );
+                        })
+                    : null,
+              ),
+            ),
+          ),
+        if (!hasSharedUser)
+          LuvNeuPress.rectangle(
+            onTap: _openInviteModal,
+            background: cs.primary.withOpacity(0.1),
+            radius: BorderRadius.circular(14),
+            child: SizedBox(
+              height: 50,
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.person_add, color: cs.primary),
+                    const SizedBox(width: 8),
+                    LuvpayText(
+                      text: "Invite user",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: cs.primary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        LuvNeuPress.rectangle(
-          onTap: hasSharedUser ? null : _openInviteModal,
-          background: hasSharedUser
-              ? cs.surfaceContainerHighest
-              : cs.primary.withOpacity(0.1),
-          radius: BorderRadius.circular(14),
-          child: SizedBox(
-            height: 50,
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.person_add,
-                      color: hasSharedUser
-                          ? cs.onSurface.withOpacity(0.4)
-                          : cs.primary),
-                  const SizedBox(width: 8),
-                  LuvpayText(
-                    text: hasSharedUser ? "Already shared" : "Invite user",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: hasSharedUser
-                          ? cs.onSurface.withOpacity(0.5)
-                          : cs.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
 
   void _openInviteModal() {
-    final controller = TextEditingController();
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) {
-        final cs = Theme.of(context).colorScheme;
-        final isDark = Theme.of(context).brightness == Brightness.dark;
+      builder: (_) => ShareUserBottomSheet(
+          initialValue: sharedUser,
+          onSelected: (mobile, name, valid) async {
+            if (!valid) return;
 
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-            decoration: BoxDecoration(
-              color: cs.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(28),
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 46,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 14),
-                  decoration: BoxDecoration(
-                    color: cs.onSurface.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: LuvpayText(
-                        text: "Share SubWallet",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: cs.onSurface,
-                        ),
-                      ),
-                    ),
-                    LuvNeuIconButton(
-                      icon: Icons.close_rounded,
-                      onTap: () => Navigator.pop(context),
-                      size: 40,
-                      iconSize: 18,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                LuvNeuPress.rectangle(
-                  background: cs.surfaceContainerHighest,
-                  radius: BorderRadius.circular(16),
-                  child: TextField(
-                    controller: controller,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    decoration: const InputDecoration(
-                      hintText: "Enter mobile number",
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.all(14),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                LuvNeuPress.rectangle(
-                  onTap: () {
-                    final input = controller.text.trim();
+            final success = await mainController.shareToExisting(
+              subWalletId: _wallet.id,
+              mobileNo: mobile,
+            );
 
-                    if (!_isValidMobile(input)) {
-                      _showSnack("Enter valid mobile number (9XXXXXXXXX)");
-                      return;
-                    }
+            if (success) {
+              await _refreshWalletAndTx();
+              WalletRefreshBus.refresher();
 
-                    if (sharedUser != null && sharedUser!.isNotEmpty) {
-                      _showSnack("Already shared");
-                      return;
-                    }
-                    setState(() {
-                      final value = "+63${controller.text}";
-                      sharedUser = value;
-                      _wallet = _wallet.copyWith(sharedUser: value);
-                    });
-
-                    Navigator.pop(context);
-                  },
-                  background: cs.primary,
-                  radius: BorderRadius.circular(16),
-                  child: SizedBox(
-                    height: 50,
-                    child: Center(
-                      child: LuvpayText(
-                        text: "Share",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: cs.onPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+              CustomDialogStack.showSuccess(
+                context,
+                "Shared",
+                "Subwallet shared successfully",
+                () {
+                  if (Navigator.canPop(context)) Navigator.pop(context);
+                },
+              );
+            }
+          }),
     );
   }
 
@@ -821,6 +837,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
               await Future.delayed(const Duration(milliseconds: 200));
               widget.onDelete?.call();
+              WalletRefreshBus.refresher();
             },
           );
         } else {
@@ -1021,7 +1038,8 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                                     const SizedBox(height: 4),
                                     LuvpayText(
                                       fontSize: 11,
-                                      text: _formatDate(t.date),
+                                      text: Functions.formatSmartPHDateTime(
+                                          t.date),
                                       color: cs.onSurface.withOpacity(0.65),
                                     ),
                                   ],
@@ -1342,37 +1360,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
       },
     );
   }
-
-  String _formatDate(dynamic dateInput) {
-    try {
-      DateTime date;
-      if (dateInput is String) {
-        date = DateTime.parse(dateInput);
-      } else if (dateInput is DateTime) {
-        date = dateInput;
-      } else {
-        return dateInput.toString();
-      }
-
-      const monthNames = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ];
-      return '${monthNames[date.month - 1]} ${date.day}, ${date.year}';
-    } catch (_) {
-      return dateInput.toString();
-    }
-  }
 }
 
 class _HeaderCard extends StatelessWidget {
@@ -1441,13 +1428,9 @@ class _HeaderCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   LuvpayText(
-                    text: wallet.name,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
+                      text: wallet.name,
                       color: cs.onSurface,
-                    ),
-                  ),
+                      style: AppTextStyle.body1(context)),
                   const SizedBox(height: 4),
                   LuvpayText(
                     text: wallet.categoryTitle,

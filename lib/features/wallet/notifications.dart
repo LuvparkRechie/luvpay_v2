@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/shared/widgets/luvpay_conn.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
@@ -234,39 +235,6 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     });
   }
 
-  String _formatTime(DateTime date) {
-    int hour = date.hour % 12;
-    hour = hour == 0 ? 12 : hour;
-    final minute = date.minute.toString().padLeft(2, '0');
-    final period = date.hour >= 12 ? 'PM' : 'AM';
-    return "$hour:$minute$period";
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    if (date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day) {
-      return "Today";
-    }
-
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return "${months[date.month - 1]} ${date.day}, ${date.year}";
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -419,7 +387,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                                 const SizedBox(height: 8),
                                 LuvpayText(
                                   text:
-                                      "${_formatDate(createdOn)} ${_formatTime(createdOn)}",
+                                      "${Functions.formatPHDate(createdOn)} • ${Functions.formatPHTime(createdOn)}",
                                   color: cs.onSurfaceVariant.withOpacity(
                                     isDark ? 0.78 : 0.75,
                                   ),

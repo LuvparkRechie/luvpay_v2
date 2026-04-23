@@ -1021,6 +1021,61 @@ class Functions {
 
     return returnData["items"] ?? [];
   }
+
+  static DateTime parseToPHTime(dynamic dateTime) {
+    if (dateTime == null) return DateTime.now();
+
+    try {
+      final raw = dateTime.toString();
+
+      DateTime parsed;
+
+      if (raw.contains('Z') || raw.contains('+')) {
+        parsed = DateTime.parse(raw).toUtc();
+      } else {
+        parsed = DateFormat('yyyy-MM-dd HH:mm:ss').parse(raw, true);
+      }
+
+      return parsed.add(const Duration(hours: 8));
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
+
+  ///date formatterss
+  static String formatPHDate(dynamic dateTime) {
+    final dt = parseToPHTime(dateTime);
+    return DateFormat('MMM dd, yyyy').format(dt);
+  }
+
+  static String formatPHTime(dynamic dateTime) {
+    final dt = parseToPHTime(dateTime);
+    return DateFormat('hh:mm a').format(dt);
+  }
+
+  static String formatSmartPHDateTime(dynamic dateTime) {
+    final dt = parseToPHTime(dateTime);
+    final now = DateTime.now();
+
+    final isToday =
+        dt.year == now.year && dt.month == now.month && dt.day == now.day;
+
+    final yesterday = now.subtract(const Duration(days: 1));
+
+    final isYesterday = dt.year == yesterday.year &&
+        dt.month == yesterday.month &&
+        dt.day == yesterday.day;
+
+    final time = DateFormat('hh:mm a').format(dt);
+
+    if (isToday) {
+      return 'Today • $time';
+    } else if (isYesterday) {
+      return 'Yesterday • $time';
+    } else {
+      return DateFormat('MMM dd, yyyy • hh:mm a').format(dt);
+    }
+  }
 }
 
 ///subwallet colors
@@ -1032,4 +1087,17 @@ Future<void> saveWalletColor(String walletId, String themeKey) async {
 Future<String?> getWalletColor(String walletId) async {
   final sp = await SharedPreferences.getInstance();
   return sp.getString('wallet_color_$walletId');
+}
+
+String maskName(String name) {
+  final parts = name.split(" ");
+
+  return parts.map((part) {
+    if (part.length <= 2) return part;
+
+    final first = part.substring(0, 2);
+    final last = part.substring(part.length - 1);
+
+    return "$first**$last";
+  }).join(" ");
 }

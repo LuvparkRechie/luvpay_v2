@@ -148,6 +148,8 @@ class _WalletScreenState extends State<WalletScreen> {
       getUserData();
       getLogs();
       getFavorites();
+
+      if (mounted) setState(() {});
     });
   }
 
@@ -191,6 +193,9 @@ class _WalletScreenState extends State<WalletScreen> {
         targetAmount: null,
         colorTheme: w['color_theme']?.toString() ?? 'default',
         color: AppColorV2.lpBlueBrand,
+        sharedUser: w['shared_to_user_id']?.toString().trim(),
+        sharedUserName: w['shared_to_user_name']?.toString(),
+        sharedMobileNo: w['shared_to_mobile_no']?.toString(),
       );
     }).toList();
   }
@@ -446,8 +451,11 @@ class _WalletScreenState extends State<WalletScreen> {
       },
       {
         'api': ApiKeys.getServiceFee,
-        'name': 'Landbank',
-        'image': 'assets/images/w_landbank.png',
+        'name': 'QR Ph',
+        // 'name': 'Landbank',
+        // 'image': 'assets/images/w_landbank.png',
+        'image': 'assets/images/w_qr_ph.png',
+        // 'image': 'assets/images/qrph_landbank.png',
         'color': AppColorV2.correctState,
         'onTap': () async {
           final success = await getServiceFee();
@@ -455,7 +463,9 @@ class _WalletScreenState extends State<WalletScreen> {
           if (!success) return;
           final arguments = {
             "bank_type": "Landbank",
-            "image": "assets/images/wt_landbank.png",
+            // "image": "assets/images/wt_landbank.png",
+            'image': 'assets/images/w_qr_ph.png',
+            // "image": "assets/images/qrph_landbank.png",
             "bank_code": " LandBank",
             "service_fee": serviceFee.toString(),
             "max_fee": maxFee.toString(),
@@ -548,6 +558,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final wallets = _mapWallets(subWalletController.userSubWallets);
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     return CustomScaffoldV2(
@@ -641,29 +652,24 @@ class _WalletScreenState extends State<WalletScreen> {
                         const SizedBox(height: 10),
                         Stack(
                           children: [
-                            Positioned(
-                              top: 60,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height: 40,
-                                decoration: BoxDecoration(
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.08),
-                                        blurRadius: 20,
-                                        spreadRadius: 2,
-                                        offset: const Offset(0, -5),
-                                      ),
-                                    ],
-                                    border: Border(
-                                      top: BorderSide(
-                                        color: cs.onSurface.withAlpha(20),
-                                      ),
+                            wallets.isEmpty
+                                ? SizedBox.shrink()
+                                : Positioned(
+                                    top: 60,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                          border: Border(
+                                            top: BorderSide(
+                                              color: cs.onSurface.withAlpha(20),
+                                            ),
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(30)),
                                     ),
-                                    borderRadius: BorderRadius.circular(30)),
-                              ),
-                            ),
+                                  ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -930,6 +936,7 @@ class _WalletScreenState extends State<WalletScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SubWallerCarousel(
+              key: ValueKey(wallets.map((e) => e.sharedUser).join()),
               wallets: wallets,
               onTap: (wallet) {
                 showModalBottomSheet(
@@ -1175,6 +1182,8 @@ class _WalletScreenState extends State<WalletScreen> {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
+    final isQRPh = bank['image'] == 'assets/images/qrph_landbank.png';
+
     return Container(
       decoration: BoxDecoration(
         color: cs.surface,
@@ -1199,50 +1208,36 @@ class _WalletScreenState extends State<WalletScreen> {
             bank["onTap"]();
           },
           child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: FittedBox(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+            padding: EdgeInsets.symmetric(
+              horizontal: isQRPh ? 4 : 8,
+              vertical: isQRPh ? 6 : 8,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: isQRPh ? 100 : 40,
+                  height: isQRPh ? 28 : 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
                     child: Image.asset(
                       bank['image'],
-                      width: 40,
-                      height: 40,
                       fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: (bank['color'] as Color).withValues(
-                              alpha: 0.12,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            _getFallbackIcon(bank['name']),
-                            color: bank['color'],
-                            size: 20,
-                          ),
-                        );
-                      },
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  LuvpayText(
-                    text: bank['name'],
-                    style: TextStyle(
-                      color: cs.onSurface,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                    ),
+                ),
+                SizedBox(height: isQRPh ? 4 : 8),
+                LuvpayText(
+                  text: bank['name'],
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1314,17 +1309,6 @@ class TransactionSectionListView extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
-    String formatDate(String dateString) {
-      try {
-        final cleaned = dateString.replaceAll('Z', '');
-        final date = DateTime.parse(cleaned);
-
-        return DateFormat('MMM dd, yyyy • hh:mm a').format(date);
-      } catch (_) {
-        return dateString;
-      }
-    }
-
     final amountString = transaction['amount']?.toString() ?? '0';
     final amount = double.tryParse(amountString) ?? 0.0;
     final isPositive = amount >= 0;
@@ -1355,7 +1339,8 @@ class TransactionSectionListView extends StatelessWidget {
         color: cs.onSurface,
       ),
       subtitle: LuvpayText(
-        text: formatDate(transaction['tran_date']?.toString() ?? ''),
+        text: Functions.formatSmartPHDateTime(
+            transaction['tran_date']?.toString() ?? ''),
         style: AppTextStyle.body1(context),
         maxFontSize: 10,
         minFontSize: 8,

@@ -10,6 +10,7 @@ import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
+import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:ticketcher/ticketcher.dart';
@@ -239,22 +240,24 @@ class BillPaymentReceipt extends StatelessWidget {
                 'COMPLETED',
                 isBold: true,
               ),
-              const SizedBox(height: 14),
-              _buildReceiptRow(
-                context,
-                cs,
-                'DATE',
-                _formatDate(apiResponse['payment_dt']),
-              ),
               const SizedBox(height: 10),
-              _buildReceiptRow(
-                context,
-                cs,
-                'TIME',
-                _formatTime(apiResponse['payment_dt']),
-              ),
+              _buildReceiptRow(context, cs, 'AMOUNT',
+                  safeText(paymentParams['original_amount'])),
               const SizedBox(height: 10),
-              _buildReceiptRow(context, cs, 'REFERENCE NO.', reference),
+              if (paymentParams['service_fee'] != 0)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildReceiptRow(context, cs, 'SERVICE FEE',
+                        safeText(paymentParams['service_fee'])),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              _buildReceiptRow(context, cs, 'DATE',
+                  Functions.formatPHDate(apiResponse['payment_dt'])),
+              const SizedBox(height: 10),
+              _buildReceiptRow(context, cs, 'TIME',
+                  Functions.formatPHTime(apiResponse['payment_dt'])),
               const SizedBox(height: 10),
               _buildReceiptRow(context, cs, 'BILLER', safeBiller),
               const SizedBox(height: 10),
@@ -303,6 +306,23 @@ class BillPaymentReceipt extends StatelessWidget {
                       color: cs.onSurface.withOpacity(0.60),
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        LuvpayText(
+                          text: "REF NO:  $reference",
+                          style: AppTextStyle.body2(context).copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
+                          ),
+                          color: AppColorV2.lpBlueBrand,
+                          maxLines: 1,
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),
@@ -554,9 +574,9 @@ class BillPaymentReceipt extends StatelessWidget {
     if (dateTime == null) return 'N/A';
 
     try {
-      final dt = DateTime.tryParse(dateTime.toString()) ??
+      final parsed = DateTime.tryParse(dateTime.toString()) ??
           DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateTime.toString());
-
+      final dt = parsed.add(const Duration(hours: 8));
       return DateFormat('MMM dd, yyyy').format(dt);
     } catch (_) {
       return 'N/A';
@@ -567,8 +587,9 @@ class BillPaymentReceipt extends StatelessWidget {
     if (dateTime == null) return 'N/A';
 
     try {
-      final dt = DateTime.tryParse(dateTime.toString()) ??
+      final parsed = DateTime.tryParse(dateTime.toString()) ??
           DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateTime.toString());
+      final dt = parsed.add(const Duration(hours: 8));
 
       return DateFormat('hh:mm a').format(dt);
     } catch (_) {

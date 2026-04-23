@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 
 import '../../../shared/widgets/luvpay_text.dart';
 import '../../../shared/widgets/neumorphism.dart';
@@ -221,7 +222,8 @@ class TransferDetailsModal extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   LuvpayText(
-                    text: _formatDateTime(data["transfer_date"]),
+                    text:
+                        Functions.formatSmartPHDateTime(data["transfer_date"]),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -329,35 +331,5 @@ class TransferDetailsModal extends StatelessWidget {
     final n = _toDouble(v);
     final sign = n > 0 ? '+' : (n < 0 ? '-' : '');
     return '$sign₱ ${n.abs().toStringAsFixed(2)}';
-  }
-
-  String _formatDateTime(dynamic input) {
-    final s = (input ?? "").toString().trim();
-    if (s.isEmpty) return "—";
-    try {
-      final dt = DateTime.parse(s).toLocal();
-      const months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
-      final m = months[dt.month - 1];
-      final day = dt.day.toString().padLeft(2, '0');
-      final hour12 = ((dt.hour % 12) == 0 ? 12 : (dt.hour % 12));
-      final mm = dt.minute.toString().padLeft(2, '0');
-      final ampm = dt.hour >= 12 ? "PM" : "AM";
-      return '$m $day, ${dt.year} • $hour12:$mm $ampm';
-    } catch (_) {
-      return s;
-    }
   }
 }

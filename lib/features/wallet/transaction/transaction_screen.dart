@@ -812,18 +812,6 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                       ? AppColorV2.incorrectState
                                       : AppColorV2.success;
 
-                                  String formatDate(String dateString) {
-                                    try {
-                                      final date =
-                                          DateTime.parse(dateString).toLocal();
-                                      return DateFormat(
-                                        'MMM dd, yyyy • HH:mm',
-                                      ).format(date);
-                                    } catch (_) {
-                                      return dateString;
-                                    }
-                                  }
-
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 10),
                                     child: CustomRowTile(
@@ -867,7 +855,8 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           LuvpayText(
-                                            text: formatDate(
+                                            text:
+                                                Functions.formatSmartPHDateTime(
                                               tx['tran_date'].toString(),
                                             ),
                                             style: AppTextStyle.body1(context),

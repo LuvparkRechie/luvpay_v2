@@ -1,10 +1,10 @@
-// ignore_for_file: avoid_print, unnecessary_string_interpolations
+// ignore_for_file: use_build_context_synchronously, avoid_print, unnecessary_string_interpolations
 
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
 import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/colors.dart';
@@ -15,6 +15,7 @@ import 'view.dart';
 
 class SubWalletController extends GetxController
     with GetSingleTickerProviderStateMixin {
+  String currentUserId = '';
   RxList userData = [].obs;
   RxDouble numericBalance = 0.0.obs;
   RxString luvpayBal = '0.00'.obs;
@@ -60,8 +61,10 @@ class SubWalletController extends GetxController
     try {
       isLoading.value = true;
       final userID = await Authentication().getUserId();
+      currentUserId = userID.toString();
       String subApi = "${ApiKeys.subWallets}?user_id=$userID";
       final returnData = await HttpRequestApi(api: subApi).get();
+      longPrint("returnData $returnData");
       if (returnData == "No Internet") {
         hasNet.value = false;
         if (Get.context != null) {
@@ -104,6 +107,11 @@ class SubWalletController extends GetxController
             'is_active': item['is_active']?.toString() ?? 'N',
             'category_title': item['category_title']?.toString() ?? 'Unknown',
             'image_base64': item['image_base64']?.toString() ?? '',
+            'shared_to_user_id': item['shared_to_user_id'],
+            'shared_to_user_name': item['shared_to_user_name'],
+            'shared_to_mobile_no': item['shared_to_mobile_no'],
+            'user_name': item['user_name'],
+            'mobile_no': item['mobile_no'],
           });
         }
         userSubWallets.sort((a, b) {
@@ -135,14 +143,124 @@ class SubWalletController extends GetxController
     }
   }
 
+  Future<bool> shareToExisting({
+    required String subWalletId,
+    required String mobileNo,
+  }) async {
+    try {
+      final wallet = getSubWalletById(subWalletId);
+      if (wallet == null) return false;
+
+      if ((wallet['shared_to_user_id'] ?? '').toString().isNotEmpty) {
+        CustomDialogStack.showError(
+          Get.overlayContext!,
+          "Already Shared",
+          "This wallet is already shared to another user.",
+          () {
+            if (Get.isDialogOpen == true) {
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+            }
+          },
+        );
+        return false;
+      }
+
+      final userID = await Authentication().getUserId();
+
+      final cleanedMobile = mobileNo.replaceAll("+", "").trim();
+
+      final params = {
+        "user_id": userID,
+        "user_sub_wallet_id": int.tryParse(subWalletId),
+        "shared_to_mobile_no": cleanedMobile,
+      };
+
+      final response = await HttpRequestApi(
+        api: ApiKeys.postShareExistingWallet,
+        parameters: params,
+      ).postBody();
+
+      if (response == "No Internet") {
+        CustomDialogStack.showConnectionLost(
+          Get.overlayContext!,
+          () {
+            if (Get.isDialogOpen == true) {
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+            }
+          },
+        );
+        return false;
+      }
+
+      if (response == null || response is! Map) {
+        CustomDialogStack.showError(
+          Get.overlayContext!,
+          "Error",
+          "Something went wrong",
+          () {
+            if (Get.isDialogOpen == true) {
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+            }
+          },
+        );
+        return false;
+      }
+
+      if (response["success"] != "Y") {
+        CustomDialogStack.showError(
+          Get.overlayContext!,
+          "Error",
+          response["msg"] ?? "Failed",
+          () {
+            if (Get.isDialogOpen == true) {
+              Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+            }
+          },
+        );
+        return false;
+      }
+
+      await Future.wait([
+        getUserSubWallets(),
+        luvpayBalance(),
+      ]);
+
+      update();
+
+      return true;
+    } catch (e) {
+      debugPrint("shareToExisting error: $e");
+
+      CustomDialogStack.showError(
+        Get.overlayContext!,
+        "Error",
+        "Unexpected error",
+        () {
+          if (Get.isDialogOpen == true) {
+            Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+          }
+        },
+      );
+
+      return false;
+    }
+  }
+
   Future<Map<String, dynamic>> postSubWallet({
     int? categoryId,
     String? subWalletName,
     double? amount,
     String? themeKey,
+    String? sharedToMobileNo,
   }) async {
     try {
       final userID = await Authentication().getUserId();
+
+      String? cleanedMobile = sharedToMobileNo;
+
+      if (cleanedMobile != null && cleanedMobile.isNotEmpty) {
+        cleanedMobile = cleanedMobile.replaceAll("+", "").trim();
+      }
 
       Map<String, dynamic> postParam = {
         "user_id": userID,
@@ -150,6 +268,7 @@ class SubWalletController extends GetxController
         "sub_wallet_name": subWalletName,
         "amount": amount,
         "color_theme": themeKey ?? "default",
+        "shared_to_mobile_no": cleanedMobile,
       };
 
       String api = ApiKeys.subWallets;
@@ -407,14 +526,17 @@ class SubWalletController extends GetxController
     CustomDialogStack.showLoading(ctx);
 
     try {
+      final userID = await Authentication().getUserId();
       String subApi = ApiKeys.subWallets;
-      var params = {"user_sub_wallet_id": int.tryParse(id)};
+      var params = {
+        "user_sub_wallet_id": int.tryParse(id),
+        "user_id": userID,
+      };
 
       isLoading.value = true;
 
       final response =
           await HttpRequestApi(api: subApi, parameters: params).deleteData();
-
       if (Get.isDialogOpen == true) Get.back();
 
       if (response == "No Internet") {
@@ -448,6 +570,12 @@ class SubWalletController extends GetxController
         };
       }
 
+      final ctx2 = Get.overlayContext;
+
+      if (ctx2 != null) {
+        Navigator.of(ctx2, rootNavigator: true).pop();
+      }
+
       return {
         "success": false,
         "error": response["msg"] ?? "Failed to delete wallet",
@@ -465,6 +593,81 @@ class SubWalletController extends GetxController
     }
   }
 
+  Future<bool> deleteShared({
+    required String subWalletId,
+  }) async {
+    try {
+      final ctx = Get.overlayContext;
+      if (ctx == null) return false;
+
+      final userID = await Authentication().getUserId();
+
+      CustomDialogStack.showLoading(ctx);
+
+      final params = {
+        "user_id": userID,
+        "user_sub_wallet_id": int.tryParse(subWalletId),
+      };
+
+      final response = await HttpRequestApi(
+        api: ApiKeys.postShareExistingWallet,
+        parameters: params,
+      ).putBody();
+
+      Navigator.of(ctx, rootNavigator: true).pop();
+
+      if (response == "No Internet") {
+        CustomDialogStack.showConnectionLost(ctx, () {
+          Navigator.of(ctx, rootNavigator: true).pop();
+        });
+        return false;
+      }
+
+      if (response == null || response is! Map) {
+        CustomDialogStack.showError(
+          ctx,
+          "Error",
+          "Something went wrong",
+          () {
+            Navigator.of(ctx, rootNavigator: true).pop();
+          },
+        );
+        return false;
+      }
+
+      if (response["success"] != "Y") {
+        CustomDialogStack.showError(
+          ctx,
+          "Error",
+          response["msg"] ?? "Failed to remove shared user",
+          () {
+            Navigator.of(ctx, rootNavigator: true).pop();
+          },
+        );
+        return false;
+      }
+      await getUserSubWallets();
+
+      return true;
+    } catch (e) {
+      final ctx = Get.overlayContext;
+
+      if (ctx != null) {
+        Navigator.of(ctx, rootNavigator: true).pop();
+        CustomDialogStack.showError(
+          ctx,
+          "Error",
+          "Unexpected error",
+          () {
+            Navigator.of(ctx, rootNavigator: true).pop();
+          },
+        );
+      }
+
+      return false;
+    }
+  }
+
   Future<List<Transaction>> fetchWalletTransactions({
     required int subWalletId,
   }) async {
@@ -474,6 +677,7 @@ class SubWalletController extends GetxController
       final api =
           "${ApiKeys.subwalletTransfer}?user_sub_wallet_id=$subWalletId";
       final res = await HttpRequestApi(api: api).get();
+
       if (res == "No Internet") {
         hasNet.value = false;
         return <Transaction>[];

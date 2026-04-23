@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:ticketcher/ticketcher.dart';
@@ -747,9 +748,6 @@ class VouchersBodyState extends State<VouchersBody>
               ? DateTime.tryParse(voucher["expiry_date"].toString())
               : null;
 
-          final voucherDt =
-              expDt != null ? DateFormat('MMM d, yyyy').format(expDt) : "N/A";
-
           VoidCallback? onSelect = !isFromBooking
               ? null
               : () {
@@ -764,7 +762,7 @@ class VouchersBodyState extends State<VouchersBody>
 
           Future<void> onShowDetails() => _showVoucherSheet(
                 voucher: voucher,
-                voucherDt: voucherDt,
+                voucherDt: Functions.formatPHDate(expDt),
                 isFromBooking: isFromBooking,
                 isCE: isCE,
                 isSelectedNow: isSelectedNow,
@@ -776,7 +774,7 @@ class VouchersBodyState extends State<VouchersBody>
               voucher: voucher,
               isFromBooking: isFromBooking,
               isCE: isCE,
-              voucherDt: voucherDt,
+              voucherDt: Functions.formatPHDate(expDt),
               isSelectedNow: isSelectedNow,
               onSelect: onSelect,
               onShowDetails: onShowDetails,

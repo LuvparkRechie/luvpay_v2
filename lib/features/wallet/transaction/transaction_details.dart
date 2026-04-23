@@ -10,6 +10,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -164,11 +165,10 @@ class TransactionDetails extends StatelessWidget {
                 color: cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75),
               ),
               const SizedBox(height: 22),
-
               rowWidget(
                 context,
                 "Transaction Date",
-                Variables.formatDateLocal(data[index]["tran_date"]),
+                Functions.formatSmartPHDateTime(data[index]["tran_date"]),
               ),
               const SizedBox(height: 12),
               rowWidget(
@@ -191,7 +191,6 @@ class TransactionDetails extends StatelessWidget {
                 isHistory ? "Balance After" : "Current Balance",
                 toCurrencyString(data[index]["bal_after"].toString()),
               ),
-
               if (data[index]["ref_no"] != null) ...[
                 const SizedBox(height: 22),
                 MySeparator(
@@ -222,7 +221,6 @@ class TransactionDetails extends StatelessWidget {
             ],
           ),
         ),
-
         Positioned(
           top: -28,
           left: 0,
@@ -269,6 +267,9 @@ class TransactionDetails extends StatelessWidget {
             ),
             maxLines: 1,
           ),
+        ),
+        SizedBox(
+          width: 10,
         ),
         LuvpayText(
           text: value,

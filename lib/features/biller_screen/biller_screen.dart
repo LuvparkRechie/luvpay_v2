@@ -246,6 +246,7 @@ class _BillerScreenState extends State<BillerScreen> {
       "original_amount": amount,
       "user_sub_wallet_id": selectedWalletId,
       "wallet_name": selectedWalletName,
+      "service_fee": serviceFee,
     };
     String api = ApiKeys.postPayBills;
     HttpRequestApi(

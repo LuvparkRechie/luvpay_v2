@@ -2,6 +2,7 @@
 
 import 'dart:typed_data';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
@@ -195,6 +196,27 @@ class _SubWalletCardState extends State<SubWalletCard> {
               ],
             ),
           ),
+          if (widget.wallet.isShared) ...[
+            Positioned(
+              bottom: 6,
+              right: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.25),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const LuvpayText(
+                  text: "Shared",
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
           Positioned.fill(
             child: Image.asset(
               "assets/images/lp_faint2.png",
@@ -203,26 +225,6 @@ class _SubWalletCardState extends State<SubWalletCard> {
               color: AppColorV2.background.withAlpha(10),
             ),
           ),
-          if (widget.wallet.isShared)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  "SHARED",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
