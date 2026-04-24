@@ -14,6 +14,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice2/places.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/auth/authentication.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/variables.dart';
 import 'package:luvpay/core/utils/functions/eta_calculator.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
@@ -308,7 +309,8 @@ class Functions {
     try {
       final t = await AccurateTime.now().timeout(const Duration(seconds: 2));
       if (t.year < 2000) throw Exception("Invalid NTP time");
-      return t;
+
+      return t.add(const Duration(hours: 8));
     } catch (_) {
       return DateTime.now();
     }
@@ -975,7 +977,7 @@ class Functions {
     final userID = await Authentication().getUserId();
     final paymentKey =
         await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
-
+    longPrint("paymentHk $paymentKey ");
     if (paymentKey == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
         Get.back();
@@ -1028,15 +1030,13 @@ class Functions {
     try {
       final raw = dateTime.toString();
 
-      DateTime parsed;
+      final parsed = DateTime.parse(raw);
 
-      if (raw.contains('Z') || raw.contains('+')) {
-        parsed = DateTime.parse(raw).toUtc();
-      } else {
-        parsed = DateFormat('yyyy-MM-dd HH:mm:ss').parse(raw, true);
+      if (raw.endsWith('Z')) {
+        return parsed;
       }
 
-      return parsed.add(const Duration(hours: 8));
+      return parsed.isUtc ? parsed.toLocal() : parsed;
     } catch (_) {
       return DateTime.now();
     }
@@ -1055,7 +1055,7 @@ class Functions {
 
   static String formatSmartPHDateTime(dynamic dateTime) {
     final dt = parseToPHTime(dateTime);
-    final now = DateTime.now();
+    final now = parseToPHTime(DateTime.now());
 
     final isToday =
         dt.year == now.year && dt.month == now.month && dt.day == now.day;

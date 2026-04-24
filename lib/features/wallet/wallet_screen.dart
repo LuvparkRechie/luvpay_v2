@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
 import 'package:luvpay/features/billers/index.dart';
@@ -196,6 +197,8 @@ class _WalletScreenState extends State<WalletScreen> {
         sharedUser: w['shared_to_user_id']?.toString().trim(),
         sharedUserName: w['shared_to_user_name']?.toString(),
         sharedMobileNo: w['shared_to_mobile_no']?.toString(),
+        userName: w['user_name']?.toString(),
+        mobileNo: w['mobile_no']?.toString(),
       );
     }).toList();
   }
@@ -338,8 +341,8 @@ class _WalletScreenState extends State<WalletScreen> {
           "${ApiKeys.getTransLogs}?user_id=${userInfo["user_id"]}&tran_date_from=$fromDate&tran_date_to=$toDate";
 
       final response = await HttpRequestApi(api: subApi).get();
-      if (!mounted) return;
 
+      if (!mounted) return;
       if (response == "No Internet") {
         if (mounted) {
           setState(() {

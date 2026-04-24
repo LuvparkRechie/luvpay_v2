@@ -60,6 +60,8 @@ class SubWalletCard extends StatefulWidget {
   final Animation<double> pulseAnim;
   final String themeKey;
   final bool isSelected;
+  final String? mobileNo;
+  final String? userName;
   const SubWalletCard({
     super.key,
     required this.wallet,
@@ -74,6 +76,8 @@ class SubWalletCard extends StatefulWidget {
     required this.themeKey,
     required this.pulseAnim,
     this.isSelected = false,
+    this.mobileNo,
+    this.userName,
   });
 
   @override

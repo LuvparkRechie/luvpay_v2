@@ -24,6 +24,7 @@ class SubWalletController extends GetxController
   final Map<String, Uint8List> iconCache = {};
   RxBool isLoading = false.obs;
   RxBool hasNet = true.obs;
+
   double _toDouble(dynamic v) {
     if (v == null) return 0.0;
     if (v is num) return v.toDouble();
@@ -64,7 +65,7 @@ class SubWalletController extends GetxController
       currentUserId = userID.toString();
       String subApi = "${ApiKeys.subWallets}?user_id=$userID";
       final returnData = await HttpRequestApi(api: subApi).get();
-      longPrint("returnData $returnData");
+
       if (returnData == "No Internet") {
         hasNet.value = false;
         if (Get.context != null) {

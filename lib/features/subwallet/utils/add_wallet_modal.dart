@@ -12,10 +12,12 @@ import 'package:luvpay/shared/widgets/luvpay_text.dart';
 import 'package:luvpay/shared/widgets/upper_case_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../auth/authentication.dart';
 import '../../../core/utils/functions/functions.dart';
 import '../../../shared/widgets/colors.dart';
 import '../../../shared/widgets/custom_textfield.dart';
 import '../../../shared/widgets/neumorphism.dart';
+import '../../routes/routes.dart';
 import '../controller.dart';
 import '../view.dart';
 import 'share_user_bottomsheet.dart';
@@ -48,7 +50,7 @@ class AddWalletModalState extends State<AddWalletModal> {
   String? _selectedCategoryId;
   String? _selectedCategoryName;
   Color? _selectedColor;
-
+  Map<String, dynamic>? userDetails;
   String? _nameError;
   String? _balanceError;
   String? _categoryError;
@@ -86,9 +88,13 @@ class AddWalletModalState extends State<AddWalletModal> {
     _balanceFocusNode.addListener(_validateBalanceOnBlur);
 
     if (widget.mode == WalletModalMode.create) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
-        setState(_loadCategories);
+
+        await userValidity();
+        await _loadCategories();
+
+        if (mounted) setState(() {});
       });
     }
   }
@@ -103,7 +109,17 @@ class AddWalletModalState extends State<AddWalletModal> {
     await sp.setString("wallet_theme_$walletName", key);
   }
 
-  void _loadCategories() {
+  Future<void> userValidity() async {
+    final data = await Authentication().getUserData2();
+
+    if (!mounted) return;
+
+    setState(() {
+      userDetails = data;
+    });
+  }
+
+  Future<void> _loadCategories() async {
     _availableCategories = List<Map<String, dynamic>>.from(
       controller.categoryList,
     );
@@ -152,7 +168,7 @@ class AddWalletModalState extends State<AddWalletModal> {
     return null;
   }
 
-  void _validateBalanceOnBlur() {
+  void _validateBalanceOnBlur() async {
     if (!_balanceFocusNode.hasFocus) {
       setState(() => _balanceError = _validateBalance(_balanceController.text));
     }
@@ -950,7 +966,32 @@ class AddWalletModalState extends State<AddWalletModal> {
                     ))
               ] else ...[
                 LuvNeuPress.rectangle(
-                  onTap: _openInviteModal,
+                  onTap: userDetails == null ||
+                          userDetails!["email"] == null ||
+                          userDetails!["first_name"] == null
+                      ? () {
+                          CustomDialogStack.showConfirmation(
+                              Get.context!,
+                              "Update Profile",
+                              "Please update your profile to continue using this feature. Would you like to update now?",
+                              leftText: "Cancel",
+                              rightText: "Update", () {
+                            Get.back();
+                          }, () async {
+                            Get.back();
+
+                            final regions =
+                                await Functions().fetchRegions(context);
+
+                            if (regions.isEmpty) return;
+
+                            Get.toNamed(
+                              Routes.updProfile,
+                              arguments: regions,
+                            );
+                          });
+                        }
+                      : _openInviteModal,
                   background: cs.primary.withOpacity(0.1),
                   radius: BorderRadius.circular(14),
                   child: SizedBox(

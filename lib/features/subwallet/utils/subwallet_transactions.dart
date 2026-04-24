@@ -7,7 +7,6 @@ import 'package:luvpay/core/utils/functions/functions.dart';
 import '../../../shared/widgets/neumorphism.dart';
 import '../../subwallet/utils/transaction_modal.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
 import 'package:luvpay/shared/widgets/luvpay_text.dart';

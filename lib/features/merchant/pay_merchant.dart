@@ -9,10 +9,7 @@ import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
-import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:luvpay/shared/widgets/custom_textfield.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
@@ -25,11 +22,11 @@ import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 
+import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/luvpay_text.dart';
 
 import '../../core/utils/functions/functions.dart';
 import '../../shared/components/otp_field/view.dart';
-import '../../core/security/security/app_security.dart';
 import '../subwallet/controller.dart';
 import '../wallet/refresh_wallet.dart';
 
@@ -46,7 +43,7 @@ class _PayMerchantState extends State<PayMerchant> {
 
   final TextEditingController amountController = TextEditingController();
   final TextEditingController orderNumberController = TextEditingController();
-
+  bool selectedWalletIsShared = false;
   List userData = [];
   bool isLoadingMerch = true;
   bool hasNet = true;
@@ -181,7 +178,6 @@ class _PayMerchantState extends State<PayMerchant> {
       parameters: postParam,
     ).postBody().then((retvalue) {
       Get.back();
-      longPrint("apiapi $api $postParam $retvalue");
       if (retvalue == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
         return;
@@ -503,6 +499,7 @@ class _PayMerchantState extends State<PayMerchant> {
                                     selectedWalletName = "Main Wallet";
                                     selectedWalletBalance = mainWalletBalance;
                                     selectedWalletId = "";
+                                    selectedWalletIsShared = false;
                                   });
 
                                   _revalidateForm();
@@ -535,6 +532,8 @@ class _PayMerchantState extends State<PayMerchant> {
                                 final name = wallet["name"] ?? "Subwallet";
                                 final bal = wallet["amount"] ?? 0;
                                 final isSelected = selectedWalletName == name;
+                                final isShared =
+                                    wallet["shared_to_user_id"] != null;
 
                                 return Padding(
                                   padding: const EdgeInsets.only(left: 12),
@@ -550,41 +549,37 @@ class _PayMerchantState extends State<PayMerchant> {
                                                       0.0;
                                               selectedWalletId =
                                                   wallet["id"].toString();
+                                              selectedWalletIsShared =
+                                                  isShared; // ✅ VERY IMPORTANT
                                             });
 
                                             _revalidateForm();
                                             Get.back();
                                           },
-                                    titleWidget: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    titleWidget: Row(
                                       children: [
                                         LuvpayText(
                                           text: name,
                                           style: AppTextStyle.body1(context)
                                               .copyWith(
                                             fontWeight: FontWeight.w700,
+                                            color: isSelected
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                           ),
-                                          color: isSelected
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface,
                                         ),
-                                        const SizedBox(height: 4),
-                                        LuvpayText(
-                                          text:
-                                              toCurrencyString(bal.toString()),
-                                          style: AppTextStyle.body2(context),
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withOpacity(0.65),
-                                        ),
+                                        if (isShared)
+                                          LuvpayText(
+                                            text: " (Shared)",
+                                            color: AppColorV2.correctState,
+                                          ),
                                       ],
                                     ),
+                                    subtitle: toCurrencyString(bal.toString()),
                                     trailing: isSelected
                                         ? Icon(Icons.check,
                                             color: Theme.of(context)
@@ -604,7 +599,16 @@ class _PayMerchantState extends State<PayMerchant> {
               );
             });
       },
-      title: selectedWalletName,
+      titleWidget: Row(
+        children: [
+          LuvpayText(text: selectedWalletName),
+          if (selectedWalletIsShared)
+            LuvpayText(
+              text: " (Shared)",
+              color: AppColorV2.correctState,
+            ),
+        ],
+      ),
       subtitle: toCurrencyString(selectedWalletBalance.toString()),
       trailing: Icon(
         CupertinoIcons.chevron_down,

@@ -11,6 +11,7 @@ import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
+import '../../../auth/authentication.dart';
 import '../../../shared/widgets/custom_textfield.dart';
 import '../../../shared/widgets/luvpay_text.dart';
 import '../../../shared/widgets/neumorphism.dart';
@@ -19,6 +20,7 @@ import '../../../features/subwallet/controller.dart';
 import '../../../features/subwallet/view.dart';
 import '../../../features/subwallet/utils/add_wallet_modal.dart';
 import '../../../features/subwallet/utils/transaction_modal.dart';
+import '../../routes/routes.dart';
 import '../../wallet/refresh_wallet.dart';
 import 'share_user_bottomsheet.dart';
 import 'subwallet_transactions.dart';
@@ -56,6 +58,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     return 'subwallet_target_$normalizedId';
   }
 
+  List<Map<String, dynamic>> userDetails = [];
   @override
   void initState() {
     super.initState();
@@ -70,6 +73,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
   }
 
   Future<void> _loadLocalTarget() async {
+    final data = await Authentication().getUserData2();
+
+    userDetails = [data];
+
     final sp = await SharedPreferences.getInstance();
     final v = sp.getDouble(_targetKey);
 
@@ -77,15 +84,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     setState(() {
       _wallet = _wallet.copyWith(targetAmount: v);
     });
-  }
-
-  bool _isValidMobile(String input) {
-    final value = input.trim();
-
-    if (value.length != 10) return false;
-    if (!value.startsWith('9')) return false;
-
-    return true;
   }
 
   Future<void> _saveLocalTarget(double? targetAmount) async {
@@ -123,7 +121,12 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
       if (updated != null) {
         final newWallet = Wallet.fromJson(updated);
 
-        _wallet = newWallet;
+        _wallet = newWallet.copyWith(
+          sharedUserName: newWallet.sharedUserName,
+          sharedMobileNo: newWallet.sharedMobileNo,
+          userName: newWallet.userName,
+          mobileNo: newWallet.mobileNo,
+        );
       }
 
       _txFuture = _loadTx();
@@ -631,14 +634,14 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
       if (isOwner) {
         displayName = (_wallet.sharedUserName ?? '').trim().isNotEmpty
             ? _wallet.sharedUserName!
-            : "Unregistered user";
+            : "Unverified user";
 
         displayMobile = (_wallet.sharedMobileNo ?? '').trim();
         label = "Shared to";
       } else {
         displayName = (_wallet.ownerName ?? '').trim().isNotEmpty
             ? _wallet.ownerName!
-            : "Unregistered user";
+            : "Unverified user";
 
         displayMobile = (_wallet.ownerMobile ?? '').trim();
         label = "Shared from";
@@ -646,18 +649,20 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     }
 
     final hasSharedUser = isShared;
+    final nameToShow =
+        isOwner ? (_wallet.sharedUserName ?? '') : (_wallet.userName ?? '');
+
+    final mobileToShow =
+        isOwner ? (_wallet.sharedMobileNo ?? '') : (_wallet.mobileNo ?? '');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
         LuvpayText(
-          text: "Shared Access",
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w900,
-            color: cs.onSurface,
-          ),
+          text: isOwner ? "Shared to" : "Shared from",
+          fontSize: 11,
+          color: cs.onSurface.withOpacity(0.5),
         ),
         const SizedBox(height: 10),
         if (hasSharedUser)
@@ -673,22 +678,43 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (displayName.isNotEmpty)
-                      LuvpayText(
-                        text: maskName(displayName),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: Colors.blue,
+                    if (mobileToShow.isNotEmpty) ...[
+                      if (nameToShow.isNotEmpty)
+                        LuvpayText(
+                          text: nameToShow == "  "
+                              ? "Unverified User"
+                              : isOwner
+                                  ? nameToShow
+                                  : maskName(nameToShow),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                      ),
-                    if (displayMobile.isNotEmpty)
                       LuvpayText(
-                        text: displayMobile,
+                        text: mobileToShow,
                         style: TextStyle(
                           fontSize: 12,
                           color: cs.onSurface.withOpacity(0.6),
                         ),
                       ),
+                    ] else ...[
+                      if (displayName.isNotEmpty)
+                        LuvpayText(
+                          text: maskName(displayName),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      if (displayMobile.isNotEmpty)
+                        LuvpayText(
+                          text: displayMobile,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: cs.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                    ],
                   ],
                 ),
                 trailing: isOwner
@@ -747,9 +773,33 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
               ),
             ),
           ),
-        if (!hasSharedUser)
+        if (!hasSharedUser && isOwner)
           LuvNeuPress.rectangle(
-            onTap: _openInviteModal,
+            onTap: userDetails.isEmpty ||
+                    userDetails[0]["email"] == null ||
+                    userDetails[0]["first_name"] == null
+                ? () {
+                    CustomDialogStack.showConfirmation(
+                        Get.context!,
+                        "Update Profile",
+                        "Please update your profile to continue using this feature. Would you like to update now?",
+                        leftText: "Cancel",
+                        rightText: "Update", () {
+                      Get.back();
+                    }, () async {
+                      Get.back();
+
+                      final regions = await Functions().fetchRegions(context);
+
+                      if (regions.isEmpty) return;
+
+                      Get.toNamed(
+                        Routes.updProfile,
+                        arguments: regions,
+                      );
+                    });
+                  }
+                : _openInviteModal,
             background: cs.primary.withOpacity(0.1),
             radius: BorderRadius.circular(14),
             child: SizedBox(
@@ -871,7 +921,6 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
         _wallet.imageBase64 != null && _wallet.imageBase64!.isNotEmpty
             ? decodeBase64Safe(_wallet.imageBase64!)
             : null;
-
     return SafeArea(
       top: false,
       child: Container(
@@ -1424,22 +1473,17 @@ class _HeaderCard extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LuvpayText(
-                      text: wallet.name,
-                      color: cs.onSurface,
-                      style: AppTextStyle.body1(context)),
-                  const SizedBox(height: 4),
-                  LuvpayText(
-                    text: wallet.categoryTitle,
-                    fontSize: 12,
-                    color: cs.onSurface.withOpacity(0.65),
-                  ),
-                ],
-              ),
-            ),
+                child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                LuvpayText(text: wallet.name),
+                const SizedBox(height: 4),
+                LuvpayText(
+                  text: wallet.categoryTitle,
+                  fontSize: 12,
+                ),
+              ],
+            )),
             LuvNeuIconButton(icon: Iconsax.edit_2, onTap: onEdit),
             const SizedBox(width: 8),
             LuvNeuIconButton(

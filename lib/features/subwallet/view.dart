@@ -48,16 +48,11 @@ class Wallet {
   final Color color;
   final double? targetAmount;
   final String? sharedUser;
-  bool get isShared {
-    return (sharedUserName?.trim().isNotEmpty ?? false) ||
-        (sharedMobileNo?.trim().isNotEmpty ?? false);
-  }
+  bool get isShared => (sharedUser ?? '').isNotEmpty;
 
   final String? sharedUserName;
   final String? sharedMobileNo;
   const Wallet({
-    this.userName,
-    this.mobileNo,
     this.ownerName,
     this.ownerMobile,
     this.sharedUser,
@@ -78,6 +73,8 @@ class Wallet {
     this.targetAmount,
     this.sharedUserName,
     this.sharedMobileNo,
+    this.userName,
+    this.mobileNo,
   });
 
   static const Object _sentinel = Object();
@@ -89,6 +86,8 @@ class Wallet {
     String? sharedUser,
     String? sharedUserName,
     String? sharedMobileNo,
+    String? userName,
+    String? mobileNo,
   }) {
     return Wallet(
       id: id,
@@ -111,6 +110,10 @@ class Wallet {
       sharedUser: sharedUser ?? this.sharedUser,
       sharedUserName: sharedUserName ?? this.sharedUserName,
       sharedMobileNo: sharedMobileNo ?? this.sharedMobileNo,
+      userName: userName ?? this.userName,
+      mobileNo: mobileNo ?? this.mobileNo,
+      ownerName: ownerName,
+      ownerMobile: ownerMobile,
     );
   }
 
@@ -175,8 +178,9 @@ class Wallet {
       sharedUserName: json['shared_to_user_name']?.toString(),
       ownerName: json['user_name']?.toString(),
       ownerMobile: json['mobile_no']?.toString(),
-      userName: json['user_name']?.toString(),
-      mobileNo: json['mobile_no']?.toString(),
+      userName: json['user_name'],
+      mobileNo: json['mobile_no'],
+      sharedMobileNo: json['shared_to_mobile_no']?.toString(),
     );
   }
 }
@@ -350,6 +354,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
           sharedMobileNo: w['shared_to_mobile_no']?.toString(),
           ownerName: w['user_name']?.toString(),
           ownerMobile: w['mobile_no']?.toString(),
+          userName: w['user_name']?.toString(),
+          mobileNo: w['mobile_no']?.toString(),
         );
       }).toList();
 
@@ -700,6 +706,8 @@ class _SubWalletScreenState extends State<SubWalletScreen>
                                                   ? w.categoryTitle
                                                   : w.category);
                                               return SubWalletCard(
+                                                mobileNo: w.mobileNo,
+                                                userName: w.userName,
                                                 wallet: w,
                                                 onTap: () => _showWalletDetails(
                                                     context, w, sheetBg),

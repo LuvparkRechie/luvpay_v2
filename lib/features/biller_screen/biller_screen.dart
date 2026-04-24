@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/upper_case_formatter.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -41,14 +42,14 @@ class _BillerScreenState extends State<BillerScreen> {
   final TextEditingController _billNoController = TextEditingController();
   final TextEditingController _accountNameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-
+  bool selectedWalletIsShared = false;
   bool isLoading = false;
   String selectedWalletName = "Main Wallet";
   double selectedWalletBalance = 0.0;
   double mainWalletBalance = 0.0;
   List<Map<String, dynamic>> subWallets = [];
   String selectedWalletId = "";
-
+  String sharedUserId = "";
   final subWalletController = Get.put(SubWalletController());
   @override
   void initState() {
@@ -115,12 +116,42 @@ class _BillerScreenState extends State<BillerScreen> {
         selectedWalletBalance = mainBal;
         selectedWalletName = "Main Wallet";
         subWallets = subWalletController.userSubWallets;
+        sharedUserId = subWallets[0]["user_id"];
       });
     } catch (e) {
       debugPrint("Error fetching user data: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
+  }
+
+  Future<dynamic> getSharedpaymentHK(userId) async {
+    final paymentKey =
+        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userId").get();
+    longPrint("paymentHkssss $paymentKey ");
+    if (paymentKey == "No Internet") {
+      CustomDialogStack.showConnectionLost(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+
+    if (paymentKey == null) {
+      CustomDialogStack.showServerError(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+
+    final items = (paymentKey is Map) ? paymentKey["items"] : null;
+    if (items is List && items.isNotEmpty) {
+      return items[0]["payment_hk"]?.toString();
+    }
+
+    CustomDialogStack.showServerError(Get.context!, () {
+      Get.back();
+    });
+    return null;
   }
 
   Future<void> _requestOtpThenPay(VoidCallback onVerified) async {
@@ -253,8 +284,8 @@ class _BillerScreenState extends State<BillerScreen> {
       api: api,
       parameters: parameter,
     ).postBody().then((returnPost) async {
+      longPrint("parameter $parameter $api $returnPost ");
       Get.back();
-      longPrint("parameterss $api $parameter $returnPost");
       if (returnPost == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
         return;
@@ -518,6 +549,7 @@ class _BillerScreenState extends State<BillerScreen> {
                                   selectedWalletName = "Main Wallet";
                                   selectedWalletBalance = mainWalletBalance;
                                   selectedWalletId = "";
+                                  selectedWalletIsShared = false;
                                 });
                                 _formKey.currentState?.validate();
                                 Get.back();
@@ -543,6 +575,8 @@ class _BillerScreenState extends State<BillerScreen> {
                               final name = wallet["name"] ?? "Subwallet";
                               final bal = wallet["amount"] ?? 0;
                               final isSelected = selectedWalletName == name;
+                              final isShared =
+                                  wallet["shared_to_user_id"] != null;
 
                               return Padding(
                                 padding: const EdgeInsets.only(left: 12),
@@ -555,12 +589,22 @@ class _BillerScreenState extends State<BillerScreen> {
                                               0.0;
                                       selectedWalletId =
                                           wallet["id"].toString();
+                                      selectedWalletIsShared = isShared;
                                     });
 
                                     _formKey.currentState?.validate();
                                     Get.back();
                                   },
-                                  title: name,
+                                  titleWidget: Row(
+                                    children: [
+                                      LuvpayText(text: name),
+                                      if (isShared)
+                                        LuvpayText(
+                                          text: " (Shared)",
+                                          color: AppColorV2.correctState,
+                                        ),
+                                    ],
+                                  ),
                                   subtitle: toCurrencyString(bal.toString()),
                                   trailing: isSelected
                                       ? Icon(Icons.check,
@@ -582,7 +626,16 @@ class _BillerScreenState extends State<BillerScreen> {
           },
         );
       },
-      title: selectedWalletName,
+      titleWidget: Row(
+        children: [
+          LuvpayText(text: selectedWalletName),
+          if (selectedWalletIsShared)
+            LuvpayText(
+              text: " (Shared)",
+              color: AppColorV2.correctState,
+            ),
+        ],
+      ),
       subtitle: toCurrencyString(selectedWalletBalance.toString()),
       trailing: Icon(Icons.keyboard_arrow_down),
     );

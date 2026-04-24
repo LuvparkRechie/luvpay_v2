@@ -64,6 +64,8 @@ class SubWallerCarousel extends StatelessWidget {
                 titleColor: cs.onSurface,
                 amountColor: cs.onSurface.withOpacity(0.72),
                 categoryLabel: categoryLabel,
+                mobileNo: w.mobileNo,
+                userName: w.userName,
                 isDeleting: false,
                 isPulsing: false,
                 deleteAnim: const AlwaysStoppedAnimation(0),
