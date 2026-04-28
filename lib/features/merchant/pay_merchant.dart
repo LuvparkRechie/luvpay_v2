@@ -40,7 +40,7 @@ class PayMerchant extends StatefulWidget {
 
 class _PayMerchantState extends State<PayMerchant> {
   final _formKey = GlobalKey<FormState>();
-
+  String sharedUserId = "";
   final TextEditingController amountController = TextEditingController();
   final TextEditingController orderNumberController = TextEditingController();
   bool selectedWalletIsShared = false;
@@ -85,6 +85,35 @@ class _PayMerchantState extends State<PayMerchant> {
     amountController.selection = TextSelection.fromPosition(
       TextPosition(offset: amountController.text.length),
     );
+  }
+
+  Future<dynamic> getSharedpaymentHK(userId) async {
+    final paymentKey =
+        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userId").get();
+
+    if (paymentKey == "No Internet") {
+      CustomDialogStack.showConnectionLost(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+
+    if (paymentKey == null) {
+      CustomDialogStack.showServerError(Get.context!, () {
+        Get.back();
+      });
+      return null;
+    }
+
+    final items = (paymentKey is Map) ? paymentKey["items"] : null;
+    if (items is List && items.isNotEmpty) {
+      return items[0]["payment_hk"]?.toString();
+    }
+
+    CustomDialogStack.showServerError(Get.context!, () {
+      Get.back();
+    });
+    return null;
   }
 
   Future<void> _getUserBal() async {
@@ -160,16 +189,29 @@ class _PayMerchantState extends State<PayMerchant> {
 
   Future<void> payMerchantVerify({dynamic isAuth}) async {
     CustomDialogStack.showLoading(Get.context!);
+    final mainUserId = await Authentication().getUserId();
 
-    final int? userid = await Authentication().getUserId();
+    String finalUserId = mainUserId?.toString() ?? "";
+    String finalPaymentHk = widget.data[0]["payment_key"] ?? "";
 
+    if (selectedWalletIsShared && sharedUserId.isNotEmpty) {
+      finalUserId = sharedUserId;
+
+      final fetchedPaymentHk = await getSharedpaymentHK(sharedUserId);
+      if (fetchedPaymentHk == null) {
+        Get.back();
+        return;
+      }
+
+      finalPaymentHk = fetchedPaymentHk;
+    }
     final postParam = <String, dynamic>{
-      "luvpay_id": userid,
+      "luvpay_id": finalUserId,
       "merchant_id": widget.data[0]["data"]?["merchant_id"] ?? "",
       "amount": amountController.text,
       "order_no": orderNumberController.text,
       "merchant_key": widget.data[0]["merchant_key"],
-      "payment_hk": widget.data[0]["payment_key"],
+      "payment_hk": finalPaymentHk,
       "user_sub_wallet_id": selectedWalletId,
     };
     final String api = ApiKeys.postMerchant;
@@ -199,8 +241,8 @@ class _PayMerchantState extends State<PayMerchant> {
             "order_no": postParam["order_no"] ?? "",
             "wallet_name": selectedWalletName,
             "wallet_id": selectedWalletId,
-            "luvpay_id": userid ?? "",
-            "payment_hk": postParam["payment_hk"] ?? "",
+            "luvpay_id": finalUserId,
+            "payment_hk": finalPaymentHk,
             "reference_no": retvalue["lp_ref_no"] ?? "",
             "date_time": retvalue["response_time"] ?? "",
             "merchant_id": postParam["merchant_id"] ?? "",
@@ -290,8 +332,6 @@ class _PayMerchantState extends State<PayMerchant> {
     final isDark = theme.brightness == Brightness.dark;
 
     final borderOpacity = isDark ? 0.05 : 0.01;
-    final amount = double.tryParse(amountController.text) ?? 0;
-    final remaining = selectedWalletBalance - amount;
     return CustomScaffoldV2(
       appBarTitle: "Pay Merchant",
       onPressedLeading: () {
@@ -549,8 +589,11 @@ class _PayMerchantState extends State<PayMerchant> {
                                                       0.0;
                                               selectedWalletId =
                                                   wallet["id"].toString();
-                                              selectedWalletIsShared =
-                                                  isShared; // ✅ VERY IMPORTANT
+                                              selectedWalletIsShared = isShared;
+
+                                              sharedUserId = isShared
+                                                  ? wallet["user_id"].toString()
+                                                  : "";
                                             });
 
                                             _revalidateForm();

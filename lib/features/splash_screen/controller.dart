@@ -1,13 +1,18 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
+import 'package:app_version_update/app_version_update.dart';
+import 'package:app_version_update/data/models/app_version_result.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:version/version.dart';
 import '../../auth/authentication.dart';
 import '../../shared/widgets/variables.dart';
 import '../../core/security/security/app_security.dart';
 import '../routes/routes.dart';
+import 'util/update_app.dart';
 
 class SplashController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -69,21 +74,19 @@ class SplashController extends GetxController
     //     playStoreId: 'com.cmds.luvpay',
     //   );
 
-    //   bool canUpdate;
-
     //   final storeVersion = Version.parse(result.storeVersion.toString());
     //   final localVersion = Version.parse(packageInfo.version);
 
-    //   canUpdate = storeVersion > localVersion;
-
-    //   if (canUpdate) {
-    //     _showCustomAlertDialog(Get.context!, result);
-    //   } else {
-    //     basicStatusCheck();
+    //   if (storeVersion > localVersion) {
+    //     Get.offAll(() => const UpdateApp(), arguments: {
+    //       "data": result,
+    //     });
+    //     return;
     //   }
     // } catch (e) {
-    //   basicStatusCheck();
+    //   debugPrint("Version check error: $e");
     // }
+
     basicStatusCheck();
   }
 

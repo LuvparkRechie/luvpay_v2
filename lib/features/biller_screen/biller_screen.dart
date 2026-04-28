@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/upper_case_formatter.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -116,7 +115,6 @@ class _BillerScreenState extends State<BillerScreen> {
         selectedWalletBalance = mainBal;
         selectedWalletName = "Main Wallet";
         subWallets = subWalletController.userSubWallets;
-        sharedUserId = subWallets[0]["user_id"];
       });
     } catch (e) {
       debugPrint("Error fetching user data: $e");
@@ -128,7 +126,6 @@ class _BillerScreenState extends State<BillerScreen> {
   Future<dynamic> getSharedpaymentHK(userId) async {
     final paymentKey =
         await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userId").get();
-    longPrint("paymentHkssss $paymentKey ");
     if (paymentKey == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
         Get.back();
@@ -263,15 +260,29 @@ class _BillerScreenState extends State<BillerScreen> {
         double.tryParse(widget.data[0]['service_fee'].toString()) ?? 0.0;
     final userAmount = double.tryParse(amount) ?? 0.0;
     final totalAmount = (serviceFee + userAmount).toStringAsFixed(2);
+    final mainUserId = await Authentication().getUserId();
 
-    final userId = await Authentication().getUserId();
+    String finalUserId = mainUserId.toString();
+    String finalPaymentHk = widget.paymentHk;
+
+    if (selectedWalletIsShared && sharedUserId.isNotEmpty) {
+      finalUserId = sharedUserId;
+
+      final fetchedPaymentHk = await getSharedpaymentHK(sharedUserId);
+      if (fetchedPaymentHk == null) {
+        Get.back();
+        return;
+      }
+
+      finalPaymentHk = fetchedPaymentHk;
+    }
 
     final parameter = {
-      "luvpay_id": userId.toString(),
+      "luvpay_id": finalUserId,
       "biller_id": widget.data[0]["biller_id"].toString(),
       "bill_acct_no": billAcct,
       "amount": totalAmount,
-      "payment_hk": widget.paymentHk,
+      "payment_hk": finalPaymentHk,
       "bill_no": billNo,
       "account_name": accountName,
       "original_amount": amount,
@@ -284,7 +295,6 @@ class _BillerScreenState extends State<BillerScreen> {
       api: api,
       parameters: parameter,
     ).postBody().then((returnPost) async {
-      longPrint("parameter $parameter $api $returnPost ");
       Get.back();
       if (returnPost == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
@@ -582,6 +592,9 @@ class _BillerScreenState extends State<BillerScreen> {
                                 padding: const EdgeInsets.only(left: 12),
                                 child: InfoRowTile(
                                   onTap: () {
+                                    final isShared =
+                                        wallet["shared_to_user_id"] != null;
+
                                     setState(() {
                                       selectedWalletName = name;
                                       selectedWalletBalance =
@@ -590,6 +603,10 @@ class _BillerScreenState extends State<BillerScreen> {
                                       selectedWalletId =
                                           wallet["id"].toString();
                                       selectedWalletIsShared = isShared;
+
+                                      sharedUserId = isShared
+                                          ? wallet["user_id"].toString()
+                                          : "";
                                     });
 
                                     _formKey.currentState?.validate();

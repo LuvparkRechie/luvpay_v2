@@ -34,7 +34,6 @@ class OtpFieldScreen extends StatefulWidget {
 
 class _OtpFieldScreenState extends State<OtpFieldScreen> {
   TextEditingController pinController = TextEditingController();
-  Duration countdownDuration = const Duration(minutes: 2);
 
   Timer? timer;
   bool isLoading = false;
@@ -47,146 +46,16 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   int otpCode = 0;
   Duration paramOtpExp = Duration(seconds: 0);
   bool _hasError = false;
-  bool isInAppOtp = false;
-
-  int localOtp = 0;
-  Duration localRemaining = Duration.zero;
-  Timer? localTimer;
   @override
   void initState() {
     super.initState();
-    pinController = TextEditingController();
-
-    initOtpMode();
+    getOtpRequest(showLoader: false);
   }
 
   @override
   void dispose() {
     timer?.cancel();
-    localTimer?.cancel();
     super.dispose();
-  }
-
-  void initOtpMode() async {
-    isInAppOtp = await Authentication().getInAppOtp() ?? false;
-    if (isInAppOtp) {
-      final service = InAppOtpService();
-
-      localOtp = service.getOtp();
-      localRemaining = service.getRemainingTime();
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showInAppOtpModal();
-      });
-    } else {
-      paramOtpExp = widget.arguments["time_duration"] ??
-          Duration(minutes: 3, seconds: 59);
-      startCountdown();
-    }
-
-    setState(() {});
-  }
-
-  void showInAppOtpModal() {
-    final service = InAppOtpService();
-
-    localTimer?.cancel();
-
-    late void Function(VoidCallback fn) modalSetState;
-
-    Get.bottomSheet(
-      isDismissible: false,
-      PopScope(
-        canPop: false,
-        child: StatefulBuilder(
-          builder: (context, setModalState) {
-            final c = Theme.of(context).colorScheme;
-            modalSetState = setModalState;
-
-            return Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: c.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(height: 12),
-                  LuvpayText(
-                    text: "In-app OTP Generator",
-                  ),
-                  SizedBox(height: 12),
-                  LuvpayText(
-                    text: localOtp.toString(),
-                    style: TextStyle(
-                      fontSize: 28,
-                      letterSpacing: 6,
-                      fontWeight: FontWeight.bold,
-                      color: AppColorV2.lpBlueBrand,
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  CircularPercentIndicator(
-                    radius: 30,
-                    lineWidth: 4,
-                    percent: (localRemaining.inSeconds / 30).clamp(0.0, 1.0),
-                    center: LuvpayText(text: "${localRemaining.inSeconds}"),
-                    progressColor: AppColorV2.lpBlueBrand,
-                    backgroundColor: Colors.grey.withOpacity(0.2),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: CustomButton(
-                        textColor: AppColorV2.lpBlueBrand,
-                        bordercolor: AppColorV2.lpBlueBrand,
-                        btnColor: Colors.transparent,
-                        text: "Cancel",
-                        onPressed: () {
-                          localTimer?.cancel();
-                          Get.back();
-                        },
-                      )),
-                      SizedBox(width: 10),
-                      Expanded(
-                          child: CustomButton(
-                        text: "Authorize",
-                        onPressed: () {
-                          pinController.text = localOtp.toString();
-                          localTimer?.cancel();
-                          Get.back();
-                        },
-                      )),
-                    ],
-                  )
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-      enableDrag: false,
-    );
-
-    localTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      final remaining = service.getRemainingTime();
-
-      if (remaining.inSeconds <= 0) {
-        localOtp = service.generateOtp();
-        localRemaining = service.getRemainingTime();
-        pinController.text = localOtp.toString();
-      } else {
-        localRemaining = remaining;
-      }
-
-      if (Get.isBottomSheetOpen ?? false) {
-        modalSetState(() {});
-      }
-    });
   }
 
   void startCountdown() {
@@ -205,121 +74,57 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     });
   }
 
-  void startLocalOtp() {
-    final service = InAppOtpService();
-
-    localOtp = service.getOtp();
-    localRemaining = service.getRemainingTime();
-
-    pinController.text = localOtp.toString();
-
-    localTimer?.cancel();
-  }
-
-  String formatDuration(Duration d) {
-    String minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    String seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return "$minutes:$seconds";
-  }
-
   void getTmrStat() async {
     await Authentication().enableTimer(false);
   }
 
-  void getOtpRequest() async {
+  void getOtpRequest({bool showLoader = true}) async {
+    if (showLoader) {
+      CustomDialogStack.showLoading(Get.context!);
+    }
+
     setState(() {
       inputPin = "";
       _hasError = false;
     });
-    CustomDialogStack.showLoading(Get.context!);
-    DateTime timeNow = await Functions.getTimeNow();
+
     var otpData = widget.arguments["req_otp_param"];
 
     HttpRequestApi(
       api: ApiKeys.postGenerateOtp,
       parameters: otpData,
     ).postBody().then((returnData) async {
+      print("returnData $returnData");
+
       if (returnData == "No Internet") {
-        setState(() {
-          inputPin = "";
-          isLoadingPage = false;
-          isNetConn = false;
-          _hasError = false;
-        });
-        Get.back();
-        CustomDialogStack.showError(
-          Get.context!,
-          "luvpay",
-          "Please check your internet connection and try again.",
-          () {
-            Get.back();
-          },
-        );
-        return;
-      }
-      if (returnData == null) {
-        setState(() {
-          inputPin = "";
-          isLoadingPage = false;
-          isNetConn = true;
-        });
-        Get.back();
-        CustomDialogStack.showError(
-          Get.context!,
-          "luvpay",
-          "Error while connecting to server, Please try again.",
-          () {
-            Get.back();
-          },
-        );
+        if (showLoader) Get.back();
+        setState(() => isNetConn = false);
         return;
       }
 
-      if (returnData["success"] == 'Y') {
-        Get.back();
+      if (returnData == null) {
+        if (showLoader) Get.back();
+        return;
+      }
+
+      if (returnData["success"] == 'Y' || returnData["status"] == "PENDING") {
+        if (showLoader) Get.back();
+
         DateTime timeExp = dtTime.DateFormat(
           "yyyy-MM-dd hh:mm:ss a",
         ).parse(returnData["otp_exp_dt"].toString());
-        DateTime otpExpiry = DateTime(
-          timeExp.year,
-          timeExp.month,
-          timeExp.day,
-          timeExp.hour,
-          timeExp.minute,
-          timeExp.millisecond,
-        );
 
-        Duration difference = otpExpiry.difference(timeNow);
+        Duration difference = timeExp.difference(DateTime.now());
 
         setState(() {
-          isLoadingPage = false;
-          isNetConn = true;
-
-          inputPin = "";
-          otpCode = int.parse(returnData["otp"].toString());
-          isRequested = true;
-          paramOtpExp = difference;
+          paramOtpExp = difference.isNegative ? Duration.zero : difference;
           _hasError = false;
         });
 
-        getTmrStat();
+        startCountdown();
       } else {
-        setState(() {
-          inputPin = "";
-          isLoadingPage = false;
-          isNetConn = true;
-          _hasError = true;
-        });
-        Get.back();
-        CustomDialogStack.showError(
-          Get.context!,
-          "luvpay",
-          returnData["msg"],
-          () {
-            Get.back();
-          },
-        );
-        return;
+        if (showLoader) Get.back();
+        setState(() => _hasError = true);
       }
     });
   }
@@ -328,41 +133,15 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     inputPin = value;
     _hasError = false;
 
-    if (value.isNotEmpty && int.tryParse(value) != null) {
-      if (int.parse(value) == otpCode) {
-      } else {
-        isOtpValid = false;
-      }
-    } else {
-      isOtpValid = false;
-    }
     setState(() {});
   }
 
   void restartTimer() {
-    if (timer != null && timer!.isActive) {
-      timer!.cancel();
-    }
-    setState(() {
-      getOtpRequest();
-    });
+    timer?.cancel();
+    getOtpRequest();
   }
 
   Future<void> verifyAccount() async {
-    if (isInAppOtp) {
-      if (pinController.text != localOtp.toString()) {
-        CustomDialogStack.showError(
-          Get.context!,
-          "Invalid OTP",
-          "Incorrect in-app OTP",
-          () => Get.back(),
-        );
-        return;
-      }
-
-      widget.arguments["callback"](int.parse(pinController.text));
-      return;
-    }
     if (inputPin.length != 6) {
       CustomDialogStack.showError(
         Get.context!,
@@ -513,7 +292,9 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       scaffoldBody: isLoading
           ? LoadingCard()
           : !isNetConn
-              ? ConnectionInterruption(onPressed: getOtpRequest)
+              ? ConnectionInterruption(
+                  onPressed: () => getOtpRequest(),
+                )
               : ScrollConfiguration(
                   behavior: ScrollBehavior().copyWith(overscroll: false),
                   child: StretchingOverscrollIndicator(
@@ -652,51 +433,31 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                           spacing(height: 6),
                           Center(
                             child: InkWell(
-                              borderRadius: BorderRadius.circular(14),
                               onTap: paramOtpExp.inSeconds <= 0
                                   ? () {
                                       restartTimer();
                                       pinController.clear();
                                     }
                                   : null,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(14),
-                                  color: cs.surface,
-                                  border: Border.all(
-                                    color: stroke.withOpacity(0.01),
-                                    width: 1,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  LuvpayText(
+                                    text: paramOtpExp.inSeconds <= 0
+                                        ? "Resend OTP"
+                                        : "Resend OTP in",
+                                    color: AppColorV2.lpBlueBrand,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
                                   ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 10,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.refresh_rounded,
-                                        size: 18,
-                                        color: paramOtpExp.inSeconds <= 0
-                                            ? brand
-                                            : brand.withOpacity(0.55),
-                                      ),
-                                      SizedBox(width: 8),
-                                      LuvpayText(
-                                        text: paramOtpExp.inSeconds <= 0
-                                            ? "Send OTP through SMS"
-                                            : "Resend in ${formatDuration(paramOtpExp)}",
-                                        color: paramOtpExp.inSeconds <= 0
-                                            ? brand
-                                            : brand.withOpacity(0.65),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                  if (paramOtpExp.inSeconds > 0)
+                                    LuvpayText(
+                                      text: " (${formatDuration(paramOtpExp)})",
+                                      color: AppColorV2.lpBlueBrand,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
+                                ],
                               ),
                             ),
                           ),
@@ -707,5 +468,12 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                   ),
                 ),
     );
+  }
+
+  String formatDuration(Duration d) {
+    String minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    String seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+
+    return "$minutes:$seconds";
   }
 }

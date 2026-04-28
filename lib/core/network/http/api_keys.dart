@@ -285,6 +285,6 @@ class ApiKeys {
   ///landbank service fee
   static final String getServiceFee = dotenv.env['SERVICE_FEE']!.replaceAll(
     '{LUV_API}',
-    parkSpaceApi,
+    luvApi,
   );
 }
