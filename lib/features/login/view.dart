@@ -19,29 +19,23 @@ import 'controller.dart';
 
 Widget _loginHeader(BuildContext context, {String? customTitle}) {
   final cs = Theme.of(context).colorScheme;
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SizedBox(height: 30),
-      Image(
+  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    const SizedBox(height: 30),
+    Image(
         image: const AssetImage("assets/images/luvpay_logo.png"),
         height: 30,
-        fit: BoxFit.contain,
-      ),
-      const SizedBox(height: 30),
-      LuvpayText(
+        fit: BoxFit.contain),
+    const SizedBox(height: 30),
+    LuvpayText(
         textAlign: TextAlign.center,
         text: customTitle ?? "Login to luvpay",
         style: AppTextStyle.h2(context),
         maxLines: 1,
-        color: cs.onSurface.withAlpha(250),
-      ),
-      LuvpayText(
+        color: cs.onSurface.withAlpha(250)),
+    LuvpayText(
         text: "Login to your luvpay account to continue using our services.",
-        color: cs.onSurface.withAlpha(120),
-      ),
-    ],
-  );
+        color: cs.onSurface.withAlpha(120)),
+  ]);
 }
 
 class LoginScreen extends StatefulWidget {
@@ -81,19 +75,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) => CustomScaffoldV2(
-        padding: EdgeInsets.all(10),
-        bottomNavigationBar: Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: LuvpayText(
-                style: AppTextStyle.textbox(context),
-                text: 'V${Variables.version}')),
-        useNormalBody: true,
-        enableToolBar: false,
-        canPop: false,
-        appBar: null,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        scaffoldBody: isLoadingPage ? LoadingCard() : screen!,
-      );
+      padding: EdgeInsets.all(10),
+      bottomNavigationBar: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: LuvpayText(
+              style: AppTextStyle.textbox(context),
+              text: 'V${Variables.version}')),
+      useNormalBody: true,
+      enableToolBar: false,
+      canPop: false,
+      appBar: null,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      scaffoldBody: isLoadingPage ? LoadingCard() : screen!);
 }
 
 class DefaultLoginScreen extends StatefulWidget {
@@ -108,38 +101,38 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
     final ctrl = Get.put(LoginScreenController());
     final cs = Theme.of(context).colorScheme;
     return Obx(() => StretchingOverscrollIndicator(
-          axisDirection: AxisDirection.down,
-          child: ScrollConfiguration(
+        axisDirection: AxisDirection.down,
+        child: ScrollConfiguration(
             behavior: const ScrollBehavior().copyWith(overscroll: false),
             child: SingleChildScrollView(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _loginHeader(context),
-                    spacing(height: 10),
-                    DefaultContainer(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  _loginHeader(context),
+                  spacing(height: 10),
+                  DefaultContainer(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                LuvpayText(
-                                    text: "Mobile Number",
-                                    style: AppTextStyle.body1(context),
-                                    height: 20 / 16,
-                                    color: cs.onSurface.withAlpha(250)),
-                                CustomMobileNumber(
-                                    textInputAction: TextInputAction.next,
-                                    hintText: "10 digit mobile number",
-                                    controller: ctrl.mobileNumber,
-                                    inputFormatters: [Variables.maskFormatter]),
-                                spacing(height: 14),
-                                LuvpayText(
-                                    text: "Password",
-                                    style: AppTextStyle.body1(context),
-                                    color: cs.onSurface.withAlpha(250)),
-                                CustomTextField(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              LuvpayText(
+                                  text: "Mobile Number",
+                                  style: AppTextStyle.body1(context),
+                                  height: 20 / 16,
+                                  color: cs.onSurface.withAlpha(250)),
+                              CustomMobileNumber(
+                                  textInputAction: TextInputAction.next,
+                                  hintText: "10 digit mobile number",
+                                  controller: ctrl.mobileNumber,
+                                  inputFormatters: [Variables.maskFormatter]),
+                              spacing(height: 14),
+                              LuvpayText(
+                                  text: "Password",
+                                  style: AppTextStyle.body1(context),
+                                  color: cs.onSurface.withAlpha(250)),
+                              CustomTextField(
                                   hintText: "Enter your password",
                                   controller: ctrl.password,
                                   isObscure: !ctrl.isShowPass.value,
@@ -149,12 +142,11 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                                   onIconTap: () => ctrl.visibilityChanged(
                                       !ctrl.isShowPass.value),
                                   onChange: (value) =>
-                                      ctrl.canProceed.value = value.isNotEmpty,
-                                ),
-                              ]),
-                          Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
+                                      ctrl.canProceed.value = value.isNotEmpty),
+                            ]),
+                        Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
                                 onPressed: ctrl.isLoading.value
                                     ? () {}
                                     : () => Get.toNamed(
@@ -163,11 +155,10 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                                 child: LuvpayText(
                                     style: AppTextStyle.body1(context),
                                     text: "Forgot Password?",
-                                    color: AppColorV2.lpBlueBrand),
-                              )),
-                          const SizedBox(height: 30),
-                          Column(children: [
-                            CustomButton(
+                                    color: AppColorV2.lpBlueBrand))),
+                        const SizedBox(height: 30),
+                        Column(children: [
+                          CustomButton(
                               text: "Log in",
                               onPressed: () async {
                                 FocusScope.of(context)
@@ -218,25 +209,19 @@ class _DefaultLoginScreenState extends State<DefaultLoginScreen> {
                                     Get.offAllNamed(Routes.dashboard);
                                   }
                                 });
-                              },
-                            ),
-                            const SizedBox(height: 14),
-                            CustomButton(
+                              }),
+                          const SizedBox(height: 14),
+                          CustomButton(
                               text: "Create account",
                               btnColor: AppColorV2.background,
                               bordercolor: AppColorV2.lpBlueBrand,
                               textColor: AppColorV2.lpBlueBrand,
-                              onPressed: () => Get.toNamed(Routes.registration),
-                            ),
-                            const SizedBox(height: 14),
-                          ]),
-                        ],
-                      ),
-                    ),
-                  ]),
-            ),
-          ),
-        ));
+                              onPressed: () =>
+                                  Get.toNamed(Routes.registration)),
+                          const SizedBox(height: 14),
+                        ]),
+                      ])),
+                ])))));
   }
 }
 
@@ -270,14 +255,13 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
               child: bodyWidget());
         }
         return CustomScaffoldV2(
-          padding: EdgeInsets.all(10),
-          enableToolBar: false,
-          canPop: false,
-          appBar: null,
-          appBarLeadingWidth: 200,
-          onPressedLeading: () => Get.offNamed(Routes.login),
-          scaffoldBody: bodyWidget(),
-        );
+            padding: EdgeInsets.all(10),
+            enableToolBar: false,
+            canPop: false,
+            appBar: null,
+            appBarLeadingWidth: 200,
+            onPressedLeading: () => Get.offNamed(Routes.login),
+            scaffoldBody: bodyWidget());
       });
 
   Widget bodyWidget() {
@@ -288,36 +272,15 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
         : SingleChildScrollView(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _loginHeader(context),
-              spacing(height: 10),
-              DefaultContainer(
+            _loginHeader(context),
+            spacing(height: 10),
+            DefaultContainer(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    LayoutBuilder(builder: (context, constraints) {
-                      if (userData[0]["first_name"] == null ||
-                          userData[0]["first_name"].toString().isEmpty) {
-                        return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              LuvNeuPress.rectangle(
-                                  background: cs.surface,
-                                  radius: BorderRadius.circular(10),
-                                  child: Padding(
-                                      padding: const EdgeInsets.all(14),
-                                      child: SizedBox(
-                                          width: double.infinity,
-                                          child: LuvpayText(
-                                              text:
-                                                  "+${Variables.maskMobileNumber(userData[0]["mobile_no"])}",
-                                              style: AppTextStyle.paragraph1(
-                                                  context),
-                                              maxLines: 1,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primaryContainer)))),
-                            ]);
-                      }
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  LayoutBuilder(builder: (context, constraints) {
+                    if (userData[0]["first_name"] == null ||
+                        userData[0]["first_name"].toString().isEmpty) {
                       return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -328,19 +291,38 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                                     padding: const EdgeInsets.all(14),
                                     child: SizedBox(
                                         width: double.infinity,
-                                        child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.max,
-                                            children: [
-                                              LuvpayText(
-                                                  text: userData[0]
-                                                          ["first_name"]
-                                                      .toString(),
-                                                  style:
-                                                      AppTextStyle.h4(context),
-                                                  maxLines: 1),
-                                              LuvpayText(
+                                        child: LuvpayText(
+                                            text:
+                                                "+${Variables.maskMobileNumber(userData[0]["mobile_no"])}",
+                                            style: AppTextStyle.paragraph1(
+                                                context),
+                                            maxLines: 1,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primaryContainer)))),
+                          ]);
+                    }
+                    return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LuvNeuPress.rectangle(
+                              background: cs.surface,
+                              radius: BorderRadius.circular(10),
+                              child: Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: SizedBox(
+                                      width: double.infinity,
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.max,
+                                          children: [
+                                            LuvpayText(
+                                                text: userData[0]["first_name"]
+                                                    .toString(),
+                                                style: AppTextStyle.h4(context),
+                                                maxLines: 1),
+                                            LuvpayText(
                                                 text: userData[0][
                                                                 "first_name"] ==
                                                             null ||
@@ -353,77 +335,67 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                                                 style: AppTextStyle.paragraph1(
                                                     context),
                                                 maxLines: 1,
-                                                color: cs.onSurfaceVariant,
-                                              )
-                                            ])))),
-                          ]);
-                    }),
-                    spacing(height: 10),
-                    Align(
-                        alignment: Alignment.centerLeft,
-                        child: LuvpayText(
-                            text: "Password",
-                            style: AppTextStyle.body1(context),
-                            height: 20 / 16,
-                            color: cs.onBackground.withAlpha(250))),
-                    Obx(() => CustomTextField(
-                          controller: ctrl.password,
-                          hintText: "Your password",
-                          isObscure: !ctrl.isShowPass.value,
-                          onChange: (value) =>
-                              ctrl.canProceed.value = value.isNotEmpty,
-                          suffixIcon: !ctrl.isShowPass.value
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          onIconTap: () =>
-                              ctrl.visibilityChanged(!ctrl.isShowPass.value),
-                        )),
-                    Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
+                                                color: cs.onSurfaceVariant)
+                                          ])))),
+                        ]);
+                  }),
+                  spacing(height: 10),
+                  Align(
+                      alignment: Alignment.centerLeft,
+                      child: LuvpayText(
+                          text: "Password",
+                          style: AppTextStyle.body1(context),
+                          height: 20 / 16,
+                          color: cs.onBackground.withAlpha(250))),
+                  Obx(() => CustomTextField(
+                      controller: ctrl.password,
+                      hintText: "Your password",
+                      isObscure: !ctrl.isShowPass.value,
+                      onChange: (value) =>
+                          ctrl.canProceed.value = value.isNotEmpty,
+                      suffixIcon: !ctrl.isShowPass.value
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      onIconTap: () =>
+                          ctrl.visibilityChanged(!ctrl.isShowPass.value))),
+                  Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
                           onPressed: () => Get.toNamed(Routes.forgotPass),
                           child: LuvpayText(
                               style: AppTextStyle.body1(context),
                               text: "Forgot Password?",
-                              color: AppColorV2.lpBlueBrand),
-                        )),
-                    const SizedBox(height: 20),
-                    Obx(() => CustomButton(
-                          isInactive: !ctrl.canProceed.value,
-                          text: "Log in",
-                          textColor: AppColorV2.background,
-                          onPressed: () async {
-                            if (ctrl.password.text.isEmpty) {
-                              CustomDialogStack.showSnackBar(
-                                  context,
-                                  "Password must not be empty",
-                                  Colors.red,
-                                  () {});
-                              return;
-                            }
-                            final userData =
-                                await Authentication().getUserData2();
-                            CustomDialogStack.showLoading(Get.context!);
-                            String devKey =
-                                await Functions().getUniqueDeviceId();
-                            Map<String, dynamic> postParam = {
-                              "mobile_no": userData["mobile_no"],
-                              "pwd": ctrl.password.text,
-                              "device_key": devKey.toString()
-                            };
-                            ctrl.postLogin(Get.context!, postParam,
-                                (data) async {
-                              Get.back();
-                              await Authentication().setLogoutStatus(false);
-                              if (data[0]["items"].isNotEmpty) {
-                                Get.offAllNamed(Routes.dashboard);
-                              }
-                            });
-                          },
-                        )),
-                    const SizedBox(height: 18),
-                    if (widget.isAllowBio)
-                      CustomButton(
+                              color: AppColorV2.lpBlueBrand))),
+                  const SizedBox(height: 20),
+                  Obx(() => CustomButton(
+                      isInactive: !ctrl.canProceed.value,
+                      text: "Log in",
+                      textColor: AppColorV2.background,
+                      onPressed: () async {
+                        if (ctrl.password.text.isEmpty) {
+                          CustomDialogStack.showSnackBar(context,
+                              "Password must not be empty", Colors.red, () {});
+                          return;
+                        }
+                        final userData = await Authentication().getUserData2();
+                        CustomDialogStack.showLoading(Get.context!);
+                        String devKey = await Functions().getUniqueDeviceId();
+                        Map<String, dynamic> postParam = {
+                          "mobile_no": userData["mobile_no"],
+                          "pwd": ctrl.password.text,
+                          "device_key": devKey.toString()
+                        };
+                        ctrl.postLogin(Get.context!, postParam, (data) async {
+                          Get.back();
+                          await Authentication().setLogoutStatus(false);
+                          if (data[0]["items"].isNotEmpty) {
+                            Get.offAllNamed(Routes.dashboard);
+                          }
+                        });
+                      })),
+                  const SizedBox(height: 18),
+                  if (widget.isAllowBio)
+                    CustomButton(
                         textColor: AppColorV2.lpBlueBrand,
                         bordercolor: AppColorV2.lpBlueBrand,
                         btnColor: AppColorV2.background,
@@ -445,24 +417,19 @@ class _UsePasswordScreenState extends State<UsePasswordScreen> {
                               }
                             });
                           }
-                        },
-                      ),
-                    const SizedBox(height: 14),
-                    Center(
-                        child: Visibility(
-                      visible: widget.appbar == null,
-                      child: InkWell(
-                          onTap: ctrl.switchAccount,
-                          child: LuvpayText(
-                              text: "Switch account",
-                              style: AppTextStyle.paragraph1(context),
-                              color: AppColorV2.lpBlueBrand)),
-                    )),
-                    spacing(height: 10),
-                  ],
-                ),
-              )
-            ]),
-          );
+                        }),
+                  const SizedBox(height: 14),
+                  Center(
+                      child: Visibility(
+                          visible: widget.appbar == null,
+                          child: InkWell(
+                              onTap: ctrl.switchAccount,
+                              child: LuvpayText(
+                                  text: "Switch account",
+                                  style: AppTextStyle.paragraph1(context),
+                                  color: AppColorV2.lpBlueBrand)))),
+                  spacing(height: 10),
+                ]))
+          ]));
   }
 }

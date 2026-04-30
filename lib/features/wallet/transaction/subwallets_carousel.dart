@@ -26,57 +26,51 @@ class SubWallerCarousel extends StatelessWidget {
     const double walletCardRatio = 2.8;
 
     return CarouselSlider(
-      options: CarouselOptions(
-        initialPage: 0,
-        scrollPhysics: const BouncingScrollPhysics(),
-        aspectRatio: walletCardRatio,
-        viewportFraction: 0.48,
-        padEnds: false,
-        disableCenter: true,
-        enlargeCenterPage: true,
-        enlargeFactor: 0.20,
-        onPageChanged: onPageChanged,
-        enlargeStrategy: CenterPageEnlargeStrategy.zoom,
-        enableInfiniteScroll: wallets.length > 2,
-        autoPlay: wallets.length > 2,
-        autoPlayInterval: const Duration(seconds: 5),
-        autoPlayAnimationDuration: const Duration(milliseconds: 600),
-        autoPlayCurve: Curves.easeOutCubic,
-        pauseAutoPlayOnTouch: true,
-        pauseAutoPlayOnManualNavigate: true,
-      ),
-      items: wallets.map((w) {
-        final iconBytes = (w.imageBase64?.isNotEmpty ?? false)
-            ? decodeBase64Safe(w.imageBase64!)
-            : null;
-
-        final categoryLabel =
-            (w.categoryTitle.trim().isNotEmpty ? w.categoryTitle : w.category);
-
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 14,
-          ),
-          child: AspectRatio(
+        options: CarouselOptions(
+            initialPage: 0,
+            scrollPhysics: const BouncingScrollPhysics(),
             aspectRatio: walletCardRatio,
-            child: SubWalletCard(
-              wallet: w,
-              onTap: () => onTap(w),
-              iconBytes: iconBytes,
-              themeKey: w.colorTheme,
-              titleColor: cs.onSurface,
-              amountColor: cs.onSurface.withOpacity(0.72),
-              categoryLabel: categoryLabel,
-              mobileNo: w.mobileNo,
-              userName: w.userName,
-              isDeleting: false,
-              isPulsing: false,
-              deleteAnim: const AlwaysStoppedAnimation(0),
-              pulseAnim: const AlwaysStoppedAnimation(1),
-            ),
-          ),
-        );
-      }).toList(),
-    );
+            viewportFraction: 0.48,
+            padEnds: false,
+            disableCenter: true,
+            enlargeCenterPage: true,
+            enlargeFactor: 0.20,
+            onPageChanged: onPageChanged,
+            enlargeStrategy: CenterPageEnlargeStrategy.zoom,
+            enableInfiniteScroll: wallets.length > 2,
+            autoPlay: wallets.length > 2,
+            autoPlayInterval: const Duration(seconds: 5),
+            autoPlayAnimationDuration: const Duration(milliseconds: 600),
+            autoPlayCurve: Curves.easeOutCubic,
+            pauseAutoPlayOnTouch: true,
+            pauseAutoPlayOnManualNavigate: true),
+        items: wallets.map((w) {
+          final iconBytes = (w.imageBase64?.isNotEmpty ?? false)
+              ? decodeBase64Safe(w.imageBase64!)
+              : null;
+
+          final categoryLabel = (w.categoryTitle.trim().isNotEmpty
+              ? w.categoryTitle
+              : w.category);
+
+          return Padding(
+              padding: EdgeInsets.only(left: 14),
+              child: AspectRatio(
+                  aspectRatio: walletCardRatio,
+                  child: SubWalletCard(
+                      wallet: w,
+                      onTap: () => onTap(w),
+                      iconBytes: iconBytes,
+                      themeKey: w.colorTheme,
+                      titleColor: cs.onSurface,
+                      amountColor: cs.onSurface.withOpacity(0.72),
+                      categoryLabel: categoryLabel,
+                      mobileNo: w.mobileNo,
+                      userName: w.userName,
+                      isDeleting: false,
+                      isPulsing: false,
+                      deleteAnim: const AlwaysStoppedAnimation(0),
+                      pulseAnim: const AlwaysStoppedAnimation(1))));
+        }).toList());
   }
 }

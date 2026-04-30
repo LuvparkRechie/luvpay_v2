@@ -34,21 +34,16 @@ class UnionBankAuthService {
 
       // Encode the body
       final encodedBody = Uri(
-        queryParameters: body.map(
-          (key, value) => MapEntry(key, value.toString()),
-        ),
-      ).query;
+          queryParameters:
+              body.map((key, value) => MapEntry(key, value.toString()))).query;
 
       // Make the POST request with headers and cookies
       Map<String, String> headers = {
         'accept': 'application/json',
         'content-type': 'application/x-www-form-urlencoded',
       };
-      final response = await http.post(
-        uri,
-        headers: headers,
-        body: encodedBody,
-      );
+      final response =
+          await http.post(uri, headers: headers, body: encodedBody);
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -88,19 +83,17 @@ class UnionBankAuthService {
         'references': references,
       };
 
-      final response = await http.post(
-        uri,
-        headers: {
-          'accept': 'application/json',
-          'authorization': 'Bearer $accessToken',
-          'content-type': 'application/json',
-          'x-ibm-client-id': _xIBMCID!,
-          'x-ibm-client-secret': _xIBMSECRET!,
-          'x-partner-id': _xPartner!,
-          'Cookie': _payCookie!,
-        },
-        body: json.encode(body),
-      );
+      final response = await http.post(uri,
+          headers: {
+            'accept': 'application/json',
+            'authorization': 'Bearer $accessToken',
+            'content-type': 'application/json',
+            'x-ibm-client-id': _xIBMCID!,
+            'x-ibm-client-secret': _xIBMSECRET!,
+            'x-partner-id': _xPartner!,
+            'Cookie': _payCookie!,
+          },
+          body: json.encode(body));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return json.decode(response.body);

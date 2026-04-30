@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -49,8 +48,8 @@ class BillsPaymentController extends GetxController {
   Future<dynamic> getpaymentHK() async {
     final userID = await Authentication().getUserId();
 
-    final paymentKey =
-        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
+    final paymentKey = await Functions().requestHandler(
+        apiKey: "${ApiKeys.getPaymentKey}$userID", method: "GET");
     if (paymentKey == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
         Get.back();
@@ -119,10 +118,10 @@ class BillsPaymentController extends GetxController {
       'original_amount': amount,
     };
 
-    HttpRequestApi(
-      api: ApiKeys.postPayBills,
-      parameters: parameter,
-    ).postBody().then((returnPost) async {
+    Functions()
+        .requestHandler(
+            apiKey: ApiKeys.postPayBills, method: "POST", body: parameter)
+        .then((returnPost) async {
       Get.back();
       if (returnPost == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -138,24 +137,16 @@ class BillsPaymentController extends GetxController {
           accName.clear();
           billNo.clear();
           billAmount.clear();
-          final result = await Get.to(
-            BillPaymentReceipt(
-              apiResponse: returnPost,
-              paymentParams: parameter,
-            ),
-          );
+          final result = await Get.to(BillPaymentReceipt(
+              apiResponse: returnPost, paymentParams: parameter));
           if (result != null) {
             Get.back(result: true);
           }
         } else {
-          CustomDialogStack.showError(
-            Get.context!,
-            "Error",
-            returnPost["msg"],
-            () {
-              Get.back();
-            },
-          );
+          CustomDialogStack.showError(Get.context!, "Error", returnPost["msg"],
+              () {
+            Get.back();
+          });
         }
       }
     });
@@ -173,13 +164,8 @@ class BillsPaymentController extends GetxController {
     return false;
   }
 
-  void handleSuccess(
-    String args,
-    String type,
-    dynamic response,
-    serviceName,
-    serviceAddress,
-  ) async {
+  void handleSuccess(String args, String type, dynamic response, serviceName,
+      serviceAddress) async {
     final paymentHk = await getpaymentHK();
     Get.back();
     if (type == "biller") {
@@ -194,79 +180,63 @@ class BillsPaymentController extends GetxController {
           "payment_key": paymentHk,
         },
       ];
-      Get.to(
-        Scaffold(
+      Get.to(Scaffold(
           backgroundColor: AppColorV2.background,
-          body: PayMerchant(data: itemData),
-        ),
-      );
+          body: PayMerchant(data: itemData)));
     }
   }
 
   Future<void> addFavorites() async {
     int userId = await Authentication().getUserId();
 
-    CustomDialogStack.showConfirmation(
-      Get.context!,
-      "Add to Favorites",
-      "Do you want to add this biller to your favorites?",
-      leftText: "No",
-      rightText: "Yes",
-      () {
-        Get.back();
-      },
-      () {
-        Get.back();
+    CustomDialogStack.showConfirmation(Get.context!, "Add to Favorites",
+        "Do you want to add this biller to your favorites?",
+        leftText: "No", rightText: "Yes", () {
+      Get.back();
+    }, () {
+      Get.back();
 
-        CustomDialogStack.showLoading(Get.context!);
-        var parameter = {
-          "user_id": userId,
-          "biller_id": arguments["biller_id"],
-          "account_no": accNo.text,
-          "account_name": accName.text,
-        };
+      CustomDialogStack.showLoading(Get.context!);
+      var parameter = {
+        "user_id": userId,
+        "biller_id": arguments["biller_id"],
+        "account_no": accNo.text,
+        "account_name": accName.text,
+      };
 
-        HttpRequestApi(api: ApiKeys.postAddFavBiller, parameters: parameter)
-            .postBody()
-            .then((returnPost) async {
-          Get.back();
-          if (returnPost == "No Internet") {
-            CustomDialogStack.showConnectionLost(Get.context!, () {
-              Get.back();
-            });
-            return {"response": returnPost, "data": []};
-          }
-          if (returnPost == null) {
-            CustomDialogStack.showServerError(Get.context!, () {
-              Get.back();
-            });
-            return {"response": returnPost, "data": []};
-          }
-          if (returnPost["success"] == 'Y') {
-            CustomDialogStack.showSuccess(
-              Get.context!,
-              "Success",
-              "Successfully added to favorites.",
-              leftText: "Okay",
-              () {
-                Get.back();
-              },
-            );
-          } else {
-            CustomDialogStack.showError(
-              Get.context!,
-              "luvpark",
-              returnPost["msg"],
-              () {
-                Get.back();
-              },
-            );
-          }
-        }).whenComplete(() {
-          Future.delayed(const Duration(seconds: 2), () {});
-        });
-      },
-    );
+      Functions()
+          .requestHandler(
+              apiKey: ApiKeys.postAddFavBiller, method: "POST", body: parameter)
+          .then((returnPost) async {
+        Get.back();
+        if (returnPost == "No Internet") {
+          CustomDialogStack.showConnectionLost(Get.context!, () {
+            Get.back();
+          });
+          return {"response": returnPost, "data": []};
+        }
+        if (returnPost == null) {
+          CustomDialogStack.showServerError(Get.context!, () {
+            Get.back();
+          });
+          return {"response": returnPost, "data": []};
+        }
+        if (returnPost["success"] == 'Y') {
+          CustomDialogStack.showSuccess(
+              Get.context!, "Success", "Successfully added to favorites.",
+              leftText: "Okay", () {
+            Get.back();
+          });
+        } else {
+          CustomDialogStack.showError(
+              Get.context!, "luvpark", returnPost["msg"], () {
+            Get.back();
+          });
+        }
+      }).whenComplete(() {
+        Future.delayed(const Duration(seconds: 2), () {});
+      });
+    });
   }
 
   Future<void> saveTicket(Widget ddWidget) async {
@@ -283,15 +253,11 @@ class BillsPaymentController extends GetxController {
       await imagePath.writeAsBytes(image);
       GallerySaver.saveImage(imagePath.path).then((result) {
         Get.back();
-        CustomDialogStack.showSuccess(
-          Get.context!,
-          "Success",
-          "Receipt has been saved. Please check your gallery.",
-          leftText: "Okay",
-          () {
-            Get.back();
-          },
-        );
+        CustomDialogStack.showSuccess(Get.context!, "Success",
+            "Receipt has been saved. Please check your gallery.",
+            leftText: "Okay", () {
+          Get.back();
+        });
       });
     });
   }

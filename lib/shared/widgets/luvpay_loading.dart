@@ -22,29 +22,24 @@ class LoadingCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Center(
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(radius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
-            ),
-          ],
-          border: Border.all(
-            color: cs.onSurface.withOpacity(isDark ? 0.12 : 0.06),
-            width: 0.8,
-          ),
-        ),
-        child: LuvpayText(
-          text: text,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
-          color: cs.onSurface.withOpacity(0.75),
-        ),
-      ),
-    );
+        child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(radius),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10)),
+                ],
+                border: Border.all(
+                    color: cs.onSurface.withOpacity(isDark ? 0.12 : 0.06),
+                    width: 0.8)),
+            child: LuvpayText(
+                text: text,
+                style:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                color: cs.onSurface.withOpacity(0.75))));
   }
 }

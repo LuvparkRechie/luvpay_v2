@@ -27,46 +27,33 @@ class NoDataFound extends StatelessWidget {
     final primary = theme.colorScheme.primary;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: MediaQuery.of(context).size.width * 0.25,
-            color: primary.withOpacity(0.75),
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon,
+              size: MediaQuery.of(context).size.width * 0.25,
+              color: primary.withOpacity(0.75)),
           const SizedBox(height: 5),
           LuvpayText(
-            text: text ?? "No data found",
-            style: AppTextStyle.body1(context),
-            textAlign: TextAlign.center,
-          ),
+              text: text ?? "No data found",
+              style: AppTextStyle.body1(context),
+              textAlign: TextAlign.center),
           const SizedBox(height: 6),
           LuvpayText(
-            text: subtext ?? "We’ll show items here once available.",
-            fontSize: 12.5,
-            fontWeight: FontWeight.normal,
-            textAlign: TextAlign.center,
-          ),
+              text: subtext ?? "We’ll show items here once available.",
+              fontSize: 12.5,
+              fontWeight: FontWeight.normal,
+              textAlign: TextAlign.center),
           if (onTap != null) ...[
             TextButton.icon(
-              onPressed: onTap,
-              icon: Icon(buttonIcon ?? Icons.refresh, size: 18),
-              label: LuvpayText(text: buttonText ?? "Try again"),
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+                onPressed: onTap,
+                icon: Icon(buttonIcon ?? Icons.refresh, size: 18),
+                label: LuvpayText(text: buttonText ?? "Try again"),
+                style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)))),
           ],
-        ],
-      ),
-    );
+        ]));
   }
 }

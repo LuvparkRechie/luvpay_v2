@@ -19,15 +19,14 @@ class FloatingToastManager {
     bool showCloseButton = false,
   }) {
     showFloatingToast(
-      context: context,
-      message: message,
-      targetKey: targetKey,
-      textColor: textColor,
-      image: image,
-      backgroundColor: backgroundColor,
-      duration: duration,
-      showCloseButton: showCloseButton,
-    );
+        context: context,
+        message: message,
+        targetKey: targetKey,
+        textColor: textColor,
+        image: image,
+        backgroundColor: backgroundColor,
+        duration: duration,
+        showCloseButton: showCloseButton);
   }
 
   static void showFloatingToast({
@@ -53,23 +52,19 @@ class FloatingToastManager {
     final size = box.size;
 
     _currentToast = OverlayEntry(
-      builder: (context) => Positioned(
-        top: position.dy + size.height + 8,
-        left: position.dx,
-        width: size.width,
-        child: Material(
-          color: Colors.transparent,
-          child: ToastWidget(
-            imageAsset: "assets/images/$image.png",
-            message: message,
-            primaryColor: textColor,
-            backgroundColor: backgroundColor ?? Colors.white,
-            showCloseButton: showCloseButton,
-            onDismiss: _removeCurrentToast,
-          ),
-        ),
-      ),
-    );
+        builder: (context) => Positioned(
+            top: position.dy + size.height + 8,
+            left: position.dx,
+            width: size.width,
+            child: Material(
+                color: Colors.transparent,
+                child: ToastWidget(
+                    imageAsset: "assets/images/$image.png",
+                    message: message,
+                    primaryColor: textColor,
+                    backgroundColor: backgroundColor ?? Colors.white,
+                    showCloseButton: showCloseButton,
+                    onDismiss: _removeCurrentToast))));
 
     _overlayState!.insert(_currentToast!);
 
@@ -109,59 +104,43 @@ class ToastWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.transparent,
-      child: Container(
-        width: double.infinity,
-        padding: padding,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(5.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 16.0,
-              offset: const Offset(0, 8),
-              spreadRadius: 0.5,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Image.asset(
-              imageAsset,
-              height: iconSize,
-              width: iconSize,
-              filterQuality: FilterQuality.high,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: LuvpayText(
-                text: message,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: primaryColor,
-                  height: 1.3,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 3,
-              ),
-            ),
-            if (showCloseButton) ...[
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: onDismiss,
-                child: Icon(
-                  Icons.close,
-                  size: 20,
-                  color: primaryColor.withOpacity(0.6),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+        color: Colors.transparent,
+        child: Container(
+            width: double.infinity,
+            padding: padding,
+            decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(5.0),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 16.0,
+                      offset: const Offset(0, 8),
+                      spreadRadius: 0.5),
+                ]),
+            child: Row(mainAxisSize: MainAxisSize.max, children: [
+              Image.asset(imageAsset,
+                  height: iconSize,
+                  width: iconSize,
+                  filterQuality: FilterQuality.high),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: LuvpayText(
+                      text: message,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: primaryColor,
+                          height: 1.3),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3)),
+              if (showCloseButton) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                    onTap: onDismiss,
+                    child: Icon(Icons.close,
+                        size: 20, color: primaryColor.withOpacity(0.6))),
+              ],
+            ])));
   }
 }

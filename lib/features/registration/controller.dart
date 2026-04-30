@@ -58,13 +58,9 @@ class RegistrationController extends GetxController
 
     if (code.isEmpty) {
       CustomDialogStack.showInfo(
-        Get.context!,
-        "Referral Code",
-        "Please enter a referral code.",
-        () {
-          Get.back();
-        },
-      );
+          Get.context!, "Referral Code", "Please enter a referral code.", () {
+        Get.back();
+      });
       return false;
     }
 
@@ -74,10 +70,8 @@ class RegistrationController extends GetxController
 
     try {
       String api = "";
-      final res = await HttpRequestApi(
-        api: api,
-        parameters: {"referral_code": code},
-      ).postBody();
+      final res = await Functions().requestHandler(
+          apiKey: api, parameters: {"referral_code": code}, method: "POST");
 
       Get.back();
 
@@ -88,12 +82,8 @@ class RegistrationController extends GetxController
 
       final ok = res["success"] == "Y";
       if (!ok) {
-        CustomDialogStack.showError(
-          Get.context!,
-          "luvpay",
-          res["msg"] ?? "Invalid code.",
-          () => Get.back(),
-        );
+        CustomDialogStack.showError(Get.context!, "luvpay",
+            res["msg"] ?? "Invalid code.", () => Get.back());
         return false;
       }
 
@@ -115,61 +105,55 @@ class RegistrationController extends GetxController
     };
 
     CustomDialogStack.showConfirmation(
-      Get.context!,
-      "Create Account",
-      "Are you sure you want to proceed?",
-      leftText: "No",
-      rightText: "Yes",
-      () {
+        Get.context!, "Create Account", "Are you sure you want to proceed?",
+        leftText: "No", rightText: "Yes", () {
+      Get.back();
+    }, () {
+      Get.back();
+      CustomDialogStack.showLoading(Get.context!);
+
+      Functions()
+          .requestHandler(
+              apiKey: ApiKeys.postUserReg,
+              parameters: parameters,
+              method: "POST")
+          .then((returnPost) async {
         Get.back();
-      },
-      () {
-        Get.back();
-        CustomDialogStack.showLoading(Get.context!);
+        if (returnPost == "No Internet") {
+          CustomDialogStack.showConnectionLost(Get.context!, () {
+            Get.back();
+          });
+          return;
+        }
 
-        HttpRequestApi(
-          api: ApiKeys.postUserReg,
-          parameters: parameters,
-        ).postBody().then((returnPost) async {
-          Get.back();
-          if (returnPost == "No Internet") {
-            CustomDialogStack.showConnectionLost(Get.context!, () {
-              Get.back();
-            });
-            return;
-          }
+        if (returnPost == null) {
+          CustomDialogStack.showServerError(Get.context!, () {
+            Get.back();
+          });
+          return;
+        }
+        if (returnPost["success"] == "Y") {
+          final prefs = await SharedPreferences.getInstance();
+          prefs.setBool('isLoggedIn', false);
+          final plainText = jsonEncode(parameters);
+          Authentication().encryptData(plainText);
 
-          if (returnPost == null) {
-            CustomDialogStack.showServerError(Get.context!, () {
-              Get.back();
-            });
-            return;
-          }
-          if (returnPost["success"] == "Y") {
-            final prefs = await SharedPreferences.getInstance();
-            prefs.setBool('isLoggedIn', false);
-            final plainText = jsonEncode(parameters);
-            Authentication().encryptData(plainText);
+          requestOtp();
 
-            requestOtp();
-
-            return;
-          } else {
-            CustomDialogStack.showError(
+          return;
+        } else {
+          CustomDialogStack.showError(
               // maxLines: 3,
               Get.context!,
               "luvpay",
-              returnPost["msg"],
-              () {
-                Get.back();
-              },
-            );
-            // Get.back();
-            return;
-          }
-        });
-      },
-    );
+              returnPost["msg"], () {
+            Get.back();
+          });
+          // Get.back();
+          return;
+        }
+      });
+    });
   }
 
   Future<void> requestOtp() async {
@@ -182,17 +166,10 @@ class RegistrationController extends GetxController
       "new_pwd": password.text,
     };
     Functions().requestOtp(reqParam, (obj) async {
-      DateTime timeExp = DateFormat(
-        "yyyy-MM-dd hh:mm:ss a",
-      ).parse(obj["otp_exp_dt"].toString());
-      DateTime otpExpiry = DateTime(
-        timeExp.year,
-        timeExp.month,
-        timeExp.day,
-        timeExp.hour,
-        timeExp.minute,
-        timeExp.millisecond,
-      );
+      DateTime timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+          .parse(obj["otp_exp_dt"].toString());
+      DateTime otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+          timeExp.hour, timeExp.minute, timeExp.millisecond);
       Duration difference = otpExpiry.difference(timeNow);
 
       if (obj["success"] == "Y" || obj["status"] == "PENDING") {
@@ -216,26 +193,20 @@ class RegistrationController extends GetxController
               final plainText = jsonEncode(data);
 
               Authentication().encryptData(plainText);
-              CustomDialogStack.showSuccess(
-                Get.context!,
-                "Success!",
-                "Your account is ready.\nPlease log in to proceed.",
-                leftText: "Okay",
-                () {
-                  mobileNumber.text == "";
-                  password.text == "";
-                  Get.offAllNamed(Routes.login);
-                },
-              );
+              CustomDialogStack.showSuccess(Get.context!, "Success!",
+                  "Your account is ready.\nPlease log in to proceed.",
+                  leftText: "Okay", () {
+                mobileNumber.text == "";
+                password.text == "";
+                Get.offAllNamed(Routes.login);
+              });
             }
           },
         };
 
-        Get.to(
-          OtpFieldScreen(arguments: args),
-          transition: Transition.rightToLeftWithFade,
-          duration: Duration(milliseconds: 400),
-        );
+        Get.to(OtpFieldScreen(arguments: args),
+            transition: Transition.rightToLeftWithFade,
+            duration: Duration(milliseconds: 400));
       }
     });
   }

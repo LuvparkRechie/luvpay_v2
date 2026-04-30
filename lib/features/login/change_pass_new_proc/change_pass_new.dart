@@ -87,13 +87,10 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
 
     if (newPassword.text != newConfirmPassword.text) {
       CustomDialogStack.showError(
-        Get.context!,
-        "luvpay",
-        "Passwords do not match, please try again.",
-        () {
-          Get.back();
-        },
-      );
+          Get.context!, "luvpay", "Passwords do not match, please try again.",
+          () {
+        Get.back();
+      });
       return;
     }
 
@@ -103,17 +100,10 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
     };
 
     Functions().requestOtp(reqParam, (obj) async {
-      DateTime timeExp = DateFormat(
-        "yyyy-MM-dd hh:mm:ss a",
-      ).parse(obj["otp_exp_dt"].toString());
-      DateTime otpExpiry = DateTime(
-        timeExp.year,
-        timeExp.month,
-        timeExp.day,
-        timeExp.hour,
-        timeExp.minute,
-        timeExp.millisecond,
-      );
+      DateTime timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+          .parse(obj["otp_exp_dt"].toString());
+      DateTime otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+          timeExp.hour, timeExp.minute, timeExp.millisecond);
 
       Duration difference = otpExpiry.difference(timeNow);
 
@@ -140,88 +130,74 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
                 "new_pwd": newPassword.text,
               };
 
-              HttpRequestApi(
-                api: ApiKeys.putLogin,
-                parameters: postParam,
-              ).putBody().then((retvalue) async {
+              Functions()
+                  .requestHandler(
+                      apiKey: ApiKeys.putLogin,
+                      parameters: postParam,
+                      method: "PUT")
+                  .then((retvalue) async {
                 Get.back();
 
                 if (retvalue == "No Internet") {
-                  CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    "Please check your internet connection and try again.",
-                    () {
-                      Get.back();
-                    },
-                  );
+                  CustomDialogStack.showError(Get.context!, "Error",
+                      "Please check your internet connection and try again.",
+                      () {
+                    Get.back();
+                  });
                   return;
                 }
 
                 if (retvalue == null) {
-                  CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    "Error while connecting to server, Please try again.",
-                    () {
-                      Get.back();
-                    },
-                  );
+                  CustomDialogStack.showError(Get.context!, "Error",
+                      "Error while connecting to server, Please try again.",
+                      () {
+                    Get.back();
+                  });
                   return;
                 }
 
                 if (retvalue["success"] == "Y") {
                   Get.back();
                   CustomDialogStack.showSuccess(
-                    Get.context!,
-                    "Success",
-                    retvalue["msg"],
-                    leftText: "Okay",
-                    () async {
-                      Get.back();
-                      CustomDialogStack.showLoading(Get.context!);
-                      await Future.delayed(const Duration(seconds: 1));
+                      Get.context!, "Success", retvalue["msg"],
+                      leftText: "Okay", () async {
+                    Get.back();
+                    CustomDialogStack.showLoading(Get.context!);
+                    await Future.delayed(const Duration(seconds: 1));
 
-                      final userLogin = await Authentication().getUserLogin();
-                      if (userLogin == null) {
-                        Get.back();
-                        Get.offAllNamed(Routes.login);
-                        return;
-                      }
-
-                      List userData = [userLogin];
-                      userData = userData.map((e) {
-                        e["is_login"] = "N";
-                        return e;
-                      }).toList();
-
-                      await Authentication().setLogin(jsonEncode(userData[0]));
-                      await Authentication().setBiometricStatus(false);
-
+                    final userLogin = await Authentication().getUserLogin();
+                    if (userLogin == null) {
                       Get.back();
                       Get.offAllNamed(Routes.login);
-                    },
-                  );
+                      return;
+                    }
+
+                    List userData = [userLogin];
+                    userData = userData.map((e) {
+                      e["is_login"] = "N";
+                      return e;
+                    }).toList();
+
+                    await Authentication().setLogin(jsonEncode(userData[0]));
+                    await Authentication().setBiometricStatus(false);
+
+                    Get.back();
+                    Get.offAllNamed(Routes.login);
+                  });
                 } else {
                   CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    retvalue["msg"],
-                    () {
-                      Get.back();
-                    },
-                  );
+                      Get.context!, "Error", retvalue["msg"], () {
+                    Get.back();
+                  });
                 }
               });
             }
           },
         };
 
-        Get.to(
-          OtpFieldScreen(arguments: args),
-          transition: Transition.rightToLeftWithFade,
-          duration: Duration(milliseconds: 400),
-        );
+        Get.to(OtpFieldScreen(arguments: args),
+            transition: Transition.rightToLeftWithFade,
+            duration: Duration(milliseconds: 400));
       }
     });
   }
@@ -232,200 +208,180 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 1,
-        backgroundColor: AppColorV2.lpBlueBrand,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: AppColorV2.lpBlueBrand,
-          statusBarBrightness: Brightness.dark,
-          statusBarIconBrightness: Brightness.light,
-        ),
-        title: LuvpayText(text: "Reset password"),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () => Get.back(),
-          icon: Icon(Iconsax.arrow_left, color: Colors.white),
-        ),
-      ),
-      backgroundColor: AppColorV2.background,
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
-        child: Form(
-          key: formKeyChangePass,
-          child: StretchingOverscrollIndicator(
-            axisDirection: AxisDirection.down,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  spacing(height: 20),
-                  LuvpayText(
-                    text:
-                        "Your new password must be different from previous used passwords.",
-                  ),
-                  spacing(height: 20),
-                  LuvpayText(
-                    text: "New Password",
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: cs.onSurface,
-                  ),
-                  CustomTextField(
-                    title: "New Password",
-                    hintText: "Create your new password",
-                    controller: newPassword,
-                    isObscure: !isShowNewPass.value,
-                    suffixIcon: !isShowNewPass.value
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                    onChange: (value) => onPasswordChanged(value),
-                    onIconTap: () => onToggleNewPass(!isShowNewPass.value),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                    ],
-                    validator: (txtValue) {
-                      if (txtValue == null || txtValue.isEmpty) {
-                        return "Field is required";
-                      }
-                      if (txtValue == oldPassword.text) {
-                        return "New password must be different";
-                      }
-                      if (txtValue.trim().length < 8 ||
-                          txtValue.trim().length > 32) {
-                        return "Password must be between 8 and 32 characters";
-                      }
-                      if (passStrength.value == 1) return "Very Weak Password";
-                      if (passStrength.value == 2) return "Weak Password";
-                      if (passStrength.value == 3) return "Medium Password";
-                      return null;
-                    },
-                  ),
-                  LuvpayText(
-                    text: "Confirm Password",
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: cs.onSurface,
-                  ),
-                  CustomTextField(
-                    title: "Confirm Password",
-                    hintText: "Confirm your new password",
-                    controller: newConfirmPassword,
-                    isObscure: !isShowNewPassConfirm.value,
-                    suffixIcon: !isShowNewPassConfirm.value
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                    onChange: (value) => onPasswordConfirmChanged(value),
-                    onIconTap: () =>
-                        onToggleConfirmNewPass(!isShowNewPassConfirm.value),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                    ],
-                    validator: (txtValue) {
-                      if (txtValue == null || txtValue.isEmpty) {
-                        return "Field is required";
-                      }
-                      if (txtValue.trim().length < 8 ||
-                          txtValue.trim().length > 32) {
-                        return "Password must be between 8 and 32 characters";
-                      }
-                      if (txtValue != newPassword.text) {
-                        return "New passwords do not match";
-                      }
-                      return null;
-                    },
-                  ),
-                  Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: ShapeDecoration(
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                          width: 1,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.06),
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 15, 11, 18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LuvpayText(
-                            text: "Password Strength",
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: -.1,
-                            wordSpacing: 2,
-                            color: cs.onSurface,
-                          ),
-                          spacing(height: 15),
-                          Row(
+        appBar: AppBar(
+            elevation: 1,
+            backgroundColor: AppColorV2.lpBlueBrand,
+            systemOverlayStyle: SystemUiOverlayStyle(
+                statusBarColor: AppColorV2.lpBlueBrand,
+                statusBarBrightness: Brightness.dark,
+                statusBarIconBrightness: Brightness.light),
+            title: LuvpayText(text: "Reset password"),
+            centerTitle: true,
+            leading: IconButton(
+                onPressed: () => Get.back(),
+                icon: Icon(Iconsax.arrow_left, color: Colors.white))),
+        backgroundColor: AppColorV2.background,
+        body: Padding(
+            padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+            child: Form(
+                key: formKeyChangePass,
+                child: StretchingOverscrollIndicator(
+                    axisDirection: AxisDirection.down,
+                    child: SingleChildScrollView(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              PasswordStrengthIndicator(
-                                strength: 1,
-                                currentStrength: passStrength.value,
-                              ),
-                              spacing(width: 5),
-                              PasswordStrengthIndicator(
-                                strength: 2,
-                                currentStrength: passStrength.value,
-                              ),
-                              spacing(width: 5),
-                              PasswordStrengthIndicator(
-                                strength: 3,
-                                currentStrength: passStrength.value,
-                              ),
-                              spacing(width: 5),
-                              PasswordStrengthIndicator(
-                                strength: 4,
-                                currentStrength: passStrength.value,
-                              ),
-                            ],
-                          ),
-                          spacing(height: 15),
-                          if (Variables.getPasswordStrengthText(
-                            passStrength.value,
-                          ).isNotEmpty)
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.shield_moon,
-                                  color: Variables.getColorForPasswordStrength(
-                                    passStrength.value,
-                                  ),
-                                  size: 18,
-                                ),
-                                SizedBox(width: 6),
-                                LuvpayText(
-                                  text: Variables.getPasswordStrengthText(
-                                    passStrength.value,
-                                  ),
-                                  color: Variables.getColorForPasswordStrength(
-                                    passStrength.value,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          spacing(height: 10),
+                          spacing(height: 20),
                           LuvpayText(
-                            text:
-                                "The password should have a minimum of 8 characters, including at least one uppercase letter and a number.",
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  VerticalHeight(height: 30),
-                  if (MediaQuery.of(context).viewInsets.bottom == 0)
-                    CustomButton(text: "Submit", onPressed: onSubmit),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+                              text:
+                                  "Your new password must be different from previous used passwords."),
+                          spacing(height: 20),
+                          LuvpayText(
+                              text: "New Password",
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: cs.onSurface),
+                          CustomTextField(
+                              title: "New Password",
+                              hintText: "Create your new password",
+                              controller: newPassword,
+                              isObscure: !isShowNewPass.value,
+                              suffixIcon: !isShowNewPass.value
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              onChange: (value) => onPasswordChanged(value),
+                              onIconTap: () =>
+                                  onToggleNewPass(!isShowNewPass.value),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                              ],
+                              validator: (txtValue) {
+                                if (txtValue == null || txtValue.isEmpty) {
+                                  return "Field is required";
+                                }
+                                if (txtValue == oldPassword.text) {
+                                  return "New password must be different";
+                                }
+                                if (txtValue.trim().length < 8 ||
+                                    txtValue.trim().length > 32) {
+                                  return "Password must be between 8 and 32 characters";
+                                }
+                                if (passStrength.value == 1)
+                                  return "Very Weak Password";
+                                if (passStrength.value == 2)
+                                  return "Weak Password";
+                                if (passStrength.value == 3)
+                                  return "Medium Password";
+                                return null;
+                              }),
+                          LuvpayText(
+                              text: "Confirm Password",
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: cs.onSurface),
+                          CustomTextField(
+                              title: "Confirm Password",
+                              hintText: "Confirm your new password",
+                              controller: newConfirmPassword,
+                              isObscure: !isShowNewPassConfirm.value,
+                              suffixIcon: !isShowNewPassConfirm.value
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              onChange: (value) =>
+                                  onPasswordConfirmChanged(value),
+                              onIconTap: () => onToggleConfirmNewPass(
+                                  !isShowNewPassConfirm.value),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                              ],
+                              validator: (txtValue) {
+                                if (txtValue == null || txtValue.isEmpty) {
+                                  return "Field is required";
+                                }
+                                if (txtValue.trim().length < 8 ||
+                                    txtValue.trim().length > 32) {
+                                  return "Password must be between 8 and 32 characters";
+                                }
+                                if (txtValue != newPassword.text) {
+                                  return "New passwords do not match";
+                                }
+                                return null;
+                              }),
+                          Container(
+                              clipBehavior: Clip.antiAlias,
+                              decoration: ShapeDecoration(
+                                  shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                          width: 1,
+                                          color: (isDark
+                                                  ? Colors.white
+                                                  : Colors.black)
+                                              .withOpacity(0.06)),
+                                      borderRadius: BorderRadius.circular(16))),
+                              child: Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(12, 15, 11, 18),
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        LuvpayText(
+                                            text: "Password Strength",
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: -.1,
+                                            wordSpacing: 2,
+                                            color: cs.onSurface),
+                                        spacing(height: 15),
+                                        Row(children: [
+                                          PasswordStrengthIndicator(
+                                              strength: 1,
+                                              currentStrength:
+                                                  passStrength.value),
+                                          spacing(width: 5),
+                                          PasswordStrengthIndicator(
+                                              strength: 2,
+                                              currentStrength:
+                                                  passStrength.value),
+                                          spacing(width: 5),
+                                          PasswordStrengthIndicator(
+                                              strength: 3,
+                                              currentStrength:
+                                                  passStrength.value),
+                                          spacing(width: 5),
+                                          PasswordStrengthIndicator(
+                                              strength: 4,
+                                              currentStrength:
+                                                  passStrength.value),
+                                        ]),
+                                        spacing(height: 15),
+                                        if (Variables.getPasswordStrengthText(
+                                                passStrength.value)
+                                            .isNotEmpty)
+                                          Row(children: [
+                                            Icon(Icons.shield_moon,
+                                                color: Variables
+                                                    .getColorForPasswordStrength(
+                                                        passStrength.value),
+                                                size: 18),
+                                            SizedBox(width: 6),
+                                            LuvpayText(
+                                                text: Variables
+                                                    .getPasswordStrengthText(
+                                                        passStrength.value),
+                                                color: Variables
+                                                    .getColorForPasswordStrength(
+                                                        passStrength.value)),
+                                          ]),
+                                        spacing(height: 10),
+                                        LuvpayText(
+                                            text:
+                                                "The password should have a minimum of 8 characters, including at least one uppercase letter and a number.",
+                                            color: cs.onSurfaceVariant),
+                                      ]))),
+                          VerticalHeight(height: 30),
+                          if (MediaQuery.of(context).viewInsets.bottom == 0)
+                            CustomButton(text: "Submit", onPressed: onSubmit),
+                        ]))))));
   }
 }

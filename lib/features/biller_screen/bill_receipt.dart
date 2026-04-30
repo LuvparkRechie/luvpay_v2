@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -46,84 +45,66 @@ class BillPaymentReceipt extends StatelessWidget {
     final borderOpacity = isDark ? 0.05 : 0.01;
 
     return PopScope(
-      canPop: false,
-      child: Scaffold(
-        backgroundColor: cs.surface,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          toolbarHeight: 0,
-          elevation: 0,
-          backgroundColor: cs.surface,
-          surfaceTintColor: Colors.transparent,
-          systemOverlayStyle:
-              (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
-                  .copyWith(statusBarColor: cs.surface),
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 19),
-            child: Column(
-              children: [
-                const SizedBox(height: 28),
-                Screenshot(
-                  controller: _shot,
-                  child: _downloadableReceipt(
-                    context,
-                    cs: cs,
-                    isDark: isDark,
-                    borderOpacity: borderOpacity,
-                  ),
-                ),
-                const SizedBox(height: 22),
-                Column(
-                  children: [
-                    CustomButton(
-                      text: "Done",
-                      onPressed: () {
-                        Get.back(result: true);
-                        Get.back(result: true);
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+        canPop: false,
+        child: Scaffold(
+            backgroundColor: cs.surface,
+            appBar: AppBar(
+                automaticallyImplyLeading: false,
+                toolbarHeight: 0,
+                elevation: 0,
+                backgroundColor: cs.surface,
+                surfaceTintColor: Colors.transparent,
+                systemOverlayStyle: (isDark
+                        ? SystemUiOverlayStyle.light
+                        : SystemUiOverlayStyle.dark)
+                    .copyWith(statusBarColor: cs.surface)),
+            body: SafeArea(
+                child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 19),
+                    child: Column(children: [
+                      const SizedBox(height: 28),
+                      Screenshot(
+                          controller: _shot,
+                          child: _downloadableReceipt(context,
+                              cs: cs,
+                              isDark: isDark,
+                              borderOpacity: borderOpacity)),
+                      const SizedBox(height: 22),
+                      Column(children: [
                         CustomButton(
-                          width: MediaQuery.of(context).size.width / 3,
-                          text: "Save Receipt",
-                          btnColor: cs.surface,
-                          textColor: cs.primary,
-                          bordercolor: cs.primary,
-                          onPressed: () => _saveReceipt(context),
-                        ),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        CustomButton(
-                          width: MediaQuery.of(context).size.width / 2,
-                          text: "Add to favorites",
-                          onPressed: () async {
-                            await addFavorites(
-                              paymentParams,
-                              paymentParams['biller_id'],
-                              paymentParams['bill_acct_no'],
-                              paymentParams['account_name'],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                ),
-                const SizedBox(height: 18),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+                            text: "Done",
+                            onPressed: () {
+                              Get.back(result: true);
+                              Get.back(result: true);
+                            }),
+                        const SizedBox(height: 10),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CustomButton(
+                                  width: MediaQuery.of(context).size.width / 3,
+                                  text: "Save Receipt",
+                                  btnColor: cs.surface,
+                                  textColor: cs.primary,
+                                  bordercolor: cs.primary,
+                                  onPressed: () => _saveReceipt(context)),
+                              SizedBox(width: 5),
+                              CustomButton(
+                                  width: MediaQuery.of(context).size.width / 2,
+                                  text: "Add to favorites",
+                                  onPressed: () async {
+                                    await addFavorites(
+                                        paymentParams,
+                                        paymentParams['biller_id'],
+                                        paymentParams['bill_acct_no'],
+                                        paymentParams['account_name']);
+                                  }),
+                            ]),
+                        const SizedBox(height: 12),
+                      ]),
+                      const SizedBox(height: 18),
+                    ])))));
   }
 
   Widget _downloadableReceipt(
@@ -134,14 +115,9 @@ class BillPaymentReceipt extends StatelessWidget {
   }) {
     final width = MediaQuery.of(context).size.width - (19 * 2);
     return SizedBox(
-      width: width,
-      child: _receiptTicket(
-        context,
-        cs: cs,
-        isDark: isDark,
-        borderOpacity: borderOpacity,
-      ),
-    );
+        width: width,
+        child: _receiptTicket(context,
+            cs: cs, isDark: isDark, borderOpacity: borderOpacity));
   }
 
   Widget _receiptTicket(
@@ -173,250 +149,199 @@ class BillPaymentReceipt extends StatelessWidget {
         : billerName;
 
     return Ticketcher.vertical(
-      notchRadius: 14,
-      decoration: TicketcherDecoration(
-        backgroundColor: cs.surface,
-        borderRadius: const TicketRadius(radius: 16),
-        border: Border.all(color: borderColor, width: 1),
-        shadow: BoxShadow(
-          color: cs.shadow.withOpacity(isDark ? 0.30 : 0.10),
-          blurRadius: 22,
-          offset: const Offset(0, 12),
-        ),
-        divider: TicketDivider.dashed(
-          color: cs.onSurface.withOpacity(isDark ? 0.18 : 0.12),
-          thickness: 1,
-          dashWidth: 8,
-          dashSpace: 6,
-          padding: 10,
-        ),
-      ),
-      sections: [
-        Section(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-          child: Column(
-            children: [
-              _buildReceiptHeader(
-                context,
-                cs: cs,
-                isDark: isDark,
-                borderOpacity: borderOpacity,
-              ),
-              const SizedBox(height: 18),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  LuvpayText(
-                    text: "AMOUNT PAID",
-                    style: AppTextStyle.body2(context).copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.2,
-                    ),
-                    color: cs.onSurface.withOpacity(0.60),
-                  ),
-                  LuvpayText(
-                    text: _formatCurrency(amount),
-                    style: AppTextStyle.h3(context).copyWith(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.2,
-                    ),
-                    color: cs.primary,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Section(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-          child: Column(
-            children: [
-              _buildReceiptRow(
-                context,
-                cs,
-                'STATUS',
-                'COMPLETED',
-                isBold: true,
-              ),
-              const SizedBox(height: 10),
-              _buildReceiptRow(context, cs, 'AMOUNT',
-                  safeText(paymentParams['original_amount'])),
-              const SizedBox(height: 10),
-              if (paymentParams['service_fee'] != 0)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildReceiptRow(context, cs, 'SERVICE FEE',
-                        safeText(paymentParams['service_fee'])),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              _buildReceiptRow(context, cs, 'DATE',
-                  Functions.formatPHDate(apiResponse['payment_dt'])),
-              const SizedBox(height: 10),
-              _buildReceiptRow(context, cs, 'TIME',
-                  Functions.formatPHTime(apiResponse['payment_dt'])),
-              const SizedBox(height: 10),
-              _buildReceiptRow(context, cs, 'BILLER', safeBiller),
-              const SizedBox(height: 10),
-              _buildReceiptRow(context, cs, 'ACCOUNT NAME',
-                  safeText(paymentParams['account_name'])),
-              const SizedBox(height: 10),
-              _buildReceiptRow(context, cs, 'ACCOUNT NO.',
-                  safeText(paymentParams['bill_acct_no'])),
-              const SizedBox(height: 10),
-              _buildReceiptRow(context, cs, 'PAYMENT METHOD', walletName),
-            ],
-          ),
-        ),
-        Section(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-          child: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: cs.onSurface.withOpacity(borderOpacity),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Image.asset("assets/images/logo.png", height: 38),
-                    const SizedBox(height: 8),
-                    LuvpayText(
-                      text: 'Thank you for your payment!',
-                      style: AppTextStyle.body1(
-                        context,
-                      ).copyWith(fontWeight: FontWeight.w900),
-                      color: cs.onSurface,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    LuvpayText(
-                      text: 'Keep this receipt for your records',
-                      style: AppTextStyle.body2(
-                        context,
-                      ).copyWith(fontWeight: FontWeight.w700),
-                      color: cs.onSurface.withOpacity(0.60),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        LuvpayText(
-                          text: "REF NO:  $reference",
+        notchRadius: 14,
+        decoration: TicketcherDecoration(
+            backgroundColor: cs.surface,
+            borderRadius: const TicketRadius(radius: 16),
+            border: Border.all(color: borderColor, width: 1),
+            shadow: BoxShadow(
+                color: cs.shadow.withOpacity(isDark ? 0.30 : 0.10),
+                blurRadius: 22,
+                offset: const Offset(0, 12)),
+            divider: TicketDivider.dashed(
+                color: cs.onSurface.withOpacity(isDark ? 0.18 : 0.12),
+                thickness: 1,
+                dashWidth: 8,
+                dashSpace: 6,
+                padding: 10)),
+        sections: [
+          Section(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: Column(children: [
+                _buildReceiptHeader(context,
+                    cs: cs, isDark: isDark, borderOpacity: borderOpacity),
+                const SizedBox(height: 18),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      LuvpayText(
+                          text: "AMOUNT PAID",
                           style: AppTextStyle.body2(context).copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                          ),
-                          color: AppColorV2.lpBlueBrand,
-                          maxLines: 1,
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.2),
+                          color: cs.onSurface.withOpacity(0.60)),
+                      LuvpayText(
+                          text: _formatCurrency(amount),
+                          style: AppTextStyle.h3(context).copyWith(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.2),
+                          color: cs.primary),
+                    ]),
+              ])),
+          Section(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+              child: Column(children: [
+                _buildReceiptRow(context, cs, 'STATUS', 'COMPLETED',
+                    isBold: true),
+                const SizedBox(height: 10),
+                _buildReceiptRow(context, cs, 'AMOUNT',
+                    safeText(paymentParams['original_amount'])),
+                const SizedBox(height: 10),
+                if (paymentParams['service_fee'] != 0)
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildReceiptRow(context, cs, 'SERVICE FEE',
+                            safeText(paymentParams['service_fee'])),
+                        const SizedBox(height: 10),
+                      ]),
+                _buildReceiptRow(context, cs, 'DATE',
+                    Functions.formatPHDate(apiResponse['payment_dt'])),
+                const SizedBox(height: 10),
+                _buildReceiptRow(context, cs, 'TIME',
+                    Functions.formatPHTime(apiResponse['payment_dt'])),
+                const SizedBox(height: 10),
+                _buildReceiptRow(context, cs, 'BILLER', safeBiller),
+                const SizedBox(height: 10),
+                _buildReceiptRow(context, cs, 'ACCOUNT NAME',
+                    safeText(paymentParams['account_name'])),
+                const SizedBox(height: 10),
+                _buildReceiptRow(context, cs, 'ACCOUNT NO.',
+                    safeText(paymentParams['bill_acct_no'])),
+                const SizedBox(height: 10),
+                _buildReceiptRow(context, cs, 'PAYMENT METHOD', walletName),
+              ])),
+          Section(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Column(children: [
+                Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                    decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: cs.onSurface.withOpacity(borderOpacity))),
+                    child: Column(children: [
+                      Image.asset("assets/images/logo.png", height: 38),
+                      const SizedBox(height: 8),
+                      LuvpayText(
+                          text: 'Thank you for your payment!',
+                          style: AppTextStyle.body1(context)
+                              .copyWith(fontWeight: FontWeight.w900),
+                          color: cs.onSurface,
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 4),
+                      LuvpayText(
+                          text: 'Keep this receipt for your records',
+                          style: AppTextStyle.body2(context)
+                              .copyWith(fontWeight: FontWeight.w700),
+                          color: cs.onSurface.withOpacity(0.60),
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 5),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            LuvpayText(
+                                text: "REF NO:  $reference",
+                                style: AppTextStyle.body2(context).copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.2),
+                                color: AppColorV2.lpBlueBrand,
+                                maxLines: 1)
+                          ]),
+                      const SizedBox(height: 10),
+                    ])),
+              ])),
+        ]);
   }
 
   Future<void> addFavorites(params, billId, accountNo, nickName) async {
     int userId = await Authentication().getUserId();
     bool isButtonEnabled = true;
-    CustomDialogStack.showConfirmation(
-      Get.context!,
-      "Add to Favorites",
-      "Do you want to add this biller to your favorites?",
-      leftText: "No",
-      rightText: "Yes",
-      () {
+    CustomDialogStack.showConfirmation(Get.context!, "Add to Favorites",
+        "Do you want to add this biller to your favorites?",
+        leftText: "No", rightText: "Yes", () {
+      Get.back();
+    }, () {
+      Get.back();
+      if (!isButtonEnabled) return;
+      isButtonEnabled = false;
+      CustomDialogStack.showLoading(Get.context!);
+      var parameter = {
+        "user_id": userId,
+        "biller_id": billId,
+        "account_no": accountNo,
+        "account_name": nickName.toString(),
+      };
+      Functions()
+          .requestHandler(
+              apiKey: ApiKeys.postAddFavBiller, method: "POST", body: parameter)
+          .then((returnPost) async {
         Get.back();
-      },
-      () {
-        Get.back();
-        if (!isButtonEnabled) return;
-        isButtonEnabled = false;
-        CustomDialogStack.showLoading(Get.context!);
-        var parameter = {
-          "user_id": userId,
-          "biller_id": billId,
-          "account_no": accountNo,
-          "account_name": nickName.toString(),
-        };
-        HttpRequestApi(api: ApiKeys.postAddFavBiller, parameters: parameter)
-            .postBody()
-            .then((returnPost) async {
-          Get.back();
-          if (returnPost == "No Internet") {
-            CustomDialogStack.showConnectionLost(Get.context!, () {
-              Get.back();
-            });
-            return {"response": returnPost, "data": []};
-          }
-          if (returnPost == null) {
-            CustomDialogStack.showServerError(Get.context!, () {
-              Get.back();
-            });
-            return {"response": returnPost, "data": []};
-          }
-          if (returnPost["success"] == 'Y') {
-            CustomDialogStack.showSuccess(
-              Get.context!,
-              "Success",
-              "Successfully added to favorites.",
-              leftText: "Okay",
-              () {
-                if (params["source"] == "fav") {
-                  Functions.popPage(3);
-                  getFavorites();
-                } else {
-                  Get.back();
-                  getFavorites();
-                }
-              },
-            );
-          } else {
-            CustomDialogStack.showError(
-              Get.context!,
-              "luvpark",
-              returnPost["msg"],
-              () {
-                if (params["source"] == "fav") {
-                  Functions.popPage(2);
-                } else {
-                  Get.back();
-                  getFavorites();
-                }
-              },
-            );
-          }
-        }).whenComplete(() {
-          Future.delayed(const Duration(seconds: 2), () {
-            isButtonEnabled = true;
+        if (returnPost == "No Internet") {
+          CustomDialogStack.showConnectionLost(Get.context!, () {
+            Get.back();
           });
+          return {"response": returnPost, "data": []};
+        }
+        if (returnPost == null) {
+          CustomDialogStack.showServerError(Get.context!, () {
+            Get.back();
+          });
+          return {"response": returnPost, "data": []};
+        }
+        if (returnPost["success"] == 'Y') {
+          CustomDialogStack.showSuccess(
+              Get.context!, "Success", "Successfully added to favorites.",
+              leftText: "Okay", () {
+            if (params["source"] == "fav") {
+              Functions.popPage(3);
+              getFavorites();
+            } else {
+              Get.back();
+              getFavorites();
+            }
+          });
+        } else {
+          CustomDialogStack.showError(
+              Get.context!, "luvpark", returnPost["msg"], () {
+            if (params["source"] == "fav") {
+              Functions.popPage(2);
+            } else {
+              Get.back();
+              getFavorites();
+            }
+          });
+        }
+      }).whenComplete(() {
+        Future.delayed(const Duration(seconds: 2), () {
+          isButtonEnabled = true;
         });
-      },
-    );
+      });
+    });
   }
 
   Future<void> getFavorites() async {
     final item = await Authentication().getUserData();
     String userId = jsonDecode(item!)['user_id'].toString();
     String subApi = "${ApiKeys.getFavBiller}?user_id=$userId";
-    HttpRequestApi(api: subApi).get().then((response) async {
+    Functions()
+        .requestHandler(apiKey: subApi, method: "GET")
+        .then((response) async {
       if (response == "No Internet") {
         isLoading = false;
         isNetConn = false;
@@ -446,12 +371,8 @@ class BillPaymentReceipt extends StatelessWidget {
 
       if (bytes == null) {
         if (Get.isDialogOpen == true) Get.back();
-        CustomDialogStack.showError(
-          Get.context!,
-          "Failed",
-          "Unable to save receipt. Please try again.",
-          () => Get.back(),
-        );
+        CustomDialogStack.showError(Get.context!, "Failed",
+            "Unable to save receipt. Please try again.", () => Get.back());
         return;
       }
 
@@ -465,23 +386,15 @@ class BillPaymentReceipt extends StatelessWidget {
       await GallerySaver.saveImage(imageFile.path);
 
       if (Get.isDialogOpen == true) Get.back();
-      CustomDialogStack.showSuccess(
-        Get.context!,
-        "Success",
-        "Receipt has been saved. Please check your gallery.",
-        () {
-          Get.back();
-          Get.back();
-        },
-      );
+      CustomDialogStack.showSuccess(Get.context!, "Success",
+          "Receipt has been saved. Please check your gallery.", () {
+        Get.back();
+        Get.back();
+      });
     } catch (_) {
       if (Get.isDialogOpen == true) Get.back();
-      CustomDialogStack.showError(
-        Get.context!,
-        "Failed",
-        "Unable to save receipt. Please try again.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(Get.context!, "Failed",
+          "Unable to save receipt. Please try again.", () => Get.back());
     }
   }
 
@@ -491,30 +404,23 @@ class BillPaymentReceipt extends StatelessWidget {
     required bool isDark,
     required double borderOpacity,
   }) {
-    return Column(
-      children: [
-        Container(
+    return Column(children: [
+      Container(
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
-            shape: BoxShape.circle,
-            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-          ),
-          child: Icon(Icons.check_rounded, color: cs.primary, size: 32),
-        ),
-        const SizedBox(height: 14),
-        LuvpayText(
+              color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
+              shape: BoxShape.circle,
+              border:
+                  Border.all(color: cs.onSurface.withOpacity(borderOpacity))),
+          child: Icon(Icons.check_rounded, color: cs.primary, size: 32)),
+      const SizedBox(height: 14),
+      LuvpayText(
           text: 'Payment Successful',
           style: AppTextStyle.h2(context).copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.25,
-          ),
-          color: cs.onSurface,
-        ),
-      ],
-    );
+              fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.25),
+          color: cs.onSurface),
+    ]);
   }
 
   Widget _buildReceiptRow(
@@ -524,38 +430,29 @@ class BillPaymentReceipt extends StatelessWidget {
     String value, {
     bool isBold = false,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(
           flex: 4,
           child: LuvpayText(
-            text: title,
-            style: AppTextStyle.body2(context).copyWith(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
-            ),
-            color: cs.onSurface.withOpacity(0.58),
-            maxLines: 1,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
+              text: title,
+              style: AppTextStyle.body2(context).copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.2),
+              color: cs.onSurface.withOpacity(0.58),
+              maxLines: 1)),
+      const SizedBox(width: 10),
+      Expanded(
           flex: 6,
           child: LuvpayText(
-            text: value,
-            textAlign: TextAlign.right,
-            style: AppTextStyle.body2(context).copyWith(
-              fontSize: 12,
-              fontWeight: isBold ? FontWeight.w900 : FontWeight.w800,
-            ),
-            color: cs.onSurface,
-            maxLines: 2,
-          ),
-        ),
-      ],
-    );
+              text: value,
+              textAlign: TextAlign.right,
+              style: AppTextStyle.body2(context).copyWith(
+                  fontSize: 12,
+                  fontWeight: isBold ? FontWeight.w900 : FontWeight.w800),
+              color: cs.onSurface,
+              maxLines: 2)),
+    ]);
   }
 
   String _extractAmountFromMessage(String message) {

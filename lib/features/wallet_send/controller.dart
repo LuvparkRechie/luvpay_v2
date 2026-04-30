@@ -197,12 +197,8 @@ class WalletSendController extends GetxController {
 
   Future<void> proceedToOtp() async {
     if (recipientData.isEmpty || recipientData[0]["mobile_no"] == null) {
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Recipient data is not available.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Recipient data is not available.", () => Get.back());
       return;
     }
 
@@ -216,7 +212,7 @@ class WalletSendController extends GetxController {
       final params =
           "${ApiKeys.verifyUserAccount}?mobile_no=${recipientData[0]["mobile_no"]}";
 
-      final returnData = await HttpRequestApi(api: params).get();
+      final returnData = await Functions().requestHandler(apiKey: params);
 
       if (returnData == "No Internet") {
         _closeLoadingOnly();
@@ -241,20 +237,12 @@ class WalletSendController extends GetxController {
       }
 
       _closeLoadingOnly();
-      CustomDialogStack.showError(
-        Get.context!,
-        "luvpay",
-        returnData["items"][0]["msg"],
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(Get.context!, "luvpay",
+          returnData["items"][0]["msg"], () => Get.back());
     } catch (_) {
       _closeLoadingOnly();
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Something went wrong. Please try again.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Something went wrong. Please try again.", () => Get.back());
     }
   }
 
@@ -271,12 +259,8 @@ class WalletSendController extends GetxController {
       timeNow = await Functions.getTimeNow();
     } catch (_) {
       _closeLoadingOnly();
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Unable to get server time. Please try again.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Unable to get server time. Please try again.", () => Get.back());
       return;
     }
 
@@ -291,18 +275,11 @@ class WalletSendController extends GetxController {
       }
 
       if (objData["success"] == "Y" || objData["status"] == "PENDING") {
-        final timeExp = DateFormat(
-          "yyyy-MM-dd hh:mm:ss a",
-        ).parse(objData["otp_exp_dt"].toString());
+        final timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+            .parse(objData["otp_exp_dt"].toString());
 
-        final otpExpiry = DateTime(
-          timeExp.year,
-          timeExp.month,
-          timeExp.day,
-          timeExp.hour,
-          timeExp.minute,
-          timeExp.second,
-        );
+        final otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+            timeExp.hour, timeExp.minute, timeExp.second);
 
         final difference = otpExpiry.difference(timeNow);
 
@@ -326,11 +303,9 @@ class WalletSendController extends GetxController {
 
         _closeLoadingOnly();
 
-        await Get.to(
-          OtpFieldScreen(arguments: args),
-          transition: Transition.rightToLeftWithFade,
-          duration: const Duration(milliseconds: 400),
-        );
+        await Get.to(OtpFieldScreen(arguments: args),
+            transition: Transition.rightToLeftWithFade,
+            duration: const Duration(milliseconds: 400));
 
         _closeLoadingOnly();
 
@@ -340,11 +315,10 @@ class WalletSendController extends GetxController {
 
       _closeLoadingOnly();
       CustomDialogStack.showError(
-        Get.context!,
-        "luvpay",
-        objData["msg"]?.toString() ?? "Unable to request OTP.",
-        () => Get.back(),
-      );
+          Get.context!,
+          "luvpay",
+          objData["msg"]?.toString() ?? "Unable to request OTP.",
+          () => Get.back());
       if (!completer.isCompleted) completer.complete();
     });
 
@@ -357,7 +331,7 @@ class WalletSendController extends GetxController {
     final userId = await Authentication().getUserId();
     String subApi = "${ApiKeys.getUserBalance}$userId";
 
-    HttpRequestApi(api: subApi).get().then((returnBalance) async {
+    Functions().requestHandler(apiKey: subApi).then((returnBalance) async {
       if (returnBalance == "No Internet" || returnBalance == null) {
         isLoading.value = false;
         isNetConn.value = false;
@@ -390,10 +364,10 @@ class WalletSendController extends GetxController {
 
     dynamic retvalue;
     try {
-      retvalue = await HttpRequestApi(
-        api: ApiKeys.postShareToken,
-        parameters: parameters,
-      ).postBody();
+      retvalue = await Functions().requestHandler(
+          apiKey: ApiKeys.postShareToken,
+          parameters: parameters,
+          method: "POST");
     } catch (_) {
       retvalue = null;
     }
@@ -401,24 +375,19 @@ class WalletSendController extends GetxController {
     if (retvalue == "No Internet") {
       _closeLoadingOnly();
       CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Please check your internet connection and try again.",
-        () => Get.back(),
-      );
+          Get.context!,
+          "Error",
+          "Please check your internet connection and try again.",
+          () => Get.back());
       return;
     }
 
     if (retvalue == null) {
       _closeLoadingOnly();
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Error while connecting to server, Please try again.",
-        () {
-          if (Navigator.canPop(Get.context!)) Get.back();
-        },
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Error while connecting to server, Please try again.", () {
+        if (Navigator.canPop(Get.context!)) Get.back();
+      });
       return;
     }
 
@@ -426,36 +395,23 @@ class WalletSendController extends GetxController {
       await addRecentFromCurrentRecipient();
 
       NotificationController.shareTokenNotification(
-        0,
-        0,
-        'Transfer Token',
-        "${retvalue["msg"]}.",
-        "walletScreen",
-      );
+          0, 0, 'Transfer Token', "${retvalue["msg"]}.", "walletScreen");
 
       _closeLoadingOnly();
 
       CustomDialogStack.showSuccess(
-        Get.context!,
-        "Success!",
-        "Transaction is complete",
-        leftText: "Okay",
-        () {
-          Get.back();
-          Get.back();
-          refreshUserData();
-        },
-      );
+          Get.context!, "Success!", "Transaction is complete", leftText: "Okay",
+          () {
+        Get.back();
+        Get.back();
+        refreshUserData();
+      });
       return;
     }
 
     _closeLoadingOnly();
     CustomDialogStack.showError(
-      Get.context!,
-      "luvpay",
-      retvalue["msg"],
-      () => Get.back(),
-    );
+        Get.context!, "luvpay", retvalue["msg"], () => Get.back());
   }
 
   Future<void> getRecipient(String mobileNo, {String? isFromQR}) async {
@@ -473,7 +429,7 @@ class WalletSendController extends GetxController {
 
     dynamic objData;
     try {
-      objData = await HttpRequestApi(api: api).get();
+      objData = await Functions().requestHandler(apiKey: api);
     } catch (_) {
       objData = null;
     } finally {
@@ -498,12 +454,12 @@ class WalletSendController extends GetxController {
     userImage.value = (objData["image_base64"] ?? "").toString();
 
     if (fname.isNotEmpty) {
-      final transformedF = Variables.transformFullName(
-        fname.replaceAll(RegExp(r'\..*'), ''),
-      );
+      final transformedF =
+          Variables.transformFullName(fname.replaceAll(RegExp(r'\..*'), ''));
       final transformedL = Variables.transformFullName(
-        (objData["last_name"] ?? "").toString().replaceAll(RegExp(r'\..*'), ''),
-      );
+          (objData["last_name"] ?? "")
+              .toString()
+              .replaceAll(RegExp(r'\..*'), ''));
       final middle = (objData["middle_name"] ?? "").toString();
       final middleInitial = middle.isNotEmpty ? middle[0] : "";
 

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +13,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice2/places.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/auth/authentication.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/variables.dart';
 import 'package:luvpay/core/utils/functions/eta_calculator.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
@@ -33,6 +31,61 @@ class Functions {
   static final GeolocatorPlatform _geolocatorPlatform =
       GeolocatorPlatform.instance;
 
+  Future<dynamic> requestHandler({
+    required String apiKey,
+    int? ctr,
+    String method = "GET",
+    Map<String, dynamic>? queryParameters,
+    Object? parameters,
+    Object? body,
+    Map<String, String>? headers,
+    Duration? timeout,
+    List<int>? successStatusCodes,
+    bool decodeResponse = true,
+    bool returnHeaders = false,
+    bool runSecurityCheck = true,
+    bool includeDefaultHeaders = true,
+    String nullDataMessage = HttpRequestApi.defaultErrorMessage,
+    FutureOr<void> Function(int counter)? onInit,
+    FutureOr<void> Function(String message)? onError,
+    FutureOr<void> Function(dynamic result)? onSuccess,
+  }) async {
+    return HttpRequestApi(
+      api: apiKey,
+      parameters: parameters ?? body,
+    ).requestHandler(
+      apiKey: apiKey,
+      ctr: ctr,
+      method: method,
+      queryParameters: queryParameters,
+      body: body ?? parameters,
+      headers: headers,
+      timeout: timeout,
+      successStatusCodes: successStatusCodes,
+      decodeResponse: decodeResponse,
+      returnHeaders: returnHeaders,
+      runSecurityCheck: runSecurityCheck,
+      includeDefaultHeaders: includeDefaultHeaders,
+      nullDataMessage: nullDataMessage,
+      onInit: onInit,
+      onError: onError,
+      onSuccess: onSuccess,
+    );
+  }
+
+  Future<dynamic> linkToPage() async {
+    final response = await requestHandler(
+      apiKey: "https://luvpark.ph/terms-of-use",
+      decodeResponse: false,
+    );
+
+    if (response == "No Internet" || response == null) {
+      return null;
+    }
+
+    return "Success";
+  }
+
   static Future<List> getUserBalance() async {
     final respo = await Authentication().getUserData2().then((userData) async {
       if (userData == null) {
@@ -42,7 +95,7 @@ class Functions {
       }
       String subApi = "${ApiKeys.getUserBalance}${userData["user_id"]}";
 
-      final response = await HttpRequestApi(api: subApi).get();
+      final response = await Functions().requestHandler(apiKey: subApi);
       if (response == "No Internet") {
         return [
           {"has_net": false, "success": false, "items": []},
@@ -107,7 +160,7 @@ class Functions {
 
         String subApi = "${ApiKeys.getUserBalance}${user["user_id"]}";
 
-        HttpRequestApi(api: subApi).get().then((returnBalance) async {
+        Functions().requestHandler(apiKey: subApi).then((returnBalance) async {
           if (returnBalance == "No Internet") {
             cb([
               {"has_net": false, "success": false, "items": []},
@@ -321,8 +374,11 @@ class Functions {
     String apiParam = ApiKeys.generatePayKey;
     dynamic param = {"luvpay_id": userId};
 
-    final response =
-        await HttpRequestApi(api: apiParam, parameters: param).put();
+    final response = await Functions().requestHandler(
+      apiKey: apiParam,
+      parameters: param,
+      method: "PUT",
+    );
 
     Get.back();
     if (response == "No Internet") {
@@ -393,10 +449,11 @@ class Functions {
       "session_id": sessionId,
     };
 
-    final response = await HttpRequestApi(
-      api: ApiKeys.putLogout,
+    final response = await Functions().requestHandler(
+      apiKey: ApiKeys.putLogout,
       parameters: putLogoutParam,
-    ).putBody();
+      method: "PUT",
+    );
     Get.back();
     if (response == "No Internet") {
       cb({"is_true": false, "data": 0});
@@ -444,10 +501,11 @@ class Functions {
       "session_id": sessionId,
     };
 
-    final response = await HttpRequestApi(
-      api: ApiKeys.putLogout,
+    final response = await Functions().requestHandler(
+      apiKey: ApiKeys.putLogout,
       parameters: putLogoutParam,
-    ).putBody();
+      method: "PUT",
+    );
 
     if (response == "No Internet") {
       cb({"is_true": false, "data": 0});
@@ -493,10 +551,13 @@ class Functions {
   Future<void> requestOtp(Map<String, String> param, Function cb) async {
     CustomDialogStack.showLoading(Get.context!);
     final api = ApiKeys.postGenerateOtp;
-    HttpRequestApi(
-      api: api,
+    Functions()
+        .requestHandler(
+      apiKey: api,
       parameters: param,
-    ).postBody().then((returnData) async {
+      method: "POST",
+    )
+        .then((returnData) async {
       Get.back();
 
       if (returnData == "No Internet") {
@@ -561,7 +622,9 @@ class Functions {
 
   Future<void> verifyMobile(String mobileNo, Function cb) async {
     CustomDialogStack.showLoading(Get.context!);
-    HttpRequestApi(api: "${ApiKeys.getAcctStatus}$mobileNo/vlevel").get().then((
+    Functions()
+        .requestHandler(apiKey: "${ApiKeys.getAcctStatus}$mobileNo/vlevel")
+        .then((
       objData,
     ) {
       Get.back();
@@ -605,7 +668,7 @@ class Functions {
 
     String subApi = "${ApiKeys.getSecQue}?mobile_no=$mobile&secq_no=$myRan";
 
-    HttpRequestApi(api: subApi).get().then((returnData) {
+    Functions().requestHandler(apiKey: subApi).then((returnData) {
       Get.back();
       if (returnData == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -647,7 +710,7 @@ class Functions {
     CustomDialogStack.showLoading(Get.context!);
     var params = "${ApiKeys.verifyUserAccount}?mobile_no=$mobileNo";
 
-    HttpRequestApi(api: params).get().then((objData) async {
+    Functions().requestHandler(apiKey: params).then((objData) async {
       Get.back();
       if (objData == "No Internet") {
         cb({"success": false, "data": {}});
@@ -836,7 +899,7 @@ class Functions {
   static Future<dynamic> getDropdownVehicles({parkAreaId}) async {
     String api = "${ApiKeys.getDropdownVhTypesArea}$parkAreaId";
 
-    final returnData = await HttpRequestApi(api: api).get();
+    final returnData = await Functions().requestHandler(apiKey: api);
 
     if (returnData == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -975,8 +1038,8 @@ class Functions {
 
   static Future<dynamic> getpaymentHK() async {
     final userID = await Authentication().getUserId();
-    final paymentKey =
-        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
+    final paymentKey = await Functions()
+        .requestHandler(apiKey: "${ApiKeys.getPaymentKey}$userID");
     if (paymentKey == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
         Get.back();
@@ -1006,7 +1069,8 @@ class Functions {
     final ctx = Get.overlayContext ?? context;
     CustomDialogStack.showLoading(ctx);
 
-    final returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
+    final returnData =
+        await Functions().requestHandler(apiKey: ApiKeys.getRegion);
 
     Get.back();
 

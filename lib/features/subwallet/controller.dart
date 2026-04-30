@@ -4,13 +4,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/colors.dart';
 import '../../core/utils/functions/functions.dart';
 import '../../core/network/http/api_keys.dart';
-import '../../core/network/http/http_request.dart';
 import 'view.dart';
 
 class SubWalletController extends GetxController
@@ -64,20 +62,23 @@ class SubWalletController extends GetxController
       final userID = await Authentication().getUserId();
       currentUserId = userID.toString();
       String subApi = "${ApiKeys.subWallets}?user_id=$userID";
-      final returnData = await HttpRequestApi(api: subApi).get();
+      final returnData = await Functions().requestHandler(
+          apiKey: subApi,
+          onError: (message) {
+            if (message.toLowerCase().contains("internet")) {
+              hasNet.value = false;
+              if (Get.context != null) {
+                CustomDialogStack.showConnectionLost(Get.context!, Get.back);
+              }
+              return;
+            }
 
-      if (returnData == "No Internet") {
-        hasNet.value = false;
-        if (Get.context != null) {
-          CustomDialogStack.showConnectionLost(Get.context!, Get.back);
-        }
-        return;
-      }
+            if (Get.context != null) {
+              CustomDialogStack.showServerError(Get.context!, Get.back);
+            }
+          });
 
       if (returnData == null || returnData is! Map) {
-        if (Get.context != null) {
-          CustomDialogStack.showServerError(Get.context!, Get.back);
-        }
         return;
       }
 
@@ -133,11 +134,7 @@ class SubWalletController extends GetxController
       debugPrint('Error fetching user subwallets: $e');
       if (Get.context != null) {
         CustomDialogStack.showError(
-          Get.context!,
-          "Error",
-          "Failed to load subwallets",
-          Get.back,
-        );
+            Get.context!, "Error", "Failed to load subwallets", Get.back);
       }
     } finally {
       isLoading.value = false;
@@ -153,16 +150,12 @@ class SubWalletController extends GetxController
       if (wallet == null) return false;
 
       if ((wallet['shared_to_user_id'] ?? '').toString().isNotEmpty) {
-        CustomDialogStack.showError(
-          Get.overlayContext!,
-          "Already Shared",
-          "This wallet is already shared to another user.",
-          () {
-            if (Get.isDialogOpen == true) {
-              Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
-            }
-          },
-        );
+        CustomDialogStack.showError(Get.overlayContext!, "Already Shared",
+            "This wallet is already shared to another user.", () {
+          if (Get.isDialogOpen == true) {
+            Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+          }
+        });
         return false;
       }
 
@@ -176,48 +169,43 @@ class SubWalletController extends GetxController
         "shared_to_mobile_no": cleanedMobile,
       };
 
-      final response = await HttpRequestApi(
-        api: ApiKeys.postShareExistingWallet,
-        parameters: params,
-      ).postBody();
+      final response = await Functions().requestHandler(
+          apiKey: ApiKeys.postShareExistingWallet,
+          method: "POST",
+          parameters: params,
+          nullDataMessage: "Something went wrong",
+          onError: (message) {
+            final ctx = Get.overlayContext;
+            if (ctx == null) return;
 
-      if (response == "No Internet") {
-        CustomDialogStack.showConnectionLost(
-          Get.overlayContext!,
-          () {
-            if (Get.isDialogOpen == true) {
-              Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+            if (message.toLowerCase().contains("internet")) {
+              CustomDialogStack.showConnectionLost(ctx, () {
+                if (Get.isDialogOpen == true) {
+                  Navigator.of(ctx, rootNavigator: true).pop();
+                }
+              });
+              return;
             }
-          },
-        );
-        return false;
-      }
+
+            CustomDialogStack.showError(ctx, "Error", "Something went wrong",
+                () {
+              if (Get.isDialogOpen == true) {
+                Navigator.of(ctx, rootNavigator: true).pop();
+              }
+            });
+          });
 
       if (response == null || response is! Map) {
-        CustomDialogStack.showError(
-          Get.overlayContext!,
-          "Error",
-          "Something went wrong",
-          () {
-            if (Get.isDialogOpen == true) {
-              Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
-            }
-          },
-        );
         return false;
       }
 
       if (response["success"] != "Y") {
         CustomDialogStack.showError(
-          Get.overlayContext!,
-          "Error",
-          response["msg"] ?? "Failed",
-          () {
-            if (Get.isDialogOpen == true) {
-              Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
-            }
-          },
-        );
+            Get.overlayContext!, "Error", response["msg"] ?? "Failed", () {
+          if (Get.isDialogOpen == true) {
+            Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+          }
+        });
         return false;
       }
 
@@ -233,15 +221,11 @@ class SubWalletController extends GetxController
       debugPrint("shareToExisting error: $e");
 
       CustomDialogStack.showError(
-        Get.overlayContext!,
-        "Error",
-        "Unexpected error",
-        () {
-          if (Get.isDialogOpen == true) {
-            Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
-          }
-        },
-      );
+          Get.overlayContext!, "Error", "Unexpected error", () {
+        if (Get.isDialogOpen == true) {
+          Navigator.of(Get.overlayContext!, rootNavigator: true).pop();
+        }
+      });
 
       return false;
     }
@@ -276,13 +260,13 @@ class SubWalletController extends GetxController
 
       isLoading.value = true;
 
-      final retValue =
-          await HttpRequestApi(api: api, parameters: postParam).postBody();
+      final retValue = await Functions()
+          .requestHandler(apiKey: api, method: "POST", parameters: postParam);
       if (retValue == "No Internet") {
         return {"success": false, "error": "No Internet"};
       }
 
-      if (retValue == null) {
+      if (retValue == null || retValue is! Map) {
         return {"success": false, "error": "Server error"};
       }
 
@@ -313,18 +297,25 @@ class SubWalletController extends GetxController
         "color_theme": themeKey ?? "default",
       };
       String api = ApiKeys.subWallets;
-      final res =
-          await HttpRequestApi(api: api, parameters: parameters).putBody();
-      if (res == "No Internet") {
-        CustomDialogStack.showConnectionLost(Get.context!, () {
-          Get.back();
-        });
-      }
+      final res = await Functions().requestHandler(
+          apiKey: api,
+          method: "PUT",
+          parameters: parameters,
+          onError: (message) {
+            if (message.toLowerCase().contains("internet")) {
+              CustomDialogStack.showConnectionLost(Get.context!, () {
+                Get.back();
+              });
+              return;
+            }
 
-      if (res == null) {
-        CustomDialogStack.showServerError(Get.context!, () {
-          Get.back();
-        });
+            CustomDialogStack.showServerError(Get.context!, () {
+              Get.back();
+            });
+          });
+
+      if (res == null || res is! Map) {
+        return {"success": false, "error": "Server error"};
       }
 
       if (res["success"] == "Y") {
@@ -370,10 +361,10 @@ class SubWalletController extends GetxController
 
       isLoading.value = true;
 
-      final res = await HttpRequestApi(
-        api: ApiKeys.subwalletTransfer,
-        parameters: params,
-      ).postBody();
+      final res = await Functions().requestHandler(
+          apiKey: ApiKeys.subwalletTransfer,
+          method: "POST",
+          parameters: params);
 
       if (res == "No Internet") {
         hasNet.value = false;
@@ -449,22 +440,31 @@ class SubWalletController extends GetxController
   Future<void> getSubWalletCategories() async {
     try {
       final api = ApiKeys.getSubWalletCategories;
-      final returnData = await HttpRequestApi(api: api).get();
-      if (returnData == "No Internet") {
-        if (Get.context != null) {
-          CustomDialogStack.showConnectionLost(Get.context!, Get.back);
-        }
-        return;
-      }
+      final returnData = await Functions().requestHandler(
+          apiKey: api,
+          onError: (message) {
+            if (message.toLowerCase().contains("internet")) {
+              if (Get.context != null) {
+                CustomDialogStack.showConnectionLost(Get.context!, Get.back);
+              }
+              return;
+            }
+
+            if (Get.context != null) {
+              CustomDialogStack.showServerError(Get.context!, Get.back);
+            }
+          });
 
       if (returnData == null || returnData is! Map) {
-        if (Get.context != null) {
-          CustomDialogStack.showServerError(Get.context!, Get.back);
-        }
         return;
       }
 
       final items = returnData["items"];
+      if (items is! List) {
+        categoryList.value = [];
+        update();
+        return;
+      }
 
       List<Map<String, dynamic>> processedCategories = [];
 
@@ -480,7 +480,9 @@ class SubWalletController extends GetxController
       categoryList.value = processedCategories;
 
       update();
-    } catch (e, s) {}
+    } catch (e) {
+      debugPrint('Error fetching subwallet categories: $e');
+    }
   }
 
   Future<void> luvpayBalance() async {
@@ -498,9 +500,8 @@ class SubWalletController extends GetxController
 
   Map<String, dynamic>? getCategoryById(String categoryId) {
     try {
-      return categoryList.firstWhere(
-        (cat) => cat['category_id']?.toString() == categoryId,
-      );
+      return categoryList
+          .firstWhere((cat) => cat['category_id']?.toString() == categoryId);
     } catch (e) {
       return null;
     }
@@ -508,11 +509,9 @@ class SubWalletController extends GetxController
 
   Map<String, dynamic>? getCategoryByName(String categoryName) {
     try {
-      return categoryList.firstWhere(
-        (cat) =>
-            (cat['category_title']?.toString() ?? '').toLowerCase() ==
-            categoryName.toLowerCase(),
-      );
+      return categoryList.firstWhere((cat) =>
+          (cat['category_title']?.toString() ?? '').toLowerCase() ==
+          categoryName.toLowerCase());
     } catch (e) {
       return null;
     }
@@ -536,8 +535,8 @@ class SubWalletController extends GetxController
 
       isLoading.value = true;
 
-      final response =
-          await HttpRequestApi(api: subApi, parameters: params).deleteData();
+      final response = await Functions()
+          .requestHandler(apiKey: subApi, method: "DELETE", parameters: params);
       if (Get.isDialogOpen == true) Get.back();
 
       if (response == "No Internet") {
@@ -547,7 +546,7 @@ class SubWalletController extends GetxController
         return {"success": false, "error": "No Internet"};
       }
 
-      if (response == null) {
+      if (response == null || response is! Map) {
         return {"success": false, "error": "Server error"};
       }
 
@@ -610,10 +609,10 @@ class SubWalletController extends GetxController
         "user_sub_wallet_id": int.tryParse(subWalletId),
       };
 
-      final response = await HttpRequestApi(
-        api: ApiKeys.postShareExistingWallet,
-        parameters: params,
-      ).putBody();
+      final response = await Functions().requestHandler(
+          apiKey: ApiKeys.postShareExistingWallet,
+          method: "PUT",
+          parameters: params);
 
       Navigator.of(ctx, rootNavigator: true).pop();
 
@@ -625,26 +624,18 @@ class SubWalletController extends GetxController
       }
 
       if (response == null || response is! Map) {
-        CustomDialogStack.showError(
-          ctx,
-          "Error",
-          "Something went wrong",
-          () {
-            Navigator.of(ctx, rootNavigator: true).pop();
-          },
-        );
+        CustomDialogStack.showError(ctx, "Error", "Something went wrong", () {
+          Navigator.of(ctx, rootNavigator: true).pop();
+        });
         return false;
       }
 
       if (response["success"] != "Y") {
         CustomDialogStack.showError(
-          ctx,
-          "Error",
-          response["msg"] ?? "Failed to remove shared user",
-          () {
-            Navigator.of(ctx, rootNavigator: true).pop();
-          },
-        );
+            ctx, "Error", response["msg"] ?? "Failed to remove shared user",
+            () {
+          Navigator.of(ctx, rootNavigator: true).pop();
+        });
         return false;
       }
       await getUserSubWallets();
@@ -655,14 +646,9 @@ class SubWalletController extends GetxController
 
       if (ctx != null) {
         Navigator.of(ctx, rootNavigator: true).pop();
-        CustomDialogStack.showError(
-          ctx,
-          "Error",
-          "Unexpected error",
-          () {
-            Navigator.of(ctx, rootNavigator: true).pop();
-          },
-        );
+        CustomDialogStack.showError(ctx, "Error", "Unexpected error", () {
+          Navigator.of(ctx, rootNavigator: true).pop();
+        });
       }
 
       return false;
@@ -677,12 +663,13 @@ class SubWalletController extends GetxController
 
       final api =
           "${ApiKeys.subwalletTransfer}?user_sub_wallet_id=$subWalletId";
-      final res = await HttpRequestApi(api: api).get();
-
-      if (res == "No Internet") {
-        hasNet.value = false;
-        return <Transaction>[];
-      }
+      final res = await Functions().requestHandler(
+          apiKey: api,
+          onError: (message) {
+            if (message.toLowerCase().contains("internet")) {
+              hasNet.value = false;
+            }
+          });
 
       if (res == null || res is! Map) {
         return <Transaction>[];
@@ -702,14 +689,13 @@ class SubWalletController extends GetxController
                 : "Wallet Transfer";
 
         return Transaction(
-          id: map["wallet_transfer_id"]?.toString() ?? '',
-          description: desc,
-          amount: rawAmount,
-          date: DateTime.tryParse(map["transfer_date"]?.toString() ?? '') ??
-              DateTime.now(),
-          isIncome: isIncome,
-          raw: map,
-        );
+            id: map["wallet_transfer_id"]?.toString() ?? '',
+            description: desc,
+            amount: rawAmount,
+            date: DateTime.tryParse(map["transfer_date"]?.toString() ?? '') ??
+                DateTime.now(),
+            isIncome: isIncome,
+            raw: map);
       }).toList();
     } catch (e) {
       return <Transaction>[];

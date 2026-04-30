@@ -39,19 +39,9 @@ class LockScreenController extends GetxController {
     DateTime localDate = DateTime.parse(parameter[0]["locked_expiry_on"]);
 
     DateTime parsedDateNow = DateTime(
-      timeNow.year,
-      timeNow.month,
-      timeNow.day,
-      timeNow.hour,
-      timeNow.minute,
-    );
-    DateTime parsedLocDate = DateTime(
-      localDate.year,
-      localDate.month,
-      localDate.day,
-      localDate.hour,
-      localDate.minute,
-    );
+        timeNow.year, timeNow.month, timeNow.day, timeNow.hour, timeNow.minute);
+    DateTime parsedLocDate = DateTime(localDate.year, localDate.month,
+        localDate.day, localDate.hour, localDate.minute);
 
     formattedTime.value = parameter[0]["msg"].toString();
 
@@ -81,33 +71,25 @@ class LockScreenController extends GetxController {
 
   void switchAccount() async {
     final uData = await Authentication().getUserData2();
-    CustomDialogStack.showConfirmation(
-      Get.context!,
-      "Switch Account",
-      "Are you sure you want to switch Account?",
-      leftText: "No",
-      rightText: "Yes",
-      () {
-        Get.back();
-      },
-      () async {
-        Get.back();
-        Functions.logoutUser(
-          uData == null ? "" : uData["session_id"].toString(),
+    CustomDialogStack.showConfirmation(Get.context!, "Switch Account",
+        "Are you sure you want to switch Account?",
+        leftText: "No", rightText: "Yes", () {
+      Get.back();
+    }, () async {
+      Get.back();
+      Functions.logoutUser(uData == null ? "" : uData["session_id"].toString(),
           (isSuccess) async {
-            if (isSuccess["is_true"]) {
-              await Authentication().setLogoutStatus(true);
-              await Authentication().setBiometricStatus(false);
-              await Authentication().remove("userData");
-              await PaMessageDatabase.instance.deleteAll();
-              NotificationDatabase.instance.deleteAll();
-              AwesomeNotifications().cancelAllSchedules();
-              AwesomeNotifications().cancelAll();
-              Get.offAndToNamed(Routes.login);
-            }
-          },
-        );
-      },
-    );
+        if (isSuccess["is_true"]) {
+          await Authentication().setLogoutStatus(true);
+          await Authentication().setBiometricStatus(false);
+          await Authentication().remove("userData");
+          await PaMessageDatabase.instance.deleteAll();
+          NotificationDatabase.instance.deleteAll();
+          AwesomeNotifications().cancelAllSchedules();
+          AwesomeNotifications().cancelAll();
+          Get.offAndToNamed(Routes.login);
+        }
+      });
+    });
   }
 }

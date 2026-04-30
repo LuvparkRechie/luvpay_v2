@@ -89,7 +89,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     final userId = await Authentication().getUserId();
     final subApi =
         "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=${filterFromDate.text}&tran_date_to=${filterToDate.text}";
-    final response = await HttpRequestApi(api: subApi).get();
+    final response = await Functions().requestHandler(apiKey: subApi);
 
     if (!mounted) return;
 
@@ -112,20 +112,16 @@ class _TransactionHistoryState extends State<TransactionHistory> {
         groupedLogs = {};
       });
       CustomDialogStack.showError(
-        context,
-        "luvpay",
-        "Error while connecting to server, Please contact support.",
-        () => Get.back(),
-      );
+          context,
+          "luvpay",
+          "Error while connecting to server, Please contact support.",
+          () => Get.back());
       return;
     }
 
     final items = (response["items"] ?? []) as List<dynamic>;
-    items.sort(
-      (a, b) => DateTime.parse(
-        b['tran_date'],
-      ).compareTo(DateTime.parse(a['tran_date'])),
-    );
+    items.sort((a, b) => DateTime.parse(b['tran_date'])
+        .compareTo(DateTime.parse(a['tran_date'])));
 
     final nextLogs = isInitial ? items.take(15).toList() : items;
 
@@ -146,11 +142,8 @@ class _TransactionHistoryState extends State<TransactionHistory> {
 
   DateTime _startOfWeekSunday(DateTime date) {
     final daysToSubtract = date.weekday % 7;
-    return DateTime(
-      date.year,
-      date.month,
-      date.day,
-    ).subtract(Duration(days: daysToSubtract));
+    return DateTime(date.year, date.month, date.day)
+        .subtract(Duration(days: daysToSubtract));
   }
 
   String _getGroupKey(DateTime dt) {
@@ -217,24 +210,21 @@ class _TransactionHistoryState extends State<TransactionHistory> {
 
   Future<void> selectDateRange(BuildContext context) async {
     final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2023),
-      lastDate: DateTime.now(),
-      initialDateRange: DateTimeRange(start: fromDate, end: toDate),
-      saveText: "Download",
-      helpText: "Select Date Range",
-      builder: (context, child) {
-        final theme = Theme.of(context);
-        final cs = theme.colorScheme;
+        context: context,
+        firstDate: DateTime(2023),
+        lastDate: DateTime.now(),
+        initialDateRange: DateTimeRange(start: fromDate, end: toDate),
+        saveText: "Download",
+        helpText: "Select Date Range",
+        builder: (context, child) {
+          final theme = Theme.of(context);
+          final cs = theme.colorScheme;
 
-        return Theme(
-          data: theme.copyWith(
-            colorScheme: cs.copyWith(primary: AppColorV2.lpBlueBrand),
-          ),
-          child: child!,
-        );
-      },
-    );
+          return Theme(
+              data: theme.copyWith(
+                  colorScheme: cs.copyWith(primary: AppColorV2.lpBlueBrand)),
+              child: child!);
+        });
 
     if (picked == null) return;
 
@@ -249,7 +239,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     final userId = await Authentication().getUserId();
     final subApi =
         "${ApiKeys.getTransLogs}?user_id=$userId&tran_date_from=$fromStr&tran_date_to=$toStr";
-    final response = await HttpRequestApi(api: subApi).get();
+    final response = await Functions().requestHandler(apiKey: subApi);
 
     if (!mounted) return;
 
@@ -262,20 +252,13 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     final items = (response["items"] ?? []) as List<dynamic>;
     if (items.isEmpty) {
       setState(() => isDownloading = false);
-      CustomDialogStack.showInfo(
-        Get.context!,
-        "No Data",
-        "No transactions found in the selected range.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showInfo(Get.context!, "No Data",
+          "No transactions found in the selected range.", () => Get.back());
       return;
     }
 
-    items.sort(
-      (a, b) => DateTime.parse(
-        b['tran_date'],
-      ).compareTo(DateTime.parse(a['tran_date'])),
-    );
+    items.sort((a, b) => DateTime.parse(b['tran_date'])
+        .compareTo(DateTime.parse(a['tran_date'])));
 
     final rows = <List<String>>[
       [
@@ -292,9 +275,8 @@ class _TransactionHistoryState extends State<TransactionHistory> {
         final amount = double.tryParse(tx["amount"].toString()) ?? 0.0;
         final isCredit = amount > 0;
         return [
-          DateFormat(
-            'EEE, MMM d, yyyy h:mm a',
-          ).format(DateTime.parse(tx["tran_date"].toString())),
+          DateFormat('EEE, MMM d, yyyy h:mm a')
+              .format(DateTime.parse(tx["tran_date"].toString())),
           (tx["ref_no"] ?? '').toString(),
           (tx["category"] ?? '').toString(),
           (tx["tran_desc"] ?? '').toString(),
@@ -351,30 +333,23 @@ class _TransactionHistoryState extends State<TransactionHistory> {
   }
 
   Future<void> downloadTransactionsAsPdf(
-    List<List<String>> rows,
-    String baseFileName,
-  ) async {
+      List<List<String>> rows, String baseFileName) async {
     final hasPermission = await _checkAndRequestStoragePermission();
     if (!hasPermission) {
       if (!mounted) return;
       CustomDialogStack.showError(
-        context,
-        "Permission Denied",
-        "Storage permission is required to save the PDF file.",
-        () => Get.back(),
-      );
+          context,
+          "Permission Denied",
+          "Storage permission is required to save the PDF file.",
+          () => Get.back());
       return;
     }
 
     final directoryPath = await _getDownloadDirectoryPath();
     if (directoryPath == null) {
       if (!mounted) return;
-      CustomDialogStack.showError(
-        context,
-        "Error",
-        "Could not access download directory",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(context, "Error",
+          "Could not access download directory", () => Get.back());
       return;
     }
 
@@ -394,32 +369,22 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     final PdfPage page = document.pages.add();
     final PdfGraphics graphics = page.graphics;
 
-    final PdfFont titleFont = PdfStandardFont(
-      PdfFontFamily.helvetica,
-      16,
-      style: PdfFontStyle.bold,
-    );
+    final PdfFont titleFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 16, style: PdfFontStyle.bold);
     final PdfFont subtitleFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
-    final PdfFont headerFont = PdfStandardFont(
-      PdfFontFamily.helvetica,
-      10,
-      style: PdfFontStyle.bold,
-    );
+    final PdfFont headerFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
     final PdfFont cellFont = PdfStandardFont(PdfFontFamily.helvetica, 8);
 
-    graphics.drawString(
-      'Transaction History',
-      titleFont,
-      bounds: Rect.fromLTWH(0, 0, page.getClientSize().width, 30),
-      format: PdfStringFormat(alignment: PdfTextAlignment.center),
-    );
+    graphics.drawString('Transaction History', titleFont,
+        bounds: Rect.fromLTWH(0, 0, page.getClientSize().width, 30),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center));
 
     graphics.drawString(
-      'Exported on: ${DateTime.now().toLocal().toString().split('.')[0]}',
-      subtitleFont,
-      bounds: Rect.fromLTWH(0, 35, page.getClientSize().width, 15),
-      format: PdfStringFormat(alignment: PdfTextAlignment.center),
-    );
+        'Exported on: ${DateTime.now().toLocal().toString().split('.')[0]}',
+        subtitleFont,
+        bounds: Rect.fromLTWH(0, 35, page.getClientSize().width, 15),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center));
 
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: rows.first.length);
@@ -428,9 +393,8 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     for (int i = 0; i < rows.first.length; i++) {
       headerRow.cells[i].value = rows.first[i];
       headerRow.cells[i].style.font = headerFont;
-      headerRow.cells[i].style.backgroundBrush = PdfSolidBrush(
-        PdfColor(211, 211, 211),
-      );
+      headerRow.cells[i].style.backgroundBrush =
+          PdfSolidBrush(PdfColor(211, 211, 211));
     }
 
     for (int i = 1; i < rows.length; i++) {
@@ -442,14 +406,9 @@ class _TransactionHistoryState extends State<TransactionHistory> {
     }
 
     grid.draw(
-      page: page,
-      bounds: Rect.fromLTWH(
-        0,
-        60,
-        page.getClientSize().width,
-        page.getClientSize().height - 60,
-      ),
-    );
+        page: page,
+        bounds: Rect.fromLTWH(0, 60, page.getClientSize().width,
+            page.getClientSize().height - 60));
 
     try {
       final filePath = '$directoryPath/$baseFileName.pdf';
@@ -464,28 +423,22 @@ class _TransactionHistoryState extends State<TransactionHistory> {
       await Future.delayed(const Duration(seconds: 3));
       Get.back();
       CustomDialogStack.showConfirmation(
-        context,
-        "Download Complete",
-        "PDF saved to:\n${_simplifyPathForDisplay(filePath)}\n\nDo you want to open the file now?",
-        leftText: "Back",
-        rightText: "Open File",
-        rightTextColor: Theme.of(context).colorScheme.onPrimary,
-        rightBtnColor: AppColorV2.lpBlueBrand,
-        () => Get.back(),
-        () {
-          Get.back();
-          OpenFile.open(filePath);
-        },
-      );
+          context,
+          "Download Complete",
+          "PDF saved to:\n${_simplifyPathForDisplay(filePath)}\n\nDo you want to open the file now?",
+          leftText: "Back",
+          rightText: "Open File",
+          rightTextColor: Theme.of(context).colorScheme.onPrimary,
+          rightBtnColor: AppColorV2.lpBlueBrand,
+          () => Get.back(), () {
+        Get.back();
+        OpenFile.open(filePath);
+      });
     } catch (e) {
       document.dispose();
       if (!mounted) return;
-      CustomDialogStack.showError(
-        context,
-        "Error",
-        "Failed to save PDF: ${e.toString()}",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(context, "Error",
+          "Failed to save PDF: ${e.toString()}", () => Get.back());
     }
   }
 
@@ -513,420 +466,286 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      FutureBuilder<DateTime>(
-                        future: Functions.getTimeNow(),
-                        builder: (context, s) => LuvpayText(
-                          color: AppColorV2.lpBlueBrand,
-                          style: AppTextStyle.h3(ctx),
-                          text:
-                              "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}",
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Expanded(
-                        child: ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-                          itemCount: groupedLogs.length + 1,
-                          itemBuilder: (c, idx) {
-                            if (idx == groupedLogs.length) {
-                              return Column(
-                                children: [
-                                  const SizedBox(height: 20),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    child: CustomButton(
-                                      text: "Download Transactions",
-                                      onPressed: () async {
-                                        final result = await showDialog(
-                                          context: ctx,
-                                          builder: (BuildContext context) {
-                                            bool dialogIsShowPass = isShowPass;
+                        FutureBuilder<DateTime>(
+                            future: Functions.getTimeNow(),
+                            builder: (context, s) => LuvpayText(
+                                color: AppColorV2.lpBlueBrand,
+                                style: AppTextStyle.h3(ctx),
+                                text:
+                                    "As of ${s.hasData ? DateFormat('MMM d, yyyy').format(s.data!) : '...'}")),
+                        const SizedBox(height: 10),
+                        Expanded(
+                            child: ListView.builder(
+                                physics: const BouncingScrollPhysics(),
+                                padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                itemCount: groupedLogs.length + 1,
+                                itemBuilder: (c, idx) {
+                                  if (idx == groupedLogs.length) {
+                                    return Column(children: [
+                                      const SizedBox(height: 20),
+                                      Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: CustomButton(
+                                              text: "Download Transactions",
+                                              onPressed: () async {
+                                                final result = await showDialog(
+                                                    context: ctx,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      bool dialogIsShowPass =
+                                                          isShowPass;
 
-                                            return StatefulBuilder(
-                                              builder:
-                                                  (context, setDialogState) {
-                                                return PopScope(
-                                                  canPop: false,
-                                                  child: Dialog(
-                                                    backgroundColor:
-                                                        Colors.transparent,
-                                                    child: Container(
-                                                      padding: const EdgeInsets
-                                                          .fromLTRB(
-                                                        19,
-                                                        30,
-                                                        19,
-                                                        19,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: cs.surface,
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: Colors.black
-                                                                .withOpacity(
-                                                              isDark
-                                                                  ? 0.35
-                                                                  : 0.08,
-                                                            ),
-                                                            blurRadius: 18,
-                                                            offset:
-                                                                const Offset(
-                                                              0,
-                                                              8,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          LuvpayText(
-                                                            style: TextStyle(
-                                                              fontSize: 18,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color:
-                                                                  cs.onSurface,
-                                                            ),
-                                                            textAlign:
-                                                                TextAlign.start,
-                                                            text:
-                                                                "Create File Password",
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 10),
-                                                          CustomTextField(
-                                                            hintText:
-                                                                "Enter PDF password",
-                                                            controller:
-                                                                password,
-                                                            isObscure:
-                                                                !dialogIsShowPass,
-                                                            suffixIcon: !dialogIsShowPass
-                                                                ? Icons
-                                                                    .visibility_off
-                                                                : Icons
-                                                                    .visibility,
-                                                            onIconTap: () {
-                                                              setDialogState(
-                                                                  () {
-                                                                dialogIsShowPass =
-                                                                    !dialogIsShowPass;
-                                                              });
-                                                            },
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 10),
-                                                          LuvpayText(
-                                                            text:
-                                                                "Note: Password must be 8-15 characters long",
-                                                            style: TextStyle(
-                                                              fontSize: 12,
-                                                              color: cs
-                                                                  .onSurfaceVariant,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 20),
-                                                          Row(
-                                                            children: [
-                                                              Expanded(
+                                                      return StatefulBuilder(
+                                                          builder: (context,
+                                                              setDialogState) {
+                                                        return PopScope(
+                                                            canPop: false,
+                                                            child: Dialog(
+                                                                backgroundColor:
+                                                                    Colors
+                                                                        .transparent,
                                                                 child:
-                                                                    CustomButton(
-                                                                  textColor:
-                                                                      AppColorV2
-                                                                          .lpBlueBrand,
-                                                                  bordercolor:
-                                                                      AppColorV2
-                                                                          .lpBlueBrand,
-                                                                  btnColor: cs
-                                                                      .surface,
-                                                                  text:
-                                                                      "Cancel",
-                                                                  onPressed:
-                                                                      () => Get
-                                                                          .back(),
-                                                                ),
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 10,
-                                                              ),
-                                                              Expanded(
-                                                                child:
-                                                                    CustomButton(
-                                                                  text:
-                                                                      "Confirm",
-                                                                  onPressed:
-                                                                      () {
-                                                                    final enteredPassword =
-                                                                        password
-                                                                            .text;
+                                                                    Container(
+                                                                        padding: const EdgeInsets
+                                                                            .fromLTRB(
+                                                                            19,
+                                                                            30,
+                                                                            19,
+                                                                            19),
+                                                                        decoration: BoxDecoration(
+                                                                            color: cs
+                                                                                .surface,
+                                                                            borderRadius: BorderRadius.circular(
+                                                                                20),
+                                                                            boxShadow: [
+                                                                              BoxShadow(color: Colors.black.withOpacity(isDark ? 0.35 : 0.08), blurRadius: 18, offset: const Offset(0, 8)),
+                                                                            ]),
+                                                                        child: Column(
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.start,
+                                                                            mainAxisSize: MainAxisSize.min,
+                                                                            children: [
+                                                                              LuvpayText(style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: cs.onSurface), textAlign: TextAlign.start, text: "Create File Password"),
+                                                                              const SizedBox(height: 10),
+                                                                              CustomTextField(
+                                                                                  hintText: "Enter PDF password",
+                                                                                  controller: password,
+                                                                                  isObscure: !dialogIsShowPass,
+                                                                                  suffixIcon: !dialogIsShowPass ? Icons.visibility_off : Icons.visibility,
+                                                                                  onIconTap: () {
+                                                                                    setDialogState(() {
+                                                                                      dialogIsShowPass = !dialogIsShowPass;
+                                                                                    });
+                                                                                  }),
+                                                                              const SizedBox(height: 10),
+                                                                              LuvpayText(text: "Note: Password must be 8-15 characters long", style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                                                                              const SizedBox(height: 20),
+                                                                              Row(children: [
+                                                                                Expanded(child: CustomButton(textColor: AppColorV2.lpBlueBrand, bordercolor: AppColorV2.lpBlueBrand, btnColor: cs.surface, text: "Cancel", onPressed: () => Get.back())),
+                                                                                const SizedBox(width: 10),
+                                                                                Expanded(
+                                                                                    child: CustomButton(
+                                                                                        text: "Confirm",
+                                                                                        onPressed: () {
+                                                                                          final enteredPassword = password.text;
 
-                                                                    if (enteredPassword
-                                                                        .isEmpty) {
-                                                                      CustomDialogStack
-                                                                          .showSnackBar(
-                                                                        ctx,
-                                                                        "Please enter a password",
-                                                                        AppColorV2
-                                                                            .error,
-                                                                        () {},
-                                                                      );
-                                                                      return;
-                                                                    }
+                                                                                          if (enteredPassword.isEmpty) {
+                                                                                            CustomDialogStack.showSnackBar(ctx, "Please enter a password", AppColorV2.error, () {});
+                                                                                            return;
+                                                                                          }
 
-                                                                    if (enteredPassword
-                                                                            .length <
-                                                                        8) {
-                                                                      CustomDialogStack
-                                                                          .showSnackBar(
-                                                                        ctx,
-                                                                        "Password must be at least 8 characters long",
-                                                                        AppColorV2
-                                                                            .error,
-                                                                        () {},
-                                                                      );
-                                                                      return;
-                                                                    }
+                                                                                          if (enteredPassword.length < 8) {
+                                                                                            CustomDialogStack.showSnackBar(ctx, "Password must be at least 8 characters long", AppColorV2.error, () {});
+                                                                                            return;
+                                                                                          }
 
-                                                                    if (enteredPassword
-                                                                            .length >
-                                                                        15) {
-                                                                      CustomDialogStack
-                                                                          .showSnackBar(
-                                                                        ctx,
-                                                                        "Password cannot exceed 15 characters",
-                                                                        AppColorV2
-                                                                            .error,
-                                                                        () {},
-                                                                      );
-                                                                      return;
-                                                                    }
+                                                                                          if (enteredPassword.length > 15) {
+                                                                                            CustomDialogStack.showSnackBar(ctx, "Password cannot exceed 15 characters", AppColorV2.error, () {});
+                                                                                            return;
+                                                                                          }
 
-                                                                    setState(
-                                                                      () => isShowPass =
-                                                                          dialogIsShowPass,
-                                                                    );
-                                                                    Navigator
-                                                                        .pop(
-                                                                      ctx,
-                                                                      true,
-                                                                    );
-                                                                  },
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                          },
-                                        );
+                                                                                          setState(() => isShowPass = dialogIsShowPass);
+                                                                                          Navigator.pop(ctx, true);
+                                                                                        })),
+                                                                              ]),
+                                                                            ]))));
+                                                      });
+                                                    });
 
-                                        setState(() => isShowPass = false);
+                                                setState(
+                                                    () => isShowPass = false);
 
-                                        if (result == true) {
-                                          await selectDateRange(ctx);
-                                          password.clear();
-                                        } else {
-                                          password.clear();
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                  spacing(height: 10),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    child: LuvpayText(
-                                      maxLines: 3,
-                                      textAlign: TextAlign.center,
-                                      text: 'Select transactions by date range',
-                                      style: AppTextStyle.paragraph2(
-                                        ctx,
-                                      ).copyWith(color: cs.onSurfaceVariant),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
+                                                if (result == true) {
+                                                  await selectDateRange(ctx);
+                                                  password.clear();
+                                                } else {
+                                                  password.clear();
+                                                }
+                                              })),
+                                      spacing(height: 10),
+                                      Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16),
+                                          child: LuvpayText(
+                                              maxLines: 3,
+                                              textAlign: TextAlign.center,
+                                              text:
+                                                  'Select transactions by date range',
+                                              style: AppTextStyle.paragraph2(
+                                                      ctx)
+                                                  .copyWith(
+                                                      color: cs
+                                                          .onSurfaceVariant))),
+                                      const SizedBox(height: 20),
+                                      SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
                                               0.15),
-                                ],
-                              );
-                            }
+                                    ]);
+                                  }
 
-                            final key = groupedLogs.keys.elementAt(idx);
-                            final list = groupedLogs[key]!;
+                                  final key = groupedLogs.keys.elementAt(idx);
+                                  final list = groupedLogs[key]!;
 
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(8, 2, 8, 2),
-                                  decoration: BoxDecoration(
-                                    color: AppColorV2.lpBlueBrand.withOpacity(
-                                      isDark ? 0.18 : 0.10,
-                                    ),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: cs.outlineVariant.withOpacity(
-                                        isDark ? 0.05 : 0.01,
-                                      ),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  child: LuvpayText(
-                                    text: key,
-                                    color: AppColorV2.lpBlueBrand,
-                                    style: AppTextStyle.body1(ctx),
-                                  ),
-                                ),
-                                ...list.map((tx) {
-                                  final desc = tx['tran_desc'].toString();
-                                  final category = tx['category'].toString();
+                                  return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                8, 2, 8, 2),
+                                            decoration: BoxDecoration(
+                                                color: AppColorV2.lpBlueBrand
+                                                    .withOpacity(
+                                                        isDark ? 0.18 : 0.10),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                    color: cs.outlineVariant
+                                                        .withOpacity(isDark
+                                                            ? 0.05
+                                                            : 0.01),
+                                                    width: 0.8)),
+                                            child: LuvpayText(
+                                                text: key,
+                                                color: AppColorV2.lpBlueBrand,
+                                                style:
+                                                    AppTextStyle.body1(ctx))),
+                                        ...list.map((tx) {
+                                          final desc =
+                                              tx['tran_desc'].toString();
+                                          final category =
+                                              tx['category'].toString();
 
-                                  final amount = double.tryParse(
-                                          tx['amount'].toString()) ??
-                                      0.0;
-                                  final isDebit = amount < 0;
+                                          final amount = double.tryParse(
+                                                  tx['amount'].toString()) ??
+                                              0.0;
+                                          final isDebit = amount < 0;
 
-                                  final accent = isDebit
-                                      ? AppColorV2.incorrectState
-                                      : AppColorV2.success;
+                                          final accent = isDebit
+                                              ? AppColorV2.incorrectState
+                                              : AppColorV2.success;
 
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 10),
-                                    child: CustomRowTile(
-                                      trailingUseNeumorphic: false,
-                                      onTap: () {
-                                        Get.to(
-                                          TransactionDetails(
-                                            index: 0,
-                                            data: [tx],
-                                            isHistory: true,
-                                          ),
-                                        );
-                                      },
-                                      background: cs.surface,
-                                      leadingBackground: cs.surface,
-                                      leadingSize: 46,
-                                      leadingRadius: const BorderRadius.all(
-                                        Radius.circular(14),
-                                      ),
-                                      radius: const BorderRadius.all(
-                                        Radius.circular(18),
-                                      ),
-                                      padding: const EdgeInsets.all(12),
-                                      leading: Icon(
-                                        isDebit
-                                            ? Icons.arrow_upward_rounded
-                                            : Icons.arrow_downward_rounded,
-                                        color: accent,
-                                        size: 20,
-                                      ),
-                                      title: LuvpayText(
-                                        text: desc,
-                                        style: AppTextStyle.body1(context),
-                                        maxFontSize: 16,
-                                        maxLines: 1,
-                                        minFontSize: 14,
-                                        color: cs.onSurface,
-                                      ),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          LuvpayText(
-                                            text:
-                                                Functions.formatSmartPHDateTime(
-                                              tx['tran_date'].toString(),
-                                            ),
-                                            style: AppTextStyle.body1(context),
-                                            maxFontSize: 10,
-                                            minFontSize: 8,
-                                            color:
-                                                cs.onSurfaceVariant.withOpacity(
-                                              0.75,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      trailing: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          LuvpayText(
-                                            text: toCurrencyString(
-                                                tx['amount'] ?? ""),
-                                            color: accent,
-                                            style: AppTextStyle.body1(
-                                              context,
-                                            ).copyWith(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          LuvpayText(
-                                            text: category,
-                                            style: AppTextStyle.body1(context),
-                                            maxFontSize: 10,
-                                            minFontSize: 8,
-                                            color:
-                                                cs.onSurfaceVariant.withOpacity(
-                                              0.75,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }),
-                                const SizedBox(height: 10),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  );
+                                          return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 10),
+                                              child: CustomRowTile(
+                                                  trailingUseNeumorphic: false,
+                                                  onTap: () {
+                                                    Get.to(TransactionDetails(
+                                                        index: 0,
+                                                        data: [tx],
+                                                        isHistory: true));
+                                                  },
+                                                  background: cs.surface,
+                                                  leadingBackground: cs.surface,
+                                                  leadingSize: 46,
+                                                  leadingRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(14)),
+                                                  radius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(18)),
+                                                  padding:
+                                                      const EdgeInsets.all(12),
+                                                  leading: Icon(
+                                                      isDebit
+                                                          ? Icons
+                                                              .arrow_upward_rounded
+                                                          : Icons
+                                                              .arrow_downward_rounded,
+                                                      color: accent,
+                                                      size: 20),
+                                                  title: LuvpayText(
+                                                      text: desc,
+                                                      style: AppTextStyle.body1(
+                                                          context),
+                                                      maxFontSize: 16,
+                                                      maxLines: 1,
+                                                      minFontSize: 14,
+                                                      color: cs.onSurface),
+                                                  subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                                    LuvpayText(
+                                                        text: Functions
+                                                            .formatSmartPHDateTime(
+                                                                tx['tran_date']
+                                                                    .toString()),
+                                                        style:
+                                                            AppTextStyle.body1(
+                                                                context),
+                                                        maxFontSize: 10,
+                                                        minFontSize: 8,
+                                                        color: cs
+                                                            .onSurfaceVariant
+                                                            .withOpacity(0.75)),
+                                                  ]),
+                                                  trailing: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                                                    LuvpayText(
+                                                        text: toCurrencyString(
+                                                            tx['amount'] ?? ""),
+                                                        color: accent,
+                                                        style: AppTextStyle
+                                                                .body1(context)
+                                                            .copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold)),
+                                                    LuvpayText(
+                                                        text: category,
+                                                        style:
+                                                            AppTextStyle.body1(
+                                                                context),
+                                                        maxFontSize: 10,
+                                                        minFontSize: 8,
+                                                        color: cs
+                                                            .onSurfaceVariant
+                                                            .withOpacity(0.75)),
+                                                  ])));
+                                        }),
+                                        const SizedBox(height: 10),
+                                      ]);
+                                })),
+                      ]);
 
     return CustomScaffoldV2(
-      leading: widget.fromTab == true
-          ? SizedBox.shrink()
-          : NeoNavIcon.icon(
-              size: 40,
-              iconColor: AppColorV2.lpBlueBrand,
-              padding: const EdgeInsets.all(8),
-              iconSize: 20,
-              iconData: Icons.arrow_back_ios_new_rounded,
-              onTap: () {
-                Get.back();
-              },
-            ),
-      backgroundColor: cs.surface,
-      padding: EdgeInsets.zero,
-      enableToolBar: true,
-      appBarTitle: "Transaction History",
-      scaffoldBody: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 19),
-        child: body,
-      ),
-    );
+        leading: widget.fromTab == true
+            ? SizedBox.shrink()
+            : NeoNavIcon.icon(
+                size: 40,
+                iconColor: AppColorV2.lpBlueBrand,
+                padding: const EdgeInsets.all(8),
+                iconSize: 20,
+                iconData: Icons.arrow_back_ios_new_rounded,
+                onTap: () {
+                  Get.back();
+                }),
+        backgroundColor: cs.surface,
+        padding: EdgeInsets.zero,
+        enableToolBar: true,
+        appBarTitle: "Transaction History",
+        scaffoldBody: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 19), child: body));
   }
 }

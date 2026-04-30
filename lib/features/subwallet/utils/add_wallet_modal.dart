@@ -120,9 +120,8 @@ class AddWalletModalState extends State<AddWalletModal> {
   }
 
   Future<void> _loadCategories() async {
-    _availableCategories = List<Map<String, dynamic>>.from(
-      controller.categoryList,
-    );
+    _availableCategories =
+        List<Map<String, dynamic>>.from(controller.categoryList);
     if (_availableCategories.isEmpty) return;
 
     if (_selectedCategoryId == null) {
@@ -183,17 +182,15 @@ class AddWalletModalState extends State<AddWalletModal> {
     final input = _normalizeName(raw);
 
     if (widget.mode == WalletModalMode.create) {
-      final hasDuplicate = existingWallets.any(
-        (w) => _normalizeName(w.name) == input,
-      );
+      final hasDuplicate =
+          existingWallets.any((w) => _normalizeName(w.name) == input);
       if (hasDuplicate) return 'A subwallet with this name already exists';
     }
 
     if (widget.mode == WalletModalMode.edit && widget.wallet != null) {
       final currentId = widget.wallet!.id;
-      final hasDuplicate = existingWallets.any(
-        (w) => w.id != currentId && _normalizeName(w.name) == input,
-      );
+      final hasDuplicate = existingWallets
+          .any((w) => w.id != currentId && _normalizeName(w.name) == input);
       if (hasDuplicate) return 'A subwallet with this name already exists';
     }
 
@@ -279,17 +276,15 @@ class AddWalletModalState extends State<AddWalletModal> {
     final border = cs.outlineVariant.withOpacity(isDark ? 0.08 : 0.20);
 
     return Neumorphic(
-      style: LuvNeu.card(
-        radius: radius,
-        color: cardColor,
-        depth: isDark ? 0.55 : 1.2,
-        pressedDepth: isDark ? -0.25 : -0.7,
-        borderColor: isDark ? Colors.transparent : border,
-        borderWidth: isDark ? 0 : 1,
-        isDark: isDark,
-      ),
-      child: Padding(padding: padding, child: child),
-    );
+        style: LuvNeu.card(
+            radius: radius,
+            color: cardColor,
+            depth: isDark ? 0.55 : 1.2,
+            pressedDepth: isDark ? -0.25 : -0.7,
+            borderColor: isDark ? Colors.transparent : border,
+            borderWidth: isDark ? 0 : 1,
+            isDark: isDark),
+        child: Padding(padding: padding, child: child));
   }
 
   Widget _categoryChip({
@@ -306,31 +301,24 @@ class AddWalletModalState extends State<AddWalletModal> {
     final bg = cs.surface;
 
     return LuvNeuPress(
-      onTap: onTap,
-      radius: radius,
-      depth: isDark ? 0.45 : 1.0,
-      pressedDepth: isDark ? -0.22 : -0.55,
-      borderColor:
-          isDark ? Colors.transparent : cs.outlineVariant.withOpacity(0.22),
-      overlayOpacity: isDark ? 0.0 : 0.02,
-      background: isSelected ? color.withOpacity(isDark ? 0.16 : 0.12) : bg,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipOval(child: iconWidget),
-            const SizedBox(width: 8),
-            LuvpayText(
-              text: label,
-              style: AppTextStyle.h3(
-                context,
-              ).copyWith(color: cs.onSurface, fontSize: 14),
-            ),
-          ],
-        ),
-      ),
-    );
+        onTap: onTap,
+        radius: radius,
+        depth: isDark ? 0.45 : 1.0,
+        pressedDepth: isDark ? -0.22 : -0.55,
+        borderColor:
+            isDark ? Colors.transparent : cs.outlineVariant.withOpacity(0.22),
+        overlayOpacity: isDark ? 0.0 : 0.02,
+        background: isSelected ? color.withOpacity(isDark ? 0.16 : 0.12) : bg,
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              ClipOval(child: iconWidget),
+              const SizedBox(width: 8),
+              LuvpayText(
+                  text: label,
+                  style: AppTextStyle.h3(context)
+                      .copyWith(color: cs.onSurface, fontSize: 14)),
+            ])));
   }
 
   Widget _primaryButton({
@@ -347,72 +335,58 @@ class AddWalletModalState extends State<AddWalletModal> {
 
     if (loading) {
       return LuvNeuPress(
-        onTap: enabled ? onTap : null,
-        radius: radius,
-        depth: isDark ? 0.35 : 1.1,
-        pressedDepth: isDark ? -0.18 : -0.65,
-        overlayOpacity: 0.0,
-        background: cs.primary,
-        borderColor: cs.primary.withOpacity(0.22),
-        child: SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: const Center(
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            ),
-          ),
-        ),
-      );
+          onTap: enabled ? onTap : null,
+          radius: radius,
+          depth: isDark ? 0.35 : 1.1,
+          pressedDepth: isDark ? -0.18 : -0.65,
+          overlayOpacity: 0.0,
+          background: cs.primary,
+          borderColor: cs.primary.withOpacity(0.22),
+          child: SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: const Center(
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white))))));
     }
 
     if (!enabled) {
       return Opacity(
-        opacity: isDark ? 0.58 : 0.55,
-        child: LuvNeuPress(
-          onTap: () {},
-          radius: radius,
-          depth: isDark ? 0.25 : 0.9,
-          pressedDepth: isDark ? -0.12 : -0.5,
-          borderColor: Colors.transparent,
-          overlayOpacity: 0.0,
-          background: disabledBg,
-          child: SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Iconsax.tick_circle, color: cs.onSurface, size: 20),
-                  const SizedBox(width: 8),
-                  LuvpayText(
-                    text: text,
-                    style: AppTextStyle.h3(
-                      context,
-                    ).copyWith(color: cs.onSurface, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
+          opacity: isDark ? 0.58 : 0.55,
+          child: LuvNeuPress(
+              onTap: () {},
+              radius: radius,
+              depth: isDark ? 0.25 : 0.9,
+              pressedDepth: isDark ? -0.12 : -0.5,
+              borderColor: Colors.transparent,
+              overlayOpacity: 0.0,
+              background: disabledBg,
+              child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: Center(
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Iconsax.tick_circle, color: cs.onSurface, size: 20),
+                    const SizedBox(width: 8),
+                    LuvpayText(
+                        text: text,
+                        style: AppTextStyle.h3(context)
+                            .copyWith(color: cs.onSurface, fontSize: 14)),
+                  ])))));
     }
 
     return LuvNeuPillButton(
-      label: text,
-      icon: Iconsax.tick_circle,
-      filled: true,
-      onTap: onTap,
-      height: 56,
-      filledColor: cs.primary,
-    );
+        label: text,
+        icon: Iconsax.tick_circle,
+        filled: true,
+        onTap: onTap,
+        height: 56,
+        filledColor: cs.primary);
   }
 
   Future<void> _submitForm() async {
@@ -436,11 +410,7 @@ class AddWalletModalState extends State<AddWalletModal> {
           _selectedCategoryId == null) {
         if (Get.isDialogOpen == true) Get.back();
         CustomDialogStack.showError(
-          ctx,
-          "luvpay",
-          "Please select a category",
-          () => Get.back(),
-        );
+            ctx, "luvpay", "Please select a category", () => Get.back());
         return;
       }
 
@@ -451,22 +421,18 @@ class AddWalletModalState extends State<AddWalletModal> {
               amount: walletAmount,
               themeKey: _selectedThemeKey,
               sharedToMobileNo:
-                  sharedMobileNo != null ? "+63$sharedMobileNo" : null,
-            )
+                  sharedMobileNo != null ? "+63$sharedMobileNo" : null)
           : await controller.editSubwallet(
               subwalletId: int.tryParse(widget.wallet!.id),
               subWalletName: walletName,
-              themeKey: _selectedThemeKey,
-            );
+              themeKey: _selectedThemeKey);
 
       if (result["success"] == true) {
         if (sharedMobileNo != null && sharedMobileNo!.isNotEmpty) {
           final sp = await SharedPreferences.getInstance();
 
           await sp.setString(
-            "shared_${_nameController.text.trim()}",
-            "+63$sharedMobileNo",
-          );
+              "shared_${_nameController.text.trim()}", "+63$sharedMobileNo");
         }
         await saveWalletTheme(walletName, _selectedThemeKey);
 
@@ -495,12 +461,8 @@ class AddWalletModalState extends State<AddWalletModal> {
       }
     } catch (_) {
       if (Get.isDialogOpen == true) Get.back();
-      CustomDialogStack.showError(
-        ctx,
-        "luvpay",
-        "Something went wrong. Please try again.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(ctx, "luvpay",
+          "Something went wrong. Please try again.", () => Get.back());
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -528,549 +490,440 @@ class AddWalletModalState extends State<AddWalletModal> {
     Future<List<Color>> resolveWalletGradient(String walletId) async {
       final key = await getWalletColor(walletId);
 
-      final theme = walletThemes.firstWhere(
-        (e) => e.key == key,
-        orElse: () => walletThemes.first,
-      );
+      final theme = walletThemes.firstWhere((e) => e.key == key,
+          orElse: () => walletThemes.first);
 
       return theme.gradient;
     }
 
     return Container(
-      height: MediaQuery.of(context).size.height / 1.2,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            LuvpayText(
-              text: widget.mode == WalletModalMode.create
-                  ? 'Create New SubWallet'
-                  : 'Edit Wallet Name',
-              style: AppTextStyle.h3(context).copyWith(color: titleColor),
-            ),
-            const SizedBox(height: 10),
-            if (widget.mode == WalletModalMode.create) ...[
-              Obx(
-                () => _softCard(
-                  radius: BorderRadius.circular(14),
-                  child: Row(
-                    children: [
+        height: MediaQuery.of(context).size.height / 1.2,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(),
+        child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
+            physics: const BouncingScrollPhysics(),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              LuvpayText(
+                  text: widget.mode == WalletModalMode.create
+                      ? 'Create New SubWallet'
+                      : 'Edit Wallet Name',
+                  style: AppTextStyle.h3(context).copyWith(color: titleColor)),
+              const SizedBox(height: 10),
+              if (widget.mode == WalletModalMode.create) ...[
+                Obx(() => _softCard(
+                    radius: BorderRadius.circular(14),
+                    child: Row(children: [
                       Icon(Iconsax.wallet_money, color: cs.primary, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: LuvpayText(
-                          text:
-                              'Available Main Balance: ${controller.luvpayBal.value}',
-                          style: AppTextStyle.paragraph1(context).copyWith(
-                            color: cs.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              LuvpayText(
-                text: 'Select Category',
-                style: AppTextStyle.h3(context).copyWith(color: titleColor),
-              ),
-              const SizedBox(height: 10),
-              if (_availableCategories.isNotEmpty)
-                SizedBox(
-                  height: 60,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: _availableCategories.length,
-                    itemBuilder: (context, index) {
-                      final category = _availableCategories[index];
-                      final categoryId =
-                          category['category_id']?.toString() ?? '';
-                      final categoryName =
-                          category['category_title']?.toString() ?? 'Unknown';
-                      final isSelected = _selectedCategoryId == categoryId;
-
-                      final imageBase64 =
-                          category['image_base64']?.toString() ?? '';
-                      Color color;
-
-                      if (category['color'] is int) {
-                        color = Color(category['color']);
-                      } else if (category['color'] is String) {
-                        color = _getColorFromString(category['color']);
-                      } else {
-                        color = cs.primary;
-                      }
-
-                      Widget iconWidget;
-                      if (imageBase64.isNotEmpty) {
-                        final clean = imageBase64.replaceAll(RegExp(r'\s'), '');
-                        Uint8List? bytes;
-                        if (_iconCache.containsKey(categoryId)) {
-                          bytes = _iconCache[categoryId];
-                        } else {
-                          try {
-                            bytes = base64.decode(clean);
-                            _iconCache[categoryId] = bytes;
-                          } catch (_) {
-                            bytes = null;
-                          }
-                        }
-
-                        iconWidget = bytes != null
-                            ? Padding(
-                                padding: const EdgeInsets.all(5),
-                                child: Image.memory(
-                                  bytes,
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.contain,
-                                  gaplessPlayback: true,
-                                ),
-                              )
-                            : Icon(
-                                Iconsax.wallet,
-                                size: 30,
-                                color: cs.onSurface,
-                              );
-                      } else {
-                        iconWidget = Icon(
-                          Iconsax.wallet,
-                          size: 30,
-                          color: cs.onSurface,
-                        );
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.all(3),
-                        child: _categoryChip(
-                          isSelected: isSelected,
-                          color: color,
-                          iconWidget: iconWidget,
-                          label: categoryName,
-                          onTap: () {
-                            setState(() {
-                              _selectedCategoryId = categoryId;
-                              _selectedCategoryName = categoryName;
-                              _selectedColor = color;
-                              _selectedIconBytes = _iconCache[categoryId];
-                            });
-                            _validateCategoryOnChange(categoryId);
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                )
-              else
-                GestureDetector(
-                  onTap: () => controller.refreshAllData(),
-                  child: LuvpayText(
-                    text: 'No categories available',
-                    style: AppTextStyle.paragraph2(
-                      context,
-                    ).copyWith(color: bodyColor),
-                  ),
-                ),
-              if (_categoryError != null) ...[
-                const SizedBox(height: 8),
+                          child: LuvpayText(
+                              text:
+                                  'Available Main Balance: ${controller.luvpayBal.value}',
+                              style: AppTextStyle.paragraph1(context).copyWith(
+                                  color: cs.primary,
+                                  fontWeight: FontWeight.w700))),
+                    ]))),
+                const SizedBox(height: 12),
                 LuvpayText(
-                  text: _categoryError!,
-                  style: AppTextStyle.paragraph2(context).copyWith(
-                    color: cs.error,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 18),
-            ],
-            if (widget.mode == WalletModalMode.edit &&
-                widget.wallet != null) ...[
-              _softCard(
-                radius: BorderRadius.circular(16),
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    LuvNeuPress(
-                      radius: BorderRadius.circular(16),
-                      depth: 1.2,
-                      pressedDepth: -0.6,
-                      onTap: null,
-                      background: widget.wallet!.color.withOpacity(
-                        isDark ? 0.14 : 0.10,
-                      ),
-                      borderColor: stroke,
-                      overlayOpacity: 0.02,
-                      child: SizedBox(
-                        width: 52,
-                        height: 52,
-                        child: Center(
-                          child: ClipOval(
-                            child: SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: buildWalletIcon(
-                                widget.wallet!.imageBase64 != null &&
-                                        widget.wallet!.imageBase64!.isNotEmpty
-                                    ? decodeBase64Safe(
-                                        widget.wallet!.imageBase64!,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LuvpayText(
-                            text: 'Current Category',
-                            style: AppTextStyle.paragraph2(context).copyWith(
-                              color: bodyColor,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          LuvpayText(
-                              color: titleColor,
-                              text: widget.wallet!.categoryTitle,
-                              style: AppTextStyle.body1(context)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-            ],
-            LuvpayText(
-              text: 'Select Color',
-              style: AppTextStyle.h3(context).copyWith(color: titleColor),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 10,
-              children: walletThemes.map((theme) {
-                final isSelected = _selectedThemeKey == theme.key;
+                    text: 'Select Category',
+                    style:
+                        AppTextStyle.h3(context).copyWith(color: titleColor)),
+                const SizedBox(height: 10),
+                if (_availableCategories.isNotEmpty)
+                  SizedBox(
+                      height: 60,
+                      child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: _availableCategories.length,
+                          itemBuilder: (context, index) {
+                            final category = _availableCategories[index];
+                            final categoryId =
+                                category['category_id']?.toString() ?? '';
+                            final categoryName =
+                                category['category_title']?.toString() ??
+                                    'Unknown';
+                            final isSelected =
+                                _selectedCategoryId == categoryId;
 
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedThemeKey = theme.key;
-                    });
-                  },
-                  child: Container(
-                    width: 40,
-                    height: isSelected ? 50 : 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: theme.gradient,
-                      ),
-                      border: isSelected
-                          ? Border.all(
-                              color: cs.onSurface.withAlpha(150), width: 3)
-                          : null,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 18),
-            TextField(
-              controller: _nameController,
-              onChanged: _validateNameOnChange,
-              style: AppTextStyle.h3(context).copyWith(color: titleColor),
-              maxLength: 15,
-              inputFormatters: [UpperCaseTextFormatter()],
-              decoration: InputDecoration(
-                labelText: 'SubWallet Name',
-                labelStyle: AppTextStyle.paragraph2(
-                  context,
-                ).copyWith(color: bodyColor),
-                filled: true,
-                fillColor: cs.surfaceContainerHighest,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(
-                    color: stroke,
-                    width: isDark ? 0.8 : 1.0,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(
-                    color: stroke,
-                    width: isDark ? 0.8 : 1.0,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: cs.primary),
-                ),
-                prefixIcon: Icon(Iconsax.wallet, color: cs.primary),
-                counterText: '',
-                hintText: 'Max 15 characters',
-                hintStyle: AppTextStyle.paragraph2(
-                  context,
-                ).copyWith(fontSize: 12, color: bodyColor.withOpacity(0.75)),
-                errorText: _nameError,
-                errorStyle: TextStyle(color: cs.error, fontSize: 12),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (widget.mode == WalletModalMode.create) ...[
-              TextField(
-                controller: _balanceController,
-                focusNode: _balanceFocusNode,
-                onChanged: _validateBalanceOnChange,
-                style: AppTextStyle.h3(context).copyWith(color: titleColor),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                maxLength: 12,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(
-                    RegExp(r'^[1-9]\d{0,8}(\.\d{0,2})?$'),
-                  ),
+                            final imageBase64 =
+                                category['image_base64']?.toString() ?? '';
+                            Color color;
+
+                            if (category['color'] is int) {
+                              color = Color(category['color']);
+                            } else if (category['color'] is String) {
+                              color = _getColorFromString(category['color']);
+                            } else {
+                              color = cs.primary;
+                            }
+
+                            Widget iconWidget;
+                            if (imageBase64.isNotEmpty) {
+                              final clean =
+                                  imageBase64.replaceAll(RegExp(r'\s'), '');
+                              Uint8List? bytes;
+                              if (_iconCache.containsKey(categoryId)) {
+                                bytes = _iconCache[categoryId];
+                              } else {
+                                try {
+                                  bytes = base64.decode(clean);
+                                  _iconCache[categoryId] = bytes;
+                                } catch (_) {
+                                  bytes = null;
+                                }
+                              }
+
+                              iconWidget = bytes != null
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(5),
+                                      child: Image.memory(bytes,
+                                          width: 40,
+                                          height: 40,
+                                          fit: BoxFit.contain,
+                                          gaplessPlayback: true))
+                                  : Icon(Iconsax.wallet,
+                                      size: 30, color: cs.onSurface);
+                            } else {
+                              iconWidget = Icon(Iconsax.wallet,
+                                  size: 30, color: cs.onSurface);
+                            }
+
+                            return Padding(
+                                padding: const EdgeInsets.all(3),
+                                child: _categoryChip(
+                                    isSelected: isSelected,
+                                    color: color,
+                                    iconWidget: iconWidget,
+                                    label: categoryName,
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedCategoryId = categoryId;
+                                        _selectedCategoryName = categoryName;
+                                        _selectedColor = color;
+                                        _selectedIconBytes =
+                                            _iconCache[categoryId];
+                                      });
+                                      _validateCategoryOnChange(categoryId);
+                                    }));
+                          }))
+                else
+                  GestureDetector(
+                      onTap: () => controller.refreshAllData(),
+                      child: LuvpayText(
+                          text: 'No categories available',
+                          style: AppTextStyle.paragraph2(context)
+                              .copyWith(color: bodyColor))),
+                if (_categoryError != null) ...[
+                  const SizedBox(height: 8),
+                  LuvpayText(
+                      text: _categoryError!,
+                      style: AppTextStyle.paragraph2(context).copyWith(
+                          color: cs.error,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700)),
                 ],
-                decoration: InputDecoration(
-                  prefixText: '₱ ',
-                  prefixStyle: AppTextStyle.h3_semibold(
-                    context,
-                  ).copyWith(color: titleColor),
-                  labelText: 'Amount',
-                  labelStyle: AppTextStyle.paragraph2(
-                    context,
-                  ).copyWith(color: bodyColor),
-                  filled: true,
-                  fillColor: cs.surfaceContainerHighest,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(
-                      color: stroke,
-                      width: isDark ? 0.8 : 1.0,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(
-                      color: stroke,
-                      width: isDark ? 0.8 : 1.0,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                    borderSide: BorderSide(color: cs.primary),
-                  ),
-                  prefixIcon: Icon(Iconsax.money_3, color: cs.primary),
-                  counterText: '',
-                  hintText: 'Optional (defaults to 0)',
-                  hintStyle: AppTextStyle.paragraph2(
-                    context,
-                  ).copyWith(fontSize: 12, color: bodyColor.withOpacity(0.75)),
-                  errorText: _balanceError,
-                  errorStyle: TextStyle(color: cs.error, fontSize: 12),
-                  suffixIcon: _balanceError != null &&
-                          _balanceError!.contains(
-                            'Insufficient main balance',
-                          )
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: Icon(
-                            Iconsax.warning_2,
-                            color: cs.error,
-                            size: 20,
-                          ),
-                        )
-                      : null,
-                ),
-              ),
-              if (_balanceError != null &&
-                  _balanceError!.contains('Insufficient main balance')) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
+                const SizedBox(height: 18),
+              ],
+              if (widget.mode == WalletModalMode.edit &&
+                  widget.wallet != null) ...[
+                _softCard(
+                    radius: BorderRadius.circular(16),
+                    padding: const EdgeInsets.all(12),
+                    child: Row(children: [
+                      LuvNeuPress(
+                          radius: BorderRadius.circular(16),
+                          depth: 1.2,
+                          pressedDepth: -0.6,
+                          onTap: null,
+                          background: widget.wallet!.color
+                              .withOpacity(isDark ? 0.14 : 0.10),
+                          borderColor: stroke,
+                          overlayOpacity: 0.02,
+                          child: SizedBox(
+                              width: 52,
+                              height: 52,
+                              child: Center(
+                                  child: ClipOval(
+                                      child: SizedBox(
+                                          width: 44,
+                                          height: 44,
+                                          child: buildWalletIcon(widget.wallet!
+                                                          .imageBase64 !=
+                                                      null &&
+                                                  widget.wallet!.imageBase64!
+                                                      .isNotEmpty
+                                              ? decodeBase64Safe(
+                                                  widget.wallet!.imageBase64!)
+                                              : null)))))),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            LuvpayText(
+                                text: 'Current Category',
+                                style: AppTextStyle.paragraph2(context)
+                                    .copyWith(
+                                        color: bodyColor,
+                                        fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 2),
+                            LuvpayText(
+                                color: titleColor,
+                                text: widget.wallet!.categoryTitle,
+                                style: AppTextStyle.body1(context)),
+                          ])),
+                    ])),
+                const SizedBox(height: 18),
+              ],
+              LuvpayText(
+                  text: 'Select Color',
+                  style: AppTextStyle.h3(context).copyWith(color: titleColor)),
+              const SizedBox(height: 10),
+              Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 10,
+                  children: walletThemes.map((theme) {
+                    final isSelected = _selectedThemeKey == theme.key;
+
+                    return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedThemeKey = theme.key;
+                          });
+                        },
+                        child: Container(
+                            width: 40,
+                            height: isSelected ? 50 : 40,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient:
+                                    LinearGradient(colors: theme.gradient),
+                                border: isSelected
+                                    ? Border.all(
+                                        color: cs.onSurface.withAlpha(150),
+                                        width: 3)
+                                    : null)));
+                  }).toList()),
+              const SizedBox(height: 18),
+              TextField(
+                  controller: _nameController,
+                  onChanged: _validateNameOnChange,
+                  style: AppTextStyle.h3(context).copyWith(color: titleColor),
+                  maxLength: 15,
+                  inputFormatters: [UpperCaseTextFormatter()],
+                  decoration: InputDecoration(
+                      labelText: 'SubWallet Name',
+                      labelStyle: AppTextStyle.paragraph2(context)
+                          .copyWith(color: bodyColor),
+                      filled: true,
+                      fillColor: cs.surfaceContainerHighest,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(
+                              color: stroke, width: isDark ? 0.8 : 1.0)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(
+                              color: stroke, width: isDark ? 0.8 : 1.0)),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: cs.primary)),
+                      prefixIcon: Icon(Iconsax.wallet, color: cs.primary),
+                      counterText: '',
+                      hintText: 'Max 15 characters',
+                      hintStyle: AppTextStyle.paragraph2(context).copyWith(
+                          fontSize: 12, color: bodyColor.withOpacity(0.75)),
+                      errorText: _nameError,
+                      errorStyle: TextStyle(color: cs.error, fontSize: 12))),
+              const SizedBox(height: 16),
+              if (widget.mode == WalletModalMode.create) ...[
+                TextField(
+                    controller: _balanceController,
+                    focusNode: _balanceFocusNode,
+                    onChanged: _validateBalanceOnChange,
+                    style: AppTextStyle.h3(context).copyWith(color: titleColor),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    maxLength: 12,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^[1-9]\d{0,8}(\.\d{0,2})?$')),
+                    ],
+                    decoration: InputDecoration(
+                        prefixText: '₱ ',
+                        prefixStyle: AppTextStyle.h3_semibold(context)
+                            .copyWith(color: titleColor),
+                        labelText: 'Amount',
+                        labelStyle: AppTextStyle.paragraph2(context)
+                            .copyWith(color: bodyColor),
+                        filled: true,
+                        fillColor: cs.surfaceContainerHighest,
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide(
+                                color: stroke, width: isDark ? 0.8 : 1.0)),
+                        enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide(
+                                color: stroke, width: isDark ? 0.8 : 1.0)),
+                        focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide(color: cs.primary)),
+                        prefixIcon: Icon(Iconsax.money_3, color: cs.primary),
+                        counterText: '',
+                        hintText: 'Optional (defaults to 0)',
+                        hintStyle: AppTextStyle.paragraph2(context).copyWith(
+                            fontSize: 12, color: bodyColor.withOpacity(0.75)),
+                        errorText: _balanceError,
+                        errorStyle: TextStyle(color: cs.error, fontSize: 12),
+                        suffixIcon: _balanceError != null &&
+                                _balanceError!
+                                    .contains('Insufficient main balance')
+                            ? Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Icon(Iconsax.warning_2,
+                                    color: cs.error, size: 20))
+                            : null)),
+                if (_balanceError != null &&
+                    _balanceError!.contains('Insufficient main balance')) ...[
+                  const SizedBox(height: 8),
+                  Row(children: [
                     Icon(Iconsax.info_circle, color: cs.error, size: 14),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: LuvpayText(
-                        text: 'Available: ${controller.luvpayBal.value}',
-                        style: AppTextStyle.paragraph2(
-                          context,
-                        ).copyWith(color: cs.error, fontSize: 11),
-                      ),
-                    ),
-                  ],
-                ),
+                        child: LuvpayText(
+                            text: 'Available: ${controller.luvpayBal.value}',
+                            style: AppTextStyle.paragraph2(context)
+                                .copyWith(color: cs.error, fontSize: 11))),
+                  ]),
+                ],
               ],
-            ],
-            if (widget.mode == WalletModalMode.create) ...[
-              const SizedBox(height: 16),
-              LuvpayText(
-                text: "Shared Access",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 10),
-              if (sharedMobileNo != null) ...[
-                LuvNeuPress.rectangle(
-                    background: cs.surfaceContainerHighest,
+              if (widget.mode == WalletModalMode.create) ...[
+                const SizedBox(height: 16),
+                LuvpayText(
+                    text: "Shared Access",
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Theme.of(context).colorScheme.onSurface)),
+                const SizedBox(height: 10),
+                if (sharedMobileNo != null) ...[
+                  LuvNeuPress.rectangle(
+                      background: cs.surfaceContainerHighest,
+                      radius: BorderRadius.circular(14),
+                      child: ListTile(
+                          leading: Icon(
+                              isValidUser ? Icons.verified : Icons.error,
+                              color: isValidUser ? Colors.blue : cs.error),
+                          title: LuvpayText(
+                              text: sharedDisplayName ?? "",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  color: isValidUser ? Colors.blue : cs.error)),
+                          subtitle: LuvpayText(
+                              text: "+63$sharedMobileNo",
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: cs.onSurface.withOpacity(0.6))),
+                          trailing: IconButton(
+                              icon: const Icon(Icons.remove_circle,
+                                  color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  sharedMobileNo = null;
+                                  sharedDisplayName = null;
+                                });
+                              })))
+                ] else ...[
+                  LuvNeuPress.rectangle(
+                      onTap: userDetails == null ||
+                              userDetails!["email"] == null ||
+                              userDetails!["first_name"] == null
+                          ? () {
+                              CustomDialogStack.showConfirmation(
+                                  Get.context!,
+                                  "Update Profile",
+                                  "Please update your profile to continue using this feature. Would you like to update now?",
+                                  leftText: "Cancel",
+                                  rightText: "Update", () {
+                                Get.back();
+                              }, () async {
+                                Get.back();
+
+                                final regions =
+                                    await Functions().fetchRegions(context);
+
+                                if (regions.isEmpty) return;
+
+                                Get.toNamed(Routes.updProfile,
+                                    arguments: regions);
+                              });
+                            }
+                          : _openInviteModal,
+                      background: cs.primary.withOpacity(0.1),
+                      radius: BorderRadius.circular(14),
+                      child: SizedBox(
+                          height: 50,
+                          child: Center(
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                Icon(Icons.person_add, color: cs.primary),
+                                const SizedBox(width: 8),
+                                LuvpayText(
+                                    text: "Invite user",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        color: cs.primary)),
+                              ])))),
+                ]
+              ],
+              const SizedBox(height: 18),
+              SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: _primaryButton(
+                      enabled: canSubmit,
+                      loading: _isSubmitting,
+                      text: widget.mode == WalletModalMode.create
+                          ? 'Create SubWallet'
+                          : 'Save Changes',
+                      onTap: _submitForm)),
+              if (widget.mode == WalletModalMode.create) ...[
+                const SizedBox(height: 14),
+                _softCard(
                     radius: BorderRadius.circular(14),
-                    child: ListTile(
-                      leading: Icon(
-                        isValidUser ? Icons.verified : Icons.error,
-                        color: isValidUser ? Colors.blue : cs.error,
-                      ),
-                      title: LuvpayText(
-                        text: sharedDisplayName ?? "",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: isValidUser ? Colors.blue : cs.error,
-                        ),
-                      ),
-                      subtitle: LuvpayText(
-                        text: "+63$sharedMobileNo",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: cs.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                      trailing: IconButton(
-                        icon:
-                            const Icon(Icons.remove_circle, color: Colors.red),
-                        onPressed: () {
-                          setState(() {
-                            sharedMobileNo = null;
-                            sharedDisplayName = null;
-                          });
-                        },
-                      ),
-                    ))
-              ] else ...[
-                LuvNeuPress.rectangle(
-                  onTap: userDetails == null ||
-                          userDetails!["email"] == null ||
-                          userDetails!["first_name"] == null
-                      ? () {
-                          CustomDialogStack.showConfirmation(
-                              Get.context!,
-                              "Update Profile",
-                              "Please update your profile to continue using this feature. Would you like to update now?",
-                              leftText: "Cancel",
-                              rightText: "Update", () {
-                            Get.back();
-                          }, () async {
-                            Get.back();
-
-                            final regions =
-                                await Functions().fetchRegions(context);
-
-                            if (regions.isEmpty) return;
-
-                            Get.toNamed(
-                              Routes.updProfile,
-                              arguments: regions,
-                            );
-                          });
-                        }
-                      : _openInviteModal,
-                  background: cs.primary.withOpacity(0.1),
-                  radius: BorderRadius.circular(14),
-                  child: SizedBox(
-                    height: 50,
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.person_add, color: cs.primary),
-                          const SizedBox(width: 8),
-                          LuvpayText(
-                            text: "Invite user",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              color: cs.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ]
-            ],
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: _primaryButton(
-                enabled: canSubmit,
-                loading: _isSubmitting,
-                text: widget.mode == WalletModalMode.create
-                    ? 'Create SubWallet'
-                    : 'Save Changes',
-                onTap: _submitForm,
-              ),
-            ),
-            if (widget.mode == WalletModalMode.create) ...[
-              const SizedBox(height: 14),
-              _softCard(
-                radius: BorderRadius.circular(14),
-                child: Row(
-                  children: [
-                    Icon(Iconsax.info_circle, color: cs.primary, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: LuvpayText(
-                        text:
-                            'Funds will be deducted from your main LuvPay balance',
-                        style: AppTextStyle.paragraph2(
-                          context,
-                        ).copyWith(color: bodyColor),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+                    child: Row(children: [
+                      Icon(Iconsax.info_circle, color: cs.primary, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                          child: LuvpayText(
+                              text:
+                                  'Funds will be deducted from your main LuvPay balance',
+                              style: AppTextStyle.paragraph2(context)
+                                  .copyWith(color: bodyColor))),
+                    ])),
+              ],
+            ])));
   }
 
   void _openInviteModal() {
     showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ShareUserBottomSheet(
-        initialValue: sharedMobileNo != null ? "+63$sharedMobileNo" : null,
-        onSelected: (mobile, name, valid) {
-          setState(() {
-            sharedMobileNo = mobile.replaceFirst("63", "");
-            sharedDisplayName = name;
-            isValidUser = valid;
-          });
-        },
-      ),
-    );
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => ShareUserBottomSheet(
+            initialValue: sharedMobileNo != null ? "+63$sharedMobileNo" : null,
+            onSelected: (mobile, name, valid) {
+              setState(() {
+                sharedMobileNo = mobile.replaceFirst("63", "");
+                sharedDisplayName = name;
+                isValidUser = valid;
+              });
+            }));
   }
 }

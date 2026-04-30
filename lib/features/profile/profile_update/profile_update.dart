@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
 import 'package:luvpay/shared/widgets/custom_textfield.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import '../../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../../shared/widgets/colors.dart';
@@ -84,33 +85,24 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
   void _initializeControllers() {
     // Profile Controllers
-    _firstNameController = TextEditingController(
-      text: widget.userData['first_name'] ?? '',
-    );
-    _lastNameController = TextEditingController(
-      text: widget.userData['last_name'] ?? '',
-    );
-    _middleNameController = TextEditingController(
-      text: widget.userData['middle_name'] ?? '',
-    );
-    _emailController = TextEditingController(
-      text: widget.userData['email'] ?? '',
-    );
-    _mobileController = TextEditingController(
-      text: widget.userData['mobile_no'] ?? '',
-    );
-    _birthdayController = TextEditingController(
-      text: widget.userData['birthday'] ?? '',
-    );
-    _address1Controller = TextEditingController(
-      text: widget.userData['address1'] ?? '',
-    );
-    _address2Controller = TextEditingController(
-      text: widget.userData['address2'] ?? '',
-    );
-    _zipCodeController = TextEditingController(
-      text: widget.userData['zip_code'] ?? '',
-    );
+    _firstNameController =
+        TextEditingController(text: widget.userData['first_name'] ?? '');
+    _lastNameController =
+        TextEditingController(text: widget.userData['last_name'] ?? '');
+    _middleNameController =
+        TextEditingController(text: widget.userData['middle_name'] ?? '');
+    _emailController =
+        TextEditingController(text: widget.userData['email'] ?? '');
+    _mobileController =
+        TextEditingController(text: widget.userData['mobile_no'] ?? '');
+    _birthdayController =
+        TextEditingController(text: widget.userData['birthday'] ?? '');
+    _address1Controller =
+        TextEditingController(text: widget.userData['address1'] ?? '');
+    _address2Controller =
+        TextEditingController(text: widget.userData['address2'] ?? '');
+    _zipCodeController =
+        TextEditingController(text: widget.userData['zip_code'] ?? '');
 
     //address dropdown
     _regionId =
@@ -145,16 +137,14 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
   String? _getQuestionById(dynamic id) {
     if (id == null) return null;
     int questionId = int.tryParse(id.toString()) ?? 0;
-    return _securityQuestions.firstWhere(
-      (q) => q['value'] == questionId,
-      orElse: () => {'text': ''},
-    )['text'];
+    return _securityQuestions.firstWhere((q) => q['value'] == questionId,
+        orElse: () => {'text': ''})['text'];
   }
 
   Future<dynamic> getAddressData(String param) async {
     CustomDialogStack.showLoading(Get.context!);
 
-    final response = await HttpRequestApi(api: param).get();
+    final response = await Functions().requestHandler(apiKey: param);
     Get.back();
 
     if (response is Map) {
@@ -256,10 +246,13 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
       "image_base64": imageBase64.toString(),
     };
 
-    HttpRequestApi(
-      api: ApiKeys.putUpdateUserProf,
+    Functions()
+        .requestHandler(
+      apiKey: ApiKeys.putUpdateUserProf,
       parameters: parameters,
-    ).putBody().then((res) async {
+      method: "PUT",
+    )
+        .then((res) async {
       Get.back();
       if (res == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -288,12 +281,11 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
   Future<void> _selectBirthday() async {
     final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedBirthday ??
-          DateTime.now().subtract(const Duration(days: 365 * 18)),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
-    );
+        context: context,
+        initialDate: _selectedBirthday ??
+            DateTime.now().subtract(const Duration(days: 365 * 18)),
+        firstDate: DateTime(1900),
+        lastDate: DateTime.now().subtract(const Duration(days: 365 * 18)));
     if (picked != null && picked != _selectedBirthday) {
       setState(() {
         _selectedBirthday = picked;
@@ -309,9 +301,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
     if (_currentPage < 2) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
+          duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     } else {
       _takeSelfie();
     }
@@ -320,21 +310,16 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
   void _previousPage() {
     if (_currentPage > 0) {
       _pageController.previousPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
+          duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     }
   }
 
   bool _validateProfilePage() {
     if (_firstNameController.text.isEmpty || _lastNameController.text.isEmpty) {
       final cs = Theme.of(context).colorScheme;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: cs.error,
-          content: const LuvpayText(text: 'Please fill in required fields'),
-        ),
-      );
+          content: const LuvpayText(text: 'Please fill in required fields')));
       return false;
     }
     return true;
@@ -344,27 +329,20 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
     Set<String?> selectedSet = _selectedQuestions.toSet();
     if (selectedSet.length < 3 || selectedSet.contains(null)) {
       final cs = Theme.of(context).colorScheme;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           backgroundColor: cs.error,
           content: const LuvpayText(
-              text: 'Please select 3 unique security questions'),
-        ),
-      );
+              text: 'Please select 3 unique security questions')));
       return false;
     }
     for (int i = 0; i < 3; i++) {
       if (_answerControllers[i].text.isEmpty ||
           _answerControllers[i].text.length < 2) {
         final cs = Theme.of(context).colorScheme;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: cs.error,
             content: const LuvpayText(
-              text: 'Please provide valid answers for all questions',
-            ),
-          ),
-        );
+                text: 'Please provide valid answers for all questions')));
         return false;
       }
     }
@@ -373,12 +351,11 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
 
   void _takeSelfie() async {
     final pickedFile = await _picker.pickImage(
-      preferredCameraDevice: CameraDevice.front,
-      source: ImageSource.camera,
-      imageQuality: Platform.isIOS ? 14 : 20,
-      maxWidth: Platform.isIOS ? 200 : 400,
-      requestFullMetadata: true,
-    );
+        preferredCameraDevice: CameraDevice.front,
+        source: ImageSource.camera,
+        imageQuality: Platform.isIOS ? 14 : 20,
+        maxWidth: Platform.isIOS ? 200 : 400,
+        requestFullMetadata: true);
 
     imageFile = pickedFile != null ? File(pickedFile.path) : null;
 
@@ -403,67 +380,50 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
         isDark ? AppColorV2.darkBodyText : AppColorV2.bodyTextColor;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
-      child: Column(
-        children: [
+        padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+        child: Column(children: [
           // Progress Bar
           Container(
-            height: 6,
-            decoration: BoxDecoration(
-              color: stroke,
-              borderRadius: BorderRadius.circular(3),
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOut,
-                width:
-                    MediaQuery.of(context).size.width * (_currentPage + 1) / 3,
-                decoration: BoxDecoration(
-                  gradient: AppColorV2.primaryGradient,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-          ),
+              height: 6,
+              decoration: BoxDecoration(
+                  color: stroke, borderRadius: BorderRadius.circular(3)),
+              child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                      width: MediaQuery.of(context).size.width *
+                          (_currentPage + 1) /
+                          3,
+                      decoration: BoxDecoration(
+                          gradient: AppColorV2.primaryGradient,
+                          borderRadius: BorderRadius.circular(3))))),
           const SizedBox(height: 12),
           // Progress Text
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              LuvpayText(
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            LuvpayText(
                 text: 'Profile',
                 style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight:
-                      _currentPage == 0 ? FontWeight.w600 : FontWeight.w400,
-                  color: _currentPage == 0 ? cs.primary : inactiveText,
-                ),
-              ),
-              LuvpayText(
+                    fontSize: 12,
+                    fontWeight:
+                        _currentPage == 0 ? FontWeight.w600 : FontWeight.w400,
+                    color: _currentPage == 0 ? cs.primary : inactiveText)),
+            LuvpayText(
                 text: 'Security',
                 style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight:
-                      _currentPage == 1 ? FontWeight.w600 : FontWeight.w400,
-                  color: _currentPage == 1 ? cs.primary : inactiveText,
-                ),
-              ),
-              LuvpayText(
+                    fontSize: 12,
+                    fontWeight:
+                        _currentPage == 1 ? FontWeight.w600 : FontWeight.w400,
+                    color: _currentPage == 1 ? cs.primary : inactiveText)),
+            LuvpayText(
                 text: 'Selfie',
                 style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight:
-                      _currentPage == 2 ? FontWeight.w600 : FontWeight.w400,
-                  color: _currentPage == 2 ? cs.primary : inactiveText,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+                    fontSize: 12,
+                    fontWeight:
+                        _currentPage == 2 ? FontWeight.w600 : FontWeight.w400,
+                    color: _currentPage == 2 ? cs.primary : inactiveText)),
+          ]),
+        ]));
   }
 
   Widget _buildQuestionCard(int index) {
@@ -477,360 +437,317 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
         isDark ? AppColorV2.darkBodyText : AppColorV2.bodyTextColor;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: stroke),
-        boxShadow: [
-          BoxShadow(
-            color: (isDark ? Colors.black : Colors.black).withValues(
-              alpha: isDark ? 0.35 : 0.05,
-            ),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: stroke),
+            boxShadow: [
+              BoxShadow(
+                  color: (isDark ? Colors.black : Colors.black)
+                      .withValues(alpha: isDark ? 0.35 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2)),
+            ]),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // Question Number Indicator
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: cs.primary.withValues(alpha: isDark ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: LuvpayText(
-              text: 'Question ${index + 1}',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: cs.primary,
-              ),
-            ),
-          ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: isDark ? 0.18 : 0.10),
+                  borderRadius: BorderRadius.circular(20)),
+              child: LuvpayText(
+                  text: 'Question ${index + 1}',
+                  style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: cs.primary))),
           const SizedBox(height: 12),
           customDropdown(
-            isDisabled: false,
-            labelText: "Select a question",
-            items: _securityQuestions,
-            selectedValue: _selectedQuestions[index],
-            onChanged: (value) {
-              FocusManager.instance.primaryFocus!.unfocus();
-              setState(() {
-                _selectedQuestions[index] = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a question';
-              }
-              return null;
-            },
-          ),
+              isDisabled: false,
+              labelText: "Select a question",
+              items: _securityQuestions,
+              selectedValue: _selectedQuestions[index],
+              onChanged: (value) {
+                FocusManager.instance.primaryFocus!.unfocus();
+                setState(() {
+                  _selectedQuestions[index] = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a question';
+                }
+                return null;
+              }),
           const SizedBox(height: 12),
 
           // Answer Input
           Container(
-            decoration: BoxDecoration(
-              color: fieldBg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: stroke),
-            ),
-            child: TextFormField(
-              controller: _answerControllers[index],
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                border: InputBorder.none,
-                prefixIcon: Icon(Icons.lock_outline_rounded, color: cs.primary),
-                hintText: 'Enter your answer',
-                hintStyle: GoogleFonts.inter(color: hintText),
-                suffixIcon: _answerControllers[index].text.isNotEmpty
-                    ? Icon(
-                        Icons.check_circle_rounded,
-                        color: AppColorV2.correctState,
-                      )
-                    : null,
-              ),
-              style: GoogleFonts.inter(fontSize: 14, color: cs.onSurface),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter an answer';
-                }
-                if (value.length < 2) {
-                  return 'Answer must be at least 2 characters';
-                }
-                return null;
-              },
-              obscureText: true,
-            ),
-          ),
-        ],
-      ),
-    );
+              decoration: BoxDecoration(
+                  color: fieldBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: stroke)),
+              child: TextFormField(
+                  controller: _answerControllers[index],
+                  decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      border: InputBorder.none,
+                      prefixIcon:
+                          Icon(Icons.lock_outline_rounded, color: cs.primary),
+                      hintText: 'Enter your answer',
+                      hintStyle: GoogleFonts.inter(color: hintText),
+                      suffixIcon: _answerControllers[index].text.isNotEmpty
+                          ? Icon(Icons.check_circle_rounded,
+                              color: AppColorV2.correctState)
+                          : null),
+                  style: GoogleFonts.inter(fontSize: 14, color: cs.onSurface),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an answer';
+                    }
+                    if (value.length < 2) {
+                      return 'Answer must be at least 2 characters';
+                    }
+                    return null;
+                  },
+                  obscureText: true)),
+        ]));
   }
 
   Widget _buildProfilePage() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(25),
-      child: Column(
-        children: [
+        padding: const EdgeInsets.all(25),
+        child: Column(children: [
           _buildEnhancedSectionHeader(
-            'Personal Information',
-            Icons.person_outline_rounded,
-          ),
+              'Personal Information', Icons.person_outline_rounded),
           CustomTextField(
-            title: 'First Name',
-            controller: _firstNameController,
-            hintText: "First Name",
-            prefixIcon: const Icon(Icons.person),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'First Name is required';
-              }
-              return null;
-            },
-          ),
+              title: 'First Name',
+              controller: _firstNameController,
+              hintText: "First Name",
+              prefixIcon: const Icon(Icons.person),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'First Name is required';
+                }
+                return null;
+              }),
           const SizedBox(height: 16),
           CustomTextField(
-            title: 'Last Name',
-            controller: _lastNameController,
-            hintText: "Last Name",
-            prefixIcon: const Icon(Icons.person),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Last Name is required';
-              }
-              return null;
-            },
-          ),
+              title: 'Last Name',
+              controller: _lastNameController,
+              hintText: "Last Name",
+              prefixIcon: const Icon(Icons.person),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Last Name is required';
+                }
+                return null;
+              }),
           const SizedBox(height: 16),
           CustomTextField(
-            title: 'Middle Name',
-            controller: _middleNameController,
-            hintText: "Middle Name",
-            prefixIcon: const Icon(Icons.person),
-          ),
+              title: 'Middle Name',
+              controller: _middleNameController,
+              hintText: "Middle Name",
+              prefixIcon: const Icon(Icons.person)),
           const SizedBox(height: 16),
           CustomTextField(
-            title: 'Email',
-            controller: _emailController,
-            hintText: "Email",
-            prefixIcon: const Icon(Icons.email),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Email Name is required';
-              }
-              return null;
-            },
-          ),
+              title: 'Email',
+              controller: _emailController,
+              hintText: "Email",
+              prefixIcon: const Icon(Icons.email),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Email Name is required';
+                }
+                return null;
+              }),
 
           // Additional Information Section
           _buildEnhancedSectionHeader(
-            'Additional Information',
-            Icons.info_outline_rounded,
-          ),
+              'Additional Information', Icons.info_outline_rounded),
           CustomTextField(
-            title: 'Birthday',
-            controller: _birthdayController,
-            hintText: "Birthday",
-            prefixIcon: const Icon(Icons.calendar_today),
-            suffixIcon: Icons.calendar_month,
-            onIconTap: _selectBirthday,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Birthday is required';
-              }
-              return null;
-            },
-          ),
+              title: 'Birthday',
+              controller: _birthdayController,
+              hintText: "Birthday",
+              prefixIcon: const Icon(Icons.calendar_today),
+              suffixIcon: Icons.calendar_month,
+              onIconTap: _selectBirthday,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Birthday is required';
+                }
+                return null;
+              }),
           const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: const Icon(Icons.transgender),
-            isDisabled: false,
-            labelText: "Select gender",
-            items: const [
-              {"text": "Female", "value": "F"},
-              {"text": "Male", "value": "M"},
-            ],
-            selectedValue: _selectedGender,
-            onChanged: (value) {
-              FocusManager.instance.primaryFocus!.unfocus();
+              prefixIcon: const Icon(Icons.transgender),
+              isDisabled: false,
+              labelText: "Select gender",
+              items: const [
+                {"text": "Female", "value": "F"},
+                {"text": "Male", "value": "M"},
+              ],
+              selectedValue: _selectedGender,
+              onChanged: (value) {
+                FocusManager.instance.primaryFocus!.unfocus();
 
-              setState(() {
-                _selectedGender = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a gender';
-              }
-              return null;
-            },
-          ),
+                setState(() {
+                  _selectedGender = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a gender';
+                }
+                return null;
+              }),
           const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: const Icon(Icons.transgender),
-            isDisabled: false,
-            labelText: "Civil Status",
-            items: Variables.civilStatusData,
-            selectedValue: _selectedCivilStatus,
-            onChanged: (value) {
-              FocusManager.instance.primaryFocus!.unfocus();
-              setState(() {
-                _selectedCivilStatus = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a gender';
-              }
-              return null;
-            },
-          ),
+              prefixIcon: const Icon(Icons.transgender),
+              isDisabled: false,
+              labelText: "Civil Status",
+              items: Variables.civilStatusData,
+              selectedValue: _selectedCivilStatus,
+              onChanged: (value) {
+                FocusManager.instance.primaryFocus!.unfocus();
+                setState(() {
+                  _selectedCivilStatus = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a gender';
+                }
+                return null;
+              }),
 
           const SizedBox(height: 16),
 
           _buildEnhancedSectionHeader('Address', Icons.home_outlined),
           customDropdown(
-            prefixIcon: const Icon(Icons.location_on),
-            isDisabled: false,
-            labelText: "Region",
-            items: widget.regionData.map((e) {
-              e["text"] = e["region_name"];
-              e["value"] = e["region_id"];
-              return e;
-            }).toList(),
-            selectedValue: _regionId,
-            onChanged: (value) async {
-              List respo = await getAddressData(
-                "${ApiKeys.getProvince}?p_region_id=${value!}",
-              );
+              prefixIcon: const Icon(Icons.location_on),
+              isDisabled: false,
+              labelText: "Region",
+              items: widget.regionData.map((e) {
+                e["text"] = e["region_name"];
+                e["value"] = e["region_id"];
+                return e;
+              }).toList(),
+              selectedValue: _regionId,
+              onChanged: (value) async {
+                List respo = await getAddressData(
+                    "${ApiKeys.getProvince}?p_region_id=${value!}");
 
-              if (respo.isEmpty) return;
-              onchangeEvent(1, () {
-                widget.provinceData = respo;
-              });
-              setState(() {
-                _regionId = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a region';
-              }
-              return null;
-            },
-          ),
+                if (respo.isEmpty) return;
+                onchangeEvent(1, () {
+                  widget.provinceData = respo;
+                });
+                setState(() {
+                  _regionId = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a region';
+                }
+                return null;
+              }),
 
           const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: const Icon(Icons.location_on),
-            isDisabled: false,
-            labelText: "Province",
-            items: widget.provinceData,
-            selectedValue: _provinceId,
-            onChanged: (value) async {
-              List respo = await getAddressData(
-                "${ApiKeys.getCity}?p_province_id=${value!}",
-              );
+              prefixIcon: const Icon(Icons.location_on),
+              isDisabled: false,
+              labelText: "Province",
+              items: widget.provinceData,
+              selectedValue: _provinceId,
+              onChanged: (value) async {
+                List respo = await getAddressData(
+                    "${ApiKeys.getCity}?p_province_id=${value!}");
 
-              if (respo.isEmpty) return;
-              onchangeEvent(2, () {
-                widget.cityData = respo;
-              });
-              setState(() {
-                _provinceId = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a province';
-              }
-              return null;
-            },
-          ),
+                if (respo.isEmpty) return;
+                onchangeEvent(2, () {
+                  widget.cityData = respo;
+                });
+                setState(() {
+                  _provinceId = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a province';
+                }
+                return null;
+              }),
 
           const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: const Icon(Icons.location_on),
-            isDisabled: false,
-            labelText: "City",
-            items: widget.cityData,
-            selectedValue: _cityId,
-            onChanged: (value) async {
-              List respo = await getAddressData(
-                "${ApiKeys.getBrgy}?p_city_id=$value",
-              );
+              prefixIcon: const Icon(Icons.location_on),
+              isDisabled: false,
+              labelText: "City",
+              items: widget.cityData,
+              selectedValue: _cityId,
+              onChanged: (value) async {
+                List respo =
+                    await getAddressData("${ApiKeys.getBrgy}?p_city_id=$value");
 
-              if (respo.isEmpty) return;
-              onchangeEvent(3, () {
-                widget.brgyData = respo;
-              });
-              setState(() {
-                _cityId = value;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a city';
-              }
-              return null;
-            },
-          ),
+                if (respo.isEmpty) return;
+                onchangeEvent(3, () {
+                  widget.brgyData = respo;
+                });
+                setState(() {
+                  _cityId = value;
+                });
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a city';
+                }
+                return null;
+              }),
           const SizedBox(height: 16),
           customDropdown(
-            prefixIcon: const Icon(Icons.location_on),
-            isDisabled: false,
-            labelText: "Brgy",
-            items: widget.brgyData,
-            selectedValue: _brgyId,
-            onChanged: (value) async {
-              setState(() {
-                _brgyId = value;
-              });
-              FocusManager.instance.primaryFocus!.unfocus();
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a brgy';
-              }
-              return null;
-            },
-          ),
+              prefixIcon: const Icon(Icons.location_on),
+              isDisabled: false,
+              labelText: "Brgy",
+              items: widget.brgyData,
+              selectedValue: _brgyId,
+              onChanged: (value) async {
+                setState(() {
+                  _brgyId = value;
+                });
+                FocusManager.instance.primaryFocus!.unfocus();
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a brgy';
+                }
+                return null;
+              }),
 
           const SizedBox(height: 16),
           CustomTextField(
-            title: 'Address Line 1',
-            controller: _address1Controller,
-            hintText: "Address Line 1",
-            prefixIcon: const Icon(Icons.location_on),
-          ),
+              title: 'Address Line 1',
+              controller: _address1Controller,
+              hintText: "Address Line 1",
+              prefixIcon: const Icon(Icons.location_on)),
           const SizedBox(height: 16),
           CustomTextField(
-            title: 'Address Line 2',
-            controller: _address2Controller,
-            hintText: "Address Line 2",
-            prefixIcon: const Icon(Icons.location_on),
-          ),
+              title: 'Address Line 2',
+              controller: _address2Controller,
+              hintText: "Address Line 2",
+              prefixIcon: const Icon(Icons.location_on)),
           const SizedBox(height: 16),
           CustomTextField(
-            title: 'ZIP Code',
-            controller: _zipCodeController,
-            hintText: "ZIP Code",
-            prefixIcon: const Icon(Icons.numbers),
-          ),
+              title: 'ZIP Code',
+              controller: _zipCodeController,
+              hintText: "ZIP Code",
+              prefixIcon: const Icon(Icons.numbers)),
 
           const SizedBox(height: 40),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildSecurityQuestionsPage() {
@@ -841,53 +758,42 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
     final tipBg = cs.primary.withValues(alpha: isDark ? 0.12 : 0.08);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(25),
-      child: Column(
-        children: [
+        padding: const EdgeInsets.all(25),
+        child: Column(children: [
           // Security Tips
           Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: tipBg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: cs.primary.withValues(alpha: isDark ? 0.22 : 0.20),
-              ),
-            ),
-            child: Row(
-              children: [
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: tipBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color:
+                          cs.primary.withValues(alpha: isDark ? 0.22 : 0.20))),
+              child: Row(children: [
                 Icon(Icons.security_rounded, color: cs.primary, size: 24),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       LuvpayText(
-                        text: 'Security Setup',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: cs.onSurface,
-                        ),
-                      ),
+                          text: 'Security Setup',
+                          style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: cs.onSurface)),
                       const SizedBox(height: 4),
                       LuvpayText(
-                        text:
-                            'Choose 3 unique security questions and provide answers that are memorable but hard to guess.',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: isDark
-                              ? AppColorV2.darkBodyText
-                              : AppColorV2.bodyTextColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+                          text:
+                              'Choose 3 unique security questions and provide answers that are memorable but hard to guess.',
+                          style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: isDark
+                                  ? AppColorV2.darkBodyText
+                                  : AppColorV2.bodyTextColor)),
+                    ])),
+              ])),
 
           // Question Cards
           _buildQuestionCard(0),
@@ -895,9 +801,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
           _buildQuestionCard(2),
 
           const SizedBox(height: 30),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget _buildEnhancedSectionHeader(String title, IconData icon) {
@@ -906,32 +810,24 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16, top: 8),
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: cs.primary.withValues(alpha: isDark ? 0.25 : 0.30),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16, top: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+            border: Border(
+                bottom: BorderSide(
+                    color: cs.primary.withValues(alpha: isDark ? 0.25 : 0.30),
+                    width: 1))),
+        child: Row(children: [
           Icon(icon, color: cs.primary, size: 20),
           const SizedBox(width: 8),
           LuvpayText(
-            text: title,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: cs.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
+              text: title,
+              style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface)),
+        ]));
   }
 
   @override
@@ -943,134 +839,106 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen> {
     final surface = cs.surface;
 
     return Scaffold(
-      backgroundColor: bg,
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: cs.primary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: LuvpayText(
-          text: 'Update Profile',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: cs.onSurface,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: bg,
-          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-        ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            _buildProgressIndicator(),
-            Expanded(
-              child: PageView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: _pageController,
-                onPageChanged: (page) {
-                  setState(() {
-                    _currentPage = page;
-                  });
-                },
-                children: [
-                  _buildProfilePage(),
-                  _buildSecurityQuestionsPage(),
-                  // _buildSelfiePage(),
-                ],
-              ),
-            ),
-            // Navigation Buttons
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.10),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  if (_currentPage > 0)
+        backgroundColor: bg,
+        appBar: AppBar(
+            elevation: 0,
+            leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: cs.primary),
+                onPressed: () => Navigator.pop(context)),
+            title: LuvpayText(
+                text: 'Update Profile',
+                style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface)),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            systemOverlayStyle: SystemUiOverlayStyle(
+                statusBarColor: bg,
+                statusBarIconBrightness:
+                    isDark ? Brightness.light : Brightness.dark,
+                statusBarBrightness:
+                    isDark ? Brightness.dark : Brightness.light)),
+        body: Form(
+            key: _formKey,
+            child: Column(children: [
+              _buildProgressIndicator(),
+              Expanded(
+                  child: PageView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      controller: _pageController,
+                      onPageChanged: (page) {
+                        setState(() {
+                          _currentPage = page;
+                        });
+                      },
+                      children: [
+                    _buildProfilePage(),
+                    _buildSecurityQuestionsPage(),
+                    // _buildSelfiePage(),
+                  ])),
+              // Navigation Buttons
+              Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(color: surface, boxShadow: [
+                    BoxShadow(
+                        color: Colors.black
+                            .withValues(alpha: isDark ? 0.35 : 0.10),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2)),
+                  ]),
+                  child: Row(children: [
+                    if (_currentPage > 0)
+                      Expanded(
+                          child: OutlinedButton(
+                              onPressed: _previousPage,
+                              style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  side: BorderSide(color: cs.primary)),
+                              child: LuvpayText(
+                                  text: 'Back',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: cs.primary)))),
+                    if (_currentPage > 0) const SizedBox(width: 12),
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: _previousPage,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          side: BorderSide(color: cs.primary),
-                        ),
-                        child: LuvpayText(
-                          text: 'Back',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: cs.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (_currentPage > 0) const SizedBox(width: 12),
-                  Expanded(
-                    flex: _currentPage == 0 ? 1 : 2,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: AppColorV2.primaryGradient,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: cs.primary.withValues(
-                              alpha: isDark ? 0.22 : 0.30,
-                            ),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: _nextPage,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: LuvpayText(
-                          text: _currentPage == 0
-                              ? 'Continue to Security'
-                              : _currentPage == 1
-                                  ? 'Continue to Selfie'
-                                  : 'Submit',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: cs.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+                        flex: _currentPage == 0 ? 1 : 2,
+                        child: Container(
+                            decoration: BoxDecoration(
+                                gradient: AppColorV2.primaryGradient,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: cs.primary.withValues(
+                                          alpha: isDark ? 0.22 : 0.30),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4)),
+                                ]),
+                            child: ElevatedButton(
+                                onPressed: _nextPage,
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12))),
+                                child: LuvpayText(
+                                    text: _currentPage == 0
+                                        ? 'Continue to Security'
+                                        : _currentPage == 1
+                                            ? 'Continue to Selfie'
+                                            : 'Submit',
+                                    style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: cs.onPrimary))))),
+                  ])),
+            ])));
   }
 }

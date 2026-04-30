@@ -6,6 +6,7 @@ import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import '../../auth/authentication.dart';
 import '../../auth/ub_auth.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
@@ -109,13 +110,10 @@ class WalletRechargeLoadController extends GetxController
     hash.value = Uri.encodeComponent(output);
 
     Get.to(
-      () => WebviewPage(
-        urlDirect: "${pageUrl.value}${hash.value}",
-        label: "Bank Payment",
-      ),
-      transition: Transition.zoom,
-      duration: const Duration(milliseconds: 200),
-    );
+        () => WebviewPage(
+            urlDirect: "${pageUrl.value}${hash.value}", label: "Bank Payment"),
+        transition: Transition.zoom,
+        duration: const Duration(milliseconds: 200));
   }
 
   bool isBase64(String s) {
@@ -162,7 +160,7 @@ class WalletRechargeLoadController extends GetxController
 
       String api =
           "${ApiKeys.verifyUserAccount}?mobile_no=63${mobile.toString().replaceAll(" ", '')}";
-      HttpRequestApi(api: api).get().then((objData) {
+      Functions().requestHandler(apiKey: api).then((objData) {
         FocusScope.of(Get.context!).unfocus();
         if (objData == "No Internet") {
           isValidNumber.value = false;
@@ -199,16 +197,12 @@ class WalletRechargeLoadController extends GetxController
           email.value = "No email provided yet";
           isValidNumber.value = false;
 
-          CustomDialogStack.showError(
-            Get.context!,
-            "Error",
-            "Sorry, we're unable to find your account.",
-            () {
-              Get.back();
-              Get.back();
-              Get.back();
-            },
-          );
+          CustomDialogStack.showError(Get.context!, "Error",
+              "Sorry, we're unable to find your account.", () {
+            Get.back();
+            Get.back();
+            Get.back();
+          });
 
           return;
         } else {
@@ -220,14 +214,11 @@ class WalletRechargeLoadController extends GetxController
           isValidNumber.value = true;
           String originalFullName = userDataInfo[0]["first_name"].toString();
           String transformedFullName = Variables.transformFullName(
-            originalFullName.replaceAll(RegExp(r'\..*'), ''),
-          );
-          String transformedLname = Variables.transformFullName(
-            userDataInfo[0]["last_name"].toString().replaceAll(
-                  RegExp(r'\..*'),
-                  '',
-                ),
-          );
+              originalFullName.replaceAll(RegExp(r'\..*'), ''));
+          String transformedLname = Variables.transformFullName(userDataInfo[0]
+                  ["last_name"]
+              .toString()
+              .replaceAll(RegExp(r'\..*'), ''));
 
           String middelName = "";
           email.value = userDataInfo[0]["email"].toString();
@@ -279,17 +270,19 @@ class WalletRechargeLoadController extends GetxController
       if (!isActiveBtn.value) {
         return;
       }
-      if (arguments["bank_type"].toString().toLowerCase().contains(
-            "unionbank",
-          )) {
+      if (arguments["bank_type"]
+          .toString()
+          .toLowerCase()
+          .contains("unionbank")) {
         uBankPay();
       }
       if (arguments["bank_type"].toString().toLowerCase().contains("maya")) {
         mayaPay();
       }
-      if (arguments["bank_type"].toString().toLowerCase().contains(
-            "landbank",
-          )) {
+      if (arguments["bank_type"]
+          .toString()
+          .toLowerCase()
+          .contains("landbank")) {
         landbankPay();
       }
     }
@@ -307,31 +300,23 @@ class WalletRechargeLoadController extends GetxController
       "to_mobile_no": "63${mobNum.text.replaceAll(" ", "")}",
     };
     CustomDialogStack.showLoading(Get.context!);
-    final returnPost =
-        await HttpRequestApi(api: bankApi, parameters: dataParam).postBody();
+    final returnPost = await Functions()
+        .requestHandler(apiKey: bankApi, parameters: dataParam, method: "POST");
 
     if (returnPost == "No Internet") {
       Get.back();
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Please check your internet connection and try again.",
-        () {
-          Get.back();
-        },
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Please check your internet connection and try again.", () {
+        Get.back();
+      });
       return "";
     }
     if (returnPost == null) {
       Get.back();
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Error while connecting to server, Please try again.",
-        () {
-          Get.back();
-        },
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Error while connecting to server, Please try again.", () {
+        Get.back();
+      });
       return "";
     } else {
       if (returnPost["success"] == 'Y') {
@@ -340,14 +325,10 @@ class WalletRechargeLoadController extends GetxController
         return returnPost["tnx_hk"];
       } else {
         Get.back();
-        CustomDialogStack.showError(
-          Get.context!,
-          "Error",
-          returnPost['msg'],
-          () {
-            Get.back();
-          },
-        );
+        CustomDialogStack.showError(Get.context!, "Error", returnPost['msg'],
+            () {
+          Get.back();
+        });
         return "";
       }
     }
@@ -383,10 +364,8 @@ class WalletRechargeLoadController extends GetxController
         ],
       };
 
-      final response = await HttpRequestApi(
-        api: ApiKeys.postUBTrans,
-        parameters: param,
-      ).postBody();
+      final response = await Functions().requestHandler(
+          apiKey: ApiKeys.postUBTrans, parameters: param, method: "POST");
 
       Get.back();
       if (response == "No Internet") {
@@ -396,73 +375,52 @@ class WalletRechargeLoadController extends GetxController
         return;
       }
       if (response == null) {
-        CustomDialogStack.showError(
-          Get.context!,
-          "Error",
-          "Error while connecting to server, Please try again.",
-          () {
-            Get.back();
-          },
-        );
+        CustomDialogStack.showError(Get.context!, "Error",
+            "Error while connecting to server, Please try again.", () {
+          Get.back();
+        });
         return;
       } else {
         if (response is Map) {
           if (response["success"] == "N") {
-            CustomDialogStack.showInfo(
-              Get.context!,
-              "Oops!",
-              response["msg"],
-              () {
-                Get.back();
-              },
-            );
+            CustomDialogStack.showInfo(Get.context!, "Oops!", response["msg"],
+                () {
+              Get.back();
+            });
             return;
           }
 
           if (payMethod['type'].toString().toLowerCase().contains("instapay")) {
-            Navigator.of(Get.context!).push(
-              PageRouteBuilder(
+            Navigator.of(Get.context!).push(PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     InstapayPage(
-                  qr: response["qrCode"].toString(),
-                  amount: double.parse(amountController.text),
-                ),
+                        qr: response["qrCode"].toString(),
+                        amount: double.parse(amountController.text)),
                 transitionDuration: Duration(milliseconds: 200),
-                reverseTransitionDuration: Duration.zero,
-              ),
-            );
+                reverseTransitionDuration: Duration.zero));
 
             return;
           } else {
             final result = await Get.to(
-              () => WebviewPage(
-                urlDirect: response["message"],
-                label: "Bank Payment",
-              ),
-              transition: Transition.zoom,
-              duration: const Duration(milliseconds: 200),
-            );
+                () => WebviewPage(
+                    urlDirect: response["message"], label: "Bank Payment"),
+                transition: Transition.zoom,
+                duration: const Duration(milliseconds: 200));
 
             if (result != null) {
               if (result['status'].toString().toLowerCase() == 'success' ||
                   result['status'].toString().toLowerCase() == 'processed') {
-                Get.to(
-                  () => SuccessPage(),
-                  transition: Transition.zoom,
-                  duration: const Duration(milliseconds: 200),
-                );
+                Get.to(() => SuccessPage(),
+                    transition: Transition.zoom,
+                    duration: const Duration(milliseconds: 200));
               } else {
-                ScaffoldMessenger.of(Get.context!).showSnackBar(
-                  SnackBar(
+                ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
                     backgroundColor: Colors.red,
                     content: LuvpayText(
-                      text:
-                          '${result['status'].toString().replaceAll("_", " ")}',
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                );
+                        text:
+                            '${result['status'].toString().replaceAll("_", " ")}',
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white)));
               }
             }
           }
@@ -477,9 +435,8 @@ class WalletRechargeLoadController extends GetxController
 
     final userId = await Authentication().getUserId();
 
-    double amtPay = double.parse(
-      amountController.text.toString().split(".")[0],
-    );
+    double amtPay =
+        double.parse(amountController.text.toString().split(".")[0]);
 
     Map<String, dynamic> postParam = {
       "amount": amtPay.toString().split(".")[0],
@@ -487,10 +444,10 @@ class WalletRechargeLoadController extends GetxController
       "to_mobile_no": "63${mobNum.text.replaceAll(" ", "")}",
     };
 
-    final response = await HttpRequestApi(
-      api: ApiKeys.postMayaIntegration,
-      parameters: postParam,
-    ).postBody();
+    final response = await Functions().requestHandler(
+        apiKey: ApiKeys.postMayaIntegration,
+        parameters: postParam,
+        method: "POST");
     Get.back();
     if (response == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -499,25 +456,18 @@ class WalletRechargeLoadController extends GetxController
       return;
     }
     if (response == null) {
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Error while connecting to server, Please try again.",
-        () {
-          Get.back();
-        },
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Error while connecting to server, Please try again.", () {
+        Get.back();
+      });
       return;
     }
     if (response.isNotEmpty) {
       final result = await Get.to(
-        () => WebviewPage(
-          urlDirect: response["redirectUrl"],
-          label: "Bank Payment",
-        ),
-        transition: Transition.zoom,
-        duration: const Duration(milliseconds: 200),
-      );
+          () => WebviewPage(
+              urlDirect: response["redirectUrl"], label: "Bank Payment"),
+          transition: Transition.zoom,
+          duration: const Duration(milliseconds: 200));
       // Map<String, dynamic> updateParam = {
       //   "bankType": payMethod['type'],
       //   "param": {"maya_tnx_hk": payMethod["key"]},
@@ -526,35 +476,25 @@ class WalletRechargeLoadController extends GetxController
       if (result != null) {
         if (result['status'].toString().toLowerCase() == 'success' ||
             result['status'].toString().toLowerCase() == 'processed') {
-          Get.to(
-            () => SuccessPage(),
-            // arguments: updateParam,
-            transition: Transition.zoom,
-            duration: const Duration(milliseconds: 200),
-          );
+          Get.to(() => SuccessPage(),
+              // arguments: updateParam,
+              transition: Transition.zoom,
+              duration: const Duration(milliseconds: 200));
           return;
         } else {
-          ScaffoldMessenger.of(Get.context!).showSnackBar(
-            SnackBar(
+          ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
               backgroundColor: Colors.red,
               content: LuvpayText(
-                text: '${result['status'].toString().replaceAll("_", " ")}',
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          );
+                  text: '${result['status'].toString().replaceAll("_", " ")}',
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white)));
         }
       }
     } else {
-      CustomDialogStack.showInfo(
-        Get.context!,
-        "No data found",
-        "Unable to get data. please try again.",
-        () {
-          Get.back();
-        },
-      );
+      CustomDialogStack.showInfo(Get.context!, "No data found",
+          "Unable to get data. please try again.", () {
+        Get.back();
+      });
       return;
     }
     // paymentType((payMethod) async {
@@ -578,9 +518,8 @@ class WalletRechargeLoadController extends GetxController
 
     final userId = await Authentication().getUserId();
 
-    double amtPay = double.parse(
-      amountController.text.toString().split(".")[0],
-    );
+    double amtPay =
+        double.parse(amountController.text.toString().split(".")[0]);
 
     Map<String, dynamic> postParam = {
       "amount": amtPay.toString().split(".")[0],
@@ -588,8 +527,8 @@ class WalletRechargeLoadController extends GetxController
       "to_mobile_no": "63${mobNum.text.replaceAll(" ", "")}",
     };
     final String api = ApiKeys.postLandBankTrans;
-    final response =
-        await HttpRequestApi(api: api, parameters: postParam).postBody();
+    final response = await Functions()
+        .requestHandler(apiKey: api, parameters: postParam, method: "POST");
     Get.back();
     if (response == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -598,14 +537,10 @@ class WalletRechargeLoadController extends GetxController
       return;
     }
     if (response == null) {
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Error while connecting to server, Please try again.",
-        () {
-          Get.back();
-        },
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Error while connecting to server, Please try again.", () {
+        Get.back();
+      });
       return;
     }
     final Map<String, dynamic> userData = {
@@ -615,27 +550,21 @@ class WalletRechargeLoadController extends GetxController
     };
     if (response.isNotEmpty) {
       await Get.to(
-        () => WebviewPage(
-          urlDirect: response["redirect_url"],
-          label: "Bank Payment",
-          callback: (isSuccess) {
-            getPollLPayStatus(response["reference_no"]);
-          },
-          userData: userData,
-          lbReturn: response,
-        ),
-        transition: Transition.zoom,
-        duration: const Duration(milliseconds: 200),
-      );
+          () => WebviewPage(
+              urlDirect: response["redirect_url"],
+              label: "Bank Payment",
+              callback: (isSuccess) {
+                getPollLPayStatus(response["reference_no"]);
+              },
+              userData: userData,
+              lbReturn: response),
+          transition: Transition.zoom,
+          duration: const Duration(milliseconds: 200));
     } else {
-      CustomDialogStack.showInfo(
-        Get.context!,
-        "No data found",
-        "Unable to get data. please try again.",
-        () {
-          Get.back();
-        },
-      );
+      CustomDialogStack.showInfo(Get.context!, "No data found",
+          "Unable to get data. please try again.", () {
+        Get.back();
+      });
       return;
     }
   }
@@ -647,9 +576,8 @@ class WalletRechargeLoadController extends GetxController
 
     while (!isPaid && retryCount < maxRetries) {
       try {
-        final response = await HttpRequestApi(
-          api: "${ApiKeys.postLandBankTrans}?reference_no=$refNo",
-        ).get();
+        final response = await Functions().requestHandler(
+            apiKey: "${ApiKeys.postLandBankTrans}?reference_no=$refNo");
         if (response["items"] is List && response["items"].isNotEmpty) {
           final firstItem = response["items"][0];
 
@@ -659,11 +587,9 @@ class WalletRechargeLoadController extends GetxController
             Get.back();
             await Future.delayed(Duration(milliseconds: 500));
             Get.back();
-            Get.to(
-              () => SuccessPage(),
-              transition: Transition.zoom,
-              duration: const Duration(milliseconds: 200),
-            );
+            Get.to(() => SuccessPage(),
+                transition: Transition.zoom,
+                duration: const Duration(milliseconds: 200));
             return;
           }
           isPaid = true;
@@ -681,28 +607,24 @@ class WalletRechargeLoadController extends GetxController
 
     if (!isPaid) {
       await showDialog(
-        context: Get.context!,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: const LuvpayText(text: "Payment Failed"),
-            content: const LuvpayText(
-              text: "Due to unconfirmed payment or exceeded time limit,\n"
-                  "this transaction will now be closed.\n\n"
-                  "Please check your Landbank app or try again later.",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Get.back();
-                },
-                child: const LuvpayText(text: "OK"),
-              ),
-            ],
-          );
-        },
-      );
+          context: Get.context!,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+                title: const LuvpayText(text: "Payment Failed"),
+                content: const LuvpayText(
+                    text: "Due to unconfirmed payment or exceeded time limit,\n"
+                        "this transaction will now be closed.\n\n"
+                        "Please check your Landbank app or try again later."),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Get.back();
+                      },
+                      child: const LuvpayText(text: "OK")),
+                ]);
+          });
     }
   }
 }

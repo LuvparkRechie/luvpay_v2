@@ -4,6 +4,7 @@ import 'package:luvpay/core/network/http/http_request.dart';
 
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../core/network/http/api_keys.dart';
+import '../../core/utils/functions/functions.dart';
 
 class FaqPageController extends GetxController {
   RxList<Map<String, dynamic>> faqsData = <Map<String, dynamic>>[].obs;
@@ -38,7 +39,7 @@ class FaqPageController extends GetxController {
 
   Future<void> getFaq() async {
     isLoadingPage.value = true;
-    var returnData = await HttpRequestApi(api: ApiKeys.getFAQ).get();
+    var returnData = await Functions().requestHandler(apiKey: ApiKeys.getFAQ);
 
     if (returnData == "No Internet") {
       isNetConn.value = false;
@@ -57,19 +58,17 @@ class FaqPageController extends GetxController {
     faqsData.value = List<Map<String, dynamic>>.from(returnData["items"]);
 
     // Fill filtered list with original indexes
-    filteredFaqs.assignAll(
-      faqsData.asMap().entries.map((e) {
-        return {'index': e.key, 'faq': e.value};
-      }).toList(),
-    );
+    filteredFaqs.assignAll(faqsData.asMap().entries.map((e) {
+      return {'index': e.key, 'faq': e.value};
+    }).toList());
 
     isLoadingPage.value = false;
   }
 
   Future<void> getFaqAnswers(String id, int originalIndex) async {
     CustomDialogStack.showLoading(Get.context!);
-    var returnData =
-        await HttpRequestApi(api: '${ApiKeys.getFAQsAnswer}?faq_id=$id').get();
+    var returnData = await Functions()
+        .requestHandler(apiKey: '${ApiKeys.getFAQsAnswer}?faq_id=$id');
     Get.back();
     if (returnData == "No Internet") {
       isNetConn.value = false;
@@ -100,10 +99,7 @@ class FaqPageController extends GetxController {
   }
 
   void onExpand(
-    bool isExpanded,
-    int originalIndex,
-    Map<String, dynamic> item,
-  ) async {
+      bool isExpanded, int originalIndex, Map<String, dynamic> item) async {
     if (isExpanded) {
       if (!expandedIndexes.contains(originalIndex)) {
         await getFaqAnswers(item['faq_id'].toString(), originalIndex);
@@ -116,26 +112,21 @@ class FaqPageController extends GetxController {
 
   void filteredFaq(String query) {
     if (query.isEmpty) {
-      filteredFaqs.assignAll(
-        faqsData.asMap().entries.map((e) {
-          return {'index': e.key, 'faq': e.value};
-        }).toList(),
-      );
+      filteredFaqs.assignAll(faqsData.asMap().entries.map((e) {
+        return {'index': e.key, 'faq': e.value};
+      }).toList());
     } else {
-      filteredFaqs.assignAll(
-        faqsData
-            .asMap()
-            .entries
-            .where(
-              (entry) =>
-                  entry.value['faq_text'] != null &&
-                  entry.value['faq_text'].toString().toLowerCase().contains(
-                    query.toLowerCase(),
-                  ),
-            )
-            .map((entry) => {'index': entry.key, 'faq': entry.value})
-            .toList(),
-      );
+      filteredFaqs.assignAll(faqsData
+          .asMap()
+          .entries
+          .where((entry) =>
+              entry.value['faq_text'] != null &&
+              entry.value['faq_text']
+                  .toString()
+                  .toLowerCase()
+                  .contains(query.toLowerCase()))
+          .map((entry) => {'index': entry.key, 'faq': entry.value})
+          .toList());
     }
   }
 }

@@ -36,13 +36,10 @@ class Variables {
   static String lastBooking = 'booking_table';
   static RxList subsVhList = [].obs; //Subscribed Vehicle List
   //static void Timer? backgroundTimer
-  static final emailRegex = RegExp(
-    r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-  );
+  static final emailRegex =
+      RegExp(r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
   static var maskFormatter = MaskTextInputFormatter(
-    mask: '### ### ####',
-    filter: {"#": RegExp(r'[0-9]')},
-  );
+      mask: '### ### ####', filter: {"#": RegExp(r'[0-9]')});
 
   static String mobileRegex = r"^[1-9]\d{9}$";
 
@@ -74,10 +71,7 @@ class Variables {
   }
 
   static Future<Uint8List> encryptData(
-    Uint8List secretKey,
-    Uint8List iv,
-    String plainText,
-  ) async {
+      Uint8List secretKey, Uint8List iv, String plainText) async {
     final cipher = crypto.GCMBlockCipher(crypto.AESFastEngine());
 
     final keyParams = crypto.KeyParameter(secretKey);
@@ -197,9 +191,8 @@ class Variables {
     final startPart = cleanNumber.substring(0, visibleStartDigits);
     final maskedPart =
         '*' * (cleanNumber.length - visibleStartDigits - visibleEndDigits);
-    final endPart = cleanNumber.substring(
-      cleanNumber.length - visibleEndDigits,
-    );
+    final endPart =
+        cleanNumber.substring(cleanNumber.length - visibleEndDigits);
 
     return '$prefix$startPart$maskedPart$endPart';
   }
@@ -242,9 +235,7 @@ class Variables {
 
   static Future<void> pageTrans(Widget param, BuildContext context) {
     return Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => param),
-    );
+        context, MaterialPageRoute(builder: (context) => param));
   }
 
   static String greeting() {
@@ -269,9 +260,8 @@ class Variables {
     }
   }
 
-  static var regExpRestrictFormatter = FilteringTextInputFormatter.allow(
-    RegExp(r"[a-zA-Z0-9]+|\s"),
-  );
+  static var regExpRestrictFormatter =
+      FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9]+|\s"));
 
   //Password strength validation
   static int getPasswordStrength(String password) {
@@ -463,16 +453,11 @@ class Variables {
 
   //convert widget to image and display on map or capture as png
   static Future<Uint8List> capturePng(
-    BuildContext context,
-    Widget printWidget,
-    int size,
-    bool isOval,
-  ) async {
+      BuildContext context, Widget printWidget, int size, bool isOval) async {
     Uint8List markerBeytes;
     Uint8List bytes = await ScreenshotController().captureFromWidget(
-      printWidget,
-      delay: const Duration(milliseconds: 10),
-    );
+        printWidget,
+        delay: const Duration(milliseconds: 10));
     Uint8List pngBytes = bytes.buffer.asUint8List();
 
     markerBeytes = isOval
@@ -485,10 +470,7 @@ class Variables {
   }
 
   static Future<Uint8List> createOvalImage(
-    BuildContext context,
-    String base64String,
-    int width,
-  ) async {
+      BuildContext context, String base64String, int width) async {
     Uint8List bytes = base64Decode(base64String);
     double targetWidth = MediaQuery.of(context).devicePixelRatio * width;
 
@@ -501,42 +483,29 @@ class Variables {
     // Create an oval canvas with the target width
     ui.PictureRecorder recorder = ui.PictureRecorder();
     Canvas canvas = Canvas(recorder);
-    Rect ovalRect = Rect.fromLTWH(
-      0,
-      0,
-      targetWidth,
-      targetWidth * 0.5,
-    ); // Adjust the height ratio to make it oval
-    canvas.clipRRect(
-      RRect.fromRectAndRadius(
-        ovalRect,
-        Radius.circular(targetWidth / 10), // Adjust the radius as needed
-      ),
-    );
-    canvas.drawImageRect(
-      image,
-      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+    Rect ovalRect = Rect.fromLTWH(0, 0, targetWidth,
+        targetWidth * 0.5); // Adjust the height ratio to make it oval
+    canvas.clipRRect(RRect.fromRectAndRadius(
       ovalRect,
-      Paint(),
-    );
+      Radius.circular(targetWidth / 10), // Adjust the radius as needed
+    ));
+    canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        ovalRect,
+        Paint());
 
     // Encode the oval image as PNG
     ui.Picture picture = recorder.endRecording();
-    ui.Image encodedImage = await picture.toImage(
-      targetWidth.round(),
-      (targetWidth * 0.5).round(),
-    );
-    ByteData? byteData = await encodedImage.toByteData(
-      format: ui.ImageByteFormat.png,
-    );
+    ui.Image encodedImage =
+        await picture.toImage(targetWidth.round(), (targetWidth * 0.5).round());
+    ByteData? byteData =
+        await encodedImage.toByteData(format: ui.ImageByteFormat.png);
     return byteData!.buffer.asUint8List();
   }
 
   static Future<Uint8List> getMarkerIcon(
-    BuildContext context,
-    String base64String,
-    int width,
-  ) async {
+      BuildContext context, String base64String, int width) async {
     // tawga ne
     // Uint8List iconBytes =  await _getMarkerIcon(dataRow['profile_pic'], 50);
     //   BitmapDescriptor icon = BitmapDescriptor.fromBytes(iconBytes);
@@ -545,27 +514,20 @@ class Variables {
     ui.Image image = await decodeImageFromList(bytes);
     ui.PictureRecorder recorder = ui.PictureRecorder();
     Canvas canvas = Canvas(recorder);
-    canvas.clipRRect(
-      RRect.fromRectAndRadius(
+    canvas.clipRRect(RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, targetWidth, targetWidth),
-        Radius.circular(targetWidth / 2),
-      ),
-    );
+        Radius.circular(targetWidth / 2)));
     canvas.drawImageRect(
-      image,
-      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-      Rect.fromLTWH(0, 0, targetWidth, targetWidth),
-      Paint(),
-    );
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        Rect.fromLTWH(0, 0, targetWidth, targetWidth),
+        Paint());
 
     ui.Picture picture = recorder.endRecording();
-    ui.Image encodedImage = await picture.toImage(
-      targetWidth.round(),
-      targetWidth.round(),
-    );
-    ByteData? byteData = await encodedImage.toByteData(
-      format: ui.ImageByteFormat.png,
-    );
+    ui.Image encodedImage =
+        await picture.toImage(targetWidth.round(), targetWidth.round());
+    ByteData? byteData =
+        await encodedImage.toByteData(format: ui.ImageByteFormat.png);
     return byteData!.buffer.asUint8List();
   }
 
@@ -630,9 +592,7 @@ class Variables {
   }
 
   static Future<Uint8List> getBytesFromAsset(
-    String path,
-    double scaleFactor,
-  ) async {
+      String path, double scaleFactor) async {
     ByteData data = await rootBundle.load(path);
 
     // Load the image data and get the original size
@@ -648,23 +608,18 @@ class Variables {
 
     // Create a new codec to decode the resized image
     ui.Codec resizedCodec = await ui.instantiateImageCodec(
-      data.buffer.asUint8List(),
-      targetWidth: targetWidth,
-      targetHeight: targetHeight,
-    );
+        data.buffer.asUint8List(),
+        targetWidth: targetWidth,
+        targetHeight: targetHeight);
 
     ui.FrameInfo resizedFrameInfo = await resizedCodec.getNextFrame();
-    ByteData? resizedByteData = await resizedFrameInfo.image.toByteData(
-      format: ui.ImageByteFormat.png,
-    );
+    ByteData? resizedByteData =
+        await resizedFrameInfo.image.toByteData(format: ui.ImageByteFormat.png);
     return resizedByteData!.buffer.asUint8List();
   }
 
   static Future<Uint8List> getResizedImage(
-    String assetPath,
-    int targetWidth,
-    int targetHeight,
-  ) async {
+      String assetPath, int targetWidth, int targetHeight) async {
     final Uint8List bytes =
         (await rootBundle.load(assetPath)).buffer.asUint8List();
 
@@ -734,28 +689,20 @@ class Variables {
   }
 
   static showSecurityPopUp(String msg) {
-    ScaffoldMessenger.of(Get.context!).showSnackBar(
-      SnackBar(
+    ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
         margin: EdgeInsets.symmetric(
-          horizontal: 20.0,
-          vertical: MediaQuery.of(Get.context!).size.width * 0.27,
-        ),
+            horizontal: 20.0,
+            vertical: MediaQuery.of(Get.context!).size.width * 0.27),
         elevation: 5.0,
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7.0)),
-        content: Wrap(
-          children: [
-            Center(
+        content: Wrap(children: [
+          Center(
               child: LuvpayText(
-                text: 'Your device is $msg. '
-                    'For security reasons, the app will now close.',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+                  text: 'Your device is $msg. '
+                      'For security reasons, the app will now close.')),
+        ])));
     Future.delayed(Duration(seconds: 4), () {
       FlutterExitApp.exitApp(iosForceExit: true);
     });
@@ -782,8 +729,7 @@ class Variables {
   //dynamic dialog
 
   static snackbarDynamicDialog(String msg, {context}) {
-    ScaffoldMessenger.of(context ?? Get.context!).showSnackBar(
-      SnackBar(
+    ScaffoldMessenger.of(context ?? Get.context!).showSnackBar(SnackBar(
         margin: EdgeInsets.only(
           // horizontal: 20.0,
           // vertical: MediaQuery.of(Get.context!).size.width * 0.27,
@@ -795,8 +741,6 @@ class Variables {
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7.0)),
-        content: Wrap(children: [Center(child: LuvpayText(text: msg))]),
-      ),
-    );
+        content: Wrap(children: [Center(child: LuvpayText(text: msg))])));
   }
 }

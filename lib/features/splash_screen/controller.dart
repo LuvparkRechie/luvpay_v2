@@ -27,13 +27,9 @@ class SplashController extends GetxController
   @override
   void onInit() {
     _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    );
+        vsync: this, duration: const Duration(milliseconds: 900));
+    animation =
+        CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
 
     _controller.forward();
 

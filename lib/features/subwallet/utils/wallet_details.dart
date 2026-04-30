@@ -93,9 +93,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
       await sp.remove(_targetKey);
     } else {
       await sp.setDouble(
-        _targetKey,
-        double.parse(targetAmount.toStringAsFixed(2)),
-      );
+          _targetKey, double.parse(targetAmount.toStringAsFixed(2)));
     }
 
     if (!mounted) return;
@@ -106,8 +104,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
   Future<List<Transaction>> _loadTx() {
     return mainController.fetchWalletTransactions(
-      subWalletId: int.parse(_wallet.id),
-    );
+        subWalletId: int.parse(_wallet.id));
   }
 
   Future<void> _refreshWalletAndTx() async {
@@ -122,11 +119,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
         final newWallet = Wallet.fromJson(updated);
 
         _wallet = newWallet.copyWith(
-          sharedUserName: newWallet.sharedUserName,
-          sharedMobileNo: newWallet.sharedMobileNo,
-          userName: newWallet.userName,
-          mobileNo: newWallet.mobileNo,
-        );
+            sharedUserName: newWallet.sharedUserName,
+            sharedMobileNo: newWallet.sharedMobileNo,
+            userName: newWallet.userName,
+            mobileNo: newWallet.mobileNo);
       }
 
       _txFuture = _loadTx();
@@ -180,10 +176,9 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     Map<String, dynamic> result = {};
     try {
       result = await mainController.transferSubWallet(
-        subwalletId: int.tryParse(_wallet.id),
-        amount: amount,
-        wttarget: target,
-      );
+          subwalletId: int.tryParse(_wallet.id),
+          amount: amount,
+          wttarget: target);
     } finally {
       if (Get.isDialogOpen == true) {
         Navigator.of(ctx, rootNavigator: true).pop();
@@ -195,14 +190,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         CustomDialogStack.showSuccess(
-          ctx,
-          "Success",
-          result["message"]?.toString() ?? "Success",
-          () {
-            Get.back();
-            Get.back();
-          },
-        );
+            ctx, "Success", result["message"]?.toString() ?? "Success", () {
+          Get.back();
+          Get.back();
+        });
       });
 
       return true;
@@ -230,16 +221,11 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
   void _showSnack(String msg) {
     if (!mounted) return;
-    CustomDialogStack.showInfo(
-      context,
-      "luvpay",
-      msg,
-      () {
-        if (Navigator.canPop(context)) {
-          Navigator.of(context).pop();
-        }
-      },
-    );
+    CustomDialogStack.showInfo(context, "luvpay", msg, () {
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+    });
   }
 
   Future<void> _openAddDialog() async {
@@ -247,20 +233,15 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
   }
 
   Future<void> _openMoveDialog() async {
-    _showAmountDialog(
-      context,
-      title: 'Move funds back to main wallet',
-      onConfirm: _handleReturnMoney,
-    );
+    _showAmountDialog(context,
+        title: 'Move funds back to main wallet', onConfirm: _handleReturnMoney);
   }
 
   Future<void> _openTargetDialog() async {
-    _showTargetDialog(
-      context,
-      title: (_wallet.targetAmount ?? 0) > 0 ? 'Update target' : 'Set target',
-      onConfirm: (value) async => _saveLocalTarget(value),
-      onRemove: () async => _saveLocalTarget(null),
-    );
+    _showTargetDialog(context,
+        title: (_wallet.targetAmount ?? 0) > 0 ? 'Update target' : 'Set target',
+        onConfirm: (value) async => _saveLocalTarget(value),
+        onRemove: () async => _saveLocalTarget(null));
   }
 
   Color _border(ColorScheme cs, bool isDark, [double? o]) =>
@@ -275,10 +256,9 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     required Future<void> Function() onRemove,
   }) {
     final amountCtrl = TextEditingController(
-      text: (_wallet.targetAmount ?? 0) > 0
-          ? (_wallet.targetAmount!).toStringAsFixed(2)
-          : '',
-    );
+        text: (_wallet.targetAmount ?? 0) > 0
+            ? (_wallet.targetAmount!).toStringAsFixed(2)
+            : '');
 
     String? errorText;
     bool canConfirm = amountCtrl.text.trim().isNotEmpty;
@@ -314,11 +294,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     }
 
     showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) {
-        return StatefulBuilder(
-          builder: (context, setState) {
+        context: context,
+        barrierDismissible: true,
+        builder: (_) {
+          return StatefulBuilder(builder: (context, setState) {
             final theme = Theme.of(context);
             final cs = theme.colorScheme;
             final isDark = theme.brightness == Brightness.dark;
@@ -332,266 +311,205 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
             final subColor = cs.onSurface.withOpacity(0.72);
 
             return Dialog(
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 24,
-              ),
-              backgroundColor: Colors.transparent,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-                decoration: BoxDecoration(
-                  color: dialogBg,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: isDark ? Colors.transparent : stroke,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.22 : 0.10),
-                      blurRadius: isDark ? 20 : 26,
-                      offset: const Offset(0, 14),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: LuvpayText(
-                            text: title,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: titleColor,
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Ink(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: cs.onSurface.withOpacity(
-                                isDark ? 0.10 : 0.06,
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.close_rounded,
-                              size: 18,
-                              color: cs.onSurface.withOpacity(0.75),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                      decoration: BoxDecoration(
-                        color: surface2,
-                        borderRadius: BorderRadius.circular(18),
+                insetPadding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+                backgroundColor: Colors.transparent,
+                child: Container(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                    decoration: BoxDecoration(
+                        color: dialogBg,
+                        borderRadius: BorderRadius.circular(22),
                         border: Border.all(
-                          color: errorText != null
-                              ? cs.error.withOpacity(0.55)
-                              : stroke,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LuvpayText(
-                            text: "Target amount",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: subColor,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: amountCtrl,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            onChanged: (_) => _revalidate(setState),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: titleColor,
-                            ),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              border: InputBorder.none,
-                              hintText: "0.00",
-                              hintStyle: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: cs.onSurface.withOpacity(0.35),
-                              ),
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 2,
-                                  right: 6,
-                                ),
-                                child: Center(
-                                  widthFactor: 0,
-                                  child: LuvpayText(
-                                    text: "₱",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      color: cs.onSurface.withOpacity(0.80),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              prefixIconConstraints: const BoxConstraints(
-                                minWidth: 22,
-                              ),
-                            ),
-                          ),
-                          if (errorText != null) ...[
-                            const SizedBox(height: 8),
-                            Row(
+                            color: isDark ? Colors.transparent : stroke),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black
+                                  .withOpacity(isDark ? 0.22 : 0.10),
+                              blurRadius: isDark ? 20 : 26,
+                              offset: const Offset(0, 14)),
+                        ]),
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Row(children: [
+                        Expanded(
+                            child: LuvpayText(
+                                text: title,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: titleColor))),
+                        InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => Navigator.of(context).pop(),
+                            child: Ink(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: cs.onSurface
+                                        .withOpacity(isDark ? 0.10 : 0.06)),
+                                child: Icon(Icons.close_rounded,
+                                    size: 18,
+                                    color: cs.onSurface.withOpacity(0.75)))),
+                      ]),
+                      const SizedBox(height: 12),
+                      Container(
+                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                          decoration: BoxDecoration(
+                              color: surface2,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                  color: errorText != null
+                                      ? cs.error.withOpacity(0.55)
+                                      : stroke)),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Iconsax.info_circle,
-                                  size: 16,
-                                  color: cs.error,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: LuvpayText(
-                                    text: errorText!,
+                                LuvpayText(
+                                    text: "Target amount",
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w800,
-                                      color: cs.error,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: LuvpayText(
-                        text:
-                            'Current balance: ₱ ${_wallet.balance.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: cs.onSurface.withOpacity(0.65),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: subColor)),
+                                const SizedBox(height: 8),
+                                TextField(
+                                    controller: amountCtrl,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                            decimal: true),
+                                    onChanged: (_) => _revalidate(setState),
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900,
+                                        color: titleColor),
+                                    decoration: InputDecoration(
+                                        isDense: true,
+                                        border: InputBorder.none,
+                                        hintText: "0.00",
+                                        hintStyle: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w800,
+                                            color:
+                                                cs.onSurface.withOpacity(0.35)),
+                                        prefixIcon: Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 2, right: 6),
+                                            child: Center(
+                                                widthFactor: 0,
+                                                child: LuvpayText(
+                                                    text: "₱",
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w900,
+                                                        color: cs.onSurface
+                                                            .withOpacity(
+                                                                0.80))))),
+                                        prefixIconConstraints:
+                                            const BoxConstraints(
+                                                minWidth: 22))),
+                                if (errorText != null) ...[
+                                  const SizedBox(height: 8),
+                                  Row(children: [
+                                    Icon(Iconsax.info_circle,
+                                        size: 16, color: cs.error),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                        child: LuvpayText(
+                                            text: errorText!,
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w800,
+                                                color: cs.error))),
+                                  ]),
+                                ],
+                              ])),
+                      const SizedBox(height: 10),
+                      Align(
+                          alignment: Alignment.centerLeft,
+                          child: LuvpayText(
+                              text:
+                                  'Current balance: ₱ ${_wallet.balance.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: cs.onSurface.withOpacity(0.65)))),
+                      const SizedBox(height: 16),
+                      Row(children: [
                         if (hasTarget) ...[
                           Expanded(
-                            child: LuvNeuPress.rectangle(
-                              depth: isDark ? 0.55 : 1.4,
-                              pressedDepth: isDark ? -0.25 : -0.75,
-                              overlayOpacity: isDark ? 0.0 : 0.02,
-                              borderColor: isDark ? Colors.transparent : stroke,
-                              radius: BorderRadius.circular(16),
-                              onTap: () async {
-                                Navigator.of(context).pop();
-                                await onRemove();
-                                await _loadLocalTarget();
-                              },
-                              background: cs.error.withOpacity(0.10),
-                              child: SizedBox(
-                                height: 50,
-                                child: Center(
-                                  child: LuvpayText(
-                                    text: "Remove",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      color: cs.error,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                              child: LuvNeuPress.rectangle(
+                                  depth: isDark ? 0.55 : 1.4,
+                                  pressedDepth: isDark ? -0.25 : -0.75,
+                                  overlayOpacity: isDark ? 0.0 : 0.02,
+                                  borderColor:
+                                      isDark ? Colors.transparent : stroke,
+                                  radius: BorderRadius.circular(16),
+                                  onTap: () async {
+                                    Navigator.of(context).pop();
+                                    await onRemove();
+                                    await _loadLocalTarget();
+                                  },
+                                  background: cs.error.withOpacity(0.10),
+                                  child: SizedBox(
+                                      height: 50,
+                                      child: Center(
+                                          child: LuvpayText(
+                                              text: "Remove",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.w900,
+                                                  color: cs.error)))))),
                           const SizedBox(width: 12),
                         ],
                         Expanded(
-                          child: LuvNeuPress.rectangle(
-                            depth: isDark ? 0.55 : 1.4,
-                            pressedDepth: isDark ? -0.25 : -0.75,
-                            overlayOpacity: isDark ? 0.0 : 0.02,
-                            borderColor: isDark ? Colors.transparent : stroke,
-                            radius: BorderRadius.circular(16),
-                            onTap: () => Navigator.of(context).pop(),
-                            background: cs.surfaceContainerHighest,
-                            child: SizedBox(
-                              height: 50,
-                              child: Center(
-                                child: LuvpayText(
-                                  text: "Cancel",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: cs.onSurface.withOpacity(0.75),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                            child: LuvNeuPress.rectangle(
+                                depth: isDark ? 0.55 : 1.4,
+                                pressedDepth: isDark ? -0.25 : -0.75,
+                                overlayOpacity: isDark ? 0.0 : 0.02,
+                                borderColor:
+                                    isDark ? Colors.transparent : stroke,
+                                radius: BorderRadius.circular(16),
+                                onTap: () => Navigator.of(context).pop(),
+                                background: cs.surfaceContainerHighest,
+                                child: SizedBox(
+                                    height: 50,
+                                    child: Center(
+                                        child: LuvpayText(
+                                            text: "Cancel",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w800,
+                                                color: cs.onSurface
+                                                    .withOpacity(0.75))))))),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: LuvNeuPress.rectangle(
-                            depth: isDark ? 0.55 : 1.4,
-                            pressedDepth: isDark ? -0.25 : -0.75,
-                            overlayOpacity: isDark ? 0.0 : 0.02,
-                            borderColor: isDark ? Colors.transparent : stroke,
-                            radius: BorderRadius.circular(16),
-                            onTap: canConfirm
-                                ? () async {
-                                    final v = _parse();
-                                    Navigator.of(context).pop();
-                                    await onConfirm(v);
-                                  }
-                                : null,
-                            background: canConfirm
-                                ? cs.primary
-                                : cs.primary.withOpacity(0.45),
-                            child: SizedBox(
-                              height: 50,
-                              child: Center(
-                                child: LuvpayText(
-                                  text: "Save",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: cs.onPrimary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+                            child: LuvNeuPress.rectangle(
+                                depth: isDark ? 0.55 : 1.4,
+                                pressedDepth: isDark ? -0.25 : -0.75,
+                                overlayOpacity: isDark ? 0.0 : 0.02,
+                                borderColor:
+                                    isDark ? Colors.transparent : stroke,
+                                radius: BorderRadius.circular(16),
+                                onTap: canConfirm
+                                    ? () async {
+                                        final v = _parse();
+                                        Navigator.of(context).pop();
+                                        await onConfirm(v);
+                                      }
+                                    : null,
+                                background: canConfirm
+                                    ? cs.primary
+                                    : cs.primary.withOpacity(0.45),
+                                child: SizedBox(
+                                    height: 50,
+                                    child: Center(
+                                        child: LuvpayText(
+                                            text: "Save",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w900,
+                                                color: cs.onPrimary)))))),
+                      ]),
+                    ])));
+          });
+        });
   }
 
   Future<void> _showEditWallet(BuildContext context) async {
@@ -602,18 +520,15 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     final cs = theme.colorScheme;
 
     final result = await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: cs.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-      ),
-      builder: (_) => AddWalletModal(
-        mode: WalletModalMode.edit,
-        wallet: _wallet,
-        existingWallets: otherWallets,
-      ),
-    );
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: cs.surface,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+        builder: (_) => AddWalletModal(
+            mode: WalletModalMode.edit,
+            wallet: _wallet,
+            existingWallets: otherWallets));
 
     if (result != true) return;
 
@@ -655,126 +570,101 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     final mobileToShow =
         isOwner ? (_wallet.sharedMobileNo ?? '') : (_wallet.mobileNo ?? '');
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        LuvpayText(
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const SizedBox(height: 16),
+      LuvpayText(
           text: isOwner ? "Shared to" : "Shared from",
           fontSize: 11,
-          color: cs.onSurface.withOpacity(0.5),
-        ),
-        const SizedBox(height: 10),
-        if (hasSharedUser)
-          Padding(
+          color: cs.onSurface.withOpacity(0.5)),
+      const SizedBox(height: 10),
+      if (hasSharedUser)
+        Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: LuvNeuPress.rectangle(
-              background: cs.surfaceContainerHighest,
-              radius: BorderRadius.circular(14),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  child: Icon(Icons.person),
-                ),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (mobileToShow.isNotEmpty) ...[
-                      if (nameToShow.isNotEmpty)
-                        LuvpayText(
-                          text: nameToShow == "  "
-                              ? "Unverified User"
-                              : isOwner
-                                  ? nameToShow
-                                  : maskName(nameToShow),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      LuvpayText(
-                        text: mobileToShow,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: cs.onSurface.withOpacity(0.6),
-                        ),
-                      ),
-                    ] else ...[
-                      if (displayName.isNotEmpty)
-                        LuvpayText(
-                          text: maskName(displayName),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w900,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      if (displayMobile.isNotEmpty)
-                        LuvpayText(
-                          text: displayMobile,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: cs.onSurface.withOpacity(0.6),
-                          ),
-                        ),
-                    ],
-                  ],
-                ),
-                trailing: isOwner
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.remove_circle,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
-                          final cs = Theme.of(context).colorScheme;
+                background: cs.surfaceContainerHighest,
+                radius: BorderRadius.circular(14),
+                child: ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.person)),
+                    title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (mobileToShow.isNotEmpty) ...[
+                            if (nameToShow.isNotEmpty)
+                              LuvpayText(
+                                  text: nameToShow == "  "
+                                      ? "Unverified User"
+                                      : isOwner
+                                          ? nameToShow
+                                          : maskName(nameToShow),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w900)),
+                            LuvpayText(
+                                text: mobileToShow,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: cs.onSurface.withOpacity(0.6))),
+                          ] else ...[
+                            if (displayName.isNotEmpty)
+                              LuvpayText(
+                                  text: maskName(displayName),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.blue)),
+                            if (displayMobile.isNotEmpty)
+                              LuvpayText(
+                                  text: displayMobile,
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: cs.onSurface.withOpacity(0.6))),
+                          ],
+                        ]),
+                    trailing: isOwner
+                        ? IconButton(
+                            icon: const Icon(Icons.remove_circle,
+                                color: Colors.red),
+                            onPressed: () {
+                              final cs = Theme.of(context).colorScheme;
 
-                          CustomDialogStack.showConfirmation(
-                            context,
-                            "Remove Shared Access",
-                            "Are you sure you want to remove this user from the subwallet?",
-                            () => Get.back(),
-                            () async {
-                              Get.back();
-
-                              final success = await mainController.deleteShared(
-                                subWalletId: _wallet.id,
-                              );
-
-                              if (success) {
-                                setState(() {
-                                  _wallet = _wallet.copyWith(
-                                    sharedUser: '',
-                                    sharedUserName: '',
-                                    sharedMobileNo: '',
-                                  );
-                                });
-
-                                await _refreshWalletAndTx();
-
-                                WalletRefreshBus.refresher();
-
-                                CustomDialogStack.showSuccess(
+                              CustomDialogStack.showConfirmation(
                                   context,
-                                  "Removed",
-                                  "Shared user removed successfully",
-                                  () {
+                                  "Remove Shared Access",
+                                  "Are you sure you want to remove this user from the subwallet?",
+                                  () => Get.back(), () async {
+                                Get.back();
+
+                                final success = await mainController
+                                    .deleteShared(subWalletId: _wallet.id);
+
+                                if (success) {
+                                  setState(() {
+                                    _wallet = _wallet.copyWith(
+                                        sharedUser: '',
+                                        sharedUserName: '',
+                                        sharedMobileNo: '');
+                                  });
+
+                                  await _refreshWalletAndTx();
+
+                                  WalletRefreshBus.refresher();
+
+                                  CustomDialogStack.showSuccess(
+                                      context,
+                                      "Removed",
+                                      "Shared user removed successfully", () {
                                     if (Navigator.canPop(context))
                                       Navigator.pop(context);
-                                  },
-                                );
-                              }
-                            },
-                            leftText: "Cancel",
-                            rightText: "Remove",
-                            isAllBlueColor: false,
-                            rightTextColor: cs.error,
-                            rightBtnColor: cs.error.withOpacity(0.10),
-                          );
-                        })
-                    : null,
-              ),
-            ),
-          ),
-        if (!hasSharedUser && isOwner)
-          LuvNeuPress.rectangle(
+                                  });
+                                }
+                              },
+                                  leftText: "Cancel",
+                                  rightText: "Remove",
+                                  isAllBlueColor: false,
+                                  rightTextColor: cs.error,
+                                  rightBtnColor: cs.error.withOpacity(0.10));
+                            })
+                        : null))),
+      if (!hasSharedUser && isOwner)
+        LuvNeuPress.rectangle(
             onTap: userDetails.isEmpty ||
                     userDetails[0]["email"] == null ||
                     userDetails[0]["first_name"] == null
@@ -793,69 +683,51 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
                       if (regions.isEmpty) return;
 
-                      Get.toNamed(
-                        Routes.updProfile,
-                        arguments: regions,
-                      );
+                      Get.toNamed(Routes.updProfile, arguments: regions);
                     });
                   }
                 : _openInviteModal,
             background: cs.primary.withOpacity(0.1),
             radius: BorderRadius.circular(14),
             child: SizedBox(
-              height: 50,
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.person_add, color: cs.primary),
-                    const SizedBox(width: 8),
-                    LuvpayText(
-                      text: "Invite user",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        color: cs.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
+                height: 50,
+                child: Center(
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                      Icon(Icons.person_add, color: cs.primary),
+                      const SizedBox(width: 8),
+                      LuvpayText(
+                          text: "Invite user",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w900, color: cs.primary)),
+                    ])))),
+    ]);
   }
 
   void _openInviteModal() {
     showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => ShareUserBottomSheet(
-          initialValue: sharedUser,
-          onSelected: (mobile, name, valid) async {
-            if (!valid) return;
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => ShareUserBottomSheet(
+            initialValue: sharedUser,
+            onSelected: (mobile, name, valid) async {
+              if (!valid) return;
 
-            final success = await mainController.shareToExisting(
-              subWalletId: _wallet.id,
-              mobileNo: mobile,
-            );
+              final success = await mainController.shareToExisting(
+                  subWalletId: _wallet.id, mobileNo: mobile);
 
-            if (success) {
-              await _refreshWalletAndTx();
-              WalletRefreshBus.refresher();
+              if (success) {
+                await _refreshWalletAndTx();
+                WalletRefreshBus.refresher();
 
-              CustomDialogStack.showSuccess(
-                context,
-                "Shared",
-                "Subwallet shared successfully",
-                () {
+                CustomDialogStack.showSuccess(
+                    context, "Shared", "Subwallet shared successfully", () {
                   if (Navigator.canPop(context)) Navigator.pop(context);
-                },
-              );
-            }
-          }),
-    );
+                });
+              }
+            }));
   }
 
   Future<void> _deleteWallet(BuildContext context) async {
@@ -863,49 +735,43 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     final cs = theme.colorScheme;
 
     CustomDialogStack.showConfirmation(
-      context,
-      "Delete SubWallet",
-      'Are you sure you want to delete "${_wallet.name}"?'
-          '${_wallet.balance > 0 ? '\n\nBalance of ${_wallet.balance.toStringAsFixed(2)} will be returned to main wallet.' : ''}',
-      () => Get.back(),
-      () async {
-        Get.back();
+        context,
+        "Delete SubWallet",
+        'Are you sure you want to delete "${_wallet.name}"?'
+            '${_wallet.balance > 0 ? '\n\nBalance of ${_wallet.balance.toStringAsFixed(2)} will be returned to main wallet.' : ''}',
+        () => Get.back(), () async {
+      Get.back();
 
-        final deleteResult = await mainController.deleteSubWallet(_wallet.id);
+      final deleteResult = await mainController.deleteSubWallet(_wallet.id);
 
-        if (deleteResult["success"] == true) {
-          if (mounted) Navigator.of(context).pop();
+      if (deleteResult["success"] == true) {
+        if (mounted) Navigator.of(context).pop();
 
-          final overlayCtx = Get.overlayContext ?? context;
-          CustomDialogStack.showSuccess(
-            overlayCtx,
-            "Success",
+        final overlayCtx = Get.overlayContext ?? context;
+        CustomDialogStack.showSuccess(overlayCtx, "Success",
             deleteResult["message"] ?? "SubWallet deleted successfully!",
             () async {
-              Get.back();
-              Get.back();
+          Get.back();
+          Get.back();
 
-              await Future.delayed(const Duration(milliseconds: 200));
-              widget.onDelete?.call();
-              WalletRefreshBus.refresher();
-            },
-          );
-        } else {
-          final overlayCtx = Get.overlayContext ?? context;
-          CustomDialogStack.showError(
+          await Future.delayed(const Duration(milliseconds: 200));
+          widget.onDelete?.call();
+          WalletRefreshBus.refresher();
+        });
+      } else {
+        final overlayCtx = Get.overlayContext ?? context;
+        CustomDialogStack.showError(
             overlayCtx,
             "luvpay",
             deleteResult["error"] ?? "Failed to delete wallet",
-            () => Get.back(),
-          );
-        }
-      },
-      leftText: "Cancel",
-      rightText: "Delete",
-      isAllBlueColor: false,
-      rightTextColor: cs.error,
-      rightBtnColor: cs.error.withOpacity(0.10),
-    );
+            () => Get.back());
+      }
+    },
+        leftText: "Cancel",
+        rightText: "Delete",
+        isAllBlueColor: false,
+        rightTextColor: cs.error,
+        rightBtnColor: cs.error.withOpacity(0.10));
   }
 
   @override
@@ -922,212 +788,185 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
             ? decodeBase64Safe(_wallet.imageBase64!)
             : null;
     return SafeArea(
-      top: false,
-      child: Container(
-        height: MediaQuery.of(context).size.height * 0.78,
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 46,
-              height: 5,
-              margin: const EdgeInsets.only(bottom: 14),
-              decoration: BoxDecoration(
-                color: cs.onSurface.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(99),
-              ),
-            ),
+        top: false,
+        child: Container(
+            height: MediaQuery.of(context).size.height * 0.78,
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+            decoration: BoxDecoration(
+                color: bg,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28))),
+            child: Column(children: [
+              Container(
+                  width: 46,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(
+                      color: cs.onSurface.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(99))),
 
-            _HeaderCard(
-              wallet: _wallet,
-              iconBytes: iconBytes,
-              onEdit: () => _showEditWallet(context),
-              onDelete: () => _deleteWallet(context),
-            ),
+              _HeaderCard(
+                  wallet: _wallet,
+                  iconBytes: iconBytes,
+                  onEdit: () => _showEditWallet(context),
+                  onDelete: () => _deleteWallet(context)),
 
-            const SizedBox(height: 14),
+              const SizedBox(height: 14),
 
-            _BalanceCard(
-              balanceText: "₱ ${_wallet.balance.toStringAsFixed(2)}",
-              wallet: _wallet,
-            ),
-            const SizedBox(height: 12),
-            // TargetCard(
-            //   balance: _wallet.balance,
-            //   target: _wallet.targetAmount,
-            //   onTapSet: _openTargetDialog,
-            // ),
-            _sharedSection(),
-            const SizedBox(height: 14),
+              _BalanceCard(
+                  balanceText: "₱ ${_wallet.balance.toStringAsFixed(2)}",
+                  wallet: _wallet),
+              const SizedBox(height: 12),
+              // TargetCard(
+              //   balance: _wallet.balance,
+              //   target: _wallet.targetAmount,
+              //   onTapSet: _openTargetDialog,
+              // ),
+              _sharedSection(),
+              const SizedBox(height: 14),
 
-            Row(
-              children: [
+              Row(children: [
                 Expanded(
-                  child: LuvNeuPillButton(
-                    label: "Add funds",
-                    icon: Iconsax.add_circle,
-                    filled: true,
-                    onTap: _openAddDialog,
-                    filledColor: cs.primary,
-                  ),
-                ),
+                    child: LuvNeuPillButton(
+                        label: "Add funds",
+                        icon: Iconsax.add_circle,
+                        filled: true,
+                        onTap: _openAddDialog,
+                        filledColor: cs.primary)),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: LuvNeuPillButton(
-                    label: "Move back",
-                    icon: Iconsax.arrow_down_2,
-                    filled: false,
-                    onTap: _openMoveDialog,
-                  ),
-                ),
-              ],
-            ),
+                    child: LuvNeuPillButton(
+                        label: "Move back",
+                        icon: Iconsax.arrow_down_2,
+                        filled: false,
+                        onTap: _openMoveDialog)),
+              ]),
 
-            const SizedBox(height: 14),
+              const SizedBox(height: 14),
 
-            Expanded(
-              child: FutureBuilder<List<Transaction>>(
-                future: _txFuture,
-                builder: (context, snap) {
-                  if (snap.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(color: cs.primary),
-                    );
-                  }
+              Expanded(
+                  child: FutureBuilder<List<Transaction>>(
+                      future: _txFuture,
+                      builder: (context, snap) {
+                        if (snap.connectionState == ConnectionState.waiting) {
+                          return Center(
+                              child:
+                                  CircularProgressIndicator(color: cs.primary));
+                        }
 
-                  if (snap.hasError) {
-                    return _EmptyState(
-                      icon: Iconsax.warning_2,
-                      title: "Something went wrong",
-                      subtitle: "Failed to load transactions",
-                    );
-                  }
+                        if (snap.hasError) {
+                          return _EmptyState(
+                              icon: Iconsax.warning_2,
+                              title: "Something went wrong",
+                              subtitle: "Failed to load transactions");
+                        }
 
-                  final txns = snap.data ?? <Transaction>[];
+                        final txns = snap.data ?? <Transaction>[];
 
-                  if (txns.isEmpty) {
-                    return _EmptyState(
-                      icon: Iconsax.receipt_text,
-                      title: "No transactions yet",
-                      subtitle: "Add funds to see transactions here",
-                    );
-                  }
+                        if (txns.isEmpty) {
+                          return _EmptyState(
+                              icon: Iconsax.receipt_text,
+                              title: "No transactions yet",
+                              subtitle: "Add funds to see transactions here");
+                        }
 
-                  final tileBg = _tileBg(cs);
+                        final tileBg = _tileBg(cs);
 
-                  return ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 2, bottom: 4),
-                    itemCount: txns.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (context, i) {
-                      final t = txns[i];
-                      final isIn = t.amount >= 0;
-                      final sign = isIn ? '+' : '-';
+                        return ListView.separated(
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.only(top: 2, bottom: 4),
+                            itemCount: txns.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (context, i) {
+                              final t = txns[i];
+                              final isIn = t.amount >= 0;
+                              final sign = isIn ? '+' : '-';
 
-                      final accent = isIn ? cs.tertiary : cs.error;
+                              final accent = isIn ? cs.tertiary : cs.error;
 
-                      return LuvNeuPress.rectangle(
-                        depth: isDark ? 0.55 : 1.4,
-                        pressedDepth: isDark ? -0.25 : -0.75,
-                        overlayOpacity: isDark ? 0.0 : 0.02,
-                        borderColor: isDark
-                            ? Colors.transparent
-                            : stroke.withOpacity(0.02),
-                        radius: BorderRadius.circular(18),
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => TransferDetailsModal(data: t.raw),
-                          );
-                        },
-                        background: tileBg,
-                        child: Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(14),
-                                  color: accent.withOpacity(
-                                    isDark ? 0.18 : 0.12,
-                                  ),
-                                ),
-                                child: Icon(
-                                  isIn
-                                      ? Iconsax.arrow_up_1
-                                      : Iconsax.arrow_down_1,
-                                  color: accent,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    LuvpayText(
-                                      text: t.description,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                        color: cs.onSurface,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    LuvpayText(
-                                      fontSize: 11,
-                                      text: Functions.formatSmartPHDateTime(
-                                          t.date),
-                                      color: cs.onSurface.withOpacity(0.65),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  LuvpayText(
-                                    text:
-                                        '$sign₱ ${t.amount.abs().toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w900,
-                                      color: accent,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Icon(
-                                    Iconsax.arrow_right_3,
-                                    size: 16,
-                                    color: cs.onSurface.withOpacity(0.45),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+                              return LuvNeuPress.rectangle(
+                                  depth: isDark ? 0.55 : 1.4,
+                                  pressedDepth: isDark ? -0.25 : -0.75,
+                                  overlayOpacity: isDark ? 0.0 : 0.02,
+                                  borderColor: isDark
+                                      ? Colors.transparent
+                                      : stroke.withOpacity(0.02),
+                                  radius: BorderRadius.circular(18),
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (_) =>
+                                            TransferDetailsModal(data: t.raw));
+                                  },
+                                  background: tileBg,
+                                  child: Padding(
+                                      padding: const EdgeInsets.all(14),
+                                      child: Row(children: [
+                                        Container(
+                                            width: 42,
+                                            height: 42,
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                                color: accent.withOpacity(
+                                                    isDark ? 0.18 : 0.12)),
+                                            child: Icon(
+                                                isIn
+                                                    ? Iconsax.arrow_up_1
+                                                    : Iconsax.arrow_down_1,
+                                                color: accent,
+                                                size: 20)),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                            child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                              LuvpayText(
+                                                  text: t.description,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: cs.onSurface)),
+                                              const SizedBox(height: 4),
+                                              LuvpayText(
+                                                  fontSize: 11,
+                                                  text: Functions
+                                                      .formatSmartPHDateTime(
+                                                          t.date),
+                                                  color: cs.onSurface
+                                                      .withOpacity(0.65)),
+                                            ])),
+                                        const SizedBox(width: 10),
+                                        Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              LuvpayText(
+                                                  text:
+                                                      '$sign₱ ${t.amount.abs().toStringAsFixed(2)}',
+                                                  style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      color: accent)),
+                                              const SizedBox(height: 6),
+                                              Icon(Iconsax.arrow_right_3,
+                                                  size: 16,
+                                                  color: cs.onSurface
+                                                      .withOpacity(0.45)),
+                                            ]),
+                                      ])));
+                            });
+                      })),
+            ])));
   }
 
   void _showAmountDialog(
@@ -1181,11 +1020,10 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
     }
 
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) {
-        return StatefulBuilder(
-          builder: (context, setState) {
+        context: context,
+        barrierDismissible: false,
+        builder: (_) {
+          return StatefulBuilder(builder: (context, setState) {
             final theme = Theme.of(context);
             final cs = theme.colorScheme;
             final isDark = theme.brightness == Brightness.dark;
@@ -1198,216 +1036,170 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
             final isAdd = title.toLowerCase().contains('add');
 
             return Dialog(
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 24,
-              ),
-              backgroundColor: Colors.transparent,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-                decoration: BoxDecoration(
-                  color: bg,
-                  borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: isDark ? Colors.transparent : stroke,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.22 : 0.10),
-                      blurRadius: isDark ? 20 : 26,
-                      offset: const Offset(0, 14),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    LuvpayText(
-                      text: title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: cs.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                      decoration: BoxDecoration(
-                        color: surface2,
-                        borderRadius: BorderRadius.circular(18),
+                insetPadding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+                backgroundColor: Colors.transparent,
+                child: Container(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                    decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: BorderRadius.circular(22),
                         border: Border.all(
-                          color: errorText != null
-                              ? cs.error.withOpacity(isDark ? 0.45 : 0.55)
-                              : (isDark
-                                  ? cs.onSurface.withOpacity(0.08)
-                                  : stroke),
-                        ),
-                      ),
-                      child: Column(
+                            color: isDark ? Colors.transparent : stroke),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black
+                                  .withOpacity(isDark ? 0.22 : 0.10),
+                              blurRadius: isDark ? 20 : 26,
+                              offset: const Offset(0, 14)),
+                        ]),
+                    child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           LuvpayText(
-                            text: "Amount",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: cs.onSurface.withOpacity(0.70),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: amountController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            onChanged: (_) => _revalidate(setState),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: cs.onSurface,
-                            ),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              border: InputBorder.none,
-                              hintText: "0.00",
-                              hintStyle: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: cs.onSurface.withOpacity(0.35),
-                              ),
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 2,
-                                  right: 6,
-                                ),
-                                child: Center(
-                                  widthFactor: 0,
-                                  child: LuvpayText(
-                                    text: "₱",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      color: cs.onSurface.withOpacity(0.80),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              prefixIconConstraints: const BoxConstraints(
-                                minWidth: 22,
-                              ),
-                            ),
-                          ),
-                          if (errorText != null) ...[
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  Iconsax.info_circle,
-                                  size: 16,
-                                  color: cs.error,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: LuvpayText(
-                                    text: errorText!,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w800,
-                                      color: cs.error,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Obx(
-                        () => LuvpayText(
-                          text:
-                              'Available main balance: ${mainController.luvpayBal.value}',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: helperColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: LuvNeuPress.rectangle(
-                            depth: isDark ? 0.55 : 1.4,
-                            pressedDepth: isDark ? -0.25 : -0.75,
-                            overlayOpacity: isDark ? 0.0 : 0.02,
-                            borderColor: isDark ? Colors.transparent : stroke,
-                            radius: BorderRadius.circular(16),
-                            onTap: () => Navigator.of(context).pop(),
-                            background: cs.surfaceContainerHighest,
-                            child: SizedBox(
-                              height: 50,
-                              child: Center(
-                                child: LuvpayText(
-                                  text: "Cancel",
+                              text: title,
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: cs.onSurface)),
+                          const SizedBox(height: 12),
+                          Container(
+                              padding:
+                                  const EdgeInsets.fromLTRB(12, 12, 12, 10),
+                              decoration: BoxDecoration(
+                                  color: surface2,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                      color: errorText != null
+                                          ? cs.error
+                                              .withOpacity(isDark ? 0.45 : 0.55)
+                                          : (isDark
+                                              ? cs.onSurface.withOpacity(0.08)
+                                              : stroke))),
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    LuvpayText(
+                                        text: "Amount",
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w800,
+                                            color: cs.onSurface
+                                                .withOpacity(0.70))),
+                                    const SizedBox(height: 8),
+                                    TextField(
+                                        controller: amountController,
+                                        keyboardType:
+                                            const TextInputType.numberWithOptions(
+                                                decimal: true),
+                                        onChanged: (_) => _revalidate(setState),
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w900,
+                                            color: cs.onSurface),
+                                        decoration: InputDecoration(
+                                            isDense: true,
+                                            border: InputBorder.none,
+                                            hintText: "0.00",
+                                            hintStyle: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w800,
+                                                color: cs.onSurface
+                                                    .withOpacity(0.35)),
+                                            prefixIcon: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 2, right: 6),
+                                                child: Center(
+                                                    widthFactor: 0,
+                                                    child: LuvpayText(
+                                                        text: "₱",
+                                                        style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.w900,
+                                                            color: cs.onSurface
+                                                                .withOpacity(0.80))))),
+                                            prefixIconConstraints: const BoxConstraints(minWidth: 22))),
+                                    if (errorText != null) ...[
+                                      const SizedBox(height: 8),
+                                      Row(children: [
+                                        Icon(Iconsax.info_circle,
+                                            size: 16, color: cs.error),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                            child: LuvpayText(
+                                                text: errorText!,
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: cs.error))),
+                                      ]),
+                                    ],
+                                  ])),
+                          const SizedBox(height: 10),
+                          Align(
+                              alignment: Alignment.centerLeft,
+                              child: Obx(() => LuvpayText(
+                                  text:
+                                      'Available main balance: ${mainController.luvpayBal.value}',
                                   style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: cs.onSurface.withOpacity(0.75),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: LuvNeuPress.rectangle(
-                            depth: isDark ? 0.55 : 1.4,
-                            pressedDepth: isDark ? -0.25 : -0.75,
-                            overlayOpacity: isDark ? 0.0 : 0.02,
-                            borderColor: isDark ? Colors.transparent : stroke,
-                            radius: BorderRadius.circular(16),
-                            onTap: canConfirm
-                                ? () async {
-                                    final value = _parseAmount();
-                                    Navigator.of(context).pop();
-                                    await onConfirm(value);
-                                  }
-                                : null,
-                            background: canConfirm
-                                ? cs.primary
-                                : cs.primary.withOpacity(0.45),
-                            child: SizedBox(
-                              height: 50,
-                              child: Center(
-                                child: LuvpayText(
-                                  text: isAdd ? "Add" : "Confirm",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: cs.onPrimary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: helperColor)))),
+                          const SizedBox(height: 16),
+                          Row(children: [
+                            Expanded(
+                                child: LuvNeuPress.rectangle(
+                                    depth: isDark ? 0.55 : 1.4,
+                                    pressedDepth: isDark ? -0.25 : -0.75,
+                                    overlayOpacity: isDark ? 0.0 : 0.02,
+                                    borderColor:
+                                        isDark ? Colors.transparent : stroke,
+                                    radius: BorderRadius.circular(16),
+                                    onTap: () => Navigator.of(context).pop(),
+                                    background: cs.surfaceContainerHighest,
+                                    child: SizedBox(
+                                        height: 50,
+                                        child: Center(
+                                            child: LuvpayText(
+                                                text: "Cancel",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w800,
+                                                    color: cs.onSurface
+                                                        .withOpacity(
+                                                            0.75))))))),
+                            const SizedBox(width: 12),
+                            Expanded(
+                                child: LuvNeuPress.rectangle(
+                                    depth: isDark ? 0.55 : 1.4,
+                                    pressedDepth: isDark ? -0.25 : -0.75,
+                                    overlayOpacity: isDark ? 0.0 : 0.02,
+                                    borderColor:
+                                        isDark ? Colors.transparent : stroke,
+                                    radius: BorderRadius.circular(16),
+                                    onTap: canConfirm
+                                        ? () async {
+                                            final value = _parseAmount();
+                                            Navigator.of(context).pop();
+                                            await onConfirm(value);
+                                          }
+                                        : null,
+                                    background: canConfirm
+                                        ? cs.primary
+                                        : cs.primary.withOpacity(0.45),
+                                    child: SizedBox(
+                                        height: 50,
+                                        child: Center(
+                                            child: LuvpayText(
+                                                text: isAdd ? "Add" : "Confirm",
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w900,
+                                                    color: cs.onPrimary)))))),
+                          ]),
+                        ])));
+          });
+        });
   }
 }
 
@@ -1438,63 +1230,47 @@ class _HeaderCard extends StatelessWidget {
     final tileBg = cs.surfaceContainerHighest;
 
     return LuvNeuPress.rectangle(
-      depth: isDark ? 0.55 : 1.4,
-      pressedDepth: isDark ? -0.25 : -0.75,
-      overlayOpacity: isDark ? 0.0 : 0.02,
-      borderColor: isDark ? Colors.transparent : stroke,
-      radius: radius,
-      onTap: null,
-      background: tileBg,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            LuvNeuPress.rectangle(
-              depth: isDark ? 0.55 : 1.4,
-              pressedDepth: isDark ? -0.25 : -0.75,
-              background: tileBg,
-              borderColor: isDark ? Colors.transparent : stroke,
-              overlayOpacity: isDark ? 0.0 : 0.02,
-              radius: avatarRadius,
-              onTap: null,
-              child: SizedBox(
-                width: 52,
-                height: 52,
-                child: Center(
-                  child: ClipOval(
-                    child: SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: buildWalletIcon(iconBytes),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LuvpayText(text: wallet.name),
-                const SizedBox(height: 4),
-                LuvpayText(
-                  text: wallet.categoryTitle,
-                  fontSize: 12,
-                ),
-              ],
-            )),
-            LuvNeuIconButton(icon: Iconsax.edit_2, onTap: onEdit),
-            const SizedBox(width: 8),
-            LuvNeuIconButton(
-              icon: Iconsax.trash,
-              onTap: onDelete,
-              danger: true,
-            ),
-          ],
-        ),
-      ),
-    );
+        depth: isDark ? 0.55 : 1.4,
+        pressedDepth: isDark ? -0.25 : -0.75,
+        overlayOpacity: isDark ? 0.0 : 0.02,
+        borderColor: isDark ? Colors.transparent : stroke,
+        radius: radius,
+        onTap: null,
+        background: tileBg,
+        child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(children: [
+              LuvNeuPress.rectangle(
+                  depth: isDark ? 0.55 : 1.4,
+                  pressedDepth: isDark ? -0.25 : -0.75,
+                  background: tileBg,
+                  borderColor: isDark ? Colors.transparent : stroke,
+                  overlayOpacity: isDark ? 0.0 : 0.02,
+                  radius: avatarRadius,
+                  onTap: null,
+                  child: SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: Center(
+                          child: ClipOval(
+                              child: SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: buildWalletIcon(iconBytes)))))),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    LuvpayText(text: wallet.name),
+                    const SizedBox(height: 4),
+                    LuvpayText(text: wallet.categoryTitle, fontSize: 12),
+                  ])),
+              LuvNeuIconButton(icon: Iconsax.edit_2, onTap: onEdit),
+              const SizedBox(width: 8),
+              LuvNeuIconButton(
+                  icon: Iconsax.trash, onTap: onDelete, danger: true),
+            ])));
   }
 }
 
@@ -1515,77 +1291,59 @@ class _BalanceCard extends StatelessWidget {
     final stroke = cs.outlineVariant.withOpacity(isDark ? 0.08 : 0.22);
 
     return LuvNeuPress.rectangle(
-      depth: isDark ? 0.55 : 1.4,
-      pressedDepth: isDark ? -0.25 : -0.75,
-      overlayOpacity: isDark ? 0.0 : 0.02,
-      borderColor: isDark ? Colors.transparent : stroke,
-      radius: radius,
-      onTap: null,
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
+        depth: isDark ? 0.55 : 1.4,
+        pressedDepth: isDark ? -0.25 : -0.75,
+        overlayOpacity: isDark ? 0.0 : 0.02,
+        borderColor: isDark ? Colors.transparent : stroke,
+        radius: radius,
+        onTap: null,
+        child: ClipRRect(
             borderRadius: radius,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                cs.primary.withOpacity(0.98),
-                cs.primary.withOpacity(0.70),
-              ],
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LuvpayText(
-                    text: "Subwallet balance",
-                    style: TextStyle(
-                      color: cs.onPrimary.withOpacity(0.86),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  LuvpayText(
-                    text: balanceText,
-                    style: TextStyle(
-                      color: cs.onPrimary,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-              LuvNeuPress.circle(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Icon(
-                    Icons.history,
-                    color: AppColorV2.lpBlueBrand,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.of(context, rootNavigator: true).push(
-                    MaterialPageRoute(
-                      builder: (_) => SubWalletTransactions(
-                        subWalletId: wallet.id,
-                        walletName: wallet.name,
-                      ),
-                    ),
-                  );
-                },
-              )
-            ],
-          ),
-        ),
-      ),
-    );
+            child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                    borderRadius: radius,
+                    gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          cs.primary.withOpacity(0.98),
+                          cs.primary.withOpacity(0.70),
+                        ])),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            LuvpayText(
+                                text: "Subwallet balance",
+                                style: TextStyle(
+                                    color: cs.onPrimary.withOpacity(0.86),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700)),
+                            LuvpayText(
+                                text: balanceText,
+                                style: TextStyle(
+                                    color: cs.onPrimary,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.2)),
+                          ]),
+                      LuvNeuPress.circle(
+                          child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(Icons.history,
+                                  color: AppColorV2.lpBlueBrand)),
+                          onTap: () {
+                            Navigator.of(context, rootNavigator: true).push(
+                                MaterialPageRoute(
+                                    builder: (_) => SubWalletTransactions(
+                                        subWalletId: wallet.id,
+                                        walletName: wallet.name)));
+                          })
+                    ]))));
   }
 }
 
@@ -1610,43 +1368,33 @@ class _EmptyState extends StatelessWidget {
     final stroke = cs.outlineVariant.withOpacity(isDark ? 0.22 : 0.35);
 
     return Center(
-      child: LuvNeuPress.rectangle(
-        radius: radius,
-        depth: isDark ? 0.55 : 1.4,
-        pressedDepth: isDark ? -0.25 : -0.75,
-        overlayOpacity: isDark ? 0.0 : 0.02,
-        borderColor: isDark ? Colors.transparent : stroke,
-        onTap: null,
-        background: cs.surfaceContainerHighest,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 58, color: cs.onSurface.withOpacity(0.30)),
-              const SizedBox(height: 14),
-              LuvpayText(
-                text: title,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                  color: cs.onSurface.withOpacity(0.82),
-                ),
-              ),
-              const SizedBox(height: 6),
-              LuvpayText(
-                text: subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: cs.onSurface.withOpacity(0.55),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+        child: LuvNeuPress.rectangle(
+            radius: radius,
+            depth: isDark ? 0.55 : 1.4,
+            pressedDepth: isDark ? -0.25 : -0.75,
+            overlayOpacity: isDark ? 0.0 : 0.02,
+            borderColor: isDark ? Colors.transparent : stroke,
+            onTap: null,
+            background: cs.surfaceContainerHighest,
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(icon, size: 58, color: cs.onSurface.withOpacity(0.30)),
+                  const SizedBox(height: 14),
+                  LuvpayText(
+                      text: title,
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: cs.onSurface.withOpacity(0.82))),
+                  const SizedBox(height: 6),
+                  LuvpayText(
+                      text: subtitle,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: cs.onSurface.withOpacity(0.55),
+                          fontWeight: FontWeight.w600)),
+                ]))));
   }
 }

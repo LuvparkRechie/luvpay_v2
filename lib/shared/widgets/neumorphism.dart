@@ -68,10 +68,8 @@ class NeoNavIcon extends StatelessWidget {
         iconName = null,
         iconData = null,
         iconColor = null,
-        assert(
-          (activeIconName != null || inactiveIconName != null) ||
-              (activeIconData != null || inactiveIconData != null),
-        );
+        assert((activeIconName != null || inactiveIconName != null) ||
+            (activeIconData != null || inactiveIconData != null));
 
   const NeoNavIcon.icon({
     super.key,
@@ -135,26 +133,22 @@ class NeoNavIcon extends StatelessWidget {
               ? (activeIconData ?? inactiveIconData!)
               : (inactiveIconData ?? activeIconData!);
 
-          return Icon(
-            icon,
-            size: iconSize,
-            color: isActive ? (activeColor ?? brand) : inactive,
-          );
+          return Icon(icon,
+              size: iconSize,
+              color: isActive ? (activeColor ?? brand) : inactive);
         }
 
         final name = isActive
             ? (activeIconName ?? inactiveIconName!)
             : (inactiveIconName ?? activeIconName!);
 
-        return Image.asset(
-          "assets/images/$name.png",
-          width: iconSize,
-          height: iconSize,
-          color: isActive ? activeColor : inactiveColor,
-          colorBlendMode: (isActive ? activeColor : inactiveColor) != null
-              ? BlendMode.srcIn
-              : null,
-        );
+        return Image.asset("assets/images/$name.png",
+            width: iconSize,
+            height: iconSize,
+            color: isActive ? activeColor : inactiveColor,
+            colorBlendMode: (isActive ? activeColor : inactiveColor) != null
+                ? BlendMode.srcIn
+                : null);
       }
 
       if (iconData != null) {
@@ -164,13 +158,11 @@ class NeoNavIcon extends StatelessWidget {
       final path = assetPath ??
           (iconName != null ? "assets/images/$iconName.png" : null);
 
-      return Image.asset(
-        path!,
-        width: iconSize,
-        height: iconSize,
-        color: iconColor,
-        colorBlendMode: iconColor != null ? BlendMode.srcIn : BlendMode.dst,
-      );
+      return Image.asset(path!,
+          width: iconSize,
+          height: iconSize,
+          color: iconColor,
+          colorBlendMode: iconColor != null ? BlendMode.srcIn : BlendMode.dst);
     }
 
     Widget buildBadge() {
@@ -184,81 +176,64 @@ class NeoNavIcon extends StatelessWidget {
         final h = 16.0;
 
         return Container(
-          constraints: BoxConstraints(minWidth: minW, minHeight: h),
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          decoration: BoxDecoration(
-            color: badgeBg,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: borderCutColor, width: 1.4),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.18 : 0.12),
-                blurRadius: isDark ? 8 : 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Center(
-            child: LuvpayText(
-              text: text,
-              style: TextStyle(
-                color: badgeFg,
-                fontWeight: FontWeight.w900,
-                fontSize: 10.5,
-                height: 1.0,
-              ),
-            ),
-          ),
-        );
+            constraints: BoxConstraints(minWidth: minW, minHeight: h),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+                color: badgeBg,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: borderCutColor, width: 1.4),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.18 : 0.12),
+                      blurRadius: isDark ? 8 : 10,
+                      offset: const Offset(0, 3)),
+                ]),
+            child: Center(
+                child: LuvpayText(
+                    text: text,
+                    style: TextStyle(
+                        color: badgeFg,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10.5,
+                        height: 1.0))));
       }
 
       return Container(
-        width: dotSize,
-        height: dotSize,
-        decoration: BoxDecoration(
-          color: badgeBg,
-          shape: BoxShape.circle,
-          border: Border.all(color: borderCutColor, width: 1.4),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.35 : 0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-      );
+          width: dotSize,
+          height: dotSize,
+          decoration: BoxDecoration(
+              color: badgeBg,
+              shape: BoxShape.circle,
+              border: Border.all(color: borderCutColor, width: 1.4),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.35 : 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3)),
+              ]));
     }
 
     return LuvNeuPress.rectangle(
-      radius: borderRadius,
-      onTap: onTap,
-      selected: isTab && isActive,
-      depth: flatten ? 0 : LuvNeu.cardDepth,
-      pressedDepth: flatten ? 0 : LuvNeu.cardPressedDepth,
-      background: surface,
-      borderColor: flatten
-          ? Colors.transparent
-          : (isActive ? brand.withOpacity(0.08) : null),
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Padding(padding: padding, child: Center(child: buildIcon())),
-            if (showBadge)
-              Align(
-                alignment: badgeAlignment,
-                child: Transform.translate(
-                  offset: badgeOffset,
-                  child: buildBadge(),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
+        radius: borderRadius,
+        onTap: onTap,
+        selected: isTab && isActive,
+        depth: flatten ? 0 : LuvNeu.cardDepth,
+        pressedDepth: flatten ? 0 : LuvNeu.cardPressedDepth,
+        background: surface,
+        borderColor: flatten
+            ? Colors.transparent
+            : (isActive ? brand.withOpacity(0.08) : null),
+        child: SizedBox(
+            width: size,
+            height: size,
+            child: Stack(clipBehavior: Clip.none, children: [
+              Padding(padding: padding, child: Center(child: buildIcon())),
+              if (showBadge)
+                Align(
+                    alignment: badgeAlignment,
+                    child: Transform.translate(
+                        offset: badgeOffset, child: buildBadge())),
+            ])));
   }
 }
 
@@ -299,22 +274,14 @@ class InfoRowTile extends StatelessWidget {
     this.subtitleMaxlines,
     this.iconBoxSize = 40,
     this.iconBoxRadius = const BorderRadius.all(Radius.circular(12)),
-  })  : assert(
-          icon == null || iconWidget == null,
-          "Provide either icon OR iconWidget, not both.",
-        ),
-        assert(
-          title != null || titleWidget != null,
-          "Provide either title OR titleWidget.",
-        ),
-        assert(
-          title == null || titleWidget == null,
-          "Provide either title OR titleWidget, not both.",
-        ),
-        assert(
-          subtitle == null || subtitleWidget == null,
-          "Provide either subtitle OR subtitleWidget, not both.",
-        );
+  })  : assert(icon == null || iconWidget == null,
+            "Provide either icon OR iconWidget, not both."),
+        assert(title != null || titleWidget != null,
+            "Provide either title OR titleWidget."),
+        assert(title == null || titleWidget == null,
+            "Provide either title OR titleWidget, not both."),
+        assert(subtitle == null || subtitleWidget == null,
+            "Provide either subtitle OR subtitleWidget, not both.");
 
   @override
   Widget build(BuildContext context) {
@@ -333,79 +300,68 @@ class InfoRowTile extends StatelessWidget {
 
     final Widget builtTitle = titleWidget ??
         LuvpayText(
-          maxLines: maxLines ?? 2,
-          text: title!,
-          color: onSurface,
-          style: AppTextStyle.body1(context),
-        );
+            maxLines: maxLines ?? 2,
+            text: title!,
+            color: onSurface,
+            style: AppTextStyle.body1(context));
 
     final Widget? builtSubtitle = subtitleWidget ??
         (subtitle != null
             ? LuvpayText(
                 text: subtitle!,
                 maxLines: subtitleMaxlines ?? 1,
-                color: cs.onSurfaceVariant,
-              )
+                color: cs.onSurfaceVariant)
             : null);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: LuvNeuPress.rectangle(
-        radius: radius,
-        onTap: onTap,
-        borderColor: null,
-        background: surface,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (hasLeading) ...[
-                Neumorphic(
-                  style: LuvNeu.icon(
-                    radius: iconBoxRadius,
-                    color: surface,
-                    borderColor: null,
-                    isDark: Theme.of(context).brightness == Brightness.dark,
-                  ),
-                  child: SizedBox(
-                    width: iconBoxSize,
-                    height: iconBoxSize,
-                    child: Center(child: leadingWidget),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (value != null)
-                      LuvpayText(
-                        text: value!,
-                        style: AppTextStyle.body1(context),
-                      ),
-                    builtTitle,
-                    if (builtSubtitle != null) ...[
-                      const SizedBox(height: 4),
-                      builtSubtitle,
-                    ],
-                  ],
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: 10),
-                GestureDetector(
-                  onTap: trailingOnTap,
-                  behavior: HitTestBehavior.opaque,
-                  child: trailing,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
+        padding: const EdgeInsets.only(bottom: 10),
+        child: LuvNeuPress.rectangle(
+            radius: radius,
+            onTap: onTap,
+            borderColor: null,
+            background: surface,
+            child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (hasLeading) ...[
+                        Neumorphic(
+                            style: LuvNeu.icon(
+                                radius: iconBoxRadius,
+                                color: surface,
+                                borderColor: null,
+                                isDark: Theme.of(context).brightness ==
+                                    Brightness.dark),
+                            child: SizedBox(
+                                width: iconBoxSize,
+                                height: iconBoxSize,
+                                child: Center(child: leadingWidget))),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            if (value != null)
+                              LuvpayText(
+                                  text: value!,
+                                  style: AppTextStyle.body1(context)),
+                            builtTitle,
+                            if (builtSubtitle != null) ...[
+                              const SizedBox(height: 4),
+                              builtSubtitle,
+                            ],
+                          ])),
+                      if (trailing != null) ...[
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                            onTap: trailingOnTap,
+                            behavior: HitTestBehavior.opaque,
+                            child: trailing),
+                      ],
+                    ]))));
   }
 }
 
@@ -420,24 +376,20 @@ class DefaultContainer extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(19),
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.35 : 0.06),
-            blurRadius: isDark ? 18 : 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-        border: Border.all(
-          color: (isDark ? Colors.white : Colors.black).withOpacity(0.06),
-          width: 0.8,
-        ),
-      ),
-      child: Stack(children: [child]),
-    );
+        padding: const EdgeInsets.all(19),
+        decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.35 : 0.06),
+                  blurRadius: isDark ? 18 : 15,
+                  offset: const Offset(0, 5)),
+            ],
+            border: Border.all(
+                color: (isDark ? Colors.white : Colors.black).withOpacity(0.06),
+                width: 0.8)),
+        child: Stack(children: [child]));
   }
 }
 
@@ -468,9 +420,8 @@ class LuvNeu {
   }
 
   static NeumorphicBorder _softBorder(Color c, double width) {
-    final softened = c.withOpacity(
-      (c.opacity).clamp(0.0, 1.0) * _borderOpacity,
-    );
+    final softened =
+        c.withOpacity((c.opacity).clamp(0.0, 1.0) * _borderOpacity);
     return NeumorphicBorder(color: softened, width: width.clamp(0.5, 1.0));
   }
 
@@ -491,16 +442,15 @@ class LuvNeu {
     final pd = depthFor(pressedDepth, isDark);
 
     return NeumorphicStyle(
-      color: base,
-      shape: NeumorphicShape.convex,
-      boxShape: NeumorphicBoxShape.roundRect(radius),
-      depth: selected ? depthFor(-0.5, isDark) : (pressed ? pd : d),
-      intensity: isDark ? 0.06 : intensityFor(isDark),
-      surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(isDark),
-      border: borderColor == null
-          ? const NeumorphicBorder.none()
-          : _softBorder(borderColor, borderWidth),
-    );
+        color: base,
+        shape: NeumorphicShape.convex,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: selected ? depthFor(-0.5, isDark) : (pressed ? pd : d),
+        intensity: isDark ? 0.06 : intensityFor(isDark),
+        surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(isDark),
+        border: borderColor == null
+            ? const NeumorphicBorder.none()
+            : _softBorder(borderColor, borderWidth));
   }
 
   static NeumorphicStyle circle({
@@ -520,16 +470,15 @@ class LuvNeu {
     final pd = depthFor(pressedDepth, isDark);
 
     return NeumorphicStyle(
-      color: base,
-      shape: shape,
-      boxShape: const NeumorphicBoxShape.circle(),
-      depth: selected ? depthFor(-0.5, isDark) : (pressed ? pd : d),
-      intensity: intensityFor(isDark),
-      surfaceIntensity: surfaceIntensityFor(isDark),
-      border: borderColor == null
-          ? const NeumorphicBorder.none()
-          : _softBorder(borderColor, borderWidth),
-    );
+        color: base,
+        shape: shape,
+        boxShape: const NeumorphicBoxShape.circle(),
+        depth: selected ? depthFor(-0.5, isDark) : (pressed ? pd : d),
+        intensity: intensityFor(isDark),
+        surfaceIntensity: surfaceIntensityFor(isDark),
+        border: borderColor == null
+            ? const NeumorphicBorder.none()
+            : _softBorder(borderColor, borderWidth));
   }
 
   static NeumorphicStyle pill({
@@ -548,16 +497,15 @@ class LuvNeu {
     final pd = depthFor(pillPressedDepth, isDark);
 
     return NeumorphicStyle(
-      color: filled ? fill : AppColorV2.background,
-      shape: NeumorphicShape.convex,
-      boxShape: NeumorphicBoxShape.roundRect(radius),
-      depth: pressed ? pd : d,
-      intensity: isDark ? 0.06 : intensityFor(isDark),
-      surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(isDark),
-      border: borderColor == null
-          ? const NeumorphicBorder.none()
-          : _softBorder(borderColor, borderWidth),
-    );
+        color: filled ? fill : AppColorV2.background,
+        shape: NeumorphicShape.convex,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: pressed ? pd : d,
+        intensity: isDark ? 0.06 : intensityFor(isDark),
+        surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(isDark),
+        border: borderColor == null
+            ? const NeumorphicBorder.none()
+            : _softBorder(borderColor, borderWidth));
   }
 
   static NeumorphicStyle icon({
@@ -577,16 +525,15 @@ class LuvNeu {
     final effectiveShape = isDark ? NeumorphicShape.flat : shape;
 
     return NeumorphicStyle(
-      color: base,
-      shape: effectiveShape,
-      boxShape: NeumorphicBoxShape.roundRect(radius),
-      depth: pressed ? pd : d,
-      intensity: isDark ? 0.06 : intensityFor(false),
-      surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(false),
-      border: borderColor == null
-          ? const NeumorphicBorder.none()
-          : _softBorder(borderColor, borderWidth),
-    );
+        color: base,
+        shape: effectiveShape,
+        boxShape: NeumorphicBoxShape.roundRect(radius),
+        depth: pressed ? pd : d,
+        intensity: isDark ? 0.06 : intensityFor(false),
+        surfaceIntensity: isDark ? 0.00 : surfaceIntensityFor(false),
+        border: borderColor == null
+            ? const NeumorphicBorder.none()
+            : _softBorder(borderColor, borderWidth));
   }
 }
 
@@ -628,10 +575,8 @@ class LuvNeuPress extends StatefulWidget {
     this.pressedScale = 0.985,
     this.pressedTranslateY = 1.0,
     this.overlayOpacity = 0.035,
-  }) : assert(
-          radius != null || boxShape != null,
-          'Provide either radius or boxShape.',
-        );
+  }) : assert(radius != null || boxShape != null,
+            'Provide either radius or boxShape.');
 
   factory LuvNeuPress.rectangle({
     Key? key,
@@ -651,22 +596,21 @@ class LuvNeuPress extends StatefulWidget {
     double overlayOpacity = 0.035,
   }) {
     return LuvNeuPress(
-      key: key,
-      onTap: onTap,
-      radius: radius,
-      depth: depth,
-      pressedDepth: pressedDepth,
-      selected: selected,
-      background: background,
-      borderColor: borderColor,
-      borderWidth: borderWidth,
-      duration: duration,
-      curve: curve,
-      pressedScale: pressedScale,
-      pressedTranslateY: pressedTranslateY,
-      overlayOpacity: overlayOpacity,
-      child: child,
-    );
+        key: key,
+        onTap: onTap,
+        radius: radius,
+        depth: depth,
+        pressedDepth: pressedDepth,
+        selected: selected,
+        background: background,
+        borderColor: borderColor,
+        borderWidth: borderWidth,
+        duration: duration,
+        curve: curve,
+        pressedScale: pressedScale,
+        pressedTranslateY: pressedTranslateY,
+        overlayOpacity: overlayOpacity,
+        child: child);
   }
 
   factory LuvNeuPress.circle({
@@ -686,22 +630,21 @@ class LuvNeuPress extends StatefulWidget {
     double overlayOpacity = 0.035,
   }) {
     return LuvNeuPress(
-      key: key,
-      child: child,
-      onTap: onTap,
-      boxShape: const NeumorphicBoxShape.circle(),
-      depth: depth,
-      pressedDepth: pressedDepth,
-      selected: selected,
-      background: background,
-      borderColor: borderColor,
-      borderWidth: borderWidth,
-      duration: duration,
-      curve: curve,
-      pressedScale: pressedScale,
-      pressedTranslateY: pressedTranslateY,
-      overlayOpacity: overlayOpacity,
-    );
+        key: key,
+        child: child,
+        onTap: onTap,
+        boxShape: const NeumorphicBoxShape.circle(),
+        depth: depth,
+        pressedDepth: pressedDepth,
+        selected: selected,
+        background: background,
+        borderColor: borderColor,
+        borderWidth: borderWidth,
+        duration: duration,
+        curve: curve,
+        pressedScale: pressedScale,
+        pressedTranslateY: pressedTranslateY,
+        overlayOpacity: overlayOpacity);
   }
 
   @override
@@ -728,8 +671,7 @@ class _LuvNeuPressState extends State<LuvNeuPress> {
 
     final shape = widget.boxShape ??
         NeumorphicBoxShape.roundRect(
-          widget.radius ?? BorderRadius.circular(16),
-        );
+            widget.radius ?? BorderRadius.circular(16));
 
     final isCircle = widget.boxShape == const NeumorphicBoxShape.circle();
     final style = isCircle
@@ -741,8 +683,7 @@ class _LuvNeuPressState extends State<LuvNeuPress> {
             color: widget.background,
             borderColor: widget.borderColor,
             borderWidth: widget.borderWidth,
-            isDark: isDark,
-          )
+            isDark: isDark)
         : LuvNeu.card(
             radius: widget.radius ?? BorderRadius.circular(16),
             pressed: pressedVisual,
@@ -752,56 +693,44 @@ class _LuvNeuPressState extends State<LuvNeuPress> {
             color: widget.background,
             borderColor: widget.borderColor,
             borderWidth: widget.borderWidth,
-            isDark: isDark,
-          );
+            isDark: isDark);
     final overlay = widget.overlayOpacity * (isDark ? 0.45 : 1.0);
     final core = Neumorphic(
-      style: style.copyWith(boxShape: shape),
-      child: ClipRRect(
-        borderRadius: isCircle
-            ? BorderRadius.circular(999)
-            : (widget.radius ?? BorderRadius.circular(16)),
-        child: Stack(
-          children: [
-            if (overlay > 0)
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(
-                      widget.selected ? overlay + 0.015 : overlay,
-                    ),
-                  ),
-                ),
-              ),
-            widget.child,
-          ],
-        ),
-      ),
-    );
+        style: style.copyWith(boxShape: shape),
+        child: ClipRRect(
+            borderRadius: isCircle
+                ? BorderRadius.circular(999)
+                : (widget.radius ?? BorderRadius.circular(16)),
+            child: Stack(children: [
+              if (overlay > 0)
+                Positioned.fill(
+                    child: DecoratedBox(
+                        decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(
+                                widget.selected ? overlay + 0.015 : overlay)))),
+              widget.child,
+            ])));
 
     return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: canPress ? (_) => _set(true) : null,
-      onTapCancel: canPress ? () => _set(false) : null,
-      onTapUp: canPress ? (_) => _set(false) : null,
-      onTap: () {
-        if (!canPress) return;
-        _set(false);
-        widget.onTap?.call();
-      },
-      child: AnimatedScale(
-        scale: scale,
-        duration: widget.duration,
-        curve: widget.curve,
-        alignment: Alignment.center,
-        child: AnimatedSlide(
-          duration: widget.duration,
-          curve: widget.curve,
-          offset: Offset(0, dy / 100),
-          child: Center(child: core),
-        ),
-      ),
-    );
+        behavior: HitTestBehavior.opaque,
+        onTapDown: canPress ? (_) => _set(true) : null,
+        onTapCancel: canPress ? () => _set(false) : null,
+        onTapUp: canPress ? (_) => _set(false) : null,
+        onTap: () {
+          if (!canPress) return;
+          _set(false);
+          widget.onTap?.call();
+        },
+        child: AnimatedScale(
+            scale: scale,
+            duration: widget.duration,
+            curve: widget.curve,
+            alignment: Alignment.center,
+            child: AnimatedSlide(
+                duration: widget.duration,
+                curve: widget.curve,
+                offset: Offset(0, dy / 100),
+                child: Center(child: core))));
   }
 }
 
@@ -833,21 +762,19 @@ class LuvNeuIconButton extends StatelessWidget {
     final radius = BorderRadius.circular(14);
 
     return LuvNeuPress.rectangle(
-      radius: radius,
-      onTap: onTap,
-      background: background ?? cs.surface,
-      borderColor: danger ? cs.error.withOpacity(isDark ? 0.18 : 0.28) : null,
-      depth: LuvNeu.iconDepth,
-      pressedDepth: LuvNeu.iconPressedDepth,
-      pressedScale: 0.975,
-      pressedTranslateY: 1.2,
-      overlayOpacity: isDark ? 0.0 : 0.02,
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Center(child: Icon(icon, color: color, size: iconSize)),
-      ),
-    );
+        radius: radius,
+        onTap: onTap,
+        background: background ?? cs.surface,
+        borderColor: danger ? cs.error.withOpacity(isDark ? 0.18 : 0.28) : null,
+        depth: LuvNeu.iconDepth,
+        pressedDepth: LuvNeu.iconPressedDepth,
+        pressedScale: 0.975,
+        pressedTranslateY: 1.2,
+        overlayOpacity: isDark ? 0.0 : 0.02,
+        child: SizedBox(
+            width: size,
+            height: size,
+            child: Center(child: Icon(icon, color: color, size: iconSize))));
   }
 }
 
@@ -881,37 +808,28 @@ class LuvNeuPillButton extends StatelessWidget {
     final fg = filled ? cs.onPrimary : cs.primary;
 
     return LuvNeuPress.rectangle(
-      radius: radius,
-      onTap: onTap,
-      depth: filled ? LuvNeu.pillDepthFilled : LuvNeu.pillDepthOutline,
-      pressedDepth: LuvNeu.pillPressedDepth,
-      pressedScale: 0.985,
-      pressedTranslateY: 1.0,
-      overlayOpacity: isDark ? 0.0 : 0.02,
-      background: filled ? fill : cs.surface,
-      borderColor: filled ? null : cs.primary,
-      borderWidth: 0.8,
-      child: SizedBox(
-        height: height,
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+        radius: radius,
+        onTap: onTap,
+        depth: filled ? LuvNeu.pillDepthFilled : LuvNeu.pillDepthOutline,
+        pressedDepth: LuvNeu.pillPressedDepth,
+        pressedScale: 0.985,
+        pressedTranslateY: 1.0,
+        overlayOpacity: isDark ? 0.0 : 0.02,
+        background: filled ? fill : cs.surface,
+        borderColor: filled ? null : cs.primary,
+        borderWidth: 0.8,
+        child: SizedBox(
+            height: height,
+            child: Center(
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(icon, size: 20, color: fg),
               const SizedBox(width: 10),
               LuvpayText(
-                text: label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  color: fg,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+                  text: label,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 13, color: fg)),
+            ]))));
   }
 }
 
@@ -951,10 +869,8 @@ class CustomRowTile extends StatelessWidget {
     this.leadingRadius = const BorderRadius.all(Radius.circular(12)),
     this.leadingSize = 40,
     this.trailingRadius = const BorderRadius.all(Radius.circular(14)),
-    this.trailingPadding = const EdgeInsets.symmetric(
-      horizontal: 12,
-      vertical: 8,
-    ),
+    this.trailingPadding =
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     this.background,
     this.leadingBackground,
   });
@@ -973,68 +889,57 @@ class CustomRowTile extends StatelessWidget {
       if (!useNeoTrailing) return padded;
 
       return Neumorphic(
-        style: NeumorphicStyle(
-          color: surface,
-          shape: NeumorphicShape.flat,
-          boxShape: NeumorphicBoxShape.roundRect(trailingRadius),
-          depth: isDark ? 0.0 : -1.0,
-          intensity: isDark ? 0.0 : LuvNeu.intensity,
-          surfaceIntensity: isDark ? 0.0 : LuvNeu.surfaceIntensity,
-          border: const NeumorphicBorder.none(),
-        ),
-        child: padded,
-      );
+          style: NeumorphicStyle(
+              color: surface,
+              shape: NeumorphicShape.flat,
+              boxShape: NeumorphicBoxShape.roundRect(trailingRadius),
+              depth: isDark ? 0.0 : -1.0,
+              intensity: isDark ? 0.0 : LuvNeu.intensity,
+              surfaceIntensity: isDark ? 0.0 : LuvNeu.surfaceIntensity,
+              border: const NeumorphicBorder.none()),
+          child: padded);
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: LuvNeuPress.rectangle(
-        radius: radius,
-        onTap: onTap,
-        background: surface,
-        borderColor: null,
-        child: Padding(
-          padding: padding,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (leading != null) ...[
-                Neumorphic(
-                  style: LuvNeu.icon(
-                    radius: leadingRadius,
-                    color: leadingBackground ?? surface,
-                    borderColor: null,
-                    isDark: isDark,
-                  ),
-                  child: SizedBox(
-                    width: leadingSize,
-                    height: leadingSize,
-                    child: Center(child: leading),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    title,
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      subtitle!,
-                    ],
-                  ],
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: 10),
-                buildTrailing(trailing!),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
+        padding: const EdgeInsets.only(bottom: 10),
+        child: LuvNeuPress.rectangle(
+            radius: radius,
+            onTap: onTap,
+            background: surface,
+            borderColor: null,
+            child: Padding(
+                padding: padding,
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (leading != null) ...[
+                        Neumorphic(
+                            style: LuvNeu.icon(
+                                radius: leadingRadius,
+                                color: leadingBackground ?? surface,
+                                borderColor: null,
+                                isDark: isDark),
+                            child: SizedBox(
+                                width: leadingSize,
+                                height: leadingSize,
+                                child: Center(child: leading))),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            title,
+                            if (subtitle != null) ...[
+                              const SizedBox(height: 4),
+                              subtitle!,
+                            ],
+                          ])),
+                      if (trailing != null) ...[
+                        const SizedBox(width: 10),
+                        buildTrailing(trailing!),
+                      ],
+                    ]))));
   }
 }
 
@@ -1094,9 +999,8 @@ class CustomButton extends StatelessWidget {
     final fill = btnColor ?? cs.primary;
     final outline = bordercolor ?? cs.primary;
     final fg = textColor ??
-        (filled ? cs.onPrimary : cs.primary).withOpacity(
-          isDisabled ? 0.60 : 1.0,
-        );
+        (filled ? cs.onPrimary : cs.primary)
+            .withOpacity(isDisabled ? 0.60 : 1.0);
 
     final bg = isDisabled
         ? cs.onSurface.withOpacity(isDark ? 0.10 : 0.08)
@@ -1112,68 +1016,53 @@ class CustomButton extends StatelessWidget {
         (btnHeight != null ? ((btnHeight! - 20) / 2).clamp(10.0, 16.0) : 12.0);
 
     return Container(
-      margin: margin,
-      width: width ?? double.infinity,
-      height: btnHeight,
-      child: LuvNeuPress.rectangle(
-        radius: radius,
-        onTap: canTap ? onPressed : null,
-        depth: filled ? LuvNeu.pillDepthFilled : LuvNeu.pillDepthOutline,
-        pressedDepth: LuvNeu.pillPressedDepth,
-        pressedScale: 0.985,
-        pressedTranslateY: 1.0,
-        overlayOpacity: isDark ? 0.0 : 0.02,
-        background: bg,
-        borderColor: effectiveBorder,
-        borderWidth: 0.8,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: padY, horizontal: 14),
-          child: Center(
-            child: showLoading
-                ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: fg,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (leading != null) ...[
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: IconTheme(
-                            data: IconThemeData(color: fg),
-                            child: leading!,
-                          ),
-                        ),
-                      ],
-                      Flexible(
-                        child: LuvpayText(
-                          maxLines: maxLines ?? 1,
-                          text: text,
-                          textAlign: TextAlign.center,
-                          color: fg,
-                          fontSize: fontSize,
-                          style: AppTextStyle.textButton(context),
-                          fontWeight: fontWeight ?? FontWeight.w800,
-                          height: 20 / 16,
-                        ),
-                      ),
-                      if (trailing != null) ...[
-                        const SizedBox(width: 10),
-                        IconTheme(
-                          data: IconThemeData(color: fg),
-                          child: trailing!,
-                        ),
-                      ],
-                    ],
-                  ),
-          ),
-        ),
-      ),
-    );
+        margin: margin,
+        width: width ?? double.infinity,
+        height: btnHeight,
+        child: LuvNeuPress.rectangle(
+            radius: radius,
+            onTap: canTap ? onPressed : null,
+            depth: filled ? LuvNeu.pillDepthFilled : LuvNeu.pillDepthOutline,
+            pressedDepth: LuvNeu.pillPressedDepth,
+            pressedScale: 0.985,
+            pressedTranslateY: 1.0,
+            overlayOpacity: isDark ? 0.0 : 0.02,
+            background: bg,
+            borderColor: effectiveBorder,
+            borderWidth: 0.8,
+            child: Padding(
+                padding: EdgeInsets.symmetric(vertical: padY, horizontal: 14),
+                child: Center(
+                    child: showLoading
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                                color: fg, strokeWidth: 2))
+                        : Row(mainAxisSize: MainAxisSize.min, children: [
+                            if (leading != null) ...[
+                              Padding(
+                                  padding: const EdgeInsets.only(right: 10),
+                                  child: IconTheme(
+                                      data: IconThemeData(color: fg),
+                                      child: leading!)),
+                            ],
+                            Flexible(
+                                child: LuvpayText(
+                                    maxLines: maxLines ?? 1,
+                                    text: text,
+                                    textAlign: TextAlign.center,
+                                    color: fg,
+                                    fontSize: fontSize,
+                                    style: AppTextStyle.textButton(context),
+                                    fontWeight: fontWeight ?? FontWeight.w800,
+                                    height: 20 / 16)),
+                            if (trailing != null) ...[
+                              const SizedBox(width: 10),
+                              IconTheme(
+                                  data: IconThemeData(color: fg),
+                                  child: trailing!),
+                            ],
+                          ])))));
   }
 }

@@ -134,11 +134,9 @@ class Authentication {
       data.removeAt(0);
     }
     bool isExist = data
-        .where(
-          (e) =>
-              (e["park_area_id"] == dataString[0]["park_area_id"]) &&
-              (e["vehicle_plate_no"] == dataString[0]["vehicle_plate_no"]),
-        )
+        .where((e) =>
+            (e["park_area_id"] == dataString[0]["park_area_id"]) &&
+            (e["vehicle_plate_no"] == dataString[0]["vehicle_plate_no"]))
         .toList()
         .isNotEmpty;
     if (isExist) return;
@@ -234,11 +232,8 @@ class Authentication {
     Uint8List aesKey = Functions.generateKey(inatayaaa, 16);
     final nonce = Variables.generateRandomNonce();
 
-    final encrypted = await Variables.encryptData(
-      aesKey,
-      nonce,
-      json.encode(plaintText),
-    );
+    final encrypted =
+        await Variables.encryptData(aesKey, nonce, json.encode(plaintText));
 
     final concatenatedArray = Variables.concatBuffers(nonce, encrypted);
     final output = Variables.arrayBufferToBase64(concatenatedArray);
@@ -263,11 +258,8 @@ class Authentication {
 
       final cipherText = encryptedData.sublist(16);
 
-      final decryptedData = await Encryption().decryptData(
-        aesKey,
-        nonces,
-        cipherText,
-      );
+      final decryptedData =
+          await Encryption().decryptData(aesKey, nonces, cipherText);
       final data = utf8.decode(decryptedData);
       final dataList = await jsonDecode(data);
 

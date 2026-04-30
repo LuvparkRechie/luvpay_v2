@@ -57,9 +57,8 @@ class OnboardingController extends GetxController {
     switch (currentPage.value) {
       case 0 || 1:
         pageController.nextPage(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
 
         break;
       case 2:

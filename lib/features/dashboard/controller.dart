@@ -30,21 +30,19 @@ class DashboardController extends GetxController {
     if (!isFirstLogin) return;
 
     Get.to(
-      () => CelebrationScreen(
-        title: "Welcome to luvpay!",
-        message:
-            "This looks like your first time logging in on this device.\nStart exploring now.",
-        buttonText: "Let's Go!",
-        icon: Icons.waving_hand_rounded,
-        iconColor: AppColorV2.lpBlueBrand,
-        showConfetti: true,
-        onButtonPressed: () {
-          box.write('isFirstLogin', false);
-          Get.back();
-        },
-      ),
-      transition: Transition.fadeIn,
-      duration: const Duration(milliseconds: 260),
-    );
+        () => CelebrationScreen(
+            title: "Welcome to luvpay!",
+            message:
+                "This looks like your first time logging in on this device.\nStart exploring now.",
+            buttonText: "Let's Go!",
+            icon: Icons.waving_hand_rounded,
+            iconColor: AppColorV2.lpBlueBrand,
+            showConfetti: true,
+            onButtonPressed: () {
+              box.write('isFirstLogin', false);
+              Get.back();
+            }),
+        transition: Transition.fadeIn,
+        duration: const Duration(milliseconds: 260));
   }
 }

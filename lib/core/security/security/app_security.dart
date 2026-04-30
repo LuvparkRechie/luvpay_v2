@@ -146,17 +146,15 @@ class AppSecurity {
     bool authenticated = false;
     try {
       authenticated = await auth.authenticate(
-        biometricOnly: true,
-        persistAcrossBackgrounding: true,
-        localizedReason: 'Please authenticate to continue',
-        authMessages: const <AuthMessages>[
-          AndroidAuthMessages(
-            signInTitle: 'Biometric authentication required!',
-            cancelButton: 'No thanks',
-          ),
-          IOSAuthMessages(cancelButton: 'No thanks'),
-        ],
-      );
+          biometricOnly: true,
+          persistAcrossBackgrounding: true,
+          localizedReason: 'Please authenticate to continue',
+          authMessages: const <AuthMessages>[
+            AndroidAuthMessages(
+                signInTitle: 'Biometric authentication required!',
+                cancelButton: 'No thanks'),
+            IOSAuthMessages(cancelButton: 'No thanks'),
+          ]);
     } catch (e) {
       debugPrint("e $e");
     }

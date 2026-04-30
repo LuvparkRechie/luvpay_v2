@@ -93,33 +93,29 @@ class CreateNewPassController extends GetxController {
               "new_pwd": newPass.text,
             };
 
-            HttpRequestApi(
-              api: ApiKeys.putLogin,
-              parameters: postParam,
-            ).putBody().then((retvalue) {
+            Functions()
+                .requestHandler(
+                    apiKey: ApiKeys.putLogin,
+                    parameters: postParam,
+                    method: "PUT")
+                .then((retvalue) {
               Get.back();
 
               if (retvalue["success"] == "Y") {
                 CustomDialogStack.showSuccess(
-                  Get.context!,
-                  "Success!",
-                  "Your password has been updated",
-                  leftText: "Okay",
-                  () async {
-                    Get.offAllNamed(Routes.login);
-                  },
-                );
+                    Get.context!, "Success!", "Your password has been updated",
+                    leftText: "Okay", () async {
+                  Get.offAllNamed(Routes.login);
+                });
               }
             });
           }
         },
       };
 
-      Get.to(
-        OtpFieldScreen(arguments: args),
-        transition: Transition.rightToLeftWithFade,
-        duration: Duration(milliseconds: 400),
-      );
+      Get.to(OtpFieldScreen(arguments: args),
+          transition: Transition.rightToLeftWithFade,
+          duration: Duration(milliseconds: 400));
 
       return;
     }
@@ -132,17 +128,10 @@ class CreateNewPassController extends GetxController {
     };
 
     Functions().requestOtp(reqParam, (obj) async {
-      DateTime timeExp = DateFormat(
-        "yyyy-MM-dd hh:mm:ss a",
-      ).parse(obj["otp_exp_dt"].toString());
-      DateTime otpExpiry = DateTime(
-        timeExp.year,
-        timeExp.month,
-        timeExp.day,
-        timeExp.hour,
-        timeExp.minute,
-        timeExp.millisecond,
-      );
+      DateTime timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+          .parse(obj["otp_exp_dt"].toString());
+      DateTime otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+          timeExp.hour, timeExp.minute, timeExp.millisecond);
 
       // Calculate difference
       Duration difference = otpExpiry.difference(timeNow);
@@ -168,31 +157,27 @@ class CreateNewPassController extends GetxController {
                 "new_pwd": newPass.text,
               };
 
-              HttpRequestApi(
-                api: ApiKeys.putLogin,
-                parameters: postParam,
-              ).putBody().then((retvalue) {
+              Functions()
+                  .requestHandler(
+                      apiKey: ApiKeys.putLogin,
+                      parameters: postParam,
+                      method: "PUT")
+                  .then((retvalue) {
                 Get.back();
                 if (retvalue == "No Internet") {
-                  CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    "Please check your internet connection and try again.",
-                    () {
-                      Get.back();
-                    },
-                  );
+                  CustomDialogStack.showError(Get.context!, "Error",
+                      "Please check your internet connection and try again.",
+                      () {
+                    Get.back();
+                  });
                   return;
                 }
                 if (retvalue == null) {
-                  CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    "Error while connecting to server, Please try again.",
-                    () {
-                      Get.back();
-                    },
-                  );
+                  CustomDialogStack.showError(Get.context!, "Error",
+                      "Error while connecting to server, Please try again.",
+                      () {
+                    Get.back();
+                  });
                 } else {
                   if (retvalue["success"] == "Y") {
                     Map<String, dynamic> data = {
@@ -202,24 +187,16 @@ class CreateNewPassController extends GetxController {
                     final plainText = jsonEncode(data);
 
                     Authentication().encryptData(plainText);
-                    CustomDialogStack.showSuccess(
-                      Get.context!,
-                      "Success!",
-                      "Your password has been updated",
-                      leftText: "Okay",
-                      () async {
-                        Get.offAllNamed(Routes.login);
-                      },
-                    );
+                    CustomDialogStack.showSuccess(Get.context!, "Success!",
+                        "Your password has been updated", leftText: "Okay",
+                        () async {
+                      Get.offAllNamed(Routes.login);
+                    });
                   } else {
                     CustomDialogStack.showError(
-                      Get.context!,
-                      "Error",
-                      retvalue["msg"],
-                      () {
-                        Get.back();
-                      },
-                    );
+                        Get.context!, "Error", retvalue["msg"], () {
+                      Get.back();
+                    });
                   }
                 }
               });
@@ -227,11 +204,9 @@ class CreateNewPassController extends GetxController {
           },
         };
 
-        Get.to(
-          OtpFieldScreen(arguments: args),
-          transition: Transition.rightToLeftWithFade,
-          duration: Duration(milliseconds: 400),
-        );
+        Get.to(OtpFieldScreen(arguments: args),
+            transition: Transition.rightToLeftWithFade,
+            duration: Duration(milliseconds: 400));
       }
     });
   }

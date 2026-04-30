@@ -17,19 +17,13 @@ class PasswordStrengthIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        height: 5,
-        decoration: BoxDecoration(
-          color:
-              strength <= currentStrength
-                  ? color ?? AppColorV2.lpBlueBrand
-                  : Colors.grey.shade400,
-          borderRadius: const BorderRadius.horizontal(
-            right: Radius.circular(15),
-            left: Radius.circular(15),
-          ),
-        ),
-      ),
-    );
+        child: Container(
+            height: 5,
+            decoration: BoxDecoration(
+                color: strength <= currentStrength
+                    ? color ?? AppColorV2.lpBlueBrand
+                    : Colors.grey.shade400,
+                borderRadius: const BorderRadius.horizontal(
+                    right: Radius.circular(15), left: Radius.circular(15)))));
   }
 }

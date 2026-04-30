@@ -15,36 +15,31 @@ class ChatListScreen extends StatelessWidget {
     ];
 
     return CustomScaffoldV2(
-      appBar: AppBar(title: const LuvpayText(text: "My Support Tickets")),
-      floatingButton: FloatingActionButton(
-        onPressed: () {
-          Get.toNamed("/chatCategory");
-        },
-        child: const Icon(Icons.add),
-      ),
-      scaffoldBody: ListView.builder(
-        itemCount: tickets.length,
-        itemBuilder: (context, index) {
-          final item = tickets[index];
-
-          return ListTile(
-            title: LuvpayText(text: "Ticket #${item["ticket"]}"),
-            subtitle: LuvpayText(text: item["category"].toString()),
-            trailing: LuvpayText(
-              text: item["status"].toString(),
-              style: TextStyle(
-                color: item["status"] == "Open" ? Colors.blue : Colors.green,
-              ),
-            ),
-            onTap: () {
-              Get.to(() => ChatScreen(
-                    ticketNumber: item["ticket"].toString(),
-                    category: item["category"].toString(),
-                  ));
+        appBar: AppBar(title: const LuvpayText(text: "My Support Tickets")),
+        floatingButton: FloatingActionButton(
+            onPressed: () {
+              Get.toNamed("/chatCategory");
             },
-          );
-        },
-      ),
-    );
+            child: const Icon(Icons.add)),
+        scaffoldBody: ListView.builder(
+            itemCount: tickets.length,
+            itemBuilder: (context, index) {
+              final item = tickets[index];
+
+              return ListTile(
+                  title: LuvpayText(text: "Ticket #${item["ticket"]}"),
+                  subtitle: LuvpayText(text: item["category"].toString()),
+                  trailing: LuvpayText(
+                      text: item["status"].toString(),
+                      style: TextStyle(
+                          color: item["status"] == "Open"
+                              ? Colors.blue
+                              : Colors.green)),
+                  onTap: () {
+                    Get.to(() => ChatScreen(
+                        ticketNumber: item["ticket"].toString(),
+                        category: item["category"].toString()));
+                  });
+            }));
   }
 }

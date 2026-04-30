@@ -62,67 +62,50 @@ class AppThemeV2 {
     final scheme = AppColorV2.lightScheme;
 
     final base = ThemeData(
-      useMaterial3: false,
-      brightness: Brightness.light,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: AppColorV2.background,
-    );
+        useMaterial3: false,
+        brightness: Brightness.light,
+        colorScheme: scheme,
+        scaffoldBackgroundColor: AppColorV2.background);
 
     final manropeTextTheme = GoogleFonts.manropeTextTheme(base.textTheme);
-    final manropePrimaryTextTheme = GoogleFonts.manropeTextTheme(
-      base.primaryTextTheme,
-    );
+    final manropePrimaryTextTheme =
+        GoogleFonts.manropeTextTheme(base.primaryTextTheme);
 
     return base.copyWith(
-      textTheme: manropeTextTheme,
-      primaryTextTheme: manropePrimaryTextTheme,
-      dividerTheme: DividerThemeData(
-        color: Colors.grey.shade300,
-        thickness: 0.5,
-        space: 15,
-        indent: 5,
-      ),
-      appBarTheme: AppBarTheme(
-        backgroundColor: AppColorV2.lpBlueBrand,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-    );
+        textTheme: manropeTextTheme,
+        primaryTextTheme: manropePrimaryTextTheme,
+        dividerTheme: DividerThemeData(
+            color: Colors.grey.shade300, thickness: 0.5, space: 15, indent: 5),
+        appBarTheme: AppBarTheme(
+            backgroundColor: AppColorV2.lpBlueBrand,
+            iconTheme: const IconThemeData(color: Colors.white)));
   }
 
   static ThemeData dark() {
     final scheme = AppColorV2.darkScheme;
 
     final base = ThemeData(
-      useMaterial3: false,
-      brightness: Brightness.dark,
-      colorScheme: scheme,
-      scaffoldBackgroundColor: AppColorV2.darkBackground,
-    );
+        useMaterial3: false,
+        brightness: Brightness.dark,
+        colorScheme: scheme,
+        scaffoldBackgroundColor: AppColorV2.darkBackground);
 
     final manropeTextTheme = GoogleFonts.manropeTextTheme(base.textTheme);
-    final manropePrimaryTextTheme = GoogleFonts.manropeTextTheme(
-      base.primaryTextTheme,
-    );
+    final manropePrimaryTextTheme =
+        GoogleFonts.manropeTextTheme(base.primaryTextTheme);
 
     return base.copyWith(
-      textTheme: manropeTextTheme,
-      primaryTextTheme: manropePrimaryTextTheme,
-      dividerTheme: DividerThemeData(
-        color: AppColorV2.darkStroke,
-        thickness: 0.5,
-        space: 15,
-        indent: 5,
-      ),
-      appBarTheme: AppBarTheme(
-        backgroundColor: AppColorV2.darkSurface2,
-        titleTextStyle: GoogleFonts.manrope(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          height: 28 / 18,
-          color: AppColorV2.darkPrimaryText,
-        ),
-        iconTheme: const IconThemeData(color: AppColorV2.darkPrimaryText),
-      ),
-    );
+        textTheme: manropeTextTheme,
+        primaryTextTheme: manropePrimaryTextTheme,
+        dividerTheme: DividerThemeData(
+            color: AppColorV2.darkStroke, thickness: 0.5, space: 15, indent: 5),
+        appBarTheme: AppBarTheme(
+            backgroundColor: AppColorV2.darkSurface2,
+            titleTextStyle: GoogleFonts.manrope(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                height: 28 / 18,
+                color: AppColorV2.darkPrimaryText),
+            iconTheme: const IconThemeData(color: AppColorV2.darkPrimaryText)));
   }
 }

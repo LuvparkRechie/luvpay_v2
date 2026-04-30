@@ -24,9 +24,7 @@ class _SuccessPageState extends State<SuccessPage>
     super.initState();
 
     _controller = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: _duration),
-    );
+        vsync: this, duration: Duration(seconds: _duration));
 
     // Start the animation
 
@@ -56,27 +54,20 @@ class _SuccessPageState extends State<SuccessPage>
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
-      enableToolBar: false,
-      canPop: true,
-      appBar: null,
-      scaffoldBody: pageLoad
-          ? Center(child: LuvpayText(text: "Loading..."))
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+        enableToolBar: false,
+        canPop: true,
+        appBar: null,
+        scaffoldBody: pageLoad
+            ? Center(child: LuvpayText(text: "Loading..."))
+            : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) => Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      LoadingCard(),
-                      LuvpayText(
-                          text: _timerText, style: TextStyle(fontSize: 24)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-    );
+                    animation: _controller,
+                    builder: (context, child) =>
+                        Stack(alignment: Alignment.center, children: [
+                          LoadingCard(),
+                          LuvpayText(
+                              text: _timerText, style: TextStyle(fontSize: 24)),
+                        ])),
+              ]));
   }
 }

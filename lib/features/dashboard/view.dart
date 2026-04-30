@@ -10,6 +10,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/features/merchant/pay_merchant.dart';
 import 'package:luvpay/features/scanner_screen.dart';
 
@@ -77,17 +78,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return const SubWalletScreen();
 
       case 2:
-        return Scaffold(
-          body: SizedBox.shrink(),
-        );
+        return Scaffold(body: SizedBox.shrink());
 
       case 3:
         return const TransactionHistory(fromTab: true);
 
       case 4:
-        return ProfileSettingsScreen(
-          fromBuildHeader: false,
-        );
+        return ProfileSettingsScreen(fromBuildHeader: false);
 
       default:
         return const SizedBox();
@@ -95,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<dynamic> getScannedQr(String apiKey) async {
-    return await HttpRequestApi(api: apiKey).get();
+    return await Functions().requestHandler(apiKey: apiKey);
   }
 
   Future<void> getService(String args) async {
@@ -110,9 +107,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       Get.back();
       if (billerResponse == "No Internet") {
         _handleScanError(
-          "Error",
-          "Please check your internet connection and try again.",
-        );
+            "Error", "Please check your internet connection and try again.");
         return;
       }
 
@@ -122,8 +117,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _safeCloseLoading();
         Get.back();
         final resBill = await Get.to(
-          BillerScreen(data: billerItems, paymentHk: await getpaymentHK()),
-        );
+            BillerScreen(data: billerItems, paymentHk: await getpaymentHK()));
 
         controller.changePage(0);
         debugPrint("resBill : $resBill");
@@ -134,32 +128,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final merchantResponse = await getScannedQr(apiMerchant);
       if (merchantResponse == "No Internet") {
         _handleScanError(
-          "Error",
-          "Please check your internet connection and try again.",
-        );
+            "Error", "Please check your internet connection and try again.");
         return;
       }
 
       if (merchantResponse != null) {
         _safeCloseLoading();
-        Get.to(
-          PayMerchant(
-            data: [
-              {
-                "data": merchantResponse["items"][0],
-                "merchant_key": args,
-                "payment_key": await getpaymentHK(),
-              },
-            ],
-          ),
-        );
+        Get.to(PayMerchant(data: [
+          {
+            "data": merchantResponse["items"][0],
+            "merchant_key": args,
+            "payment_key": await getpaymentHK(),
+          },
+        ]));
         return;
       }
 
       _handleScanError(
-        "Invalid QR Code",
-        "This QR code is not registered in the system.",
-      );
+          "Invalid QR Code", "This QR code is not registered in the system.");
     } catch (e) {
       Get.back();
       debugPrint("getService error: $e");
@@ -177,8 +163,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<dynamic> getpaymentHK() async {
     final userID = await Authentication().getUserId();
-    final paymentKey =
-        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
+    final paymentKey = await Functions()
+        .requestHandler(apiKey: "${ApiKeys.getPaymentKey}$userID");
 
     if (paymentKey == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -215,132 +201,115 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final navShadow = Colors.black.withOpacity(isDark ? 0.45 : 0.10);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
-          .copyWith(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-      ),
-      child: PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (bool didPop, dynamic result) {
-            CustomDialogStack.showConfirmation(
-              context,
-              "Close Application",
-              "Are you sure you want to close application?",
-              leftText: "No",
-              rightText: "Yes",
-              () => Get.back(),
-              () {
+        value: (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+            .copyWith(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness:
+                    isDark ? Brightness.light : Brightness.dark,
+                statusBarBrightness:
+                    isDark ? Brightness.dark : Brightness.light),
+        child: PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (bool didPop, dynamic result) {
+              CustomDialogStack.showConfirmation(
+                  context,
+                  "Close Application",
+                  "Are you sure you want to close application?",
+                  leftText: "No",
+                  rightText: "Yes",
+                  () => Get.back(), () {
                 Get.back();
                 Future.delayed(const Duration(milliseconds: 500), () {
                   FlutterExitApp.exitApp(iosForceExit: true);
                 });
-              },
-            );
-          },
-          child: Scaffold(
-            body: Stack(children: [
+              });
+            },
+            child: Scaffold(
+                body: Stack(children: [
               PageView.builder(
-                controller: controller.pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 5,
-                itemBuilder: (_, index) {
-                  return Obx(() {
-                    return controller.currentIndex.value == index
-                        ? _buildScreen(index)
-                        : const SizedBox();
-                  });
-                },
-              ),
+                  controller: controller.pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 5,
+                  itemBuilder: (_, index) {
+                    return Obx(() {
+                      return controller.currentIndex.value == index
+                          ? _buildScreen(index)
+                          : const SizedBox();
+                    });
+                  }),
               Positioned(
-                left: 16,
-                right: 16,
-                bottom: Platform.isIOS ? 0 : 16,
-                child: Obx(() => _buildFooterNav()),
-              ),
+                  left: 16,
+                  right: 16,
+                  bottom: Platform.isIOS ? 0 : 16,
+                  child: Obx(() => _buildFooterNav())),
               Positioned(
-                bottom: MediaQuery.of(context).padding.bottom +
-                    (Platform.isIOS ? 30 : 35),
-                left: MediaQuery.of(context).size.width / 2 - 32,
-                child: _buildFloatingQR(),
-              ),
-            ]),
-          )),
-    );
+                  bottom: MediaQuery.of(context).padding.bottom +
+                      (Platform.isIOS ? 30 : 35),
+                  left: MediaQuery.of(context).size.width / 2 - 32,
+                  child: _buildFloatingQR()),
+            ]))));
   }
 
   Widget _buildFloatingQR() {
     final cs = Theme.of(context).colorScheme;
     return GestureDetector(
-      onTap: () {
-        Get.to(ScannerScreenV2(
-          isBack: true,
-          onScanStart: () {},
-          onchanged: (args) async {
-            if (_scanHandled) return;
+        onTap: () {
+          Get.to(ScannerScreenV2(
+              isBack: true,
+              onScanStart: () {},
+              onchanged: (args) async {
+                if (_scanHandled) return;
 
-            final raw = args.trim();
-            if (raw.isEmpty) return;
+                final raw = args.trim();
+                if (raw.isEmpty) return;
 
-            _scanHandled = true;
+                _scanHandled = true;
 
-            try {
-              final normalized = normalizePhMobile(raw);
+                try {
+                  final normalized = normalizePhMobile(raw);
 
-              ///do not renmove.. needed ;ater
-              // if (isValidPhMobile(normalized)) {
-              //   Get.back();
-              //   await Get.toNamed(
-              //     Routes.send,
-              //     arguments: {"mobile": normalized, "source": "qr_scan"},
-              //   );
-              //   return;
-              // }
+                  ///do not renmove.. needed ;ater
+                  // if (isValidPhMobile(normalized)) {
+                  //   Get.back();
+                  //   await Get.toNamed(
+                  //     Routes.send,
+                  //     arguments: {"mobile": normalized, "source": "qr_scan"},
+                  //   );
+                  //   return;
+                  // }
 
-              await getService(raw);
-            } catch (e) {
-              debugPrint("Dashboard scan error: $e");
-              CustomDialogStack.showError(
-                Get.context!,
-                "Scan Error",
-                "Something went wrong. Please try again.",
-                () => Get.back(),
-              );
-            } finally {
-              Future.delayed(const Duration(milliseconds: 1200), () {
-                _scanHandled = false;
-              });
-            }
-          },
-        ));
-      },
-      child: Container(
-        height: 64,
-        width: 64,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xFF0EA5E9),
-              Color(0xFF22D3EE),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.cyan.withOpacity(0.6),
-              blurRadius: 6,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        child: Icon(
-          LucideIcons.qrCode,
-          size: 32,
-          color: AppColorV2.background,
-        ),
-      ),
-    );
+                  await getService(raw);
+                } catch (e) {
+                  debugPrint("Dashboard scan error: $e");
+                  CustomDialogStack.showError(
+                      Get.context!,
+                      "Scan Error",
+                      "Something went wrong. Please try again.",
+                      () => Get.back());
+                } finally {
+                  Future.delayed(const Duration(milliseconds: 1200), () {
+                    _scanHandled = false;
+                  });
+                }
+              }));
+        },
+        child: Container(
+            height: 64,
+            width: 64,
+            decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(colors: [
+                  Color(0xFF0EA5E9),
+                  Color(0xFF22D3EE),
+                ]),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.cyan.withOpacity(0.6),
+                      blurRadius: 6,
+                      spreadRadius: 1),
+                ]),
+            child: Icon(LucideIcons.qrCode,
+                size: 32, color: AppColorV2.background)));
   }
 
   Widget _buildFooterNav() {
@@ -353,77 +322,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final inactiveColor = cs.onSurface.withOpacity(isDark ? 0.65 : 0.55);
 
     return SafeArea(
-      top: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: cs.surface,
-                borderRadius: BorderRadius.circular(40),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.45 : 0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: NeoNavIcon.tab(
-                      flatten: true,
-                      borderRadius: BorderRadius.circular(40),
-                      size: Platform.isIOS ? 60 : 48,
-                      activeIconName: "luvpay_home",
-                      inactiveIconName: "luvpay_home_inactive",
-                      active: i == 0,
-                      onTap: () => controller.changePage(0),
-                    ),
-                  ),
-                  Expanded(
-                    child: NeoNavIcon.tab(
-                      flatten: true,
-                      borderRadius: BorderRadius.circular(40),
-                      size: Platform.isIOS ? 60 : 48,
-                      activeIconName: "luvpay_subwallet",
-                      inactiveIconName: "luvpay_subwallet_inactive",
-                      active: i == 1,
-                      onTap: () => controller.changePage(1),
-                    ),
-                  ),
-                  const SizedBox(width: 60),
-                  Expanded(
-                    child: NeoNavIcon.tab(
-                      flatten: true,
-                      borderRadius: BorderRadius.circular(40),
-                      size: Platform.isIOS ? 60 : 48,
-                      activeIconName: "luvpay_transaction",
-                      inactiveIconName: "luvpay_transaction_inactive",
-                      active: i == 3,
-                      onTap: () => controller.changePage(3),
-                    ),
-                  ),
-                  Expanded(
-                    child: NeoNavIcon.tab(
-                      flatten: true,
-                      borderRadius: BorderRadius.circular(40),
-                      size: Platform.isIOS ? 60 : 48,
-                      activeIconName: "luvpay_profile",
-                      inactiveIconName: "luvpay_profile_inactive",
-                      active: i == 4,
-                      onTap: () => controller.changePage(4),
-                    ),
-                  ),
-                ],
-              )),
-        ),
-      ),
-    );
+        top: false,
+        child: Center(
+            child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                        color: cs.surface,
+                        borderRadius: BorderRadius.circular(40),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black
+                                  .withOpacity(isDark ? 0.45 : 0.15),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10)),
+                        ]),
+                    child: Row(children: [
+                      Expanded(
+                          child: NeoNavIcon.tab(
+                              flatten: true,
+                              borderRadius: BorderRadius.circular(40),
+                              size: Platform.isIOS ? 60 : 48,
+                              activeIconName: "luvpay_home",
+                              inactiveIconName: "luvpay_home_inactive",
+                              active: i == 0,
+                              onTap: () => controller.changePage(0))),
+                      Expanded(
+                          child: NeoNavIcon.tab(
+                              flatten: true,
+                              borderRadius: BorderRadius.circular(40),
+                              size: Platform.isIOS ? 60 : 48,
+                              activeIconName: "luvpay_subwallet",
+                              inactiveIconName: "luvpay_subwallet_inactive",
+                              active: i == 1,
+                              onTap: () => controller.changePage(1))),
+                      const SizedBox(width: 60),
+                      Expanded(
+                          child: NeoNavIcon.tab(
+                              flatten: true,
+                              borderRadius: BorderRadius.circular(40),
+                              size: Platform.isIOS ? 60 : 48,
+                              activeIconName: "luvpay_transaction",
+                              inactiveIconName: "luvpay_transaction_inactive",
+                              active: i == 3,
+                              onTap: () => controller.changePage(3))),
+                      Expanded(
+                          child: NeoNavIcon.tab(
+                              flatten: true,
+                              borderRadius: BorderRadius.circular(40),
+                              size: Platform.isIOS ? 60 : 48,
+                              activeIconName: "luvpay_profile",
+                              inactiveIconName: "luvpay_profile_inactive",
+                              active: i == 4,
+                              onTap: () => controller.changePage(4))),
+                    ])))));
   }
 
   void _goToWalletTab() {

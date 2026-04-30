@@ -67,7 +67,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
       String userId = jsonDecode(item!)['user_id'].toString();
 
       String subApi = "${ApiKeys.notificationApi}$userId";
-      final response = await HttpRequestApi(api: subApi).get();
+      final response = await Functions().requestHandler(apiKey: subApi);
 
       if (!mounted) return;
 
@@ -116,61 +116,48 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     if (selectedIndex.isEmpty) return;
 
     CustomDialogStack.showConfirmation(
-      context,
-      "Confirm Deletion",
-      "Delete selected notification${selectedIndex.length > 1 ? "s" : ""}?",
-      leftText: "No",
-      rightText: "Yes",
-      () => Get.back(),
-      () async {
-        Get.back();
+        context,
+        "Confirm Deletion",
+        "Delete selected notification${selectedIndex.length > 1 ? "s" : ""}?",
+        leftText: "No",
+        rightText: "Yes",
+        () => Get.back(), () async {
+      Get.back();
+      if (!mounted) return;
+
+      setState(() => isLoading = true);
+
+      try {
+        final deleteFutures = selectedIndex
+            .map((id) => deleteSingleNotification(id.toString()))
+            .toList();
+
+        await Future.wait(deleteFutures);
+
         if (!mounted) return;
 
-        setState(() => isLoading = true);
+        setState(() {
+          notifications.removeWhere((n) => selectedIndex
+              .contains(int.parse(n['notification_id'].toString())));
+          selectedIndex.clear();
+          isSelectionMode = false;
+          allMarked = false;
+        });
 
-        try {
-          final deleteFutures = selectedIndex
-              .map((id) => deleteSingleNotification(id.toString()))
-              .toList();
-
-          await Future.wait(deleteFutures);
-
-          if (!mounted) return;
-
-          setState(() {
-            notifications.removeWhere(
-              (n) => selectedIndex.contains(
-                int.parse(n['notification_id'].toString()),
-              ),
-            );
-            selectedIndex.clear();
-            isSelectionMode = false;
-            allMarked = false;
-          });
-
-          CustomDialogStack.showSuccess(
-            context,
-            "Success",
-            "Notifications deleted successfully",
-            () {
-              Get.back();
-              getNotification(showLoading: false);
-            },
-          );
-        } catch (_) {
-          if (!mounted) return;
-          CustomDialogStack.showError(
-            context,
-            "Error",
-            "Failed to delete some notifications",
-            () => Get.back(),
-          );
-        } finally {
-          if (!mounted) return;
-          setState(() => isLoading = false);
-        }
-      },
-    );
+        CustomDialogStack.showSuccess(
+            context, "Success", "Notifications deleted successfully", () {
+          Get.back();
+          getNotification(showLoading: false);
+        });
+      } catch (_) {
+        if (!mounted) return;
+        CustomDialogStack.showError(context, "Error",
+            "Failed to delete some notifications", () => Get.back());
+      } finally {
+        if (!mounted) return;
+        setState(() => isLoading = false);
+      }
+    });
   }
 
   Future<void> deleteSingleNotification(String smsId) async {
@@ -179,8 +166,8 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     String subApi = "${ApiKeys.notificationApi}$userId";
     final params = {"sms_id": smsId};
 
-    final response =
-        await HttpRequestApi(api: subApi, parameters: params).deleteData();
+    final response = await Functions()
+        .requestHandler(apiKey: subApi, parameters: params, method: "DELETE");
 
     if (response == "No Internet") {
       throw Exception("No internet connection");
@@ -244,84 +231,75 @@ class _WalletNotificationsState extends State<WalletNotifications> {
 
     final body = !isNetConn
         ? ConnectionInterruption(
-            onPressed: () => getNotification(showLoading: true),
-          )
+            onPressed: () => getNotification(showLoading: true))
         : notifications.isEmpty
             ? Center(child: _noDataFound(cs))
             : allNotifications();
 
     return CustomScaffoldV2(
-      backgroundColor: cs.surface,
-      drawer: Container(),
-      appBarLeadingWidth: isSelectionMode ? 50 : null,
-      leading: isSelectionMode
-          ? Padding(
-              padding: const EdgeInsets.only(left: 10, top: 15, bottom: 10),
-              child: NeoNavIcon.icon(
-                flatten: true,
-                iconSize: 20,
-                iconData: Icons.close,
-                iconColor: cs.onSurface,
-                onTap: cancelSelectionMode,
-              ),
-            )
-          : (hideBackBecauseFromTab
-              ? const SizedBox.shrink()
-              : NeoNavIcon.icon(
-                  size: 40,
-                  iconColor: AppColorV2.lpBlueBrand,
-                  padding: const EdgeInsets.all(8),
-                  iconSize: 20,
-                  iconData: CupertinoIcons.back,
-                  onTap: () => Get.back(),
-                )),
-      enableToolBar: true,
-      appBarTitle: isSelectionMode
-          ? "${selectedIndex.length} selected"
-          : "Notifications",
-      appBarAction: isSelectionMode
-          ? [
-              Padding(
-                padding: const EdgeInsets.all(14.0),
+        backgroundColor: cs.surface,
+        drawer: Container(),
+        appBarLeadingWidth: isSelectionMode ? 50 : null,
+        leading: isSelectionMode
+            ? Padding(
+                padding: const EdgeInsets.only(left: 10, top: 15, bottom: 10),
                 child: NeoNavIcon.icon(
-                  flatten: true,
-                  padding: const EdgeInsets.all(8.0),
-                  iconSize: 20,
-                  iconData: Icons.delete,
-                  iconColor: AppColorV2.incorrectState,
-                  onTap: deleteSelectedNotifications,
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  allMarked ? Icons.check_box : Icons.check_box_outline_blank,
-                  color: cs.onSurface,
-                  size: 30,
-                  semanticLabel: allMarked ? 'Unmark all' : 'Mark all',
-                ),
-                onPressed: toggleMarkAll,
-              ),
-            ]
-          : [],
-      padding: const EdgeInsets.fromLTRB(19, 20, 19, 0),
-      scaffoldBody: isLoading ? LoadingCard() : body,
-    );
+                    flatten: true,
+                    iconSize: 20,
+                    iconData: Icons.close,
+                    iconColor: cs.onSurface,
+                    onTap: cancelSelectionMode))
+            : (hideBackBecauseFromTab
+                ? const SizedBox.shrink()
+                : NeoNavIcon.icon(
+                    size: 40,
+                    iconColor: AppColorV2.lpBlueBrand,
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 20,
+                    iconData: CupertinoIcons.back,
+                    onTap: () => Get.back())),
+        enableToolBar: true,
+        appBarTitle: isSelectionMode
+            ? "${selectedIndex.length} selected"
+            : "Notifications",
+        appBarAction: isSelectionMode
+            ? [
+                Padding(
+                    padding: const EdgeInsets.all(14.0),
+                    child: NeoNavIcon.icon(
+                        flatten: true,
+                        padding: const EdgeInsets.all(8.0),
+                        iconSize: 20,
+                        iconData: Icons.delete,
+                        iconColor: AppColorV2.incorrectState,
+                        onTap: deleteSelectedNotifications)),
+                IconButton(
+                    icon: Icon(
+                        allMarked
+                            ? Icons.check_box
+                            : Icons.check_box_outline_blank,
+                        color: cs.onSurface,
+                        size: 30,
+                        semanticLabel: allMarked ? 'Unmark all' : 'Mark all'),
+                    onPressed: toggleMarkAll),
+              ]
+            : [],
+        padding: const EdgeInsets.fromLTRB(19, 20, 19, 0),
+        scaffoldBody: isLoading ? LoadingCard() : body);
   }
 
   Widget _noDataFound(ColorScheme cs) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SvgPicture.asset("assets/images/wallet_message-question.svg"),
-        const SizedBox(height: 8),
-        LuvpayText(
-          text: "No notifications yet",
-          style: AppTextStyle.h3_semibold(context),
-          color: cs.onSurfaceVariant,
-        ),
-      ],
-    );
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SvgPicture.asset("assets/images/wallet_message-question.svg"),
+          const SizedBox(height: 8),
+          LuvpayText(
+              text: "No notifications yet",
+              style: AppTextStyle.h3_semibold(context),
+              color: cs.onSurfaceVariant),
+        ]);
   }
 
   Widget allNotifications() {
@@ -330,139 +308,115 @@ class _WalletNotificationsState extends State<WalletNotifications> {
     final isDark = theme.brightness == Brightness.dark;
 
     return ListView.builder(
-      padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
-      physics: const BouncingScrollPhysics(),
-      itemCount: notifications.length,
-      itemBuilder: (context, index) {
-        String img = "";
-        final message = notifications[index]["notification"].toString();
-        final createdOn = DateTime.parse(
-          notifications[index]["created_on"],
-        ).toUtc().add(const Duration(hours: 8));
+        padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+        physics: const BouncingScrollPhysics(),
+        itemCount: notifications.length,
+        itemBuilder: (context, index) {
+          String img = "";
+          final message = notifications[index]["notification"].toString();
+          final createdOn = DateTime.parse(notifications[index]["created_on"])
+              .toUtc()
+              .add(const Duration(hours: 8));
 
-        final lower = message.toLowerCase();
-        if (lower.contains("share")) {
-          img = "wallet_sharetoken";
-        } else if (lower.contains("received") || lower.contains("credit")) {
-          img = "wallet_receivetoken";
-        } else {
-          img = "wallet_payparking";
-        }
+          final lower = message.toLowerCase();
+          if (lower.contains("share")) {
+            img = "wallet_sharetoken";
+          } else if (lower.contains("received") || lower.contains("credit")) {
+            img = "wallet_receivetoken";
+          } else {
+            img = "wallet_payparking";
+          }
 
-        final id = int.parse(
-          notifications[index]["notification_id"].toString(),
-        );
-        final isSelected = selectedIndex.contains(id);
+          final id =
+              int.parse(notifications[index]["notification_id"].toString());
+          final isSelected = selectedIndex.contains(id);
 
-        return InkWell(
-          onLongPress: () {
-            if (!isSelectionMode) enterSelectionMode(index);
-          },
-          onTap: () {
-            if (isSelectionMode) toggleMark(index);
-          },
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 10, top: 10),
-            child: LuvNeuPress.rectangle(
-              radius: BorderRadius.circular(16),
-              onTap: null,
-              borderWidth: 0.8,
-              background: cs.surface,
-              borderColor: cs.outlineVariant.withOpacity(isDark ? 0.05 : 0.01),
+          return InkWell(
+              onLongPress: () {
+                if (!isSelectionMode) enterSelectionMode(index);
+              },
+              onTap: () {
+                if (isSelectionMode) toggleMark(index);
+              },
               child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SvgPicture.asset("assets/images/$img.svg"),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
+                  padding: const EdgeInsets.only(bottom: 10, top: 10),
+                  child: LuvNeuPress.rectangle(
+                      radius: BorderRadius.circular(16),
+                      onTap: null,
+                      borderWidth: 0.8,
+                      background: cs.surface,
+                      borderColor:
+                          cs.outlineVariant.withOpacity(isDark ? 0.05 : 0.01),
+                      child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildNotificationText(message, cs),
-                                const SizedBox(height: 8),
-                                LuvpayText(
-                                  text:
-                                      "${Functions.formatPHDate(createdOn)} • ${Functions.formatPHTime(createdOn)}",
-                                  color: cs.onSurfaceVariant.withOpacity(
-                                    isDark ? 0.78 : 0.75,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (isSelectionMode)
-                            Checkbox.adaptive(
-                              value: isSelected,
-                              onChanged: (_) => toggleMark(index),
-                              activeColor: AppColorV2.lpBlueBrand,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
+                                SvgPicture.asset("assets/images/$img.svg"),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                    child: Row(children: [
+                                  Expanded(
+                                      child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                        _buildNotificationText(message, cs),
+                                        const SizedBox(height: 8),
+                                        LuvpayText(
+                                            text:
+                                                "${Functions.formatPHDate(createdOn)} • ${Functions.formatPHTime(createdOn)}",
+                                            color: cs.onSurfaceVariant
+                                                .withOpacity(
+                                                    isDark ? 0.78 : 0.75)),
+                                      ])),
+                                  if (isSelectionMode)
+                                    Checkbox.adaptive(
+                                        value: isSelected,
+                                        onChanged: (_) => toggleMark(index),
+                                        activeColor: AppColorV2.lpBlueBrand),
+                                ])),
+                              ])))));
+        });
   }
 
   Widget _buildNotificationText(String text, ColorScheme cs) {
-    final currencyRegExp = RegExp(r'(₱)?\d{1,3}(,\d{3})*\.\d{2}');
+    final currencyRegExp = RegExp(r'(₱)?\d{1,3}(\d{3})*\.\d{2}');
     final spans = <TextSpan>[];
     int lastEnd = 0;
 
     for (final match in currencyRegExp.allMatches(text)) {
       if (match.start > lastEnd) {
-        spans.add(
-          TextSpan(
+        spans.add(TextSpan(
             text: text.substring(lastEnd, match.start),
-            style: AppTextStyle.body1(context).copyWith(color: cs.onSurface),
-          ),
-        );
+            style: AppTextStyle.body1(context).copyWith(color: cs.onSurface)));
       }
 
-      spans.add(
-        TextSpan(
+      spans.add(TextSpan(
           text: match.group(0),
-          style: AppTextStyle.body1(
-            context,
-          ).copyWith(color: AppColorV2.lpBlueBrand),
-        ),
-      );
+          style: AppTextStyle.body1(context)
+              .copyWith(color: AppColorV2.lpBlueBrand)));
 
       lastEnd = match.end;
     }
 
     if (lastEnd < text.length) {
-      spans.add(
-        TextSpan(
+      spans.add(TextSpan(
           text: text.substring(lastEnd),
-          style: AppTextStyle.body1(context).copyWith(color: cs.onSurface),
-        ),
-      );
+          style: AppTextStyle.body1(context).copyWith(color: cs.onSurface)));
     }
 
     if (spans.isNotEmpty) {
       return RichText(
-        maxLines: isSelectionMode ? 6 : 5,
-        overflow: TextOverflow.ellipsis,
-        text: TextSpan(children: spans),
-      );
+          maxLines: isSelectionMode ? 6 : 5,
+          overflow: TextOverflow.ellipsis,
+          text: TextSpan(children: spans));
     }
 
     return LuvpayText(
-      minFontSize: 8,
-      maxLines: isSelectionMode ? 6 : 5,
-      text: text,
-      color: cs.onSurface,
-    );
+        minFontSize: 8,
+        maxLines: isSelectionMode ? 6 : 5,
+        text: text,
+        color: cs.onSurface);
   }
 }

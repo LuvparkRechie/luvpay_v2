@@ -70,23 +70,16 @@ class _EmailSupportScreenState extends State<EmailSupportScreen> {
   }
 
   void showError(String message) {
-    CustomDialogStack.showSnackBar(
-      context,
-      message,
-      null,
-      null,
-    );
+    CustomDialogStack.showSnackBar(context, message, null, null);
   }
 
   Future<void> pickAttachment() async {
     showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
+        context: context,
+        builder: (_) {
+          return SafeArea(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ListTile(
                 leading: const CircleAvatar(child: LuvpayText(text: "1")),
                 title: const LuvpayText(text: "Take Photo"),
                 onTap: () async {
@@ -103,9 +96,8 @@ class _EmailSupportScreenState extends State<EmailSupportScreen> {
                       });
                     }
                   }
-                },
-              ),
-              ListTile(
+                }),
+            ListTile(
                 leading: const CircleAvatar(child: LuvpayText(text: "2")),
                 title: const LuvpayText(text: "Choose from Gallery"),
                 onTap: () async {
@@ -122,17 +114,15 @@ class _EmailSupportScreenState extends State<EmailSupportScreen> {
                       });
                     }
                   }
-                },
-              ),
-              ListTile(
+                }),
+            ListTile(
                 leading: const CircleAvatar(child: LuvpayText(text: "3")),
                 title: const LuvpayText(text: "Choose File"),
                 onTap: () async {
                   Navigator.pop(context);
                   FilePickerResult? result = await FilePicker.pickFiles(
-                    type: FileType.custom,
-                    allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
-                  );
+                      type: FileType.custom,
+                      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf']);
                   if (result != null) {
                     final file = File(result.files.single.path!);
                     if (await validateFile(file)) {
@@ -142,13 +132,9 @@ class _EmailSupportScreenState extends State<EmailSupportScreen> {
                       });
                     }
                   }
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+                }),
+          ]));
+        });
   }
 
   Future<bool> validateFile(File file) async {
@@ -173,37 +159,33 @@ class _EmailSupportScreenState extends State<EmailSupportScreen> {
     if (!validate()) return;
 
     TapGuard.run(
-      key: submitKey,
-      action: () async {
-        setState(() {});
-
-        await Future.delayed(const Duration(seconds: 2));
-
-        final ticketNumber =
-            "LP-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
-
-        if (mounted) {
+        key: submitKey,
+        action: () async {
           setState(() {});
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const LuvpayText(text: "Ticket Submitted"),
-              content:
-                  LuvpayText(text: "Your ticket number is:\n\n$ticketNumber"),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  child: const LuvpayText(text: "OK"),
-                ),
-              ],
-            ),
-          );
-        }
-      },
-    );
+
+          await Future.delayed(const Duration(seconds: 2));
+
+          final ticketNumber =
+              "LP-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
+
+          if (mounted) {
+            setState(() {});
+            showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                        title: const LuvpayText(text: "Ticket Submitted"),
+                        content: LuvpayText(
+                            text: "Your ticket number is:\n\n$ticketNumber"),
+                        actions: [
+                          TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.pop(context);
+                              },
+                              child: const LuvpayText(text: "OK")),
+                        ]));
+          }
+        });
   }
 
   @override
@@ -211,124 +193,93 @@ class _EmailSupportScreenState extends State<EmailSupportScreen> {
     final locked = TapGuard.isLocked(submitKey);
 
     return CustomScaffoldV2(
-      appBarTitle: "Email Support",
-      scaffoldBody: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            InfoRowTile(
-              icon: Iconsax.user,
-              title: "Name",
-              subtitleWidget: TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  hintText: "Enter your name",
-                  border: InputBorder.none,
-                ),
-              ),
-              onTap: () {},
-            ),
-            InfoRowTile(
-              icon: Iconsax.call,
-              title: "Mobile",
-              subtitleWidget: TextField(
-                controller: mobileController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  hintText: "09XXXXXXXXX",
-                  border: InputBorder.none,
-                ),
-              ),
-              onTap: () {},
-            ),
-            InfoRowTile(
-              icon: Iconsax.sms,
-              title: "Email",
-              subtitleWidget: TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  hintText: "example@email.com",
-                  border: InputBorder.none,
-                ),
-              ),
-              onTap: () {},
-            ),
-            const SizedBox(height: 10),
-            InfoRowTile(
-              icon: Iconsax.category,
-              title: "Category",
-              subtitle: category,
-              trailing: const Icon(Iconsax.arrow_down_1),
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (_) {
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: categories
-                            .map(
-                              (e) => ListTile(
-                                title: LuvpayText(
-                                  text: e,
-                                ),
-                                onTap: () {
-                                  setState(() => category = e);
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            DefaultContainer(
-              child: Column(
-                children: [
-                  TextField(
+        appBarTitle: "Email Support",
+        scaffoldBody: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(children: [
+              InfoRowTile(
+                  icon: Iconsax.user,
+                  title: "Name",
+                  subtitleWidget: TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(
+                          hintText: "Enter your name",
+                          border: InputBorder.none)),
+                  onTap: () {}),
+              InfoRowTile(
+                  icon: Iconsax.call,
+                  title: "Mobile",
+                  subtitleWidget: TextField(
+                      controller: mobileController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                          hintText: "09XXXXXXXXX", border: InputBorder.none)),
+                  onTap: () {}),
+              InfoRowTile(
+                  icon: Iconsax.sms,
+                  title: "Email",
+                  subtitleWidget: TextField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                          hintText: "example@email.com",
+                          border: InputBorder.none)),
+                  onTap: () {}),
+              const SizedBox(height: 10),
+              InfoRowTile(
+                  icon: Iconsax.category,
+                  title: "Category",
+                  subtitle: category,
+                  trailing: const Icon(Iconsax.arrow_down_1),
+                  onTap: () {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (_) {
+                          return Container(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: categories
+                                      .map((e) => ListTile(
+                                          title: LuvpayText(text: e),
+                                          onTap: () {
+                                            setState(() => category = e);
+                                            Navigator.pop(context);
+                                          }))
+                                      .toList()));
+                        });
+                  }),
+              const SizedBox(height: 10),
+              DefaultContainer(
+                  child: Column(children: [
+                TextField(
                     controller: messageController,
                     maxLines: 5,
                     maxLength: 500,
                     decoration: const InputDecoration(
-                      hintText: "Describe your concern...",
-                      border: InputBorder.none,
-                      counterText: "",
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  Align(
+                        hintText: "Describe your concern...",
+                        border: InputBorder.none,
+                        counterText: ""),
+                    onChanged: (_) => setState(() {})),
+                Align(
                     alignment: Alignment.bottomRight,
                     child: LuvpayText(
-                      text: "${messageController.text.length}/500",
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            InfoRowTile(
-              icon: Iconsax.paperclip,
-              title: "Attachment",
-              subtitle: fileName ?? "Attach screenshot / receipt (optional)",
-              onTap: pickAttachment,
-            ),
-            const SizedBox(height: 20),
-            CustomButton(
-              text: locked ? "Submitting Ticket..." : "Submit Ticket",
-              leading: const Icon(Iconsax.send_1),
-              isInactive: locked,
-              onPressed: submit,
-            ),
-          ],
-        ),
-      ),
-    );
+                        text: "${messageController.text.length}/500",
+                        style: const TextStyle(fontSize: 12)))
+              ])),
+              const SizedBox(height: 10),
+              InfoRowTile(
+                  icon: Iconsax.paperclip,
+                  title: "Attachment",
+                  subtitle:
+                      fileName ?? "Attach screenshot / receipt (optional)",
+                  onTap: pickAttachment),
+              const SizedBox(height: 20),
+              CustomButton(
+                  text: locked ? "Submitting Ticket..." : "Submit Ticket",
+                  leading: const Icon(Iconsax.send_1),
+                  isInactive: locked,
+                  onPressed: submit),
+            ])));
   }
 }

@@ -69,14 +69,11 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
       BrightnessSetter.setFullBrightness();
 
       _animationController = AnimationController(
-        duration: const Duration(milliseconds: 2000),
-        vsync: this,
-      )..repeat(reverse: true);
+          duration: const Duration(milliseconds: 2000), vsync: this)
+        ..repeat(reverse: true);
 
-      _scanAnimation = Tween<double>(
-        begin: 0.0,
-        end: 1.0,
-      ).animate(_animationController!);
+      _scanAnimation =
+          Tween<double>(begin: 0.0, end: 1.0).animate(_animationController!);
 
       await checkCameraPermission();
       load();
@@ -140,198 +137,145 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
   @override
   Widget build(BuildContext context) {
     return ConsistentStatusBarWrapper(
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: AppColorV2.lpBlueBrand,
-          title: LuvpayText(
-            text: "QR Scanner",
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          centerTitle: true,
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: IconButton(
-              onPressed: () => Get.back(),
-              icon: Icon(
-                CupertinoIcons.back,
+        child: Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(
+                elevation: 0,
+                backgroundColor: AppColorV2.lpBlueBrand,
+                title: LuvpayText(
+                    text: "QR Scanner",
+                    style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600)),
+                centerTitle: true,
+                leading: Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: IconButton(
+                        onPressed: () => Get.back(),
+                        icon: Icon(CupertinoIcons.back,
+                            color: Colors.white, size: 24),
+                        splashColor: AppColorV2.lpBlueBrand.withAlpha(50))),
+                actions: []),
+            body: Container(
+                width: double.infinity,
+                height: double.infinity,
                 color: Colors.white,
-                size: 24,
-              ),
-              splashColor: AppColorV2.lpBlueBrand.withAlpha(50),
-            ),
-          ),
-          actions: [],
-        ),
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          color: Colors.white,
-          child: (isLoading || _animationController == null)
-              ? _buildLoadingState()
-              : Stack(
-                  children: [
-                    QRView(
-                      key: qrKey,
-                      onQRViewCreated: _onQRViewCreated,
-                      overlay: QrScannerOverlayShape(
-                        borderColor: AppColorV2.lpBlueBrand,
-                        borderRadius: 16,
-                        borderLength: 40,
-                        borderWidth: 6,
-                        cutOutSize: 280,
-                      ),
-                    ),
-                    _buildAnimatedScanLine(),
-                    _buildInstructions(),
-                    _buildBottomControls(),
-                  ],
-                ),
-        ),
-      ),
-    );
+                child: (isLoading || _animationController == null)
+                    ? _buildLoadingState()
+                    : Stack(children: [
+                        QRView(
+                            key: qrKey,
+                            onQRViewCreated: _onQRViewCreated,
+                            overlay: QrScannerOverlayShape(
+                                borderColor: AppColorV2.lpBlueBrand,
+                                borderRadius: 16,
+                                borderLength: 40,
+                                borderWidth: 6,
+                                cutOutSize: 280)),
+                        _buildAnimatedScanLine(),
+                        _buildInstructions(),
+                        _buildBottomControls(),
+                      ]))));
   }
 
   Widget _buildLoadingState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColorV2.lpBlueBrand, AppColorV2.lpTealBrand],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              LucideIcons.qrCode,
-              color: Colors.white,
-              size: 40,
-            ),
-          ),
-          const SizedBox(height: 20),
-          LuvpayText(
-            text: "Initializing Scanner...",
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 10),
-          LoadingCard(),
-        ],
-      ),
-    );
+                  colors: [AppColorV2.lpBlueBrand, AppColorV2.lpTealBrand],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight),
+              shape: BoxShape.circle),
+          child: const Icon(LucideIcons.qrCode, color: Colors.white, size: 40)),
+      const SizedBox(height: 20),
+      LuvpayText(
+          text: "Initializing Scanner...",
+          style: GoogleFonts.inter(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
+      const SizedBox(height: 10),
+      LoadingCard(),
+    ]));
   }
 
   Widget _buildAnimatedScanLine() {
     return Positioned.fill(
-      child: Align(
-        alignment: Alignment.center,
-        child: SizedBox(
-          width: 280,
-          height: 280,
-          child: AnimatedBuilder(
-            animation: _scanAnimation,
-            builder: (context, child) {
-              return CustomPaint(
-                painter: ScanLinePainter(
-                  scanPosition: _scanAnimation.value,
-                  color: AppColorV2.lpTealBrand,
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
+        child: Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+                width: 280,
+                height: 280,
+                child: AnimatedBuilder(
+                    animation: _scanAnimation,
+                    builder: (context, child) {
+                      return CustomPaint(
+                          painter: ScanLinePainter(
+                              scanPosition: _scanAnimation.value,
+                              color: AppColorV2.lpTealBrand));
+                    }))));
   }
 
   Widget _buildInstructions() {
     return Positioned(
-      top: MediaQuery.of(context).padding.top + 80,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-        child: Column(
-          children: [
-            LuvpayText(
-              text: 'Align QR Code within Frame',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            LuvpayText(
-              text:
-                  'Position the QR code inside the frame to scan automatically',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(color: Colors.white70, fontSize: 14),
-            ),
-          ],
-        ),
-      ),
-    );
+        top: MediaQuery.of(context).padding.top + 80,
+        left: 0,
+        right: 0,
+        child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+            child: Column(children: [
+              LuvpayText(
+                  text: 'Align QR Code within Frame',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              LuvpayText(
+                  text:
+                      'Position the QR code inside the frame to scan automatically',
+                  textAlign: TextAlign.center,
+                  style:
+                      GoogleFonts.inter(color: Colors.white70, fontSize: 14)),
+            ])));
   }
 
   Widget _buildBottomControls() {
     return Positioned(
-      bottom: 40,
-      left: 0,
-      right: 0,
-      child: Column(
-        children: [
+        bottom: 40,
+        left: 0,
+        right: 0,
+        child: Column(children: [
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColorV2.lpBlueBrand, AppColorV2.lpTealBrand],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColorV2.lpBlueBrand.withValues(alpha: 0.4),
-                  blurRadius: 15,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: CustomButton(
-              btnColor: Colors.transparent,
-              textColor: Colors.white,
-              bordercolor: Colors.transparent,
-              leading: Icon(
-                LucideIcons.uploadCloud,
-                color: Colors.white,
-                size: 20,
-              ),
-              borderRadius: 16,
-              btnHeight: 56,
-              text: 'Upload QR Code',
-              onPressed: () => uploadPhoto(ImageSource.gallery),
-            ),
-          ),
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [AppColorV2.lpBlueBrand, AppColorV2.lpTealBrand],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                        color: AppColorV2.lpBlueBrand.withValues(alpha: 0.4),
+                        blurRadius: 15,
+                        offset: const Offset(0, 4)),
+                  ]),
+              child: CustomButton(
+                  btnColor: Colors.transparent,
+                  textColor: Colors.white,
+                  bordercolor: Colors.transparent,
+                  leading: Icon(LucideIcons.uploadCloud,
+                      color: Colors.white, size: 20),
+                  borderRadius: 16,
+                  btnHeight: 56,
+                  text: 'Upload QR Code',
+                  onPressed: () => uploadPhoto(ImageSource.gallery))),
           if (widget.isWallet != null) const SizedBox(height: 12),
-        ],
-      ),
-    );
+        ]));
   }
 
   void _onQRViewCreated(QRViewController controller) {
@@ -339,14 +283,11 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
 
     _scanSubscription?.cancel();
 
-    _scanSubscription = controller.scannedDataStream.listen(
-      (scanData) {
-        _handleScannedData(scanData);
-      },
-      onError: (error) {
-        debugPrint("QR Scan error: $error");
-      },
-    );
+    _scanSubscription = controller.scannedDataStream.listen((scanData) {
+      _handleScannedData(scanData);
+    }, onError: (error) {
+      debugPrint("QR Scan error: $error");
+    });
   }
 
   void _handleScannedData(Barcode scanData) async {
@@ -377,17 +318,14 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
   Future<void> uploadPhoto(ImageSource source) async {
     try {
       XFile? pickedFile = await _picker.pickImage(
-        source: source,
-        imageQuality: 50,
-        maxWidth: 800,
-        requestFullMetadata: false,
-      );
+          source: source,
+          imageQuality: 50,
+          maxWidth: 800,
+          requestFullMetadata: false);
 
       if (pickedFile == null) {
         _showErrorDialog(
-          "Invalid Image",
-          "Please select a valid QR code image.",
-        );
+            "Invalid Image", "Please select a valid QR code image.");
         return;
       }
 
@@ -419,10 +357,8 @@ class _ScannerScreenV2State extends State<ScannerScreenV2>
             return;
           }
         } else {
-          _showErrorDialog(
-            "QR Code Invalid",
-            "The selected image doesn't contain a valid QR code.",
-          );
+          _showErrorDialog("QR Code Invalid",
+              "The selected image doesn't contain a valid QR code.");
         }
       } finally {
         barcodeScanner.close();
@@ -463,34 +399,22 @@ class ScanLinePainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 2
-      ..shader = LinearGradient(
-        colors: [
-          color.withValues(alpha: 0.1),
-          color,
-          color.withValues(alpha: 0.1),
-        ],
-      ).createShader(
-        Rect.fromPoints(
-          Offset(0, size.height * scanPosition),
-          Offset(size.width, size.height * scanPosition + 2),
-        ),
-      );
+      ..shader = LinearGradient(colors: [
+        color.withValues(alpha: 0.1),
+        color,
+        color.withValues(alpha: 0.1),
+      ]).createShader(Rect.fromPoints(Offset(0, size.height * scanPosition),
+          Offset(size.width, size.height * scanPosition + 2)));
 
-    canvas.drawLine(
-      Offset(0, size.height * scanPosition),
-      Offset(size.width, size.height * scanPosition),
-      paint,
-    );
+    canvas.drawLine(Offset(0, size.height * scanPosition),
+        Offset(size.width, size.height * scanPosition), paint);
 
     final glowPaint = Paint()
       ..color = color.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
 
-    canvas.drawLine(
-      Offset(0, size.height * scanPosition),
-      Offset(size.width, size.height * scanPosition),
-      glowPaint,
-    );
+    canvas.drawLine(Offset(0, size.height * scanPosition),
+        Offset(size.width, size.height * scanPosition), glowPaint);
   }
 
   @override

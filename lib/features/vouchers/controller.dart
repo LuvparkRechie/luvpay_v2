@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 
 import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
@@ -30,8 +31,8 @@ class VouchersController extends GetxController {
       CustomDialogStack.showLoading(context);
       final String api = "${ApiKeys.vouchers}/";
       final dynamic params = {"user_id": userId, "voucher_code": voucherCode};
-      final objKey =
-          await HttpRequestApi(api: api, parameters: params).putBody();
+      final objKey = await Functions()
+          .requestHandler(apiKey: api, parameters: params, method: "PUT");
       if (fromBooking == false) {
         Get.back(closeOverlays: true);
       } else {
@@ -57,12 +58,11 @@ class VouchersController extends GetxController {
 
       if (objKey["success"] == 'Y') {
         FloatingToastManager(
-          context: context,
-          message: "Voucher successfully claimed!",
-          targetKey: textFieldKey,
-          textColor: AppColorV2.correctState,
-          image: "state_success",
-        );
+            context: context,
+            message: "Voucher successfully claimed!",
+            targetKey: textFieldKey,
+            textColor: AppColorV2.correctState,
+            image: "state_success");
       } else {
         final errorMessage = objKey['msg']?.toString() ?? 'Unknown error';
         final lowerCaseMessage = errorMessage.toLowerCase();
@@ -91,22 +91,17 @@ class VouchersController extends GetxController {
         }
 
         FloatingToastManager(
-          context: context,
-          message: message,
-          targetKey: textFieldKey,
-          textColor: textColor,
-          image: image,
-        );
+            context: context,
+            message: message,
+            targetKey: textFieldKey,
+            textColor: textColor,
+            image: image);
       }
     } catch (e) {
       Get.back(closeOverlays: true);
 
-      CustomDialogStack.showError(
-        context,
-        "luvpay",
-        "An unexpected error occurred. Please try again.",
-        () {},
-      );
+      CustomDialogStack.showError(context, "luvpay",
+          "An unexpected error occurred. Please try again.", () {});
     }
   }
 }

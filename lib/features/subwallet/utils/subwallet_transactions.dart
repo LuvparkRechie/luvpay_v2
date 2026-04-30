@@ -63,7 +63,7 @@ class _SubWalletTransactionsState extends State<SubWalletTransactions> {
         "&tran_date_from=$fromStr"
         "&tran_date_to=$toStr";
 
-    final response = await HttpRequestApi(api: subApi).get();
+    final response = await Functions().requestHandler(apiKey: subApi);
     if (!mounted) return;
 
     if (response == "No Internet" || response == null) {
@@ -76,10 +76,8 @@ class _SubWalletTransactionsState extends State<SubWalletTransactions> {
 
     final items = (response["items"] ?? []) as List<dynamic>;
 
-    items.sort(
-      (a, b) => DateTime.parse(b['tran_date'])
-          .compareTo(DateTime.parse(a['tran_date'])),
-    );
+    items.sort((a, b) => DateTime.parse(b['tran_date'])
+        .compareTo(DateTime.parse(a['tran_date'])));
 
     setState(() {
       transactions = items;
@@ -92,138 +90,129 @@ class _SubWalletTransactionsState extends State<SubWalletTransactions> {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return CustomScaffoldV2(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-      appBarTitle: "Transaction Logs",
-      backgroundColor: cs.surface,
-      scaffoldBody: isLoading
-          ? LoadingCard()
-          : transactions.isEmpty
-              ? const Center(child: NoDataFound())
-              : RefreshIndicator(
-                  onRefresh: fetchTransactions,
-                  child: ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: transactions.length,
-                    itemBuilder: (context, i) {
-                      final tx = transactions[i];
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+        appBarTitle: "Transaction Logs",
+        backgroundColor: cs.surface,
+        scaffoldBody: isLoading
+            ? LoadingCard()
+            : transactions.isEmpty
+                ? const Center(child: NoDataFound())
+                : RefreshIndicator(
+                    onRefresh: fetchTransactions,
+                    child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: transactions.length,
+                        itemBuilder: (context, i) {
+                          final tx = transactions[i];
 
-                      final amount =
-                          double.tryParse(tx["amount"].toString()) ?? 0;
+                          final amount =
+                              double.tryParse(tx["amount"].toString()) ?? 0;
 
-                      final isDebit = amount < 0;
+                          final isDebit = amount < 0;
 
-                      final color = isDebit
-                          ? AppColorV2.incorrectState
-                          : AppColorV2.success;
+                          final color = isDebit
+                              ? AppColorV2.incorrectState
+                              : AppColorV2.success;
 
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 2, bottom: 4),
-                        child: LuvNeuPress.rectangle(
-                            background: cs.surfaceContainerHighest,
-                            depth:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? 0.55
-                                    : 1.4,
-                            pressedDepth:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? -0.25
-                                    : -0.75,
-                            overlayOpacity:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? 0.0
-                                    : 0.02,
-                            borderColor:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.transparent
-                                    : Theme.of(context)
-                                        .colorScheme
-                                        .outlineVariant
-                                        .withOpacity(0.02),
-                            radius: BorderRadius.circular(16),
-                            pressedScale: 0.985,
-                            pressedTranslateY: 1.0,
-                            onTap: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                builder: (_) => TransferDetailsModal(
-                                  data: mapToTransferData(tx),
-                                ),
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(14),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 42,
-                                    height: 42,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(14),
-                                      color: color
-                                          .withOpacity(isDark ? 0.20 : 0.12),
-                                    ),
-                                    child: Icon(
-                                      isDebit
-                                          ? Iconsax.arrow_up_1
-                                          : Iconsax.arrow_down_1,
-                                      color: color,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        LuvpayText(
-                                          text: tx["tran_desc"] ?? "",
-                                          maxLines: 1,
-                                          style: AppTextStyle.body1(context)
-                                              .copyWith(
-                                                  fontWeight: FontWeight.w800),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        LuvpayText(
-                                          text: Functions.formatSmartPHDateTime(
-                                              tx["tran_date"]),
-                                          fontSize: 11,
-                                          color: cs.onSurface.withOpacity(
-                                              isDark ? 0.60 : 0.55),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      LuvpayText(
-                                          text:
-                                              "${isDebit ? '-' : '+'}₱ ${amount.abs().toStringAsFixed(2)}",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w800,
-                                            color: cs.onSurface,
-                                          )),
-                                      const SizedBox(height: 6),
-                                      Icon(
-                                        Iconsax.arrow_right_3,
-                                        size: 16,
-                                        color: cs.onSurface
-                                            .withOpacity(isDark ? 0.40 : 0.45),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            )),
-                      );
-                    },
-                  ),
-                ),
-    );
+                          return Padding(
+                              padding: const EdgeInsets.only(top: 2, bottom: 4),
+                              child: LuvNeuPress.rectangle(
+                                  background: cs.surfaceContainerHighest,
+                                  depth: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? 0.55
+                                      : 1.4,
+                                  pressedDepth: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? -0.25
+                                      : -0.75,
+                                  overlayOpacity:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? 0.0
+                                          : 0.02,
+                                  borderColor: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.transparent
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .outlineVariant
+                                          .withOpacity(0.02),
+                                  radius: BorderRadius.circular(16),
+                                  pressedScale: 0.985,
+                                  pressedTranslateY: 1.0,
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (_) => TransferDetailsModal(
+                                            data: mapToTransferData(tx)));
+                                  },
+                                  child: Padding(
+                                      padding: const EdgeInsets.all(14),
+                                      child: Row(children: [
+                                        Container(
+                                            width: 42,
+                                            height: 42,
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                                color: color.withOpacity(
+                                                    isDark ? 0.20 : 0.12)),
+                                            child: Icon(
+                                                isDebit
+                                                    ? Iconsax.arrow_up_1
+                                                    : Iconsax.arrow_down_1,
+                                                color: color,
+                                                size: 20)),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                            child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                              LuvpayText(
+                                                  text: tx["tran_desc"] ?? "",
+                                                  maxLines: 1,
+                                                  style: AppTextStyle.body1(
+                                                          context)
+                                                      .copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w800)),
+                                              const SizedBox(height: 4),
+                                              LuvpayText(
+                                                  text: Functions
+                                                      .formatSmartPHDateTime(
+                                                          tx["tran_date"]),
+                                                  fontSize: 11,
+                                                  color: cs.onSurface
+                                                      .withOpacity(isDark
+                                                          ? 0.60
+                                                          : 0.55)),
+                                            ])),
+                                        const SizedBox(width: 10),
+                                        Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              LuvpayText(
+                                                  text:
+                                                      "${isDebit ? '-' : '+'}₱ ${amount.abs().toStringAsFixed(2)}",
+                                                  style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: cs.onSurface)),
+                                              const SizedBox(height: 6),
+                                              Icon(Iconsax.arrow_right_3,
+                                                  size: 16,
+                                                  color: cs.onSurface
+                                                      .withOpacity(isDark
+                                                          ? 0.40
+                                                          : 0.45)),
+                                            ]),
+                                      ]))));
+                        })));
   }
 }

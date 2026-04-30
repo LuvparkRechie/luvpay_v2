@@ -60,9 +60,10 @@ class LoginScreenController extends GetxController {
 
   //POST LOGIN
   postLogin(context, Map<String, dynamic> param, Function cb) async {
-    HttpRequestApi(api: ApiKeys.postLogin, parameters: param).postBody().then((
-      returnPost,
-    ) async {
+    Functions()
+        .requestHandler(
+            apiKey: ApiKeys.postLogin, parameters: param, method: "POST")
+        .then((returnPost) async {
       if (returnPost == "No Internet") {
         CustomDialogStack.showConnectionLost(context, () {
           Get.back();
@@ -73,17 +74,13 @@ class LoginScreenController extends GetxController {
         return;
       }
       if (returnPost == null) {
-        CustomDialogStack.showError(
-          context,
-          "Error",
-          "Error while connecting to server, Please try again.",
-          () {
-            Get.back();
-            cb([
-              {"has_net": true, "items": []},
-            ]);
-          },
-        );
+        CustomDialogStack.showError(context, "Error",
+            "Error while connecting to server, Please try again.", () {
+          Get.back();
+          cb([
+            {"has_net": true, "items": []},
+          ]);
+        });
         return;
       }
       if (returnPost["success"] == "N") {
@@ -92,85 +89,71 @@ class LoginScreenController extends GetxController {
         ]);
         //activate account
         if (returnPost["is_active"] == "N") {
-          CustomDialogStack.showConfirmation(
-            context,
-            "Activate account",
-            "Your account is currently inactive. Would you like to activate it now?",
-            leftText: "No",
-            rightText: "Yes",
-            () {
-              Get.back();
-            },
-            () async {
-              Get.back();
-              CustomDialogStack.showLoading(context);
-              DateTime timeNow = await Functions.getTimeNow();
-              Get.back();
-              String mobileNo = param["mobile_no"].toString();
-              Map<String, String> reqParam = {
-                "mobile_no": mobileNo,
-                "new_pwd": password.text,
-              };
-              Functions().requestOtp(reqParam, (obj) async {
-                DateTime timeExp = DateFormat(
-                  "yyyy-MM-dd hh:mm:ss a",
-                ).parse(obj["otp_exp_dt"].toString());
-                DateTime otpExpiry = DateTime(
+          CustomDialogStack.showConfirmation(context, "Activate account",
+              "Your account is currently inactive. Would you like to activate it now?",
+              leftText: "No", rightText: "Yes", () {
+            Get.back();
+          }, () async {
+            Get.back();
+            CustomDialogStack.showLoading(context);
+            DateTime timeNow = await Functions.getTimeNow();
+            Get.back();
+            String mobileNo = param["mobile_no"].toString();
+            Map<String, String> reqParam = {
+              "mobile_no": mobileNo,
+              "new_pwd": password.text,
+            };
+            Functions().requestOtp(reqParam, (obj) async {
+              DateTime timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+                  .parse(obj["otp_exp_dt"].toString());
+              DateTime otpExpiry = DateTime(
                   timeExp.year,
                   timeExp.month,
                   timeExp.day,
                   timeExp.hour,
                   timeExp.minute,
-                  timeExp.millisecond,
-                );
+                  timeExp.millisecond);
 
-                // Calculate difference
-                Duration difference = otpExpiry.difference(timeNow);
+              // Calculate difference
+              Duration difference = otpExpiry.difference(timeNow);
 
-                if (obj["success"] == "Y" || obj["status"] == "PENDING") {
-                  Map<String, String> putParam = {
-                    "mobile_no": mobileNo.toString(),
-                    "req_type": "NA",
-                    "otp": obj["otp"].toString(),
-                  };
+              if (obj["success"] == "Y" || obj["status"] == "PENDING") {
+                Map<String, String> putParam = {
+                  "mobile_no": mobileNo.toString(),
+                  "req_type": "NA",
+                  "otp": obj["otp"].toString(),
+                };
 
-                  Object args = {
-                    "time_duration": difference,
-                    "mobile_no": mobileNo.toString(),
-                    "req_otp_param": reqParam,
-                    "verify_param": putParam,
-                    "callback": (otp) {
-                      if (otp != null) {
-                        Map<String, dynamic> data = {
-                          "mobile_no": mobileNo,
-                          "pwd": password.text,
-                        };
-                        final plainText = jsonEncode(data);
+                Object args = {
+                  "time_duration": difference,
+                  "mobile_no": mobileNo.toString(),
+                  "req_otp_param": reqParam,
+                  "verify_param": putParam,
+                  "callback": (otp) {
+                    if (otp != null) {
+                      Map<String, dynamic> data = {
+                        "mobile_no": mobileNo,
+                        "pwd": password.text,
+                      };
+                      final plainText = jsonEncode(data);
 
-                        Authentication().encryptData(plainText);
-                        CustomDialogStack.showSuccess(
-                          context,
-                          "Activate Account",
+                      Authentication().encryptData(plainText);
+                      CustomDialogStack.showSuccess(context, "Activate Account",
                           "Your account has been successfully activated! 🎉 You can now enjoy full access to all features.",
-                          leftText: "Okay",
-                          () {
-                            Get.back();
-                            Get.back();
-                          },
-                        );
-                      }
-                    },
-                  };
+                          leftText: "Okay", () {
+                        Get.back();
+                        Get.back();
+                      });
+                    }
+                  },
+                };
 
-                  Get.to(
-                    OtpFieldScreen(arguments: args),
+                Get.to(OtpFieldScreen(arguments: args),
                     transition: Transition.rightToLeftWithFade,
-                    duration: Duration(milliseconds: 400),
-                  );
-                }
-              });
-            },
-          );
+                    duration: Duration(milliseconds: 400));
+              }
+            });
+          });
           return;
         }
 
@@ -201,16 +184,14 @@ class LoginScreenController extends GetxController {
                 Functions().verifyAccount(param["mobile_no"], (data) {
                   if (data["success"]) {
                     Get.to(
-                      DeviceRegScreen(
-                        mobileNo: param["mobile_no"].toString(),
-                        userId: data["data"]["user_id"].toString(),
-                        sessionId: returnPost["session_id"].toString(),
-                        pwd: param["pwd"],
-                      ),
-                      arguments: {"data": returnPost},
-                      transition: Transition.rightToLeftWithFade,
-                      duration: Duration(milliseconds: 400),
-                    );
+                        DeviceRegScreen(
+                            mobileNo: param["mobile_no"].toString(),
+                            userId: data["data"]["user_id"].toString(),
+                            sessionId: returnPost["session_id"].toString(),
+                            pwd: param["pwd"]),
+                        arguments: {"data": returnPost},
+                        transition: Transition.rightToLeftWithFade,
+                        duration: Duration(milliseconds: 400));
                     return;
                   }
                 });
@@ -218,38 +199,29 @@ class LoginScreenController extends GetxController {
                 return;
               } else {
                 CustomDialogStack.showInfo(
-                  context,
-                  "Secure Account",
-                  returnPost["msg"].toString(),
-                  () {
-                    Get.back();
-                  },
-                );
+                    context, "Secure Account", returnPost["msg"].toString(),
+                    () {
+                  Get.back();
+                });
               }
               return;
             } else {
               Get.back();
               Get.to(
-                DeviceRegScreen(
-                  mobileNo: param["mobile_no"].toString(),
-                  pwd: param["pwd"],
-                ),
-                arguments: {"data": returnPost},
-                transition: Transition.rightToLeftWithFade,
-                duration: Duration(milliseconds: 400),
-              );
+                  DeviceRegScreen(
+                      mobileNo: param["mobile_no"].toString(),
+                      pwd: param["pwd"]),
+                  arguments: {"data": returnPost},
+                  transition: Transition.rightToLeftWithFade,
+                  duration: Duration(milliseconds: 400));
             }
             return;
           }
           CustomDialogStack.showInfo(
-            context,
-            "Security Warning",
-            returnPost["msg"],
-            () {
-              Get.back();
-              Get.back();
-            },
-          );
+              context, "Security Warning", returnPost["msg"], () {
+            Get.back();
+            Get.back();
+          });
         }
 
         return;
@@ -257,94 +229,71 @@ class LoginScreenController extends GetxController {
       if (returnPost["success"] == "R") {
         Get.back();
 
-        CustomDialogStack.showInfo(
-          context,
-          "Secure Account",
-          returnPost["msg"],
-          () {
-            Get.back();
-            Get.to(
-              ChangePassNewProtocol(
-                userId: returnPost["user_id"].toString(),
-                mobileNo:
-                    "63${mobileNumber.text.toString().replaceAll(" ", "")}",
-              ),
-            );
-          },
-        );
+        CustomDialogStack.showInfo(context, "Secure Account", returnPost["msg"],
+            () {
+          Get.back();
+          Get.to(ChangePassNewProtocol(
+              userId: returnPost["user_id"].toString(),
+              mobileNo:
+                  "63${mobileNumber.text.toString().replaceAll(" ", "")}"));
+        });
         return;
       } else {
         Get.back();
         if (returnPost["device_valid"] == "N") {
           CustomDialogStack.showConfirmation(
-            context,
-            "Secure Account",
-            returnPost["msg"],
-            leftText: "Cancel",
-            rightText: "Register device",
-            () {
-              Get.back();
-            },
-            () {
-              Get.back();
-              Get.to(
+              context, "Secure Account", returnPost["msg"],
+              leftText: "Cancel", rightText: "Register device", () {
+            Get.back();
+          }, () {
+            Get.back();
+            Get.to(
                 DeviceRegScreen(
-                  mobileNo: param["mobile_no"].toString(),
-                  pwd: param["pwd"],
-                ),
+                    mobileNo: param["mobile_no"].toString(), pwd: param["pwd"]),
                 arguments: {
                   "data": returnPost,
                   "cb": (d) {
                     CustomDialogStack.showSuccess(
-                      context,
-                      "Success",
-                      "Device successfully registered.",
-                      leftText: "Okay",
-                      () {
-                        getUserData(param, returnPost, (data) {
-                          Get.back();
+                        context, "Success", "Device successfully registered.",
+                        leftText: "Okay", () {
+                      getUserData(param, returnPost, (data) {
+                        Get.back();
 
-                          if (data[0]["items"].isNotEmpty) {
-                            Get.back();
-                            cb(data);
-                          }
-                        });
-                      },
-                    );
+                        if (data[0]["items"].isNotEmpty) {
+                          Get.back();
+                          cb(data);
+                        }
+                      });
+                    });
                   },
                 },
                 transition: Transition.rightToLeftWithFade,
-                duration: Duration(milliseconds: 400),
-              );
-            },
-          );
+                duration: Duration(milliseconds: 400));
+          });
           return;
         }
 
         if (returnPost["pwd_days_left"] < 1) {
           CustomDialogStack.showConfirmation(
-            image: "reset_password",
-            context,
-            "Account Safety",
-            "New security update — please update your password.",
-            leftText: "Waive",
-            rightText: "Update",
-            () {
-              Get.back();
-              extendPassword(param["mobile_no"], (isTrue) {
-                if (isTrue) {
-                  getUserData(param, returnPost, (data) {
-                    cb(data);
-                  });
-                }
-              });
-            },
-            () {
-              Get.back();
-              String mobileNo = param["mobile_no"].toString();
-              Get.toNamed(Routes.createNewPass, arguments: mobileNo);
-            },
-          );
+              image: "reset_password",
+              context,
+              "Account Safety",
+              "New security update — please update your password.",
+              leftText: "Waive",
+              rightText: "Update", () {
+            Get.back();
+            extendPassword(param["mobile_no"], (isTrue) {
+              if (isTrue) {
+                getUserData(param, returnPost, (data) {
+                  cb(data);
+                });
+              }
+            });
+          }, () {
+            Get.back();
+            String mobileNo = param["mobile_no"].toString();
+            Get.toNamed(Routes.createNewPass, arguments: mobileNo);
+          });
           return;
         }
         getUserData(param, returnPost, (data) {
@@ -357,10 +306,8 @@ class LoginScreenController extends GetxController {
   void extendPassword(String mobileNo, Function cb) async {
     final putParam = {"extend": "Y", "mobile_no": mobileNo};
     CustomDialogStack.showLoading(Get.context!);
-    final response = await HttpRequestApi(
-      api: ApiKeys.putLogin,
-      parameters: putParam,
-    ).putBody();
+    final response = await Functions().requestHandler(
+        apiKey: ApiKeys.putLogin, parameters: putParam, method: "PUT");
     Get.back();
     if (response == "No Internet") {
       cb(false);
@@ -377,27 +324,18 @@ class LoginScreenController extends GetxController {
       return;
     }
     if (response["success"] == "Y") {
-      CustomDialogStack.showSuccess(
-        Get.context!,
-        "Success",
-        response["msg"],
-        leftText: "Okay",
-        () {
-          Get.back();
-          cb(true);
-        },
-      );
+      CustomDialogStack.showSuccess(Get.context!, "Success", response["msg"],
+          leftText: "Okay", () {
+        Get.back();
+        cb(true);
+      });
       return;
     } else {
       cb(false);
-      CustomDialogStack.showInfo(
-        Get.context!,
-        "Unsuccessful",
-        response["msg"],
-        () {
-          Get.back();
-        },
-      );
+      CustomDialogStack.showInfo(Get.context!, "Unsuccessful", response["msg"],
+          () {
+        Get.back();
+      });
       return;
     }
   }
@@ -407,7 +345,7 @@ class LoginScreenController extends GetxController {
     var getApi =
         "${ApiKeys.getLogin}?mobile_no=${param["mobile_no"]}&auth_key=${returnPost["auth_key"].toString()}";
 
-    HttpRequestApi(api: getApi).get().then((objData) async {
+    Functions().requestHandler(apiKey: getApi).then((objData) async {
       if (objData == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
           Get.back();
@@ -418,31 +356,23 @@ class LoginScreenController extends GetxController {
         return;
       }
       if (objData == null) {
-        CustomDialogStack.showError(
-          Get.context!,
-          "luvpay",
-          "Error while connecting to server, Please try again.",
-          () {
-            Get.back();
-            cb([
-              {"has_net": true, "items": []},
-            ]);
-          },
-        );
+        CustomDialogStack.showError(Get.context!, "luvpay",
+            "Error while connecting to server, Please try again.", () {
+          Get.back();
+          cb([
+            {"has_net": true, "items": []},
+          ]);
+        });
         return;
       } else {
         if (objData["items"].isEmpty) {
           CustomDialogStack.showError(
-            Get.context!,
-            "Error",
-            objData["items"]["msg"],
-            () {
-              Get.back();
-              cb([
-                {"has_net": true, "items": []},
-              ]);
-            },
-          );
+              Get.context!, "Error", objData["items"]["msg"], () {
+            Get.back();
+            cb([
+              {"has_net": true, "items": []},
+            ]);
+          });
           return;
         } else {
           List itemData = objData["items"];
@@ -513,46 +443,36 @@ class LoginScreenController extends GetxController {
 
   void switchAccount() {
     CustomDialogStack.showConfirmation(
-      Get.context!,
-      "Switch accounts?",
-      "You’ll be signed out first.",
-      leftText: "No",
-      rightText: "Yes",
-      () {
-        Get.back();
-      },
-      () async {
-        Get.back();
-        final uData = await Authentication().getUserData2();
-        Functions.logoutUser(
-          uData == null ? "" : uData["session_id"].toString(),
+        Get.context!, "Switch accounts?", "You’ll be signed out first.",
+        leftText: "No", rightText: "Yes", () {
+      Get.back();
+    }, () async {
+      Get.back();
+      final uData = await Authentication().getUserData2();
+      Functions.logoutUser(uData == null ? "" : uData["session_id"].toString(),
           (isSuccess) async {
-            if (isSuccess["is_true"]) {
-              final prefs = await SharedPreferences.getInstance();
-              prefs.remove("auth_login");
-              await Authentication().enableTimer(false);
-              await Authentication().setLogoutStatus(true);
-              await Authentication().setBiometricStatus(false);
+        if (isSuccess["is_true"]) {
+          final prefs = await SharedPreferences.getInstance();
+          prefs.remove("auth_login");
+          await Authentication().enableTimer(false);
+          await Authentication().setLogoutStatus(true);
+          await Authentication().setBiometricStatus(false);
 
-              if (Platform.isIOS) {
-                final service = FlutterBackgroundService();
-                service.invoke('updateUserLogin', {'userId': 0});
-              }
-              Get.offAllNamed(Routes.login);
-            }
-          },
-        );
-      },
-    );
+          if (Platform.isIOS) {
+            final service = FlutterBackgroundService();
+            service.invoke('updateUserLogin', {'userId': 0});
+          }
+          Get.offAllNamed(Routes.login);
+        }
+      });
+    });
   }
 
   Future<bool> userAuth(String mobile) async {
     final data = await Authentication().getEncryptedKeys();
     int mobaNo = data == null
         ? 0
-        : int.parse(
-            data["mobile_no"].toString().trim().replaceAll(" ", ""),
-          );
+        : int.parse(data["mobile_no"].toString().trim().replaceAll(" ", ""));
     int usrMo = int.parse("63${mobile.toString().trim().replaceAll(" ", "")}");
 
     return mobaNo == usrMo ? false : true;

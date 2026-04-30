@@ -38,19 +38,16 @@ class ParkingFunctions {
     DateTime? dateTime,
   }) {
     DateTime today = dateTime ?? DateTime.now();
-    DateTime res = DateTime.parse(
-      "${(today).toString().split(' ')[0]} ${time.trim()}",
-    );
+    DateTime res =
+        DateTime.parse("${(today).toString().split(' ')[0]} ${time.trim()}");
 
     return res.add(addDuration ?? Duration());
   }
 
   bool isBeforeClosing({String? timeStart, DateTime? time}) {
     final now = time ?? DateTime.now();
-    final timeLapse = timeConverter(
-      dateTime: now,
-      time: timeStart ?? openTime(),
-    );
+    final timeLapse =
+        timeConverter(dateTime: now, time: timeStart ?? openTime());
 
     final countDown = timeLapse.difference(now).inSeconds;
 
@@ -75,10 +72,8 @@ class ParkingFunctions {
     String customerType = 'R',
   }) {
     ParkingCountdownData parkingCountdownData = parkingCountdown();
-    ParkingRateData parkRatesData = parkingRates(
-      parkRates,
-      customerType: customerType,
-    );
+    ParkingRateData parkRatesData =
+        parkingRates(parkRates, customerType: customerType);
     DateTime timeIn = startTime ?? DateTime.now();
     DateTime timeOut = endTime ?? DateTime.now();
     Map subscriptionData = parkRates["subscription_data"] ?? {};
@@ -92,30 +87,24 @@ class ParkingFunctions {
       if (is24Hrs()) {
         timeOut = timeIn.add(Duration(hours: parkRatesData.baseHours));
       } else if (parkingCountdownData.isOvernight) {
-        final isBeforeOpen = isBeforeClosing(
-          time: timeIn,
-          timeStart: openTime(),
-        );
+        final isBeforeOpen =
+            isBeforeClosing(time: timeIn, timeStart: openTime());
 
         if (isBeforeOpen) {
-          timeOut = parkingCountdownData.closeTime.add(
-            Duration(hours: parkRatesData.baseHours),
-          );
+          timeOut = parkingCountdownData.closeTime
+              .add(Duration(hours: parkRatesData.baseHours));
         } else {
           timeOut = parkingCountdownData.closeTime;
         }
       } else {
-        final isBeforeClose = isBeforeClosing(
-          time: timeIn,
-          timeStart: closedTime(),
-        );
+        final isBeforeClose =
+            isBeforeClosing(time: timeIn, timeStart: closedTime());
 
         if (isBeforeClose) {
           timeOut = parkingCountdownData.closeTime;
         } else {
-          timeOut = parkingCountdownData.now.add(
-            Duration(hours: parkRatesData.baseHours),
-          );
+          timeOut = parkingCountdownData.now
+              .add(Duration(hours: parkRatesData.baseHours));
 
           if (timeOut.isAfter(parkingCountdownData.closeTime)) {
             timeOut = parkingCountdownData.closeTime;
@@ -125,10 +114,9 @@ class ParkingFunctions {
     }
 
     final ParkingTimeData parkingTimeData = parkingTime(
-      startTime: timeIn,
-      endTime: timeOut,
-      gracePeriod: parkRatesData.gracePeriod,
-    );
+        startTime: timeIn,
+        endTime: timeOut,
+        gracePeriod: parkRatesData.gracePeriod);
 
     int _no_hours = 0;
     num regAmt = 0;
@@ -162,30 +150,27 @@ class ParkingFunctions {
         regAmt = subscriptionType == 'E' ? subscriptionAmt : 0;
 
         regAmt += calculateRegAmt(
-          noHours: _no_hours -
-              (subscriptionType == 'E' ? parkingTimeData.firstDayRegHrs : 0),
-          baseHours: parkRatesData.baseHours,
-          noOfDays:
-              parkingTimeData.noOfDays - (subscriptionType == 'E' ? 1 : 0),
-          succeedingHours: parkRatesData.succeedingHours,
-          consumedMinutes: parkingTimeData.consumedMinutes,
-          freePeriod: parkRatesData.freePeriod,
-          succeedingRate: parkRatesData.succeedingRate,
-          baseRate: parkRatesData.baseRate,
-        );
+            noHours: _no_hours -
+                (subscriptionType == 'E' ? parkingTimeData.firstDayRegHrs : 0),
+            baseHours: parkRatesData.baseHours,
+            noOfDays:
+                parkingTimeData.noOfDays - (subscriptionType == 'E' ? 1 : 0),
+            succeedingHours: parkRatesData.succeedingHours,
+            consumedMinutes: parkingTimeData.consumedMinutes,
+            freePeriod: parkRatesData.freePeriod,
+            succeedingRate: parkRatesData.succeedingRate,
+            baseRate: parkRatesData.baseRate);
       }
 
       _totalAmt = regAmt + overnightAmt + serviceFee;
     }
 
-    VatCalculationData vatCalculationData = vatCalculation(
-      _totalAmt,
-      customerType: customerType,
-      parkRates: parkRates,
-      promoData: promoData,
-      bookDiscPct: bookDiscPct,
-      voucherAmt: voucherAmt,
-    );
+    VatCalculationData vatCalculationData = vatCalculation(_totalAmt,
+        customerType: customerType,
+        parkRates: parkRates,
+        promoData: promoData,
+        bookDiscPct: bookDiscPct,
+        voucherAmt: voucherAmt);
 
     final theLastMsg = is24Hrs()
         ? parkRatesData.succeedingRate == 0
@@ -201,25 +186,25 @@ class ParkingFunctions {
                 : 'A succeeding rate of ${parkRatesData.succeedingRate.toStringAsFixed(2)} will start after ${DateFormat('h:mm a').format(timeOut).toString()}, ${DateFormat('MMM dd yyyy').format(timeOut)}.';
 
     return TicketData(
-      dateIn: timeIn.toString().split('.')[0],
-      dateOut: timeOut.toString().split('.')[0],
-      isOvernight: parkingCountdownData.isOvernight,
-      isBeforeOpen: isBeforeClosing(time: timeIn, timeStart: openTime()),
-      isBeforeClosing: isBeforeClosing(time: timeIn, timeStart: closedTime()),
-      noOfHours: parkingTimeData.regularHours + parkingTimeData.overnightHours,
-      regularAmount: double.parse(regAmt.toStringAsFixed(2)),
-      openDateTime: parkingCountdownData.openTime,
-      closeDateTime: parkingCountdownData.todayCloseTime,
-      overnightAmount: overnightAmt,
-      totalAmt: _totalAmt,
-      isAllowOvernight: isAllowOverNight(),
-      countdownData: parkingCountdownData,
-      rateData: parkRatesData,
-      timeData: parkingTimeData,
-      vatData: vatCalculationData,
-      is24Hrs: is24Hrs(),
-      noteMsg: theLastMsg,
-    );
+        dateIn: timeIn.toString().split('.')[0],
+        dateOut: timeOut.toString().split('.')[0],
+        isOvernight: parkingCountdownData.isOvernight,
+        isBeforeOpen: isBeforeClosing(time: timeIn, timeStart: openTime()),
+        isBeforeClosing: isBeforeClosing(time: timeIn, timeStart: closedTime()),
+        noOfHours:
+            parkingTimeData.regularHours + parkingTimeData.overnightHours,
+        regularAmount: double.parse(regAmt.toStringAsFixed(2)),
+        openDateTime: parkingCountdownData.openTime,
+        closeDateTime: parkingCountdownData.todayCloseTime,
+        overnightAmount: overnightAmt,
+        totalAmt: _totalAmt,
+        isAllowOvernight: isAllowOverNight(),
+        countdownData: parkingCountdownData,
+        rateData: parkRatesData,
+        timeData: parkingTimeData,
+        vatData: vatCalculationData,
+        is24Hrs: is24Hrs(),
+        noteMsg: theLastMsg);
   }
 
   num calculateRegAmt({
@@ -281,20 +266,10 @@ class ParkingFunctions {
     final closeHr = int.parse(splitEndTime[0]);
     final closeMin = int.parse(splitEndTime[1]);
 
-    final openDateTime = DateTime(
-      bookingTime.year,
-      bookingTime.month,
-      bookingTime.day,
-      startHr,
-      startMin,
-    );
-    final closeDateTime = DateTime(
-      bookingTime.year,
-      bookingTime.month,
-      bookingTime.day,
-      closeHr,
-      closeMin,
-    );
+    final openDateTime = DateTime(bookingTime.year, bookingTime.month,
+        bookingTime.day, startHr, startMin);
+    final closeDateTime = DateTime(bookingTime.year, bookingTime.month,
+        bookingTime.day, closeHr, closeMin);
 
     DateTime startDateTime = openDateTime;
     DateTime endDateTime = closeDateTime;
@@ -335,20 +310,19 @@ class ParkingFunctions {
                 : 'Remaining regular parking: $trailingString';
 
     return ParkingCountdownData(
-      now: bookingTime,
-      openTime: startDateTime,
-      closeTime: endDateTime,
-      todayCloseTime: closeDateTime,
-      gapInMins: closeDateTime.difference(openDateTime).inMinutes,
-      trailingText: trailingText,
-      remainingHours: numHour,
-      remainingMinutes: numMins,
-      countdown: trailingString,
-      isOvernight: isOverNight,
-      isAllowOvernight: isAllowOverNight(),
-      percentage:
-          is24Hrs() ? 1 : (inSecsClose == 0 ? 0 : inSecsOpen / inSecsClose),
-    );
+        now: bookingTime,
+        openTime: startDateTime,
+        closeTime: endDateTime,
+        todayCloseTime: closeDateTime,
+        gapInMins: closeDateTime.difference(openDateTime).inMinutes,
+        trailingText: trailingText,
+        remainingHours: numHour,
+        remainingMinutes: numMins,
+        countdown: trailingString,
+        isOvernight: isOverNight,
+        isAllowOvernight: isAllowOverNight(),
+        percentage:
+            is24Hrs() ? 1 : (inSecsClose == 0 ? 0 : inSecsOpen / inSecsClose));
   }
 
   ParkingTimeData parkingTime({
@@ -376,36 +350,20 @@ class ParkingFunctions {
       final List<String> overNightTimeParts =
           (overnightTime() ?? '00:00').split(':');
 
-      final DateTime onTime = DateTime(
-        current.year,
-        current.month,
-        current.day,
-        int.parse(overNightTimeParts[0]),
-        int.parse(overNightTimeParts[1]),
-      );
+      final DateTime onTime = DateTime(current.year, current.month, current.day,
+          int.parse(overNightTimeParts[0]), int.parse(overNightTimeParts[1]));
 
       final DateTime regStart = DateTime(
-        current.year,
-        current.month,
-        current.day,
-        int.parse(regStartTimeParts[0]),
-        int.parse(regStartTimeParts[1]),
-      );
-      final DateTime regEnd = DateTime(
-        current.year,
-        current.month,
-        current.day,
-        int.parse(regEndTimeParts[0]),
-        int.parse(regEndTimeParts[1]),
-      );
+          current.year,
+          current.month,
+          current.day,
+          int.parse(regStartTimeParts[0]),
+          int.parse(regStartTimeParts[1]));
+      final DateTime regEnd = DateTime(current.year, current.month, current.day,
+          int.parse(regEndTimeParts[0]), int.parse(regEndTimeParts[1]));
 
-      final DateTime nextDay = DateTime(
-        current.year,
-        current.month,
-        current.day + 1,
-        00,
-        00,
-      );
+      final DateTime nextDay =
+          DateTime(current.year, current.month, current.day + 1, 00, 00);
 
       final DateTime regularEffectiveStart =
           current.isBefore(regStart) ? regStart : current;
@@ -417,9 +375,7 @@ class ParkingFunctions {
           (regular.inMinutes < 0 ? 0 : regular.inMinutes % 60) >= grace
               ? (regular.inHours < 0 ? 0 : regular.inHours) +
                   (isBeforeClosing(
-                    time: regularEffectiveStart,
-                    timeStart: closedTime(),
-                  )
+                          time: regularEffectiveStart, timeStart: closedTime())
                       ? 0
                       : 1)
               : regular.inHours < 0
@@ -459,9 +415,8 @@ class ParkingFunctions {
       }
 
       if (end.isAfter(regEnd) || current.isAfter(regEnd) && !is24Hrs()) {
-        final night = (nextDay.isBefore(end) ? nextDay : end).difference(
-          current.isAfter(regEnd) ? current : regEnd,
-        );
+        final night = (nextDay.isBefore(end) ? nextDay : end)
+            .difference(current.isAfter(regEnd) ? current : regEnd);
 
         final otHrs = (night.inMinutes < 0 ? 0 : night.inMinutes % 60) >= grace
             ? night.inHours + 1
@@ -484,15 +439,14 @@ class ParkingFunctions {
     }
 
     return ParkingTimeData(
-      regularHours: regularHours < 0 ? 0 : regularHours,
-      firstDayRegHrs: firstDayRegHrs,
-      overnightHours: overnightHours < 0 ? 0 : overnightHours,
-      noOfDays: daysPasses,
-      overnightTime: overnightTime() ?? '',
-      noOfNights: overnightPasses < 0 ? 0 : overnightPasses,
-      consumedMinutes: _overAllMins,
-      duration: consumedNoHrs,
-    );
+        regularHours: regularHours < 0 ? 0 : regularHours,
+        firstDayRegHrs: firstDayRegHrs,
+        overnightHours: overnightHours < 0 ? 0 : overnightHours,
+        noOfDays: daysPasses,
+        overnightTime: overnightTime() ?? '',
+        noOfNights: overnightPasses < 0 ? 0 : overnightPasses,
+        consumedMinutes: _overAllMins,
+        duration: consumedNoHrs);
   }
 
   ParkingRateData parkingRates(dynamic parkRates, {String customerType = 'R'}) {
@@ -524,21 +478,20 @@ class ParkingFunctions {
     }
 
     return ParkingRateData(
-      succeedingRate: _succeedingRate(),
-      freePeriod: _freePeriod() == 0 ? 1 : _freePeriod(),
-      gracePeriod: (parkRates["grace_period"] ?? 0) > 0
-          ? (parkRates["grace_period"] ?? 0)
-          : 2,
-      baseRate: _baseRate(),
-      discountRate: _discountRate(),
-      overnightRate: parkRates["overnight_rate"] ?? 0,
-      baseHours: (parkRates["base_hours"] ?? 0) > 0
-          ? (parkRates["base_hours"] ?? 0)
-          : 1,
-      succeedingHours: (parkRates["succeeding_hours"] ?? 1) == 0
-          ? 1
-          : (parkRates["succeeding_hours"] ?? 1),
-    );
+        succeedingRate: _succeedingRate(),
+        freePeriod: _freePeriod() == 0 ? 1 : _freePeriod(),
+        gracePeriod: (parkRates["grace_period"] ?? 0) > 0
+            ? (parkRates["grace_period"] ?? 0)
+            : 2,
+        baseRate: _baseRate(),
+        discountRate: _discountRate(),
+        overnightRate: parkRates["overnight_rate"] ?? 0,
+        baseHours: (parkRates["base_hours"] ?? 0) > 0
+            ? (parkRates["base_hours"] ?? 0)
+            : 1,
+        succeedingHours: (parkRates["succeeding_hours"] ?? 1) == 0
+            ? 1
+            : (parkRates["succeeding_hours"] ?? 1));
   }
 
   VatCalculationData vatCalculation(
@@ -587,20 +540,19 @@ class ParkingFunctions {
     }
 
     return VatCalculationData(
-      promoId: promoId,
-      discountRate: discountRate,
-      baseHours: parkRates["base_hours"] ?? 1,
-      discountAmount: double.parse(discountAmt.toStringAsFixed(2)),
-      vatAmount: double.parse(vatAmt.toStringAsFixed(2)),
-      vatSalesAmount: (customerType == 'S' || customerType == 'P')
-          ? 0
-          : double.parse(vatableSales.toStringAsFixed(2)),
-      vatExemptAmount: (customerType == 'S' || customerType == 'P')
-          ? double.parse(vatableSales.toStringAsFixed(2))
-          : 0,
-      totalAmount: double.parse(totalAmt.toStringAsFixed(2)),
-      vatRate: vatRate(),
-    );
+        promoId: promoId,
+        discountRate: discountRate,
+        baseHours: parkRates["base_hours"] ?? 1,
+        discountAmount: double.parse(discountAmt.toStringAsFixed(2)),
+        vatAmount: double.parse(vatAmt.toStringAsFixed(2)),
+        vatSalesAmount: (customerType == 'S' || customerType == 'P')
+            ? 0
+            : double.parse(vatableSales.toStringAsFixed(2)),
+        vatExemptAmount: (customerType == 'S' || customerType == 'P')
+            ? double.parse(vatableSales.toStringAsFixed(2))
+            : 0,
+        totalAmount: double.parse(totalAmt.toStringAsFixed(2)),
+        vatRate: vatRate());
   }
 
   Map vatCal(num amount) {

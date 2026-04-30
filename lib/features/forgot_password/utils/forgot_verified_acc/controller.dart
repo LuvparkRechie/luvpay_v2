@@ -59,7 +59,7 @@ class ForgotVerifiedAcctController extends GetxController {
     String subApi =
         "${ApiKeys.getSecQue}?mobile_no=$mobileNoParam&secq_no=$randomNumber";
 
-    HttpRequestApi(api: subApi).get().then((returnData) {
+    Functions().requestHandler(apiKey: subApi).then((returnData) {
       if (returnData == "No Internet") {
         isInternetConn.value = false;
         isLoading.value = false;
@@ -82,14 +82,10 @@ class ForgotVerifiedAcctController extends GetxController {
         if (returnData["items"].isNotEmpty) {
           questionData.value = returnData["items"];
         } else {
-          CustomDialogStack.showError(
-            Get.context!,
-            "luvpay",
-            "Make sure that you've entered the correct phone number.",
-            () {
-              Get.back();
-            },
-          );
+          CustomDialogStack.showError(Get.context!, "luvpay",
+              "Make sure that you've entered the correct phone number.", () {
+            Get.back();
+          });
           return;
         }
       }
@@ -109,17 +105,10 @@ class ForgotVerifiedAcctController extends GetxController {
     };
 
     Functions().requestOtp(reqParam, (obj) async {
-      DateTime timeExp = DateFormat(
-        "yyyy-MM-dd hh:mm:ss a",
-      ).parse(obj["otp_exp_dt"].toString());
-      DateTime otpExpiry = DateTime(
-        timeExp.year,
-        timeExp.month,
-        timeExp.day,
-        timeExp.hour,
-        timeExp.minute,
-        timeExp.millisecond,
-      );
+      DateTime timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+          .parse(obj["otp_exp_dt"].toString());
+      DateTime otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+          timeExp.hour, timeExp.minute, timeExp.millisecond);
 
       // Calculate difference
       Duration difference = otpExpiry.difference(timeNow);
@@ -145,31 +134,28 @@ class ForgotVerifiedAcctController extends GetxController {
                 "new_pwd": newPass.text,
               };
 
-              HttpRequestApi(
-                api: ApiKeys.putLogin,
+              Functions()
+                  .requestHandler(
+                apiKey: ApiKeys.putLogin,
                 parameters: postParam,
-              ).putBody().then((retvalue) {
+                method: "PUT",
+              )
+                  .then((retvalue) {
                 Get.back();
                 if (retvalue == "No Internet") {
-                  CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    "Please check your internet connection and try again.",
-                    () {
-                      Get.back();
-                    },
-                  );
+                  CustomDialogStack.showError(Get.context!, "Error",
+                      "Please check your internet connection and try again.",
+                      () {
+                    Get.back();
+                  });
                   return;
                 }
                 if (retvalue == null) {
-                  CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    "Error while connecting to server, Please try again.",
-                    () {
-                      Get.back();
-                    },
-                  );
+                  CustomDialogStack.showError(Get.context!, "Error",
+                      "Error while connecting to server, Please try again.",
+                      () {
+                    Get.back();
+                  });
                 } else {
                   if (retvalue["success"] == "Y") {
                     Map<String, dynamic> data = {
@@ -179,24 +165,16 @@ class ForgotVerifiedAcctController extends GetxController {
                     final plainText = jsonEncode(data);
 
                     Authentication().encryptData(plainText);
-                    CustomDialogStack.showSuccess(
-                      Get.context!,
-                      "Success!",
-                      "Your password has been updated",
-                      leftText: "Okay",
-                      () async {
-                        Get.offAllNamed(Routes.login);
-                      },
-                    );
+                    CustomDialogStack.showSuccess(Get.context!, "Success!",
+                        "Your password has been updated", leftText: "Okay",
+                        () async {
+                      Get.offAllNamed(Routes.login);
+                    });
                   } else {
                     CustomDialogStack.showError(
-                      Get.context!,
-                      "Error",
-                      retvalue["msg"],
-                      () {
-                        Get.back();
-                      },
-                    );
+                        Get.context!, "Error", retvalue["msg"], () {
+                      Get.back();
+                    });
                   }
                 }
               });
@@ -204,11 +182,9 @@ class ForgotVerifiedAcctController extends GetxController {
           },
         };
 
-        Get.to(
-          OtpFieldScreen(arguments: args),
-          transition: Transition.rightToLeftWithFade,
-          duration: Duration(milliseconds: 400),
-        );
+        Get.to(OtpFieldScreen(arguments: args),
+            transition: Transition.rightToLeftWithFade,
+            duration: Duration(milliseconds: 400));
       }
     });
   }

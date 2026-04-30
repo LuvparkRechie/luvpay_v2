@@ -41,11 +41,9 @@ Future<void> backgroundFunc(int id, Map<String, dynamic> params) async {
   bool isAppSecured = appSecurity[0]["is_secured"];
 
   if (isAppSecured) {
-    await TamperGuard.checkOnce(
-      onTamperUi: (_) {
-        TamperGuard.exitApp();
-      },
-    );
+    await TamperGuard.checkOnce(onTamperUi: (_) {
+      TamperGuard.exitApp();
+    });
     await getMessNotif();
   } else {
     Variables.bgProcess?.cancel();
@@ -141,9 +139,8 @@ void main() async {
   NotificationController.initializeLocalNotifications();
   NotificationController.initializeIsolateReceivePort();
 
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then((
-    _,
-  ) {
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
     runApp(const MyApp());
   });
 }
@@ -162,16 +159,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     TamperGuard.start(
-      interval: const Duration(seconds: 10),
-      onTamperUi: (msg) {
-        final ctx = navigatorKey.currentContext;
-        if (ctx != null) {
-          Variables.showSecurityPopUp(msg);
-        } else {
-          TamperGuard.exitApp();
-        }
-      },
-    );
+        interval: const Duration(seconds: 10),
+        onTamperUi: (msg) {
+          final ctx = navigatorKey.currentContext;
+          if (ctx != null) {
+            Variables.showSecurityPopUp(msg);
+          } else {
+            TamperGuard.exitApp();
+          }
+        });
     WidgetsBinding.instance.addObserver(this);
 
     NotificationController.startListeningNotificationEvents();
@@ -217,12 +213,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initializedBgProcess() async {
     final userId = await Authentication().getUserId();
     await AndroidAlarmManager.periodic(
-      const Duration(seconds: 5),
-      0,
-      backgroundFunc,
-      startAt: DateTime.now(),
-      params: {'userId': userId.toString()},
-    );
+        const Duration(seconds: 5), 0, backgroundFunc,
+        startAt: DateTime.now(), params: {'userId': userId.toString()});
   }
 
   @override
@@ -230,21 +222,19 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final themeCtrl = Get.find<ThemeModeController>();
 
     return Listener(
-      onPointerDown: (_) => _onUserActivity(),
-      child: Obx(() {
-        return GetMaterialApp(
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: ApiKeys.isProduction,
-          title: 'MyApp',
-          theme: AppThemeV2.light(),
-          darkTheme: AppThemeV2.dark(),
-          themeMode: themeCtrl.mode.value,
-          navigatorObservers: [GetObserver()],
-          initialRoute: Routes.splash,
-          getPages: AppPages.pages,
-        );
-      }),
-    );
+        onPointerDown: (_) => _onUserActivity(),
+        child: Obx(() {
+          return GetMaterialApp(
+              navigatorKey: navigatorKey,
+              debugShowCheckedModeBanner: ApiKeys.isProduction,
+              title: 'MyApp',
+              theme: AppThemeV2.light(),
+              darkTheme: AppThemeV2.dark(),
+              themeMode: themeCtrl.mode.value,
+              navigatorObservers: [GetObserver()],
+              initialRoute: Routes.splash,
+              getPages: AppPages.pages);
+        }));
   }
 }
 
@@ -254,22 +244,19 @@ class IosBgProcess {
 
     if (Platform.isIOS || Platform.isAndroid) {
       await service.configure(
-        androidConfiguration: AndroidConfiguration(
-          onStart: onStart,
-          autoStart: true,
-          isForegroundMode: true,
-          notificationChannelId: 'my_foreground',
-          initialNotificationTitle: 'AWESOME SERVICE',
-          initialNotificationContent: 'Initializing',
-          foregroundServiceNotificationId: 888,
-          foregroundServiceTypes: [AndroidForegroundType.location],
-        ),
-        iosConfiguration: IosConfiguration(
-          autoStart: true,
-          onForeground: onStart,
-          onBackground: onIosBackground,
-        ),
-      );
+          androidConfiguration: AndroidConfiguration(
+              onStart: onStart,
+              autoStart: true,
+              isForegroundMode: true,
+              notificationChannelId: 'my_foreground',
+              initialNotificationTitle: 'AWESOME SERVICE',
+              initialNotificationContent: 'Initializing',
+              foregroundServiceNotificationId: 888,
+              foregroundServiceTypes: [AndroidForegroundType.location]),
+          iosConfiguration: IosConfiguration(
+              autoStart: true,
+              onForeground: onStart,
+              onBackground: onIosBackground));
     }
   }
 }

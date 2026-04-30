@@ -29,34 +29,31 @@ class AppColorV2 {
   static const Color darkBodyText = Color(0xFFA9B6CC);
 
   static const ColorScheme lightScheme = ColorScheme(
-    brightness: Brightness.light,
-    primary: lpBlueBrand,
-    onPrimary: Colors.white,
-    secondary: lpTealBrand,
-    onSecondary: Colors.white,
-    surface: Colors.white,
-    onSurface: primaryTextColor,
-    error: incorrectState,
-    onError: Colors.white,
-  );
+      brightness: Brightness.light,
+      primary: lpBlueBrand,
+      onPrimary: Colors.white,
+      secondary: lpTealBrand,
+      onSecondary: Colors.white,
+      surface: Colors.white,
+      onSurface: primaryTextColor,
+      error: incorrectState,
+      onError: Colors.white);
 
   static const ColorScheme darkScheme = ColorScheme(
-    brightness: Brightness.dark,
-    primary: lpBlueBrand,
-    onPrimary: Colors.white,
-    secondary: lpTealBrand,
-    onSecondary: Colors.black,
-    surface: darkSurface,
-    onSurface: darkPrimaryText,
-    error: incorrectState,
-    onError: Colors.white,
-  );
+      brightness: Brightness.dark,
+      primary: lpBlueBrand,
+      onPrimary: Colors.white,
+      secondary: lpTealBrand,
+      onSecondary: Colors.black,
+      surface: darkSurface,
+      onSurface: darkPrimaryText,
+      error: incorrectState,
+      onError: Colors.white);
 
   static const Gradient primaryGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF0078FF), Color(0xFF0066DD)],
-  );
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF0078FF), Color(0xFF0066DD)]);
 
   static const Color secondary = lpTealBrand;
   static const Color accent = darkMintAccent;

@@ -9,22 +9,19 @@ class IosBgProcess {
 
     if (Platform.isIOS || Platform.isAndroid) {
       await service.configure(
-        androidConfiguration: AndroidConfiguration(
-          onStart: onStart,
-          autoStart: true,
-          isForegroundMode: true,
-          notificationChannelId: 'my_foreground',
-          initialNotificationTitle: 'AWESOME SERVICE',
-          initialNotificationContent: 'Initializing',
-          foregroundServiceNotificationId: 888,
-          foregroundServiceTypes: [AndroidForegroundType.location],
-        ),
-        iosConfiguration: IosConfiguration(
-          autoStart: true,
-          onForeground: onStart,
-          onBackground: onIosBackground,
-        ),
-      );
+          androidConfiguration: AndroidConfiguration(
+              onStart: onStart,
+              autoStart: true,
+              isForegroundMode: true,
+              notificationChannelId: 'my_foreground',
+              initialNotificationTitle: 'AWESOME SERVICE',
+              initialNotificationContent: 'Initializing',
+              foregroundServiceNotificationId: 888,
+              foregroundServiceTypes: [AndroidForegroundType.location]),
+          iosConfiguration: IosConfiguration(
+              autoStart: true,
+              onForeground: onStart,
+              onBackground: onIosBackground));
     }
   }
 }

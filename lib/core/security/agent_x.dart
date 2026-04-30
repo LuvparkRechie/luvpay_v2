@@ -10,16 +10,12 @@ import 'package:luvpay/core/security/encryption.dart';
 
 class AgentX_ {
   Future<String> agentBuffer(String json) async {
-    final secretKey = Encryption_().hexStringToArrayBuffer(
-      dotenv.env['AGENT_X'] ?? '',
-    );
+    final secretKey =
+        Encryption_().hexStringToArrayBuffer(dotenv.env['AGENT_X'] ?? '');
     final nonce = Encryption_().generateRandomNonce();
 
-    final encrypted = await Encryption_().encryptData(
-      secretKey,
-      nonce,
-      AgentX_().compressString(json),
-    );
+    final encrypted = await Encryption_()
+        .encryptData(secretKey, nonce, AgentX_().compressString(json));
 
     final concatenatedArray = Encryption_().concatBuffers(nonce, encrypted);
     final output = Encryption_().arrayBufferToBase64(concatenatedArray);
@@ -28,10 +24,8 @@ class AgentX_ {
   }
 
   Future<dynamic> agentJson(String buffer) async {
-    final decryptedJson = await Encryption_().decryptUBUriPage(
-      buffer,
-      dotenv.env['AGENT_X'] ?? '',
-    );
+    final decryptedJson = await Encryption_()
+        .decryptUBUriPage(buffer, dotenv.env['AGENT_X'] ?? '');
 
     return jsonDecode(decryptedJson);
   }
@@ -54,8 +48,7 @@ class AgentX_ {
   Uint8List generateRandomIV(int length) {
     final random = Random.secure();
     return Uint8List.fromList(
-      List<int>.generate(length, (_) => random.nextInt(256)),
-    );
+        List<int>.generate(length, (_) => random.nextInt(256)));
   }
 
   String encryptAES256CBC(String plainText) {
@@ -87,12 +80,8 @@ class AgentX_ {
   }
 
   Uint8List hexToBytes(String hex) {
-    return Uint8List.fromList(
-      List.generate(
-        hex.length ~/ 2,
-        (i) => int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16),
-      ),
-    );
+    return Uint8List.fromList(List.generate(hex.length ~/ 2,
+        (i) => int.parse(hex.substring(i * 2, i * 2 + 2), radix: 16)));
   }
 
   String encodeTicketId(String ticketId) {

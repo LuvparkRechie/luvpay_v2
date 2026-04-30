@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/components/otp_field/view.dart';
@@ -71,17 +70,10 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
     };
 
     Functions().requestOtp(reqParam, (obj) async {
-      DateTime timeExp = DateFormat(
-        "yyyy-MM-dd hh:mm:ss a",
-      ).parse(obj["otp_exp_dt"].toString());
-      DateTime otpExpiry = DateTime(
-        timeExp.year,
-        timeExp.month,
-        timeExp.day,
-        timeExp.hour,
-        timeExp.minute,
-        timeExp.millisecond,
-      );
+      DateTime timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+          .parse(obj["otp_exp_dt"].toString());
+      DateTime otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+          timeExp.hour, timeExp.minute, timeExp.millisecond);
 
       // Calculate difference
       Duration difference = otpExpiry.difference(timeNow);
@@ -107,31 +99,25 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
                 "new_pwd": newPass.text,
               };
 
-              HttpRequestApi(
-                api: ApiKeys.putLogin,
-                parameters: postParam,
-              ).putBody().then((retvalue) {
+              Functions()
+                  .requestHandler(
+                      apiKey: ApiKeys.putLogin, method: "PUT", body: postParam)
+                  .then((retvalue) {
                 Get.back();
                 if (retvalue == "No Internet") {
-                  CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    "Please check your internet connection and try again.",
-                    () {
-                      Get.back();
-                    },
-                  );
+                  CustomDialogStack.showError(Get.context!, "Error",
+                      "Please check your internet connection and try again.",
+                      () {
+                    Get.back();
+                  });
                   return;
                 }
                 if (retvalue == null) {
-                  CustomDialogStack.showError(
-                    Get.context!,
-                    "Error",
-                    "Error while connecting to server, Please try again.",
-                    () {
-                      Get.back();
-                    },
-                  );
+                  CustomDialogStack.showError(Get.context!, "Error",
+                      "Error while connecting to server, Please try again.",
+                      () {
+                    Get.back();
+                  });
                 } else {
                   if (retvalue["success"] == "Y") {
                     Map<String, dynamic> data = {
@@ -141,36 +127,25 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
                     final plainText = jsonEncode(data);
 
                     Authentication().encryptData(plainText);
-                    CustomDialogStack.showSuccess(
-                      Get.context!,
-                      "Success!",
-                      "Your password has been updated",
-                      leftText: "Okay",
-                      () async {
-                        Get.offAllNamed(Routes.login);
-                      },
-                    );
+                    CustomDialogStack.showSuccess(Get.context!, "Success!",
+                        "Your password has been updated", leftText: "Okay",
+                        () async {
+                      Get.offAllNamed(Routes.login);
+                    });
                   } else {
                     CustomDialogStack.showError(
-                      Get.context!,
-                      "Error",
-                      retvalue["msg"],
-                      () {
-                        Get.back();
-                      },
-                    );
+                        Get.context!, "Error", retvalue["msg"], () {
+                      Get.back();
+                    });
                   }
                 }
               });
             }
           },
         };
-
-        Get.to(
-          OtpFieldScreen(arguments: args),
-          transition: Transition.rightToLeftWithFade,
-          duration: Duration(milliseconds: 400),
-        );
+        Get.to(OtpFieldScreen(arguments: args),
+            transition: Transition.rightToLeftWithFade,
+            duration: Duration(milliseconds: 400));
       }
     });
   }
@@ -183,167 +158,135 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
-      enableToolBar: true,
-      scaffoldBody: Form(
-        key: secFormKey,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            LuvpayText(
-              text:
-                  "Complete verification by providing security details and setting your password.",
-            ),
-            spacing(height: 20),
-            LuvpayText(
-              text: secData["question"],
-              style: AppTextStyle.h3(context),
-            ),
-            CustomTextField(
-              controller: secAns,
-              hintText: "Enter your answer",
-              textCapitalization: TextCapitalization.characters,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Please provide your security answer";
-                }
+        enableToolBar: true,
+        scaffoldBody: Form(
+            key: secFormKey,
+            child: ListView(padding: EdgeInsets.zero, children: [
+              LuvpayText(
+                  text:
+                      "Complete verification by providing security details and setting your password."),
+              spacing(height: 20),
+              LuvpayText(
+                  text: secData["question"], style: AppTextStyle.h3(context)),
+              CustomTextField(
+                  controller: secAns,
+                  hintText: "Enter your answer",
+                  textCapitalization: TextCapitalization.characters,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please provide your security answer";
+                    }
 
-                return null;
-              },
-            ),
-            spacing(height: 14),
-            LuvpayText(text: "Old password", style: AppTextStyle.h3(context)),
-            CustomTextField(
-              hintText: "Enter your old password",
-              controller: oldPass,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Field is required";
-                }
+                    return null;
+                  }),
+              spacing(height: 14),
+              LuvpayText(text: "Old password", style: AppTextStyle.h3(context)),
+              CustomTextField(
+                  hintText: "Enter your old password",
+                  controller: oldPass,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Field is required";
+                    }
 
-                return null;
-              },
-            ),
-            spacing(height: 14),
-            LuvpayText(text: "New password", style: AppTextStyle.h3(context)),
-            CustomTextField(
-              hintText: "Enter your new password",
-              controller: newPass,
-              onChange: (value) {
-                onPasswordChanged(value);
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return "Field is required";
-                }
-                return null;
-              },
-            ),
-            spacing(height: 20),
-            Container(
-              clipBehavior: Clip.antiAlias,
-              decoration: ShapeDecoration(
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(width: 1, color: Colors.black.withAlpha(15)),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        if (Variables.getPasswordStrengthText(
-                          passStrength.value,
-                        ).isNotEmpty)
-                          Row(
+                    return null;
+                  }),
+              spacing(height: 14),
+              LuvpayText(text: "New password", style: AppTextStyle.h3(context)),
+              CustomTextField(
+                  hintText: "Enter your new password",
+                  controller: newPass,
+                  onChange: (value) {
+                    onPasswordChanged(value);
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Field is required";
+                    }
+                    return null;
+                  }),
+              spacing(height: 20),
+              Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                              width: 1, color: Colors.black.withAlpha(15)),
+                          borderRadius: BorderRadius.circular(5))),
+                  child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(children: [
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              LuvpayText(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                text: Variables.getPasswordStrengthText(
-                                  passStrength.value,
-                                ),
-                                color: Variables.getColorForPasswordStrength(
-                                  passStrength.value,
-                                ),
-                              ),
-                            ],
-                          ),
-                        Container(
-                          width: Get.width / 2.4,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  PasswordStrengthIndicator(
-                                    strength: 1,
-                                    currentStrength: passStrength.value,
-                                    color: getColorForStrength(
-                                      passStrength.value,
-                                    ),
-                                  ),
-                                  Container(width: 5),
-                                  PasswordStrengthIndicator(
-                                    strength: 2,
-                                    currentStrength: passStrength.value,
-                                    color: getColorForStrength(
-                                      passStrength.value,
-                                    ),
-                                  ),
-                                  Container(width: 5),
-                                  PasswordStrengthIndicator(
-                                    strength: 3,
-                                    currentStrength: passStrength.value,
-                                    color: getColorForStrength(
-                                      passStrength.value,
-                                    ),
-                                  ),
-                                  Container(width: 5),
-                                  PasswordStrengthIndicator(
-                                    strength: 4,
-                                    currentStrength: passStrength.value,
-                                    color: getColorForStrength(
-                                      passStrength.value,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 14),
-                    passValidation(),
-                  ],
-                ),
-              ),
-            ),
-
-            spacing(height: 30),
-            CustomButton(
-              isInactive:
-                  newPass.text.isEmpty ||
-                  !newPass.text.length.isEqual(8) &&
-                      !newPass.text.length.isGreaterThan(7) ||
-                  !newPass.text.contains(RegExp(r'[A-Z]')) ||
-                  !newPass.text.contains(RegExp(r'[0-9]')),
-
-              text: "Continue",
-              onPressed: () {
-                if (secFormKey.currentState?.validate() ?? false) {
-                  secRequestOtp();
-                }
-              },
-            ),
-            spacing(height: 20),
-          ],
-        ),
-      ),
-    );
+                              if (Variables.getPasswordStrengthText(
+                                      passStrength.value)
+                                  .isNotEmpty)
+                                Row(children: [
+                                  LuvpayText(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      text: Variables.getPasswordStrengthText(
+                                          passStrength.value),
+                                      color:
+                                          Variables.getColorForPasswordStrength(
+                                              passStrength.value)),
+                                ]),
+                              Container(
+                                  width: Get.width / 2.4,
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(children: [
+                                          PasswordStrengthIndicator(
+                                              strength: 1,
+                                              currentStrength:
+                                                  passStrength.value,
+                                              color: getColorForStrength(
+                                                  passStrength.value)),
+                                          Container(width: 5),
+                                          PasswordStrengthIndicator(
+                                              strength: 2,
+                                              currentStrength:
+                                                  passStrength.value,
+                                              color: getColorForStrength(
+                                                  passStrength.value)),
+                                          Container(width: 5),
+                                          PasswordStrengthIndicator(
+                                              strength: 3,
+                                              currentStrength:
+                                                  passStrength.value,
+                                              color: getColorForStrength(
+                                                  passStrength.value)),
+                                          Container(width: 5),
+                                          PasswordStrengthIndicator(
+                                              strength: 4,
+                                              currentStrength:
+                                                  passStrength.value,
+                                              color: getColorForStrength(
+                                                  passStrength.value)),
+                                        ]),
+                                      ])),
+                            ]),
+                        SizedBox(height: 14),
+                        passValidation(),
+                      ]))),
+              spacing(height: 30),
+              CustomButton(
+                  isInactive: newPass.text.isEmpty ||
+                      !newPass.text.length.isEqual(8) &&
+                          !newPass.text.length.isGreaterThan(7) ||
+                      !newPass.text.contains(RegExp(r'[A-Z]')) ||
+                      !newPass.text.contains(RegExp(r'[0-9]')),
+                  text: "Continue",
+                  onPressed: () {
+                    if (secFormKey.currentState?.validate() ?? false) {
+                      secRequestOtp();
+                    }
+                  }),
+              spacing(height: 20),
+            ])));
   }
 
   Column passValidation() {
@@ -352,62 +295,45 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
     final bool hasUppercase = password.contains(RegExp(r'[A-Z]'));
     final bool hasNumber = password.contains(RegExp(r'[0-9]'));
 
-    return Column(
-      children: [
-        Row(
-          children: [
-            Image(
-              image: AssetImage(
-                "assets/images/${hasMinLength ? "check_active" : "check_inactive"}.png",
-              ),
-              height: 20,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(width: 5),
-            LuvpayText(
-              height: 18 / 14,
-              text: "Minimum of 8 characters",
-              style: AppTextStyle.paragraph2(context),
-            ),
-          ],
-        ),
-        SizedBox(height: 8),
-        Row(
-          children: [
-            Image(
-              image: AssetImage(
-                "assets/images/${hasUppercase ? "check_active" : "check_inactive"}.png",
-              ),
-              height: 20,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(width: 5),
-            LuvpayText(
-              height: 18 / 14,
-              text: "At least one uppercase letter",
-              style: AppTextStyle.paragraph2(context),
-            ),
-          ],
-        ),
-        SizedBox(height: 8),
-        Row(
-          children: [
-            Image(
-              image: AssetImage(
-                "assets/images/${hasNumber ? "check_active" : "check_inactive"}.png",
-              ),
-              height: 20,
-              fit: BoxFit.contain,
-            ),
-            SizedBox(width: 5),
-            LuvpayText(
-              height: 18 / 14,
-              text: "At least one number",
-              style: AppTextStyle.paragraph2(context),
-            ),
-          ],
-        ),
-      ],
-    );
+    return Column(children: [
+      Row(children: [
+        Image(
+            image: AssetImage(
+                "assets/images/${hasMinLength ? "check_active" : "check_inactive"}.png"),
+            height: 20,
+            fit: BoxFit.contain),
+        SizedBox(width: 5),
+        LuvpayText(
+            height: 18 / 14,
+            text: "Minimum of 8 characters",
+            style: AppTextStyle.paragraph2(context)),
+      ]),
+      SizedBox(height: 8),
+      Row(children: [
+        Image(
+            image: AssetImage(
+                "assets/images/${hasUppercase ? "check_active" : "check_inactive"}.png"),
+            height: 20,
+            fit: BoxFit.contain),
+        SizedBox(width: 5),
+        LuvpayText(
+            height: 18 / 14,
+            text: "At least one uppercase letter",
+            style: AppTextStyle.paragraph2(context)),
+      ]),
+      SizedBox(height: 8),
+      Row(children: [
+        Image(
+            image: AssetImage(
+                "assets/images/${hasNumber ? "check_active" : "check_inactive"}.png"),
+            height: 20,
+            fit: BoxFit.contain),
+        SizedBox(width: 5),
+        LuvpayText(
+            height: 18 / 14,
+            text: "At least one number",
+            style: AppTextStyle.paragraph2(context)),
+      ]),
+    ]);
   }
 }

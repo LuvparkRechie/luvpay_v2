@@ -38,57 +38,45 @@ class _CustomConfirmPasswordState<T extends GetxController>
 
   Widget _buildForm() {
     return Form(
-      key: widget.formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+        key: widget.formKey,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
           SizedBox(height: 20),
           SvgPicture.asset("assets/images/dialog_success.svg"),
           SizedBox(height: 14),
           LuvpayText(text: "Password Required"),
           SizedBox(height: 8),
           LuvpayText(
-            text: "Please enter password to continue",
-
-            height: 20 / 16,
-          ),
+              text: "Please enter password to continue", height: 20 / 16),
           SizedBox(height: 30),
           Align(
-            alignment: Alignment.centerLeft,
-            child: LuvpayText(text: "Password"),
-          ),
+              alignment: Alignment.centerLeft,
+              child: LuvpayText(text: "Password")),
           CustomTextField(
-            hintText: "Enter your password",
-            controller: widget.passwordController,
-            isObscure: !(widget.controller as dynamic).isShowPass.value,
-            suffixIcon:
-                (widget.controller as dynamic).isShowPass.value
-                    ? Icons.visibility
-                    : Icons.visibility_off,
-            onIconTap: () {
-              visibilityChanged(
-                !(widget.controller as dynamic).isShowPass.value,
-              );
-            },
-            validator: (d) {
-              if (d == null || d.isEmpty) {
-                return "Password is required";
-              }
-              return null;
-            },
-          ),
+              hintText: "Enter your password",
+              controller: widget.passwordController,
+              isObscure: !(widget.controller as dynamic).isShowPass.value,
+              suffixIcon: (widget.controller as dynamic).isShowPass.value
+                  ? Icons.visibility
+                  : Icons.visibility_off,
+              onIconTap: () {
+                visibilityChanged(
+                    !(widget.controller as dynamic).isShowPass.value);
+              },
+              validator: (d) {
+                if (d == null || d.isEmpty) {
+                  return "Password is required";
+                }
+                return null;
+              }),
           SizedBox(height: 30),
           CustomButton(
-            text: "Continue",
-            onPressed: () async {
-              if (widget.formKey.currentState!.validate()) {
-                widget.onConfirm();
-              }
-            },
-          ),
-        ],
-      ),
-    );
+              text: "Continue",
+              onPressed: () async {
+                if (widget.formKey.currentState!.validate()) {
+                  widget.onConfirm();
+                }
+              }),
+        ]));
   }
 
   @override
@@ -96,9 +84,8 @@ class _CustomConfirmPasswordState<T extends GetxController>
     return widget.animated
         ? _buildForm()
         : CustomScaffoldV2(
-          enableToolBar: true,
-          appBarTitle: "Confirm Password",
-          scaffoldBody: _buildForm(),
-        );
+            enableToolBar: true,
+            appBarTitle: "Confirm Password",
+            scaffoldBody: _buildForm());
   }
 }

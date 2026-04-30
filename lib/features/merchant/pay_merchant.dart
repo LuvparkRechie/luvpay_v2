@@ -83,13 +83,12 @@ class _PayMerchantState extends State<PayMerchant> {
 
   void _setCursorToEnd() {
     amountController.selection = TextSelection.fromPosition(
-      TextPosition(offset: amountController.text.length),
-    );
+        TextPosition(offset: amountController.text.length));
   }
 
   Future<dynamic> getSharedpaymentHK(userId) async {
-    final paymentKey =
-        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userId").get();
+    final paymentKey = await Functions()
+        .requestHandler(apiKey: "${ApiKeys.getPaymentKey}$userId");
 
     if (paymentKey == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -121,7 +120,7 @@ class _PayMerchantState extends State<PayMerchant> {
       final userId = await Authentication().getUserId();
       String subApi = "${ApiKeys.getUserBalance}$userId";
 
-      final response = await HttpRequestApi(api: subApi).get();
+      final response = await Functions().requestHandler(apiKey: subApi);
 
       if (response == "No Internet") {
         if (mounted) setState(() => _msg = "No Internet");
@@ -215,10 +214,13 @@ class _PayMerchantState extends State<PayMerchant> {
       "user_sub_wallet_id": selectedWalletId,
     };
     final String api = ApiKeys.postMerchant;
-    HttpRequestApi(
-      api: api,
+    Functions()
+        .requestHandler(
+      apiKey: api,
       parameters: postParam,
-    ).postBody().then((retvalue) {
+      method: "POST",
+    )
+        .then((retvalue) {
       Get.back();
       if (retvalue == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
@@ -230,24 +232,21 @@ class _PayMerchantState extends State<PayMerchant> {
       }
 
       if (retvalue['success'] == "Y") {
-        Get.offAndToNamed(
-          Routes.merchantReceipt,
-          arguments: {
-            "isAuth": isAuth ?? "",
-            "merchant_name": widget.data[0]["data"]?["merchant_name"] ??
-                widget.data[0]["merchant_name"] ??
-                "",
-            "amount": postParam["amount"] ?? "0",
-            "order_no": postParam["order_no"] ?? "",
-            "wallet_name": selectedWalletName,
-            "wallet_id": selectedWalletId,
-            "luvpay_id": finalUserId,
-            "payment_hk": finalPaymentHk,
-            "reference_no": retvalue["lp_ref_no"] ?? "",
-            "date_time": retvalue["response_time"] ?? "",
-            "merchant_id": postParam["merchant_id"] ?? "",
-          },
-        );
+        Get.offAndToNamed(Routes.merchantReceipt, arguments: {
+          "isAuth": isAuth ?? "",
+          "merchant_name": widget.data[0]["data"]?["merchant_name"] ??
+              widget.data[0]["merchant_name"] ??
+              "",
+          "amount": postParam["amount"] ?? "0",
+          "order_no": postParam["order_no"] ?? "",
+          "wallet_name": selectedWalletName,
+          "wallet_id": selectedWalletId,
+          "luvpay_id": finalUserId,
+          "payment_hk": finalPaymentHk,
+          "reference_no": retvalue["lp_ref_no"] ?? "",
+          "date_time": retvalue["response_time"] ?? "",
+          "merchant_id": postParam["merchant_id"] ?? "",
+        });
         WalletRefreshBus.refresher();
       } else {
         CustomDialogStack.showError(
@@ -282,14 +281,8 @@ class _PayMerchantState extends State<PayMerchant> {
       final timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
           .parse(objData["otp_exp_dt"].toString());
 
-      final otpExpiry = DateTime(
-        timeExp.year,
-        timeExp.month,
-        timeExp.day,
-        timeExp.hour,
-        timeExp.minute,
-        timeExp.second,
-      );
+      final otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+          timeExp.hour, timeExp.minute, timeExp.second);
 
       final difference = otpExpiry.difference(timeNow);
 
@@ -312,11 +305,9 @@ class _PayMerchantState extends State<PayMerchant> {
           },
         };
 
-        Get.to(
-          OtpFieldScreen(arguments: args),
-          transition: Transition.rightToLeftWithFade,
-          duration: const Duration(milliseconds: 400),
-        );
+        Get.to(OtpFieldScreen(arguments: args),
+            transition: Transition.rightToLeftWithFade,
+            duration: const Duration(milliseconds: 400));
       }
     });
   }
@@ -333,374 +324,314 @@ class _PayMerchantState extends State<PayMerchant> {
 
     final borderOpacity = isDark ? 0.05 : 0.01;
     return CustomScaffoldV2(
-      appBarTitle: "Pay Merchant",
-      onPressedLeading: () {
-        Get.back();
-        Get.back();
-      },
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      scaffoldBody: isLoadingMerch
-          ? const LoadingCard(text: "Loading…")
-          : Column(
-              children: [
+        appBarTitle: "Pay Merchant",
+        onPressedLeading: () {
+          Get.back();
+          Get.back();
+        },
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+        scaffoldBody: isLoadingMerch
+            ? const LoadingCard(text: "Loading…")
+            : Column(children: [
                 _merchantHeaderCard(context, cs, borderOpacity),
                 spacing(height: 12),
                 Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: ListView(
-                      physics: const BouncingScrollPhysics(),
-                      children: [
-                        LuvpayText(
-                          text: "Amount",
-                          style: AppTextStyle.body1(context),
-                          color: cs.onBackground.withAlpha(250),
-                        ),
-                        CustomTextField(
-                          hintText: "Enter payment amount",
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          controller: amountController,
-                          inputFormatters: [AutoDecimalInputFormatter()],
-                          validator: _validateAmount,
-                        ),
-                        spacing(height: 14),
-                        LuvpayText(
-                          color: cs.onBackground.withAlpha(250),
-                          text: "Order Number (Optional)",
-                          style: AppTextStyle.body1(context),
-                        ),
-                        CustomTextField(
-                          hintText: "Enter order number",
-                          keyboardType: TextInputType.number,
-                          controller: orderNumberController,
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(20),
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                        ),
-                        spacing(height: 14),
-                        LuvpayText(
-                          color: cs.onBackground.withAlpha(250),
-                          text: "Pay from",
-                          style: AppTextStyle.body1(context),
-                        ),
-                        spacing(height: 10),
-                        _balanceCard(context, cs, borderOpacity),
-                        spacing(height: 22),
-                        CustomButton(
-                          text: "Pay now",
-                          isInactive: !isAmountValid,
-                          onPressed: () {
-                            onPayPressed();
-                          },
-                        ),
-                        spacing(height: 24),
-                        _hintCard(context, cs, borderOpacity),
-                        spacing(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _merchantHeaderCard(
-    BuildContext context,
-    ColorScheme cs,
-    double borderOpacity,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final merchantName = _capitalize(
-      (widget.data[0]["data"]?["merchant_name"] ??
-              widget.data[0]["merchant_name"] ??
-              "Merchant")
-          .toString(),
-    );
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-        boxShadow: [
-          BoxShadow(
-            color: cs.shadow.withOpacity(isDark ? 0.28 : 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: cs.onSurface.withOpacity(borderOpacity),
-              ),
-            ),
-            child: Icon(LucideIcons.store, color: cs.primary, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LuvpayText(
-                  text: merchantName,
-                  style: AppTextStyle.h3(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.2),
-                  color: cs.onSurface,
-                  maxLines: 1,
-                ),
-                const SizedBox(height: 3),
-                LuvpayText(
-                  text: "Enter amount and confirm payment",
-                  style: AppTextStyle.body2(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w700),
-                  color: cs.onSurface.withOpacity(0.65),
-                  maxLines: 1,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _balanceCard(
-    BuildContext context,
-    ColorScheme cs,
-    double borderOpacity,
-  ) {
-    return InfoRowTile(
-      onTap: () {
-        showModalBottomSheet(
-            isScrollControlled: true,
-            useSafeArea: true,
-            context: context,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            builder: (context) {
-              return DraggableScrollableSheet(
-                initialChildSize: 0.5,
-                minChildSize: 0.4,
-                maxChildSize: 0.9,
-                expand: false,
-                builder: (context, controller) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(20),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 4,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        Expanded(
-                          child: ListView(
-                            controller: controller,
+                    child: Form(
+                        key: _formKey,
+                        child: ListView(
                             physics: const BouncingScrollPhysics(),
                             children: [
                               LuvpayText(
-                                text: "Select Wallet",
-                                style: AppTextStyle.h3(context).copyWith(
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              InfoRowTile(
-                                onTap: () {
-                                  setState(() {
-                                    selectedWalletName = "Main Wallet";
-                                    selectedWalletBalance = mainWalletBalance;
-                                    selectedWalletId = "";
-                                    selectedWalletIsShared = false;
-                                  });
+                                  text: "Amount",
+                                  style: AppTextStyle.body1(context),
+                                  color: cs.onBackground.withAlpha(250)),
+                              CustomTextField(
+                                  hintText: "Enter payment amount",
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  controller: amountController,
+                                  inputFormatters: [
+                                    AutoDecimalInputFormatter()
+                                  ],
+                                  validator: _validateAmount),
+                              spacing(height: 14),
+                              LuvpayText(
+                                  color: cs.onBackground.withAlpha(250),
+                                  text: "Order Number (Optional)",
+                                  style: AppTextStyle.body1(context)),
+                              CustomTextField(
+                                  hintText: "Enter order number",
+                                  keyboardType: TextInputType.number,
+                                  controller: orderNumberController,
+                                  inputFormatters: [
+                                    LengthLimitingTextInputFormatter(20),
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ]),
+                              spacing(height: 14),
+                              LuvpayText(
+                                  color: cs.onBackground.withAlpha(250),
+                                  text: "Pay from",
+                                  style: AppTextStyle.body1(context)),
+                              spacing(height: 10),
+                              _balanceCard(context, cs, borderOpacity),
+                              spacing(height: 22),
+                              CustomButton(
+                                  text: "Pay now",
+                                  isInactive: !isAmountValid,
+                                  onPressed: () {
+                                    onPayPressed();
+                                  }),
+                              spacing(height: 24),
+                              _hintCard(context, cs, borderOpacity),
+                              spacing(height: 20),
+                            ]))),
+              ]));
+  }
 
-                                  _revalidateForm();
-                                  Get.back();
-                                },
-                                title: "Main Wallet",
-                                subtitle: toCurrencyString(
-                                    mainWalletBalance.toString()),
-                                trailing: selectedWalletName == "Main Wallet"
-                                    ? Icon(Icons.check,
+  Widget _merchantHeaderCard(
+      BuildContext context, ColorScheme cs, double borderOpacity) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final merchantName = _capitalize((widget.data[0]["data"]
+                ?["merchant_name"] ??
+            widget.data[0]["merchant_name"] ??
+            "Merchant")
+        .toString());
+
+    return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        decoration: BoxDecoration(
+            color: cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
+            boxShadow: [
+              BoxShadow(
+                  color: cs.shadow.withOpacity(isDark ? 0.28 : 0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10)),
+            ]),
+        child: Row(children: [
+          Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                  color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                      color: cs.onSurface.withOpacity(borderOpacity))),
+              child: Icon(LucideIcons.store, color: cs.primary, size: 20)),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                LuvpayText(
+                    text: merchantName,
+                    style: AppTextStyle.h3(context).copyWith(
+                        fontWeight: FontWeight.w900, letterSpacing: -0.2),
+                    color: cs.onSurface,
+                    maxLines: 1),
+                const SizedBox(height: 3),
+                LuvpayText(
+                    text: "Enter amount and confirm payment",
+                    style: AppTextStyle.body2(context)
+                        .copyWith(fontWeight: FontWeight.w700),
+                    color: cs.onSurface.withOpacity(0.65),
+                    maxLines: 1),
+              ])),
+        ]));
+  }
+
+  Widget _balanceCard(
+      BuildContext context, ColorScheme cs, double borderOpacity) {
+    return InfoRowTile(
+        onTap: () {
+          showModalBottomSheet(
+              isScrollControlled: true,
+              useSafeArea: true,
+              context: context,
+              shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(20))),
+              builder: (context) {
+                return DraggableScrollableSheet(
+                    initialChildSize: 0.5,
+                    minChildSize: 0.4,
+                    maxChildSize: 0.9,
+                    expand: false,
+                    builder: (context, controller) {
+                      return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(20))),
+                          child: Column(children: [
+                            Container(
+                                width: 40,
+                                height: 4,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(10))),
+                            Expanded(
+                                child: ListView(
+                                    controller: controller,
+                                    physics: const BouncingScrollPhysics(),
+                                    children: [
+                                  LuvpayText(
+                                      text: "Select Wallet",
+                                      style: AppTextStyle.h3(context).copyWith(
+                                          fontWeight: FontWeight.w900)),
+                                  const SizedBox(height: 16),
+                                  InfoRowTile(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedWalletName = "Main Wallet";
+                                          selectedWalletBalance =
+                                              mainWalletBalance;
+                                          selectedWalletId = "";
+                                          selectedWalletIsShared = false;
+                                        });
+
+                                        _revalidateForm();
+                                        Get.back();
+                                      },
+                                      title: "Main Wallet",
+                                      subtitle: toCurrencyString(
+                                          mainWalletBalance.toString()),
+                                      trailing:
+                                          selectedWalletName == "Main Wallet"
+                                              ? Icon(Icons.check,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary)
+                                              : null),
+                                  const SizedBox(height: 10),
+                                  if (subWallets.isNotEmpty)
+                                    LuvpayText(
+                                        text: "Subwallets",
+                                        style: AppTextStyle.body1(context)
+                                            .copyWith(
+                                                fontWeight: FontWeight.w800),
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .primary)
-                                    : null,
-                              ),
-                              const SizedBox(height: 10),
-                              if (subWallets.isNotEmpty)
-                                LuvpayText(
-                                  text: "Subwallets",
-                                  style: AppTextStyle.body1(context).copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withOpacity(0.7),
-                                ),
-                              const SizedBox(height: 10),
-                              ...subWallets.map((wallet) {
-                                final name = wallet["name"] ?? "Subwallet";
-                                final bal = wallet["amount"] ?? 0;
-                                final isSelected = selectedWalletName == name;
-                                final isShared =
-                                    wallet["shared_to_user_id"] != null;
+                                            .onSurface
+                                            .withOpacity(0.7)),
+                                  const SizedBox(height: 10),
+                                  ...subWallets.map((wallet) {
+                                    final name = wallet["name"] ?? "Subwallet";
+                                    final bal = wallet["amount"] ?? 0;
+                                    final isSelected =
+                                        selectedWalletName == name;
+                                    final isShared =
+                                        wallet["shared_to_user_id"] != null;
 
-                                return Padding(
-                                  padding: const EdgeInsets.only(left: 12),
-                                  child: InfoRowTile(
-                                    onTap: bal == 0
-                                        ? () {}
-                                        : () {
-                                            setState(() {
-                                              selectedWalletName = name;
-                                              selectedWalletBalance =
-                                                  double.tryParse(
-                                                          bal.toString()) ??
-                                                      0.0;
-                                              selectedWalletId =
-                                                  wallet["id"].toString();
-                                              selectedWalletIsShared = isShared;
+                                    return Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 12),
+                                        child: InfoRowTile(
+                                            onTap: bal == 0
+                                                ? () {}
+                                                : () {
+                                                    setState(() {
+                                                      selectedWalletName = name;
+                                                      selectedWalletBalance =
+                                                          double.tryParse(bal
+                                                                  .toString()) ??
+                                                              0.0;
+                                                      selectedWalletId =
+                                                          wallet["id"]
+                                                              .toString();
+                                                      selectedWalletIsShared =
+                                                          isShared;
 
-                                              sharedUserId = isShared
-                                                  ? wallet["user_id"].toString()
-                                                  : "";
-                                            });
+                                                      sharedUserId = isShared
+                                                          ? wallet["user_id"]
+                                                              .toString()
+                                                          : "";
+                                                    });
 
-                                            _revalidateForm();
-                                            Get.back();
-                                          },
-                                    titleWidget: Row(
-                                      children: [
-                                        LuvpayText(
-                                          text: name,
-                                          style: AppTextStyle.body1(context)
-                                              .copyWith(
-                                            fontWeight: FontWeight.w700,
-                                            color: isSelected
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface,
-                                          ),
-                                        ),
-                                        if (isShared)
-                                          LuvpayText(
-                                            text: " (Shared)",
-                                            color: AppColorV2.correctState,
-                                          ),
-                                      ],
-                                    ),
-                                    subtitle: toCurrencyString(bal.toString()),
-                                    trailing: isSelected
-                                        ? Icon(Icons.check,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary)
-                                        : null,
-                                  ),
-                                );
-                              }),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            });
-      },
-      titleWidget: Row(
-        children: [
+                                                    _revalidateForm();
+                                                    Get.back();
+                                                  },
+                                            titleWidget: Row(children: [
+                                              LuvpayText(
+                                                  text: name,
+                                                  style: AppTextStyle.body1(
+                                                          context)
+                                                      .copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: isSelected
+                                                              ? Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .primary
+                                                              : Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .onSurface)),
+                                              if (isShared)
+                                                LuvpayText(
+                                                    text: " (Shared)",
+                                                    color: AppColorV2
+                                                        .correctState),
+                                            ]),
+                                            subtitle: toCurrencyString(
+                                                bal.toString()),
+                                            trailing: isSelected
+                                                ? Icon(Icons.check,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary)
+                                                : null));
+                                  }),
+                                ])),
+                          ]));
+                    });
+              });
+        },
+        titleWidget: Row(children: [
           LuvpayText(text: selectedWalletName),
           if (selectedWalletIsShared)
-            LuvpayText(
-              text: " (Shared)",
-              color: AppColorV2.correctState,
-            ),
-        ],
-      ),
-      subtitle: toCurrencyString(selectedWalletBalance.toString()),
-      trailing: Icon(
-        CupertinoIcons.chevron_down,
-        color: cs.onSurface,
-      ),
-    );
+            LuvpayText(text: " (Shared)", color: AppColorV2.correctState),
+        ]),
+        subtitle: toCurrencyString(selectedWalletBalance.toString()),
+        trailing: Icon(CupertinoIcons.chevron_down, color: cs.onSurface));
   }
 
   Widget _hintCard(BuildContext context, ColorScheme cs, double borderOpacity) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            LucideIcons.shieldCheck,
-            size: 18,
-            color: cs.primary.withOpacity(isDark ? 0.95 : 1),
-          ),
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+            color: cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity))),
+        child: Row(children: [
+          Icon(LucideIcons.shieldCheck,
+              size: 18, color: cs.primary.withOpacity(isDark ? 0.95 : 1)),
           const SizedBox(width: 10),
           Expanded(
-            child: LuvpayText(
-              text: "You may be asked to verify via biometrics or OTP.",
-              style: AppTextStyle.body2(
-                context,
-              ).copyWith(fontWeight: FontWeight.w700),
-              color: cs.onSurface.withOpacity(0.70),
-              maxLines: 2,
-            ),
-          ),
-        ],
-      ),
-    );
+              child: LuvpayText(
+                  text: "You may be asked to verify via biometrics or OTP.",
+                  style: AppTextStyle.body2(context)
+                      .copyWith(fontWeight: FontWeight.w700),
+                  color: cs.onSurface.withOpacity(0.70),
+                  maxLines: 2)),
+        ]));
   }
 }
 
 class AutoDecimalInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
+      TextEditingValue oldValue, TextEditingValue newValue) {
     if (newValue.text.isEmpty) return newValue;
 
     final numericValue = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
@@ -708,9 +639,8 @@ class AutoDecimalInputFormatter extends TextInputFormatter {
     final formattedValue = (value / 100).toStringAsFixed(2);
 
     return TextEditingValue(
-      text: formattedValue,
-      selection: TextSelection.collapsed(offset: formattedValue.length),
-    );
+        text: formattedValue,
+        selection: TextSelection.collapsed(offset: formattedValue.length));
   }
 }
 

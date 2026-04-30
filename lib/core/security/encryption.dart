@@ -7,10 +7,7 @@ import 'package:pointycastle/export.dart' as crypto;
 
 class Encryption_ {
   Future<Uint8List> encryptData(
-    Uint8List secretKey,
-    Uint8List iv,
-    String plainText,
-  ) async {
+      Uint8List secretKey, Uint8List iv, String plainText) async {
     final cipher = crypto.GCMBlockCipher(crypto.AESEngine());
     final keyParams = crypto.KeyParameter(secretKey);
     final cipherParams = crypto.ParametersWithIV(keyParams, iv);
@@ -23,10 +20,7 @@ class Encryption_ {
   }
 
   Future<Uint8List> decryptData(
-    Uint8List secretKey,
-    Uint8List nonce,
-    Uint8List cipherText,
-  ) async {
+      Uint8List secretKey, Uint8List nonce, Uint8List cipherText) async {
     final cipher = crypto.GCMBlockCipher(crypto.AESEngine());
     final keyParams = crypto.KeyParameter(secretKey);
     final cipherParams = crypto.ParametersWithIV(keyParams, nonce);
@@ -68,9 +62,7 @@ class Encryption_ {
   }
 
   Future<String> decryptUBUriPage(
-    String encryptedDataBase64,
-    String secretKeyHex,
-  ) async {
+      String encryptedDataBase64, String secretKeyHex) async {
     final secretKey = hexStringToArrayBuffer(secretKeyHex);
 
     final encryptedData = base64Decode(encryptedDataBase64);

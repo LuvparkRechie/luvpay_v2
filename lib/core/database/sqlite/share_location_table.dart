@@ -31,7 +31,7 @@
 //     const textType = 'TEXT NULL';
 //     const integerType = 'INTEGER NULL';
 //     await db.execute('''
-//       CREATE TABLE ${Variables.shareLocTable} (  
+//       CREATE TABLE ${Variables.shareLocTable} (
 //         ${ShareLocationDataFields.connectMateId} $integerType,
 //           ${ShareLocationDataFields.updatedDate} $textType
 //         )
@@ -58,8 +58,8 @@
 //         batch.rawUpdate(
 //           '''
 //           UPDATE ${Variables.shareLocTable}
-//           SET ${ShareLocationDataFields.connectMateId} = ?,  
-//               ${ShareLocationDataFields.updatedDate} = ? 
+//           SET ${ShareLocationDataFields.connectMateId} = ?,
+//               ${ShareLocationDataFields.updatedDate} = ?
 //           WHERE ${ShareLocationDataFields.connectMateId} = ?
 //           ''',
 //           [

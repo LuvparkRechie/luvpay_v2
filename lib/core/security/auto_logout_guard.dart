@@ -19,10 +19,8 @@ class ExpiryConfig {
 }
 
 class AutoLogoutGuard {
-  static const ExpiryConfig awayExpiry = ExpiryConfig(
-    5,
-    ExpiryUnit.minutes,
-  ); //number and unit
+  static const ExpiryConfig awayExpiry =
+      ExpiryConfig(5, ExpiryUnit.minutes); //number and unit
 
   static const int _awayAlarmId = 92001;
 
@@ -82,21 +80,16 @@ class AutoLogoutGuard {
 
         // ignore: avoid_print
         debugPrint(
-          "[AutoLogoutGuard] ENTER background -> lastBg=$bgAt expiryAt=$expiryAt; alarm? ${Platform.isAndroid}",
-        );
+            "[AutoLogoutGuard] ENTER background -> lastBg=$bgAt expiryAt=$expiryAt; alarm? ${Platform.isAndroid}");
 
         if (Platform.isAndroid) {
           await AndroidAlarmManager.cancel(_awayAlarmId);
 
           final delayMs = expiryAt - bgAt;
           if (delayMs > 0) {
-            await AndroidAlarmManager.oneShot(
-              Duration(milliseconds: delayMs),
-              _awayAlarmId,
-              awayExpireAlarmEntry,
-              exact: true,
-              wakeup: true,
-            );
+            await AndroidAlarmManager.oneShot(Duration(milliseconds: delayMs),
+                _awayAlarmId, awayExpireAlarmEntry,
+                exact: true, wakeup: true);
           } else {
             box.write(kAwayExpired, true);
             try {
@@ -107,8 +100,7 @@ class AutoLogoutGuard {
       } else {
         // ignore: avoid_print
         debugPrint(
-          "[AutoLogoutGuard] already in background, skip overwriting lastBg",
-        );
+            "[AutoLogoutGuard] already in background, skip overwriting lastBg");
       }
       return;
     }
@@ -199,16 +191,8 @@ class AutoLogoutGuard {
     final int lastDay = _daysInMonth(newYear, newMonth);
     final int newDay = dt.day > lastDay ? lastDay : dt.day;
 
-    return DateTime(
-      newYear,
-      newMonth,
-      newDay,
-      dt.hour,
-      dt.minute,
-      dt.second,
-      dt.millisecond,
-      dt.microsecond,
-    );
+    return DateTime(newYear, newMonth, newDay, dt.hour, dt.minute, dt.second,
+        dt.millisecond, dt.microsecond);
   }
 
   static int _daysInMonth(int year, int month) {

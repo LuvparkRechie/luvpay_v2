@@ -94,9 +94,8 @@ class TamperGuard {
       bool trustedOk = false;
 
       try {
-        trustedNow = await AccurateTime.now().timeout(
-          const Duration(seconds: 5),
-        );
+        trustedNow =
+            await AccurateTime.now().timeout(const Duration(seconds: 5));
         trustedOk = trustedNow.year >= 2000;
       } catch (e) {
         trustedNow = DateTime.fromMillisecondsSinceEpoch(0);
@@ -119,9 +118,7 @@ class TamperGuard {
         return;
       } else {
         await prefs.setInt(
-          _kPrefLastTrustedOkEpochMs,
-          DateTime.now().millisecondsSinceEpoch,
-        );
+            _kPrefLastTrustedOkEpochMs, DateTime.now().millisecondsSinceEpoch);
       }
 
       final deviceNow = DateTime.now();
@@ -130,9 +127,7 @@ class TamperGuard {
       final driftSeconds = trustedNow.difference(deviceNow).inSeconds.abs();
       if (driftSeconds > allowedDriftSeconds) {
         await _trigger(
-          onTamperUi,
-          "Time/Date Tampered (drift: ${driftSeconds}s)",
-        );
+            onTamperUi, "Time/Date Tampered (drift: ${driftSeconds}s)");
         return;
       }
 
@@ -144,9 +139,7 @@ class TamperGuard {
         final rollbackSeconds = ((lastTrusted - nowEpoch) / 1000).round();
         if (rollbackSeconds > allowedRollbackSeconds) {
           await _trigger(
-            onTamperUi,
-            "Time Tampered (rollback: ${rollbackSeconds}s)",
-          );
+              onTamperUi, "Time Tampered (rollback: ${rollbackSeconds}s)");
           return;
         }
       }

@@ -61,18 +61,11 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
     };
 
     Functions().requestOtp(reqParam, (obj) async {
-      final timeExp = DateFormat(
-        "yyyy-MM-dd hh:mm:ss a",
-      ).parse(obj["otp_exp_dt"].toString());
+      final timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+          .parse(obj["otp_exp_dt"].toString());
 
-      final otpExpiry = DateTime(
-        timeExp.year,
-        timeExp.month,
-        timeExp.day,
-        timeExp.hour,
-        timeExp.minute,
-        timeExp.millisecond,
-      );
+      final otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+          timeExp.hour, timeExp.minute, timeExp.millisecond);
 
       final difference = otpExpiry.difference(timeNow);
 
@@ -98,26 +91,22 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
               }
 
               Functions.logoutUser(
-                uData == null
-                    ? widget.sessionId.toString()
-                    : uData["session_id"].toString(),
-                (isSuccess) async {
-                  if (isSuccess["is_true"]) {
-                    registerDevice();
-                  }
-                },
-              );
+                  uData == null
+                      ? widget.sessionId.toString()
+                      : uData["session_id"].toString(), (isSuccess) async {
+                if (isSuccess["is_true"]) {
+                  registerDevice();
+                }
+              });
             } else {
               isVerifiedOtp = false;
             }
           },
         };
 
-        final response = await Get.to(
-          OtpFieldScreen(arguments: navArgs),
-          transition: Transition.rightToLeftWithFade,
-          duration: const Duration(milliseconds: 350),
-        );
+        final response = await Get.to(OtpFieldScreen(arguments: navArgs),
+            transition: Transition.rightToLeftWithFade,
+            duration: const Duration(milliseconds: 350));
         Get.back(result: response);
         Get.back(result: response);
       }
@@ -142,10 +131,10 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
         "device_key": devKey.toString(),
       };
 
-      final response = await HttpRequestApi(
-        api: ApiKeys.postRegDevice,
-        parameters: postParamRegDev,
-      ).postBody();
+      final response = await Functions().requestHandler(
+          apiKey: ApiKeys.postRegDevice,
+          parameters: postParamRegDev,
+          method: "POST");
 
       if (Get.isDialogOpen == true) {
         Navigator.of(ctx, rootNavigator: true).pop();
@@ -160,11 +149,10 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
       if (response == null) {
         Get.back(result: {"success": false});
         CustomDialogStack.showError(
-          Get.context!,
-          "Error",
-          "Error while connecting to server, Please try again.",
-          () => Get.back(),
-        );
+            Get.context!,
+            "Error",
+            "Error while connecting to server, Please try again.",
+            () => Get.back());
         return;
       }
 
@@ -176,34 +164,25 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
 
         if (args["cb"] == null) {
           CustomDialogStack.showSuccess(
-            Get.context!,
-            "Success!",
-            "Device registration complete. Please login to continue.",
-            () => Get.offAndToNamed(Routes.login),
-            leftText: "Okay",
-          );
+              Get.context!,
+              "Success!",
+              "Device registration complete. Please login to continue.",
+              () => Get.offAndToNamed(Routes.login),
+              leftText: "Okay");
         } else {
           args["cb"]();
         }
       } else {
         Get.back(result: {"success": false});
         CustomDialogStack.showError(
-          Get.context!,
-          "Error",
-          response["msg"],
-          () => Get.back(),
-        );
+            Get.context!, "Error", response["msg"], () => Get.back());
       }
     } catch (_) {
       if (Get.isDialogOpen == true) {
         Navigator.of(ctx, rootNavigator: true).pop();
       }
-      CustomDialogStack.showError(
-        ctx,
-        "luvpay",
-        "Something went wrong. Please try again.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(ctx, "luvpay",
+          "Something went wrong. Please try again.", () => Get.back());
     }
   }
 
@@ -220,94 +199,74 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
     final outline = cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
-          .copyWith(
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: surface,
-        systemNavigationBarIconBrightness:
-            isDark ? Brightness.light : Brightness.dark,
-      ),
-      child: CustomScaffoldV2(
-        enableToolBar: false,
-        padding: EdgeInsets.zero,
-        backgroundColor: surface,
-        scaffoldBody: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-          child: Column(
-            children: [
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      children: [
-                        SvgPicture.asset(
-                          "assets/images/register_device.svg",
-                          height: 180,
-                        ),
-                        const SizedBox(height: 18),
-                        LuvpayText(
-                          maxLines: 1,
-                          text: "New sign-in detected",
-                          textAlign: TextAlign.center,
-                          style: AppTextStyle.h1(context),
-                          color: onSurface,
-                        ),
-                        const SizedBox(height: 8),
-                        LuvpayText(
+        value: (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+            .copyWith(
+                statusBarColor: Colors.transparent,
+                systemNavigationBarColor: surface,
+                systemNavigationBarIconBrightness:
+                    isDark ? Brightness.light : Brightness.dark),
+        child: CustomScaffoldV2(
+            enableToolBar: false,
+            padding: EdgeInsets.zero,
+            backgroundColor: surface,
+            scaffoldBody: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                child: Column(children: [
+                  Expanded(
+                      child: Center(
+                          child: SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              child: Column(children: [
+                                SvgPicture.asset(
+                                    "assets/images/register_device.svg",
+                                    height: 180),
+                                const SizedBox(height: 18),
+                                LuvpayText(
+                                    maxLines: 1,
+                                    text: "New sign-in detected",
+                                    textAlign: TextAlign.center,
+                                    style: AppTextStyle.h1(context),
+                                    color: onSurface),
+                                const SizedBox(height: 8),
+                                LuvpayText(
+                                    text:
+                                        "Register this device to keep your account secure.\nYou can always do this later.",
+                                    textAlign: TextAlign.center,
+                                    style: AppTextStyle.paragraph2(context)
+                                        .copyWith(height: 1.35)),
+                                const SizedBox(height: 16),
+                                InfoRowTile(
+                                    title: "Mobile number",
+                                    onTap: () {},
+                                    icon: Icons.phone_iphone_rounded,
+                                    subtitle: widget.mobileNo),
+                                const SizedBox(height: 18),
+                                SizedBox(
+                                    width: double.infinity,
+                                    child: CustomButton(
+                                        bordercolor: outline,
+                                        text: "Register this device",
+                                        onPressed: isVerifiedOtp
+                                            ? registerDevice
+                                            : onRegisterDev)),
+                                const SizedBox(height: 10),
+                                CustomButton(
+                                    bordercolor: outline,
+                                    btnColor: Colors.transparent,
+                                    text: "Later",
+                                    textColor: brand,
+                                    onPressed: () => Get.back()),
+                              ])))),
+                  Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: LuvpayText(
                           text:
-                              "Register this device to keep your account secure.\nYou can always do this later.",
+                              "Tip: Registering helps prevent unauthorized access.",
                           textAlign: TextAlign.center,
-                          style: AppTextStyle.paragraph2(context).copyWith(
-                            height: 1.35,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        InfoRowTile(
-                          title: "Mobile number",
-                          onTap: () {},
-                          icon: Icons.phone_iphone_rounded,
-                          subtitle: widget.mobileNo,
-                        ),
-                        const SizedBox(height: 18),
-                        SizedBox(
-                          width: double.infinity,
-                          child: CustomButton(
-                            bordercolor: outline,
-                            text: "Register this device",
-                            onPressed:
-                                isVerifiedOtp ? registerDevice : onRegisterDev,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        CustomButton(
-                          bordercolor: outline,
-                          btnColor: Colors.transparent,
-                          text: "Later",
-                          textColor: brand,
-                          onPressed: () => Get.back(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: LuvpayText(
-                  text: "Tip: Registering helps prevent unauthorized access.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: onSurfaceVar.withOpacity(0.9),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: onSurfaceVar.withOpacity(0.9)))),
+                ]))));
   }
 }

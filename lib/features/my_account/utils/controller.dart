@@ -122,11 +122,9 @@ class UpdateProfileController extends GetxController {
   String toProperCase(String text) {
     return text
         .split(' ')
-        .map(
-          (word) => word.isNotEmpty
-              ? word[0].toUpperCase() + word.substring(1).toLowerCase()
-              : '',
-        )
+        .map((word) => word.isNotEmpty
+            ? word[0].toUpperCase() + word.substring(1).toLowerCase()
+            : '')
         .join(' ');
   }
 
@@ -186,32 +184,25 @@ class UpdateProfileController extends GetxController {
 
       CustomDialogStack.showLoading(Get.context!);
       executeCodeAddress(
-        "${ApiKeys.getProvince}?p_region_id=${userData['region_id']}",
-        1,
-        (data) {
+          "${ApiKeys.getProvince}?p_region_id=${userData['region_id']}", 1,
+          (data) {
+        if (data.isNotEmpty) {
+          provinceData.value = data;
+        }
+        executeCodeAddress(
+            "${ApiKeys.getCity}?p_province_id=${userData['province_id']}", 2,
+            (data) {
           if (data.isNotEmpty) {
-            provinceData.value = data;
+            cityData.value = data;
           }
           executeCodeAddress(
-            "${ApiKeys.getCity}?p_province_id=${userData['province_id']}",
-            2,
-            (data) {
-              if (data.isNotEmpty) {
-                cityData.value = data;
-              }
-              executeCodeAddress(
-                "${ApiKeys.getBrgy}?p_city_id=${userData['city_id']}",
-                3,
-                (data) {
-                  if (data.isNotEmpty) {
-                    brgyData.value = data;
-                  }
-                },
-              );
-            },
-          );
-        },
-      );
+              "${ApiKeys.getBrgy}?p_city_id=${userData['city_id']}", 3, (data) {
+            if (data.isNotEmpty) {
+              brgyData.value = data;
+            }
+          });
+        });
+      });
     }
   }
 
@@ -231,7 +222,7 @@ class UpdateProfileController extends GetxController {
   }
 
   Future<void> executeCodeAddress(String api, int index, Function cb) async {
-    final response = await HttpRequestApi(api: api).get();
+    final response = await Functions().requestHandler(apiKey: api);
 
     if (response == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -261,13 +252,12 @@ class UpdateProfileController extends GetxController {
   Future<void> selectDate(BuildContext context) async {
     DateTime timeNow = await Functions.getTimeNow();
     DateTime? datePicker = await showDatePicker(
-      initialEntryMode: DatePickerEntryMode.calendarOnly,
-      context: context,
-      initialDate: timeNow,
-      firstDate: DateTime(timeNow.year - 80),
-      lastDate: timeNow,
-      initialDatePickerMode: DatePickerMode.day,
-    );
+        initialEntryMode: DatePickerEntryMode.calendarOnly,
+        context: context,
+        initialDate: timeNow,
+        firstDate: DateTime(timeNow.year - 80),
+        lastDate: timeNow,
+        initialDatePickerMode: DatePickerMode.day);
 
     if (datePicker != null) {
       selectedDate = datePicker;
@@ -283,24 +273,20 @@ class UpdateProfileController extends GetxController {
 
       if (age < 12) {
         await showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const LuvpayText(text: 'Age Restriction'),
-              content: const LuvpayText(
-                text: 'You must be at least 12 years old to proceed.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const LuvpayText(text: 'OK'),
-                ),
-              ],
-            );
-          },
-        );
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                  title: const LuvpayText(text: 'Age Restriction'),
+                  content: const LuvpayText(
+                      text: 'You must be at least 12 years old to proceed.'),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const LuvpayText(text: 'OK')),
+                  ]);
+            });
       } else {
         dateTime = datePicker;
         bday.text = DateFormat('yyyy-MM-dd').format(datePicker);
@@ -319,7 +305,9 @@ class UpdateProfileController extends GetxController {
   }
 
   void getQuestionData() {
-    HttpRequestApi(api: ApiKeys.getSecDropdown).get().then((returnData) async {
+    Functions()
+        .requestHandler(apiKey: ApiKeys.getSecDropdown)
+        .then((returnData) async {
       isLoading.value = false;
       questionData.value = [];
       if (returnData == "No Internet") {
@@ -347,9 +335,8 @@ class UpdateProfileController extends GetxController {
     cityData.value = [];
     brgyData.value = [];
     CustomDialogStack.showLoading(Get.context!);
-    var returnData = await HttpRequestApi(
-      api: "${ApiKeys.getProvince}?p_region_id=$id",
-    ).get();
+    var returnData = await Functions()
+        .requestHandler(apiKey: "${ApiKeys.getProvince}?p_region_id=$id");
     Get.back();
     if (returnData == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -380,8 +367,8 @@ class UpdateProfileController extends GetxController {
     cityData.value = [];
     brgyData.value = [];
     CustomDialogStack.showLoading(Get.context!);
-    var returnData =
-        await HttpRequestApi(api: "${ApiKeys.getCity}?p_province_id=$id").get();
+    var returnData = await Functions()
+        .requestHandler(apiKey: "${ApiKeys.getCity}?p_province_id=$id");
     Get.back();
     if (returnData == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -410,8 +397,8 @@ class UpdateProfileController extends GetxController {
     selectedBrgy.value = null;
     brgyData.value = [];
     CustomDialogStack.showLoading(Get.context!);
-    var returnData =
-        await HttpRequestApi(api: "${ApiKeys.getBrgy}?p_city_id=$id").get();
+    var returnData = await Functions()
+        .requestHandler(apiKey: "${ApiKeys.getBrgy}?p_city_id=$id");
     Get.back();
     if (returnData == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -501,10 +488,13 @@ class UpdateProfileController extends GetxController {
       "image_base64": "",
     };
 
-    HttpRequestApi(
-      api: ApiKeys.putUpdateUserProf,
+    Functions()
+        .requestHandler(
+      apiKey: ApiKeys.putUpdateUserProf,
       parameters: submitParam,
-    ).putBody().then((res) async {
+      method: "PUT",
+    )
+        .then((res) async {
       Get.back();
       if (res == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
@@ -572,9 +562,7 @@ class UpdateProfileController extends GetxController {
 class DateTextInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
+      TextEditingValue oldValue, TextEditingValue newValue) {
     final digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
     final buffer = StringBuffer();
     int selectionIndex = newValue.selection.end;
@@ -588,8 +576,7 @@ class DateTextInputFormatter extends TextInputFormatter {
     }
 
     return TextEditingValue(
-      text: buffer.toString(),
-      selection: TextSelection.collapsed(offset: selectionIndex),
-    );
+        text: buffer.toString(),
+        selection: TextSelection.collapsed(offset: selectionIndex));
   }
 }

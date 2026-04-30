@@ -30,140 +30,99 @@ class TargetCard extends StatelessWidget {
     final radius = BorderRadius.circular(20);
 
     return LuvNeuPress(
-      radius: radius,
-      onTap: null,
-      depth: 1.6,
-      pressedDepth: -0.8,
-      overlayOpacity: 0.02,
-      borderColor: Colors.black.withAlpha(14),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          children: [
-            Row(
-              children: [
+        radius: radius,
+        onTap: null,
+        depth: 1.6,
+        pressedDepth: -0.8,
+        overlayOpacity: 0.02,
+        borderColor: Colors.black.withAlpha(14),
+        child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(children: [
+              Row(children: [
                 Expanded(
-                  child: LuvpayText(
-                    text: "Target",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black.withAlpha(170),
-                    ),
-                  ),
-                ),
-                LuvNeuPress(
-                  radius: BorderRadius.circular(14),
-                  onTap: onTapSet,
-                  depth: 1.2,
-                  pressedDepth: -0.9,
-                  overlayOpacity: 0.01,
-                  background: AppColorV2.background,
-                  borderColor: AppColorV2.lpBlueBrand.withAlpha(55),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 9,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          hasTarget ? Iconsax.edit_2 : Iconsax.flag,
-                          size: 16,
-                          color: AppColorV2.lpBlueBrand,
-                        ),
-                        const SizedBox(width: 8),
-                        LuvpayText(
-                          text: hasTarget ? "Update" : "Set target",
-                          style: TextStyle(
-                            fontSize: 12.5,
+                    child: LuvpayText(
+                        text: "Target",
+                        style: TextStyle(
+                            fontSize: 13,
                             fontWeight: FontWeight.w900,
-                            color: AppColorV2.lpBlueBrand,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
+                            color: Colors.black.withAlpha(170)))),
+                LuvNeuPress(
+                    radius: BorderRadius.circular(14),
+                    onTap: onTapSet,
+                    depth: 1.2,
+                    pressedDepth: -0.9,
+                    overlayOpacity: 0.01,
+                    background: AppColorV2.background,
+                    borderColor: AppColorV2.lpBlueBrand.withAlpha(55),
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 9),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(hasTarget ? Iconsax.edit_2 : Iconsax.flag,
+                              size: 16, color: AppColorV2.lpBlueBrand),
+                          const SizedBox(width: 8),
+                          LuvpayText(
+                              text: hasTarget ? "Update" : "Set target",
+                              style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColorV2.lpBlueBrand)),
+                        ]))),
+              ]),
+              const SizedBox(height: 12),
+              Row(children: [
                 Expanded(
-                  child: LuvpayText(
-                    text: hasTarget
-                        ? "₱ ${t.toStringAsFixed(2)}"
-                        : "No target set",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
+                    child: LuvpayText(
+                        text: hasTarget
+                            ? "₱ ${t.toStringAsFixed(2)}"
+                            : "No target set",
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w900))),
                 if (hasTarget)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999),
-                      color: AppColorV2.lpBlueBrand.withAlpha(12),
-                      border: Border.all(
-                        color: AppColorV2.lpBlueBrand.withAlpha(40),
-                      ),
-                    ),
-                    child: LuvpayText(
-                      text: percentText,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: AppColorV2.lpBlueBrand,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            if (hasTarget) ...[
-              const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: LinearProgressIndicator(
-                  value: pct,
-                  minHeight: 9,
-                  backgroundColor: Colors.black.withAlpha(10),
-                  valueColor: AlwaysStoppedAnimation(AppColorV2.lpBlueBrand),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: AppColorV2.lpBlueBrand.withAlpha(12),
+                          border: Border.all(
+                              color: AppColorV2.lpBlueBrand.withAlpha(40))),
+                      child: LuvpayText(
+                          text: percentText,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: AppColorV2.lpBlueBrand))),
+              ]),
+              if (hasTarget) ...[
+                const SizedBox(height: 10),
+                ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                        value: pct,
+                        minHeight: 9,
+                        backgroundColor: Colors.black.withAlpha(10),
+                        valueColor:
+                            AlwaysStoppedAnimation(AppColorV2.lpBlueBrand))),
+                const SizedBox(height: 8),
+                Row(children: [
                   LuvpayText(
-                    text: "Saved: ₱ ${balance.toStringAsFixed(2)}",
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black.withAlpha(130),
-                    ),
-                  ),
+                      text: "Saved: ₱ ${balance.toStringAsFixed(2)}",
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black.withAlpha(130))),
                   const Spacer(),
                   LuvpayText(
-                    text:
-                        "Remaining: ₱ ${(t - balance).clamp(0, double.infinity).toStringAsFixed(2)}",
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black.withAlpha(130),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+                      text:
+                          "Remaining: ₱ ${(t - balance).clamp(0, double.infinity).toStringAsFixed(2)}",
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black.withAlpha(130))),
+                ]),
+              ],
+            ])));
   }
 }

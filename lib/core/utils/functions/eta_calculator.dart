@@ -13,8 +13,7 @@ class EtaCalculators {
     const R = 6371;
     final dLat = _deg2rad(lat2 - lat1);
     final dLon = _deg2rad(lon2 - lon1);
-    final a =
-        sin(dLat / 2) * sin(dLat / 2) +
+    final a = sin(dLat / 2) * sin(dLat / 2) +
         cos(_deg2rad(lat1)) *
             cos(_deg2rad(lat2)) *
             sin(dLon / 2) *
@@ -27,11 +26,7 @@ class EtaCalculators {
 
   Map<String, dynamic> calculateEta() {
     final distanceKm = _haversine(
-      fromLoc.latitude,
-      fromLoc.longitude,
-      toLoc.latitude,
-      toLoc.longitude,
-    );
+        fromLoc.latitude, fromLoc.longitude, toLoc.latitude, toLoc.longitude);
 
     final speeds = {'car': 40.0, 'motorcycle': 50.0};
     final avgSpeed = speeds[vehicleType.toLowerCase()] ?? 40.0;

@@ -45,15 +45,13 @@ class NotificationDatabase {
   Future<void> insertUpdate(dynamic json) async {
     final db = await instance.database;
 
-    const columns =
-        '${NotificationDataFields.reservedId},'
+    const columns = '${NotificationDataFields.reservedId},'
         '${NotificationDataFields.userId},'
         '${NotificationDataFields.mTicketId},'
         '${NotificationDataFields.mreservedId},'
         '${NotificationDataFields.notifDate},'
         '${NotificationDataFields.dtIn}';
-    final insertValues =
-        "${json[NotificationDataFields.reservedId]},"
+    final insertValues = "${json[NotificationDataFields.reservedId]},"
         "${json[NotificationDataFields.userId]},"
         "${json[NotificationDataFields.mTicketId]},"
         "${json[NotificationDataFields.mreservedId]},"
@@ -67,8 +65,7 @@ class NotificationDatabase {
       await db!.transaction((txn) async {
         var batch = txn.batch();
 
-        batch.rawUpdate(
-          '''
+        batch.rawUpdate('''
           UPDATE ${Variables.notifTable}
           SET ${NotificationDataFields.reservedId} = ?, 
               ${NotificationDataFields.userId} = ?, 
@@ -78,17 +75,15 @@ class NotificationDatabase {
              
               ${NotificationDataFields.dtIn} = ? 
           WHERE ${NotificationDataFields.reservedId} = ?
-          ''',
-          [
-            json[NotificationDataFields.reservedId],
-            json[NotificationDataFields.userId],
-            json[NotificationDataFields.mTicketId],
-            json[NotificationDataFields.mreservedId],
-            json[NotificationDataFields.notifDate],
-            json[NotificationDataFields.dtIn],
-            json[NotificationDataFields.reservedId],
-          ],
-        );
+          ''', [
+          json[NotificationDataFields.reservedId],
+          json[NotificationDataFields.userId],
+          json[NotificationDataFields.mTicketId],
+          json[NotificationDataFields.mreservedId],
+          json[NotificationDataFields.notifDate],
+          json[NotificationDataFields.dtIn],
+          json[NotificationDataFields.reservedId],
+        ]);
 
         await batch.commit(noResult: true);
       });
@@ -97,8 +92,7 @@ class NotificationDatabase {
         var batch = txn.batch();
 
         batch.rawInsert(
-          'INSERT INTO ${Variables.notifTable} ($columns) VALUES ($insertValues)',
-        );
+            'INSERT INTO ${Variables.notifTable} ($columns) VALUES ($insertValues)');
 
         await batch.commit(noResult: true);
       });
@@ -108,12 +102,10 @@ class NotificationDatabase {
   Future<dynamic> readNotificationById(int id) async {
     final db = await instance.database;
 
-    final maps = await db!.query(
-      Variables.notifTable,
-      columns: NotificationDataFields.values,
-      where: '${NotificationDataFields.reservedId} = ?',
-      whereArgs: [id],
-    );
+    final maps = await db!.query(Variables.notifTable,
+        columns: NotificationDataFields.values,
+        where: '${NotificationDataFields.reservedId} = ?',
+        whereArgs: [id]);
 
     if (maps.isNotEmpty) {
       return maps.first;
@@ -125,12 +117,10 @@ class NotificationDatabase {
   Future<dynamic> readNotificationByResId(int reserveId) async {
     final db = await instance.database;
 
-    final maps = await db!.query(
-      Variables.notifTable,
-      columns: NotificationDataFields.values,
-      where: '${NotificationDataFields.reservedId} = ?',
-      whereArgs: [reserveId],
-    );
+    final maps = await db!.query(Variables.notifTable,
+        columns: NotificationDataFields.values,
+        where: '${NotificationDataFields.reservedId} = ?',
+        whereArgs: [reserveId]);
 
     if (maps.isNotEmpty) {
       return maps.first;
@@ -142,10 +132,8 @@ class NotificationDatabase {
   Future<List<dynamic>> readAllNotifications() async {
     final db = await instance.database;
 
-    final result = await db!.query(
-      Variables.notifTable,
-      orderBy: "${NotificationDataFields.reservedId} ASC",
-    );
+    final result = await db!.query(Variables.notifTable,
+        orderBy: "${NotificationDataFields.reservedId} ASC");
 
     return result;
   }
@@ -159,11 +147,8 @@ class NotificationDatabase {
   Future<int> deleteItem(int id) async {
     final db = await database;
 
-    return await db!.delete(
-      Variables.notifTable,
-      where: 'reserved_id = ?',
-      whereArgs: [id],
-    );
+    return await db!.delete(Variables.notifTable,
+        where: 'reserved_id = ?', whereArgs: [id]);
   }
 
   Future close() async {

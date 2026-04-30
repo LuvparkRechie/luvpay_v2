@@ -19,11 +19,9 @@ class Http3rdPartyRequest {
     } else {
       try {
         var response = await http
-            .post(
-              Uri.parse(Uri.decodeFull(Uri.https(url!, api!).toString())),
-              headers: {"Content-Type": 'application/json; charset=utf-8'},
-              body: json.encode(parameters),
-            )
+            .post(Uri.parse(Uri.decodeFull(Uri.https(url!, api!).toString())),
+                headers: {"Content-Type": 'application/json; charset=utf-8'},
+                body: json.encode(parameters))
             .timeout(Duration(seconds: 10));
 
         if (response.statusCode == 200) {
@@ -57,8 +55,7 @@ class Http3rdPartyRequest {
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           return jsonDecode(
-            utf8.decode(response.bodyBytes, allowMalformed: true),
-          );
+              utf8.decode(response.bodyBytes, allowMalformed: true));
         } else {
           return null;
         }
@@ -87,8 +84,7 @@ class Http3rdPartyRequest {
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           return jsonDecode(
-            utf8.decode(response.bodyBytes, allowMalformed: true),
-          );
+              utf8.decode(response.bodyBytes, allowMalformed: true));
         } else {
           return null;
         }

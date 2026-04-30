@@ -7,17 +7,14 @@ class HelpCenterController extends GetxController {
 
   Future<void> sendEmail() async {
     final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: 'support@luvpay.ph',
-      query: Uri.encodeFull(
-        'subject=LuvPay Support'
-        '&body='
-        'Name:%0D%0A'
-        'Mobile:%0D%0A'
-        'User ID:%0D%0A'
-        'Concern:%0D%0A',
-      ),
-    );
+        scheme: 'mailto',
+        path: 'support@luvpay.ph',
+        query: Uri.encodeFull('subject=LuvPay Support'
+            '&body='
+            'Name:%0D%0A'
+            'Mobile:%0D%0A'
+            'User ID:%0D%0A'
+            'Concern:%0D%0A'));
 
     if (await canLaunchUrl(emailUri)) {
       await launchUrl(emailUri);

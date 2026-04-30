@@ -79,19 +79,14 @@ class _OTPPreferenceState extends State<OTPPreference> {
     final controller = Get.put(SecuritySettingsController());
 
     return CustomScaffoldV2(
-      appBarTitle: "Security Preference",
-      enableToolBar: true,
-      padding: EdgeInsets.only(left: 10, right: 10, top: 10),
-      scaffoldBody: Column(
-        children: [
-          Obx(
-            () => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InfoRowTile(
+        appBarTitle: "Security Preference",
+        enableToolBar: true,
+        padding: EdgeInsets.only(left: 10, right: 10, top: 10),
+        scaffoldBody: Column(children: [
+          Obx(() =>
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  InfoRowTile(
                       icon: LucideIcons.user,
                       title: 'In-app OTP Generator',
                       subtitle:
@@ -99,145 +94,118 @@ class _OTPPreferenceState extends State<OTPPreference> {
                       subtitleMaxlines: 2,
                       onTap: toggleInAppOtp,
                       trailing: Container(
-                        width: 50,
-                        height: 25,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: isInAppOtp
-                              ? AppColorV2.lpBlueBrand
-                              : AppColorV2.inactiveButton,
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
+                          width: 50,
+                          height: 25,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: isInAppOtp
+                                  ? AppColorV2.lpBlueBrand
+                                  : AppColorV2.inactiveButton),
+                          child: Stack(alignment: Alignment.center, children: [
                             AnimatedPositioned(
-                              duration: Duration(milliseconds: 200),
-                              left: isInAppOtp ? 30 : 5,
-                              child: Container(
-                                width: 15,
-                                height: 15,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 2.0,
-                                      spreadRadius: 1.0,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      trailingOnTap: toggleInAppOtp,
-                    ),
+                                duration: Duration(milliseconds: 200),
+                                left: isInAppOtp ? 30 : 5,
+                                child: Container(
+                                    width: 15,
+                                    height: 15,
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(30),
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Colors.black26,
+                                              blurRadius: 2.0,
+                                              spreadRadius: 1.0),
+                                        ]))),
+                          ])),
+                      trailingOnTap: toggleInAppOtp),
 
-                    InfoRowTile(
+                  InfoRowTile(
                       icon: LucideIcons.shield,
                       title: 'Login Security',
                       subtitle: "Enable secure login with biometrics.",
                       subtitleMaxlines: 2,
                       onTap: () {
                         controller.toggleBiometricAuthentication(
-                          !controller.isToggle.value,
-                        );
+                            !controller.isToggle.value);
                       },
                       trailing: Container(
-                        width: 50,
-                        height: 25,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: controller.isToggle.value
-                              ? AppColorV2.lpBlueBrand
-                              : AppColorV2.inactiveButton,
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
+                          width: 50,
+                          height: 25,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              color: controller.isToggle.value
+                                  ? AppColorV2.lpBlueBrand
+                                  : AppColorV2.inactiveButton),
+                          child: Stack(alignment: Alignment.center, children: [
                             AnimatedPositioned(
-                              duration: Duration(milliseconds: 200),
-                              left: controller.isToggle.value ? 30 : 5,
-                              child: Container(
-                                width: 15,
-                                height: 15,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 2.0,
-                                      spreadRadius: 1.0,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                                duration: Duration(milliseconds: 200),
+                                left: controller.isToggle.value ? 30 : 5,
+                                child: Container(
+                                    width: 15,
+                                    height: 15,
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(30),
+                                        boxShadow: [
+                                          BoxShadow(
+                                              color: Colors.black26,
+                                              blurRadius: 2.0,
+                                              spreadRadius: 1.0),
+                                        ]))),
+                          ])),
                       trailingOnTap: () {
                         controller.toggleBiometricAuthentication(
-                          !controller.isToggle.value,
-                        );
-                      },
-                    ),
-                    // InfoRowTile(
-                    //   icon: LucideIcons.receipt,
-                    //   title: 'Transaction Security',
-                    //   subtitle: "Secure transactions with biometrics.",
-                    //   subtitleMaxlines: 2,
-                    //   onTap: () {
-                    //     controller.toggleBiometricAuthentication(
-                    //       !controller.isToggle.value,
-                    //     );
-                    //   },
-                    //   trailing: Container(
-                    //     width: 50,
-                    //     height: 25,
-                    //     decoration: BoxDecoration(
-                    //       borderRadius: BorderRadius.circular(30),
-                    //       color: controller.isToggle.value
-                    //           ? AppColorV2.lpBlueBrand
-                    //           : AppColorV2.inactiveButton,
-                    //     ),
-                    //     child: Stack(
-                    //       alignment: Alignment.center,
-                    //       children: [
-                    //         AnimatedPositioned(
-                    //           duration: Duration(milliseconds: 200),
-                    //           left: controller.isToggle.value ? 30 : 5,
-                    //           child: Container(
-                    //             width: 15,
-                    //             height: 15,
-                    //             decoration: BoxDecoration(
-                    //               color: Colors.white,
-                    //               borderRadius: BorderRadius.circular(30),
-                    //               boxShadow: [
-                    //                 BoxShadow(
-                    //                   color: Colors.black26,
-                    //                   blurRadius: 2.0,
-                    //                   spreadRadius: 1.0,
-                    //                 ),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    //   trailingOnTap: setBioTrans,
-                    // ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+                            !controller.isToggle.value);
+                      }),
+                  // InfoRowTile(
+                  //   icon: LucideIcons.receipt,
+                  //   title: 'Transaction Security',
+                  //   subtitle: "Secure transactions with biometrics.",
+                  //   subtitleMaxlines: 2,
+                  //   onTap: () {
+                  //     controller.toggleBiometricAuthentication(
+                  //       !controller.isToggle.value,
+                  //     );
+                  //   },
+                  //   trailing: Container(
+                  //     width: 50,
+                  //     height: 25,
+                  //     decoration: BoxDecoration(
+                  //       borderRadius: BorderRadius.circular(30),
+                  //       color: controller.isToggle.value
+                  //           ? AppColorV2.lpBlueBrand
+                  //           : AppColorV2.inactiveButton,
+                  //     ),
+                  //     child: Stack(
+                  //       alignment: Alignment.center,
+                  //       children: [
+                  //         AnimatedPositioned(
+                  //           duration: Duration(milliseconds: 200),
+                  //           left: controller.isToggle.value ? 30 : 5,
+                  //           child: Container(
+                  //             width: 15,
+                  //             height: 15,
+                  //             decoration: BoxDecoration(
+                  //               color: Colors.white,
+                  //               borderRadius: BorderRadius.circular(30),
+                  //               boxShadow: [
+                  //                 BoxShadow(
+                  //                   color: Colors.black26,
+                  //                   blurRadius: 2.0,
+                  //                   spreadRadius: 1.0,
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  //   trailingOnTap: setBioTrans,
+                  // ),
+                ]),
+              ])),
+        ]));
   }
 }

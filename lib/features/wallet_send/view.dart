@@ -32,8 +32,7 @@ class WalletSend extends GetView<WalletSendController> {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    return Obx(
-      () => CustomScaffoldV2(
+    return Obx(() => CustomScaffoldV2(
         padding: EdgeInsets.zero,
         canPop: false,
         enableToolBar: true,
@@ -42,11 +41,8 @@ class WalletSend extends GetView<WalletSendController> {
           Get.back();
         },
         scaffoldBody: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
-          child: page1(context, cs, isDark),
-        ),
-      ),
-    );
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
+            child: page1(context, cs, isDark))));
   }
 
   Widget page1(BuildContext context, ColorScheme cs, bool isDark) {
@@ -54,157 +50,154 @@ class WalletSend extends GetView<WalletSendController> {
     final onSurfaceVar = cs.onSurfaceVariant;
 
     return ScrollConfiguration(
-      behavior: ScrollBehavior().copyWith(overscroll: false),
-      child: controller.isLoading.value
-          ? Center(child: LoadingCard())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Form(
-                    key: controller.formKeySend,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 14),
-                        UserDetails(isEdit: false),
-                        const SizedBox(height: 14),
-                        Obx(() {
-                          final recipientReady = controller
-                                  .recipientData.isNotEmpty &&
-                              controller.isValidUser.value == true &&
-                              controller.recipientData[0]["mobile_no"] != null;
-
-                          if (!recipientReady) return const SizedBox.shrink();
-
-                          return Column(
+        behavior: ScrollBehavior().copyWith(overscroll: false),
+        child: controller.isLoading.value
+            ? Center(child: LoadingCard())
+            : SingleChildScrollView(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                    Form(
+                        key: controller.formKeySend,
+                        child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              LuvpayText(text: "Amount", color: onSurface),
-                              CustomTextField(
-                                hintText: "Enter amount",
-                                controller: controller.tokenAmount,
-                                inputFormatters: [
-                                  AutoDecimalInputFormatter(),
-                                ],
-                                keyboardType: Platform.isAndroid
-                                    ? TextInputType.number
-                                    : const TextInputType.numberWithOptions(
-                                        signed: true,
-                                        decimal: false,
-                                      ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return "Amount is required";
-                                  }
-
-                                  double parsedValue;
-                                  try {
-                                    parsedValue = double.parse(value);
-                                  } catch (_) {
-                                    return "Invalid amount";
-                                  }
-
-                                  double availableBalance;
-                                  try {
-                                    availableBalance = double.parse(
-                                      controller.userData.isEmpty
-                                          ? "0.0"
-                                          : controller.userData[0]["amount_bal"]
-                                              .toString(),
-                                    );
-                                  } catch (_) {
-                                    return "Error retrieving balance";
-                                  }
-
-                                  if (parsedValue < 10) {
-                                    return "Amount can’t be less than 10";
-                                  }
-                                  if (parsedValue > availableBalance) {
-                                    return "You don't have enough balance to proceed";
-                                  }
-                                  return null;
-                                },
-                              ),
                               const SizedBox(height: 14),
-                              Row(
-                                children: [
-                                  LuvpayText(
-                                    text: "Description",
-                                    color: onSurface,
-                                  ),
-                                  const SizedBox(width: 5),
-                                  LuvpayText(
-                                    text: "(Optional)",
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: onSurfaceVar.withOpacity(0.8),
-                                  ),
-                                ],
-                              ),
-                              CustomTextField(
-                                inputFormatters: [
-                                  LengthLimitingTextInputFormatter(30),
-                                ],
-                                maxLength: 30,
-                                controller: controller.message,
-                                maxLines: 5,
-                                minLines: 3,
-                              ),
-                              const SizedBox(height: 30),
-                              CustomButton(
-                                text: "Continue",
-                                btnColor: AppColorV2.lpBlueBrand,
-                                onPressed: () async {
-                                  if (controller.formKeySend.currentState!
-                                      .validate()) {
-                                    final item =
-                                        await Authentication().getUserData2();
+                              UserDetails(isEdit: false),
+                              const SizedBox(height: 14),
+                              Obx(() {
+                                final recipientReady = controller
+                                        .recipientData.isNotEmpty &&
+                                    controller.isValidUser.value == true &&
+                                    controller.recipientData[0]["mobile_no"] !=
+                                        null;
 
-                                    if (controller.recipientData.isNotEmpty &&
-                                        item["mobile_no"].toString() ==
-                                            controller.recipientData[0]
-                                                    ["mobile_no"]
-                                                .toString()) {
-                                      controller.isValidUser.value = false;
-                                      return;
-                                    }
+                                if (!recipientReady)
+                                  return const SizedBox.shrink();
 
-                                    if (double.parse(
-                                          controller.userData.isEmpty
-                                              ? "0.0"
-                                              : controller.userData[0]
-                                                      ["amount_bal"]
-                                                  .toString(),
-                                        ) <
-                                        double.parse(
-                                          controller.tokenAmount.text
-                                              .toString()
-                                              .removeAllWhitespace,
-                                        )) {
-                                      CustomDialogStack.showSnackBar(
-                                        Get.context!,
-                                        "Insufficient balance.",
-                                        Colors.red,
-                                        () {},
-                                      );
-                                      return;
-                                    }
+                                return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      LuvpayText(
+                                          text: "Amount", color: onSurface),
+                                      CustomTextField(
+                                          hintText: "Enter amount",
+                                          controller: controller.tokenAmount,
+                                          inputFormatters: [
+                                            AutoDecimalInputFormatter(),
+                                          ],
+                                          keyboardType: Platform.isAndroid
+                                              ? TextInputType.number
+                                              : const TextInputType
+                                                  .numberWithOptions(
+                                                  signed: true, decimal: false),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return "Amount is required";
+                                            }
 
-                                    await controller.proceedToOtp();
-                                  }
-                                },
-                              ),
-                            ],
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-    );
+                                            double parsedValue;
+                                            try {
+                                              parsedValue = double.parse(value);
+                                            } catch (_) {
+                                              return "Invalid amount";
+                                            }
+
+                                            double availableBalance;
+                                            try {
+                                              availableBalance = double.parse(
+                                                  controller.userData.isEmpty
+                                                      ? "0.0"
+                                                      : controller.userData[0]
+                                                              ["amount_bal"]
+                                                          .toString());
+                                            } catch (_) {
+                                              return "Error retrieving balance";
+                                            }
+
+                                            if (parsedValue < 10) {
+                                              return "Amount can’t be less than 10";
+                                            }
+                                            if (parsedValue >
+                                                availableBalance) {
+                                              return "You don't have enough balance to proceed";
+                                            }
+                                            return null;
+                                          }),
+                                      const SizedBox(height: 14),
+                                      Row(children: [
+                                        LuvpayText(
+                                            text: "Description",
+                                            color: onSurface),
+                                        const SizedBox(width: 5),
+                                        LuvpayText(
+                                            text: "(Optional)",
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500,
+                                            color:
+                                                onSurfaceVar.withOpacity(0.8)),
+                                      ]),
+                                      CustomTextField(
+                                          inputFormatters: [
+                                            LengthLimitingTextInputFormatter(
+                                                30),
+                                          ],
+                                          maxLength: 30,
+                                          controller: controller.message,
+                                          maxLines: 5,
+                                          minLines: 3),
+                                      const SizedBox(height: 30),
+                                      CustomButton(
+                                          text: "Continue",
+                                          btnColor: AppColorV2.lpBlueBrand,
+                                          onPressed: () async {
+                                            if (controller
+                                                .formKeySend.currentState!
+                                                .validate()) {
+                                              final item =
+                                                  await Authentication()
+                                                      .getUserData2();
+
+                                              if (controller.recipientData
+                                                      .isNotEmpty &&
+                                                  item["mobile_no"]
+                                                          .toString() ==
+                                                      controller
+                                                          .recipientData[0]
+                                                              ["mobile_no"]
+                                                          .toString()) {
+                                                controller.isValidUser.value =
+                                                    false;
+                                                return;
+                                              }
+
+                                              if (double.parse(controller
+                                                          .userData.isEmpty
+                                                      ? "0.0"
+                                                      : controller.userData[0]
+                                                              ["amount_bal"]
+                                                          .toString()) <
+                                                  double.parse(controller
+                                                      .tokenAmount.text
+                                                      .toString()
+                                                      .removeAllWhitespace)) {
+                                                CustomDialogStack.showSnackBar(
+                                                    Get.context!,
+                                                    "Insufficient balance.",
+                                                    Colors.red,
+                                                    () {});
+                                                return;
+                                              }
+
+                                              await controller.proceedToOtp();
+                                            }
+                                          }),
+                                    ]);
+                              }),
+                            ])),
+                  ])));
   }
 }
 
@@ -258,11 +251,7 @@ class _UserDetailsState extends State<UserDetails> {
     final normalized = ct.normalizeMobile(mobileNumber);
     if (normalized == null) {
       CustomDialogStack.showError(
-        context,
-        "Error",
-        "Invalid mobile number format",
-        () => Get.back(),
-      );
+          context, "Error", "Invalid mobile number format", () => Get.back());
       return;
     }
 
@@ -297,47 +286,38 @@ class _UserDetailsState extends State<UserDetails> {
     final radius = BorderRadius.circular(16);
 
     return LuvNeuPress.rectangle(
-      radius: radius,
-      onTap: onTap,
-      background: surface,
-      borderColor: cs.outlineVariant.withOpacity(isDark ? 0.18 : 0.30),
-      depth: LuvNeu.iconDepth,
-      pressedDepth: LuvNeu.iconPressedDepth,
-      pressedScale: 0.985,
-      pressedTranslateY: 1.0,
-      overlayOpacity: isDark ? 0.0 : 0.02,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 220),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LuvpayText(
-                    text: title,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: cs.onSurface,
-                    maxLines: 1,
-                  ),
-                  const SizedBox(height: 2),
-                  LuvpayText(
-                    text: subtitle,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: cs.onSurfaceVariant.withOpacity(0.85),
-                    maxLines: 1,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+        radius: radius,
+        onTap: onTap,
+        background: surface,
+        borderColor: cs.outlineVariant.withOpacity(isDark ? 0.18 : 0.30),
+        depth: LuvNeu.iconDepth,
+        pressedDepth: LuvNeu.iconPressedDepth,
+        pressedScale: 0.985,
+        pressedTranslateY: 1.0,
+        overlayOpacity: isDark ? 0.0 : 0.02,
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        LuvpayText(
+                            text: title,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: cs.onSurface,
+                            maxLines: 1),
+                        const SizedBox(height: 2),
+                        LuvpayText(
+                            text: subtitle,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurfaceVariant.withOpacity(0.85),
+                            maxLines: 1),
+                      ])),
+            ])));
   }
 
   @override
@@ -349,316 +329,284 @@ class _UserDetailsState extends State<UserDetails> {
     final onSheetBody = cs.onSurface;
 
     return PopScope(
-      canPop: false,
-      child: Wrap(
-        children: [
+        canPop: false,
+        child: Wrap(children: [
           Container(
-            decoration: BoxDecoration(color: sheetBodyBg),
-            child: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    LuvpayText(
-                      text: "Recipient Number",
-                      color: onSheetBody,
-                      style: AppTextStyle.body1(context),
-                    ),
-                    CustomMobileNumber(
-                      hintText: "Enter mobile number",
-                      controller: mobileNo,
-                      inputFormatters: [Variables.maskFormatter],
-                      onChange: (value) {
-                        final clean = value.replaceAll(" ", "");
-                        ct.isValidUser.value = true;
-
-                        if (clean.length < 10) {
-                          ct.recipientData.clear();
-                          ct.userName.value = "";
-                        }
-
-                        _debounce?.cancel();
-                        _debounce = Timer(
-                          const Duration(milliseconds: 450),
-                          () async {
-                            if (clean.length == 10) {
-                              final ok =
-                                  _formKey.currentState?.validate() ?? false;
-                              if (!ok) return;
-
-                              await ct.getRecipient("63$clean");
-                              _formKey.currentState?.validate();
-                            }
-                          },
-                        );
-                      },
-                      validator: (value) {
-                        final clean = value?.replaceAll(" ", "") ?? "";
-
-                        if (clean.isEmpty) return 'Field is required';
-                        if (clean.length != 10) return 'Invalid mobile number';
-                        if (clean.startsWith('0')) {
-                          return 'Invalid mobile number';
-                        }
-
-                        return null;
-                      },
-                      suffixBgC: Colors.transparent,
-                      suffixWidget: Padding(
-                        padding: const EdgeInsets.only(right: 19),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+              decoration: BoxDecoration(color: sheetBodyBg),
+              child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            InkWell(
-                              onTap: () async {
-                                FocusManager.instance.primaryFocus?.unfocus();
+                            LuvpayText(
+                                text: "Recipient Number",
+                                color: onSheetBody,
+                                style: AppTextStyle.body1(context)),
+                            CustomMobileNumber(
+                                hintText: "Enter mobile number",
+                                controller: mobileNo,
+                                inputFormatters: [Variables.maskFormatter],
+                                onChange: (value) {
+                                  final clean = value.replaceAll(" ", "");
+                                  ct.isValidUser.value = true;
 
-                                await Get.to(
-                                  () => ScannerScreenV2(
-                                    isBack: false,
-                                    onchanged: (args) {
-                                      if (args.isNotEmpty) {
-                                        Get.back();
-                                        _applyNumber(args);
-                                      }
-                                    },
-                                  ),
-                                );
-                              },
-                              child: const Icon(LucideIcons.qrCode),
-                            ),
-                            const SizedBox(width: 14),
-                            InkWell(
-                              onTap: selectSingleContact,
-                              child: const Icon(LucideIcons.contact),
-                            ),
-                          ],
-                        ),
-                      ),
-                      onIconTap: () {},
-                    ),
-                    const SizedBox(height: 12),
-                    Obx(() {
-                      final list = ct.recentRecipients;
-                      if (list.isEmpty) return const SizedBox.shrink();
+                                  if (clean.length < 10) {
+                                    ct.recipientData.clear();
+                                    ct.userName.value = "";
+                                  }
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LuvpayText(
-                            text: "Recent",
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: cs.onSurfaceVariant,
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            height: 60,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: list.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 10),
-                              itemBuilder: (context, i) {
-                                final item = list[i];
-                                final name = (item["name"] ?? "").toString();
-                                final mobile =
-                                    (item["mobile_no"] ?? "").toString();
+                                  _debounce?.cancel();
+                                  _debounce =
+                                      Timer(const Duration(milliseconds: 450),
+                                          () async {
+                                    if (clean.length == 10) {
+                                      final ok =
+                                          _formKey.currentState?.validate() ??
+                                              false;
+                                      if (!ok) return;
 
-                                final title =
-                                    name.isEmpty ? "Recent recipient" : name;
-                                final subtitle = mobile.startsWith("63")
-                                    ? "+$mobile"
-                                    : mobile;
+                                      await ct.getRecipient("63$clean");
+                                      _formKey.currentState?.validate();
+                                    }
+                                  });
+                                },
+                                validator: (value) {
+                                  final clean =
+                                      value?.replaceAll(" ", "") ?? "";
 
-                                return _chip(title, subtitle, () async {
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  await _applyNumber(mobile);
-                                }, icon: LucideIcons.clock3);
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                      );
-                    }),
-                    ValueListenableBuilder<TextEditingValue>(
-                      valueListenable: mobileNo,
-                      builder: (context, value, _) {
-                        final clean = value.text.replaceAll(" ", "");
+                                  if (clean.isEmpty) return 'Field is required';
+                                  if (clean.length != 10)
+                                    return 'Invalid mobile number';
+                                  if (clean.startsWith('0')) {
+                                    return 'Invalid mobile number';
+                                  }
 
-                        if (clean.isEmpty) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  LucideIcons.sparkles,
-                                  size: 14,
-                                  color: cs.onSurfaceVariant.withOpacity(0.75),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: LuvpayText(
-                                    text:
-                                        "Choose a recent recipient, scan QR, or pick from Contacts.",
-                                    fontSize: 12,
-                                    color: cs.onSurfaceVariant.withOpacity(
-                                      0.85,
-                                    ),
-                                    maxLines: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
+                                  return null;
+                                },
+                                suffixBgC: Colors.transparent,
+                                suffixWidget: Padding(
+                                    padding: const EdgeInsets.only(right: 19),
+                                    child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          InkWell(
+                                              onTap: () async {
+                                                FocusManager
+                                                    .instance.primaryFocus
+                                                    ?.unfocus();
 
-                        if (clean.length < 10) {
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 6),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  LucideIcons.keyboard,
-                                  size: 14,
-                                  color: cs.onSurfaceVariant.withOpacity(0.75),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: LuvpayText(
-                                    text:
-                                        "Enter ${10 - clean.length} more digit(s) to verify",
-                                    fontSize: 12,
-                                    color: cs.onSurfaceVariant.withOpacity(
-                                      0.85,
-                                    ),
-                                    maxLines: 1,
-                                  ),
-                                ),
-                                LuvpayText(
-                                  text: "${clean.length}/10",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: cs.onSurfaceVariant.withOpacity(
-                                      0.85,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
+                                                await Get.to(
+                                                    () => ScannerScreenV2(
+                                                        isBack: false,
+                                                        onchanged: (args) {
+                                                          if (args.isNotEmpty) {
+                                                            Get.back();
+                                                            _applyNumber(args);
+                                                          }
+                                                        }));
+                                              },
+                                              child: const Icon(
+                                                  LucideIcons.qrCode)),
+                                          const SizedBox(width: 14),
+                                          InkWell(
+                                              onTap: selectSingleContact,
+                                              child: const Icon(
+                                                  LucideIcons.contact)),
+                                        ])),
+                                onIconTap: () {}),
+                            const SizedBox(height: 12),
+                            Obx(() {
+                              final list = ct.recentRecipients;
+                              if (list.isEmpty) return const SizedBox.shrink();
 
-                        return Obx(() {
-                          final loading = ct.isRecipientLookupLoading.value;
-                          final valid = ct.isValidUser.value;
-                          final name = ct.userName.value;
-                          final hasRecipient = ct.recipientData.isNotEmpty &&
-                              ct.recipientData[0]["mobile_no"] != null;
+                              return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    LuvpayText(
+                                        text: "Recent",
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: cs.onSurfaceVariant),
+                                    const SizedBox(height: 8),
+                                    SizedBox(
+                                        height: 60,
+                                        child: ListView.separated(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: list.length,
+                                            separatorBuilder: (_, __) =>
+                                                const SizedBox(width: 10),
+                                            itemBuilder: (context, i) {
+                                              final item = list[i];
+                                              final name = (item["name"] ?? "")
+                                                  .toString();
+                                              final mobile =
+                                                  (item["mobile_no"] ?? "")
+                                                      .toString();
 
-                          if (loading) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Row(
-                                children: [
-                                  const SizedBox(
-                                    height: 16,
-                                    width: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  LuvpayText(
-                                    text: "Checking…",
-                                    fontSize: 12,
-                                    color: cs.onSurfaceVariant.withOpacity(
-                                      0.85,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
+                                              final title = name.isEmpty
+                                                  ? "Recent recipient"
+                                                  : name;
+                                              final subtitle =
+                                                  mobile.startsWith("63")
+                                                      ? "+$mobile"
+                                                      : mobile;
 
-                          if (!valid && hasRecipient) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline_rounded,
-                                    size: 16,
-                                    color: AppColorV2.incorrectState,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: LuvpayText(
-                                      text:
-                                          "Invalid account. Please enter a different number.",
-                                      fontSize: 12,
-                                      color: AppColorV2.incorrectState,
-                                      maxLines: 2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
+                                              return _chip(title, subtitle,
+                                                  () async {
+                                                FocusManager
+                                                    .instance.primaryFocus
+                                                    ?.unfocus();
+                                                await _applyNumber(mobile);
+                                              }, icon: LucideIcons.clock3);
+                                            })),
+                                    const SizedBox(height: 8),
+                                  ]);
+                            }),
+                            ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: mobileNo,
+                                builder: (context, value, _) {
+                                  final clean = value.text.replaceAll(" ", "");
 
-                          if (valid && hasRecipient) {
-                            final displayName = (name.isEmpty ||
-                                    name.toLowerCase().contains("unknown"))
-                                ? "Verified account"
-                                : name;
+                                  if (clean.isEmpty) {
+                                    return Padding(
+                                        padding: const EdgeInsets.only(top: 6),
+                                        child: Row(children: [
+                                          Icon(LucideIcons.sparkles,
+                                              size: 14,
+                                              color: cs.onSurfaceVariant
+                                                  .withOpacity(0.75)),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                              child: LuvpayText(
+                                                  text:
+                                                      "Choose a recent recipient, scan QR, or pick from Contacts.",
+                                                  fontSize: 12,
+                                                  color: cs.onSurfaceVariant
+                                                      .withOpacity(0.85),
+                                                  maxLines: 2)),
+                                        ]));
+                                  }
 
-                            final isUnverified = displayName
-                                .toLowerCase()
-                                .contains("unverified");
+                                  if (clean.length < 10) {
+                                    return Padding(
+                                        padding: const EdgeInsets.only(top: 6),
+                                        child: Row(children: [
+                                          Icon(LucideIcons.keyboard,
+                                              size: 14,
+                                              color: cs.onSurfaceVariant
+                                                  .withOpacity(0.75)),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                              child: LuvpayText(
+                                                  text:
+                                                      "Enter ${10 - clean.length} more digit(s) to verify",
+                                                  fontSize: 12,
+                                                  color: cs.onSurfaceVariant
+                                                      .withOpacity(0.85),
+                                                  maxLines: 1)),
+                                          LuvpayText(
+                                              text: "${clean.length}/10",
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: cs.onSurfaceVariant
+                                                      .withOpacity(0.85))),
+                                        ]));
+                                  }
 
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.verified_rounded,
-                                    size: 16,
-                                    color: isUnverified
-                                        ? cs.onSurfaceVariant
-                                        : AppColorV2.lpBlueBrand,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: LuvpayText(
-                                      text: displayName,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: isUnverified
-                                          ? cs.onSurfaceVariant
-                                          : AppColorV2.lpBlueBrand,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
+                                  return Obx(() {
+                                    final loading =
+                                        ct.isRecipientLookupLoading.value;
+                                    final valid = ct.isValidUser.value;
+                                    final name = ct.userName.value;
+                                    final hasRecipient =
+                                        ct.recipientData.isNotEmpty &&
+                                            ct.recipientData[0]["mobile_no"] !=
+                                                null;
 
-                          return const SizedBox.shrink();
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+                                    if (loading) {
+                                      return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 6),
+                                          child: Row(children: [
+                                            const SizedBox(
+                                                height: 16,
+                                                width: 16,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                        strokeWidth: 2)),
+                                            const SizedBox(width: 10),
+                                            LuvpayText(
+                                                text: "Checking…",
+                                                fontSize: 12,
+                                                color: cs.onSurfaceVariant
+                                                    .withOpacity(0.85)),
+                                          ]));
+                                    }
+
+                                    if (!valid && hasRecipient) {
+                                      return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 6),
+                                          child: Row(children: [
+                                            const Icon(
+                                                Icons.error_outline_rounded,
+                                                size: 16,
+                                                color:
+                                                    AppColorV2.incorrectState),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                                child: LuvpayText(
+                                                    text:
+                                                        "Invalid account. Please enter a different number.",
+                                                    fontSize: 12,
+                                                    color: AppColorV2
+                                                        .incorrectState,
+                                                    maxLines: 2)),
+                                          ]));
+                                    }
+
+                                    if (valid && hasRecipient) {
+                                      final displayName = (name.isEmpty ||
+                                              name
+                                                  .toLowerCase()
+                                                  .contains("unknown"))
+                                          ? "Verified account"
+                                          : name;
+
+                                      final isUnverified = displayName
+                                          .toLowerCase()
+                                          .contains("unverified");
+
+                                      return Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 6),
+                                          child: Row(children: [
+                                            Icon(Icons.verified_rounded,
+                                                size: 16,
+                                                color: isUnverified
+                                                    ? cs.onSurfaceVariant
+                                                    : AppColorV2.lpBlueBrand),
+                                            const SizedBox(width: 6),
+                                            Expanded(
+                                                child: LuvpayText(
+                                                    text: displayName,
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isUnverified
+                                                        ? cs.onSurfaceVariant
+                                                        : AppColorV2
+                                                            .lpBlueBrand,
+                                                    maxLines: 1)),
+                                          ]));
+                                    }
+
+                                    return const SizedBox.shrink();
+                                  });
+                                }),
+                          ])))),
+        ]));
   }
 }

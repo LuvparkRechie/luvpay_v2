@@ -9,16 +9,13 @@ void showCupertinoSnackBar({
 }) {
   const animationDurationMillis = 200;
   final overlayEntry = OverlayEntry(
-    builder: (context) => _CupertinoSnackBar(
-      message: message,
-      animationDurationMillis: animationDurationMillis,
-      waitDurationMillis: durationMillis,
-    ),
-  );
+      builder: (context) => _CupertinoSnackBar(
+          message: message,
+          animationDurationMillis: animationDurationMillis,
+          waitDurationMillis: durationMillis));
   Future.delayed(
-    Duration(milliseconds: durationMillis + 2 * animationDurationMillis),
-    overlayEntry.remove,
-  );
+      Duration(milliseconds: durationMillis + 2 * animationDurationMillis),
+      overlayEntry.remove);
   Overlay.of(context).insert(overlayEntry);
 }
 
@@ -54,26 +51,21 @@ class _CupertinoSnackBarState extends State<_CupertinoSnackBar> {
   @override
   Widget build(BuildContext context) {
     return AnimatedPositioned(
-      bottom: _show
-          ? MediaQuery.sizeOf(context).height * 0.8
-          : MediaQuery.sizeOf(context).height,
-      left: 42.0,
-      right: 42.0,
-      curve: _show ? Curves.linearToEaseOut : Curves.easeInToLinear,
-      duration: Duration(milliseconds: widget.animationDurationMillis),
-      child: CupertinoPopupSurface(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-          child: LuvpayText(
-            text: widget.message,
-            style: const TextStyle(
-              fontSize: 18.0,
-              color: CupertinoColors.black,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
-    );
+        bottom: _show
+            ? MediaQuery.sizeOf(context).height * 0.8
+            : MediaQuery.sizeOf(context).height,
+        left: 42.0,
+        right: 42.0,
+        curve: _show ? Curves.linearToEaseOut : Curves.easeInToLinear,
+        duration: Duration(milliseconds: widget.animationDurationMillis),
+        child: CupertinoPopupSurface(
+            child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                child: LuvpayText(
+                    text: widget.message,
+                    style: const TextStyle(
+                        fontSize: 18.0, color: CupertinoColors.black),
+                    textAlign: TextAlign.center))));
   }
 }

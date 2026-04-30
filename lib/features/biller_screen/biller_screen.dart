@@ -17,7 +17,6 @@ import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/spacing.dart';
 import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/features/biller_screen/bill_receipt.dart';
 
 import '../../shared/widgets/neumorphism.dart';
@@ -124,19 +123,13 @@ class _BillerScreenState extends State<BillerScreen> {
   }
 
   Future<dynamic> getSharedpaymentHK(userId) async {
-    final paymentKey =
-        await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userId").get();
-    if (paymentKey == "No Internet") {
-      CustomDialogStack.showConnectionLost(Get.context!, () {
-        Get.back();
-      });
-      return null;
-    }
+    final paymentKey = await Functions().requestHandler(
+        apiKey: "${ApiKeys.getPaymentKey}$userId",
+        onError: (message) {
+          _showRequestError(message);
+        });
 
-    if (paymentKey == null) {
-      CustomDialogStack.showServerError(Get.context!, () {
-        Get.back();
-      });
+    if (paymentKey == null || paymentKey is String) {
       return null;
     }
 
@@ -149,6 +142,15 @@ class _BillerScreenState extends State<BillerScreen> {
       Get.back();
     });
     return null;
+  }
+
+  void _showRequestError(String message) {
+    if (message.toLowerCase().contains("internet")) {
+      CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
+      return;
+    }
+
+    CustomDialogStack.showServerError(Get.context!, () => Get.back());
   }
 
   Future<void> _requestOtpThenPay(VoidCallback onVerified) async {
@@ -172,25 +174,17 @@ class _BillerScreenState extends State<BillerScreen> {
             (objData["success"] == "Y" || objData["status"] == "PENDING");
         if (!isOk) {
           CustomDialogStack.showError(
-            Get.context!,
-            "Error",
-            objData["msg"]?.toString() ?? "Failed to request OTP",
-            () => Get.back(),
-          );
+              Get.context!,
+              "Error",
+              objData["msg"]?.toString() ?? "Failed to request OTP",
+              () => Get.back());
           return;
         }
 
-        final timeExp = DateFormat(
-          "yyyy-MM-dd hh:mm:ss a",
-        ).parse(objData["otp_exp_dt"].toString());
-        final otpExpiry = DateTime(
-          timeExp.year,
-          timeExp.month,
-          timeExp.day,
-          timeExp.hour,
-          timeExp.minute,
-          timeExp.second,
-        );
+        final timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
+            .parse(objData["otp_exp_dt"].toString());
+        final otpExpiry = DateTime(timeExp.year, timeExp.month, timeExp.day,
+            timeExp.hour, timeExp.minute, timeExp.second);
 
         final difference = otpExpiry.difference(timeNow);
 
@@ -209,11 +203,9 @@ class _BillerScreenState extends State<BillerScreen> {
           },
         };
 
-        final resOtp = await Get.to(
-          OtpFieldScreen(arguments: args),
-          transition: Transition.rightToLeftWithFade,
-          duration: const Duration(milliseconds: 400),
-        );
+        final resOtp = await Get.to(OtpFieldScreen(arguments: args),
+            transition: Transition.rightToLeftWithFade,
+            duration: const Duration(milliseconds: 400));
         if (resOtp == null) {
           Get.back(result: true);
           return;
@@ -291,46 +283,43 @@ class _BillerScreenState extends State<BillerScreen> {
       "service_fee": serviceFee,
     };
     String api = ApiKeys.postPayBills;
-    HttpRequestApi(
-      api: api,
-      parameters: parameter,
-    ).postBody().then((returnPost) async {
-      Get.back();
-      if (returnPost == "No Internet") {
-        CustomDialogStack.showConnectionLost(Get.context!, () => Get.back());
-        return;
-      }
+    final returnPost = await Functions().requestHandler(
+        apiKey: api,
+        method: "POST",
+        parameters: parameter,
+        onError: (message) {
+          _showRequestError(message);
+        });
 
-      if (returnPost == null) {
-        CustomDialogStack.showServerError(Get.context!, () => Get.back());
-        return;
-      }
+    Get.back();
 
-      if (returnPost["success"] == 'Y') {
-        _billAcctController.clear();
-        _billNoController.clear();
-        _accountNameController.clear();
-        _amountController.clear();
+    if (returnPost == null || returnPost is String) {
+      return;
+    }
 
-        final result = await Get.to(
-          BillPaymentReceipt(
-            apiResponse: returnPost,
-            paymentParams: parameter,
-          ),
-        );
+    if (returnPost is! Map) {
+      CustomDialogStack.showServerError(Get.context!, () => Get.back());
+      return;
+    }
 
-        if (result != null) Get.back(result: true);
-        WalletRefreshBus.refresher();
-        return;
-      }
+    final returnPostMap = Map<String, dynamic>.from(returnPost);
 
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        returnPost["msg"],
-        () => Get.back(),
-      );
-    });
+    if (returnPostMap["success"] == 'Y') {
+      _billAcctController.clear();
+      _billNoController.clear();
+      _accountNameController.clear();
+      _amountController.clear();
+
+      final result = await Get.to(BillPaymentReceipt(
+          apiResponse: returnPostMap, paymentParams: parameter));
+
+      if (result != null) Get.back(result: true);
+      WalletRefreshBus.refresher();
+      return;
+    }
+
+    CustomDialogStack.showError(
+        Get.context!, "Error", returnPostMap["msg"], () => Get.back());
   }
 
   @override
@@ -341,321 +330,278 @@ class _BillerScreenState extends State<BillerScreen> {
 
     final borderOpacity = isDark ? 0.05 : 0.01;
 
-    final billerName = _capitalize(
-      (widget.data[0]["biller_name"] ?? "Biller").toString(),
-    );
+    final billerName =
+        _capitalize((widget.data[0]["biller_name"] ?? "Biller").toString());
     final serviceFeeText = (widget.data[0]["service_fee"] ?? "0").toString();
     final hasServiceFee = serviceFeeText.isNotEmpty && serviceFeeText != "0";
 
     return CustomScaffoldV2(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      appBarTitle: "Pay Billers",
-      onPressedLeading: () {
-        Get.back();
-      },
-      scaffoldBody: Column(
-        children: [
-          _headerCard(
-            context,
-            cs: cs,
-            isDark: isDark,
-            borderOpacity: borderOpacity,
-            title: billerName,
-          ),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+        appBarTitle: "Pay Billers",
+        onPressedLeading: () {
+          Get.back();
+        },
+        scaffoldBody: Column(children: [
+          _headerCard(context,
+              cs: cs,
+              isDark: isDark,
+              borderOpacity: borderOpacity,
+              title: billerName),
           spacing(height: 12),
           Expanded(
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  spacing(height: 18),
-                  LuvpayText(
-                    text: "Bill Account Number",
-                    style: AppTextStyle.body1(context),
-                    color: cs.onBackground.withAlpha(250),
-                  ),
-                  CustomTextField(
-                    keyboardType: TextInputType.number,
-                    controller: _billAcctController,
-                    hintText: 'Enter bill account number',
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(15),
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Account number is required";
-                      }
-                      if (value.length < 5) {
-                        return "Account number must be at least 5 digits";
-                      }
-                      if (value.length > 15) {
-                        return "Account number must not exceed 15 digits";
-                      }
-                      return null;
-                    },
-                  ),
-                  spacing(height: 14),
-                  LuvpayText(
-                    text: "Bill Number",
-                    style: AppTextStyle.body1(context),
-                    color: cs.onBackground.withAlpha(250),
-                  ),
-                  CustomTextField(
-                    controller: _billNoController,
-                    hintText: 'Enter bill number',
-                    inputFormatters: [
-                      UpperCaseTextFormatter(),
-                      LengthLimitingTextInputFormatter(15),
-                    ],
-                    validator: (value) => (value == null || value.isEmpty)
-                        ? 'Please enter bill number'
-                        : null,
-                  ),
-                  spacing(height: 14),
-                  LuvpayText(
-                    text: "Account Name",
-                    style: AppTextStyle.body1(context),
-                    color: cs.onBackground.withAlpha(250),
-                  ),
-                  CustomTextField(
-                    controller: _accountNameController,
-                    hintText: 'Enter account name',
-                    keyboardType: TextInputType.name,
-                    textCapitalization: TextCapitalization.characters,
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(30),
-                      TextInputFormatter.withFunction((oldValue, newValue) {
-                        final filtered = newValue.text
-                            .toUpperCase()
-                            .replaceAll(RegExp(r'[^A-Z\s]'), '')
-                            .replaceAll(RegExp(r'\s+'), ' ');
-                        return TextEditingValue(
-                          text: filtered,
-                          selection: TextSelection.collapsed(
-                            offset: filtered.length,
-                          ),
-                        );
-                      }),
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Account name is required";
-                      }
-                      if (value.startsWith(' ') || value.endsWith(' ')) {
-                        return "Account name cannot start or end with a space";
-                      }
-                      return null;
-                    },
-                  ),
-                  spacing(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: LuvpayText(
-                          text: "Amount",
-                          color: cs.onBackground.withAlpha(250),
-                          style: AppTextStyle.body1(context),
-                        ),
-                      ),
-                      if (hasServiceFee)
+              child: Form(
+                  key: _formKey,
+                  child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      children: [
+                        spacing(height: 18),
                         LuvpayText(
-                          text: "+$serviceFeeText Service Fee",
-                          style: AppTextStyle.body2(
-                            context,
-                          ).copyWith(fontWeight: FontWeight.w800),
-                          color: cs.onSurface.withOpacity(0.60),
-                        ),
-                    ],
-                  ),
-                  CustomTextField(
-                    controller: _amountController,
-                    hintText: "Enter payment amount",
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      AutoDecimalInputFormatter(),
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    validator: _validateAmount,
-                  ),
-                  spacing(height: 14),
-                  LuvpayText(
-                    text: "Pay from",
-                    style: AppTextStyle.body1(context),
-                    color: cs.onBackground.withAlpha(250),
-                  ),
-                  spacing(height: 10),
-                  myWallet(context),
-                  spacing(height: 18),
-                  _reviewHintCard(context, cs, borderOpacity),
-                  spacing(height: 18),
-                  CustomButton(
-                    text: "Pay now",
-                    onPressed: () async {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      if (!(_formKey.currentState?.validate() ?? false)) return;
+                            text: "Bill Account Number",
+                            style: AppTextStyle.body1(context),
+                            color: cs.onBackground.withAlpha(250)),
+                        CustomTextField(
+                            keyboardType: TextInputType.number,
+                            controller: _billAcctController,
+                            hintText: 'Enter bill account number',
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(15),
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Account number is required";
+                              }
+                              if (value.length < 5) {
+                                return "Account number must be at least 5 digits";
+                              }
+                              if (value.length > 15) {
+                                return "Account number must not exceed 15 digits";
+                              }
+                              return null;
+                            }),
+                        spacing(height: 14),
+                        LuvpayText(
+                            text: "Bill Number",
+                            style: AppTextStyle.body1(context),
+                            color: cs.onBackground.withAlpha(250)),
+                        CustomTextField(
+                            controller: _billNoController,
+                            hintText: 'Enter bill number',
+                            inputFormatters: [
+                              UpperCaseTextFormatter(),
+                              LengthLimitingTextInputFormatter(15),
+                            ],
+                            validator: (value) =>
+                                (value == null || value.isEmpty)
+                                    ? 'Please enter bill number'
+                                    : null),
+                        spacing(height: 14),
+                        LuvpayText(
+                            text: "Account Name",
+                            style: AppTextStyle.body1(context),
+                            color: cs.onBackground.withAlpha(250)),
+                        CustomTextField(
+                            controller: _accountNameController,
+                            hintText: 'Enter account name',
+                            keyboardType: TextInputType.name,
+                            textCapitalization: TextCapitalization.characters,
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(30),
+                              TextInputFormatter.withFunction(
+                                  (oldValue, newValue) {
+                                final filtered = newValue.text
+                                    .toUpperCase()
+                                    .replaceAll(RegExp(r'[^A-Z\s]'), '')
+                                    .replaceAll(RegExp(r'\s+'), ' ');
+                                return TextEditingValue(
+                                    text: filtered,
+                                    selection: TextSelection.collapsed(
+                                        offset: filtered.length));
+                              }),
+                            ],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Account name is required";
+                              }
+                              if (value.startsWith(' ') ||
+                                  value.endsWith(' ')) {
+                                return "Account name cannot start or end with a space";
+                              }
+                              return null;
+                            }),
+                        spacing(height: 14),
+                        Row(children: [
+                          Expanded(
+                              child: LuvpayText(
+                                  text: "Amount",
+                                  color: cs.onBackground.withAlpha(250),
+                                  style: AppTextStyle.body1(context))),
+                          if (hasServiceFee)
+                            LuvpayText(
+                                text: "+$serviceFeeText Service Fee",
+                                style: AppTextStyle.body2(context)
+                                    .copyWith(fontWeight: FontWeight.w800),
+                                color: cs.onSurface.withOpacity(0.60)),
+                        ]),
+                        CustomTextField(
+                            controller: _amountController,
+                            hintText: "Enter payment amount",
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            inputFormatters: [
+                              AutoDecimalInputFormatter(),
+                              LengthLimitingTextInputFormatter(10),
+                            ],
+                            validator: _validateAmount),
+                        spacing(height: 14),
+                        LuvpayText(
+                            text: "Pay from",
+                            style: AppTextStyle.body1(context),
+                            color: cs.onBackground.withAlpha(250)),
+                        spacing(height: 10),
+                        myWallet(context),
+                        spacing(height: 18),
+                        _reviewHintCard(context, cs, borderOpacity),
+                        spacing(height: 18),
+                        CustomButton(
+                            text: "Pay now",
+                            onPressed: () async {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              if (!(_formKey.currentState?.validate() ?? false))
+                                return;
 
-                      await _requestOtpThenPay(() {
-                        _submitForm();
-                      });
-                    },
-                  ),
-                  spacing(height: 20),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+                              await _requestOtpThenPay(() {
+                                _submitForm();
+                              });
+                            }),
+                        spacing(height: 20),
+                      ]))),
+        ]));
   }
 
   InfoRowTile myWallet(BuildContext context) {
     return InfoRowTile(
-      onTap: () {
-        showModalBottomSheet(
-          isScrollControlled: true,
-          useSafeArea: true,
-          context: context,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (context) {
-            return DraggableScrollableSheet(
-              initialChildSize: 0.5,
-              minChildSize: 0.4,
-              maxChildSize: 0.9,
-              expand: false,
-              builder: (context, controller) {
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView(
-                          controller: controller,
-                          children: [
-                            LuvpayText(
-                              text: "Select Wallet",
-                              style: AppTextStyle.h3(context)
-                                  .copyWith(fontWeight: FontWeight.w900),
-                            ),
-                            const SizedBox(height: 16),
-                            InfoRowTile(
-                              onTap: () {
-                                setState(() {
-                                  selectedWalletName = "Main Wallet";
-                                  selectedWalletBalance = mainWalletBalance;
-                                  selectedWalletId = "";
-                                  selectedWalletIsShared = false;
-                                });
-                                _formKey.currentState?.validate();
-                                Get.back();
-                              },
-                              title: "Main Wallet",
-                              subtitle: toCurrencyString(
-                                  mainWalletBalance.toString()),
-                              trailing: selectedWalletName == "Main Wallet"
-                                  ? Icon(Icons.check,
-                                      color:
-                                          Theme.of(context).colorScheme.primary)
-                                  : null,
-                            ),
-                            const SizedBox(height: 10),
-                            if (subWallets.isNotEmpty)
+        onTap: () {
+          showModalBottomSheet(
+              isScrollControlled: true,
+              useSafeArea: true,
+              context: context,
+              shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(20))),
+              builder: (context) {
+                return DraggableScrollableSheet(
+                    initialChildSize: 0.5,
+                    minChildSize: 0.4,
+                    maxChildSize: 0.9,
+                    expand: false,
+                    builder: (context, controller) {
+                      return Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(children: [
+                            Container(
+                                width: 40,
+                                height: 4,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(10))),
+                            Expanded(
+                                child:
+                                    ListView(controller: controller, children: [
                               LuvpayText(
-                                text: "Subwallets",
-                                style: AppTextStyle.body1(context)
-                                    .copyWith(fontWeight: FontWeight.w800),
-                              ),
-                            const SizedBox(height: 10),
-                            ...subWallets.map((wallet) {
-                              final name = wallet["name"] ?? "Subwallet";
-                              final bal = wallet["amount"] ?? 0;
-                              final isSelected = selectedWalletName == name;
-                              final isShared =
-                                  wallet["shared_to_user_id"] != null;
-
-                              return Padding(
-                                padding: const EdgeInsets.only(left: 12),
-                                child: InfoRowTile(
+                                  text: "Select Wallet",
+                                  style: AppTextStyle.h3(context)
+                                      .copyWith(fontWeight: FontWeight.w900)),
+                              const SizedBox(height: 16),
+                              InfoRowTile(
                                   onTap: () {
-                                    final isShared =
-                                        wallet["shared_to_user_id"] != null;
-
                                     setState(() {
-                                      selectedWalletName = name;
-                                      selectedWalletBalance =
-                                          double.tryParse(bal.toString()) ??
-                                              0.0;
-                                      selectedWalletId =
-                                          wallet["id"].toString();
-                                      selectedWalletIsShared = isShared;
-
-                                      sharedUserId = isShared
-                                          ? wallet["user_id"].toString()
-                                          : "";
+                                      selectedWalletName = "Main Wallet";
+                                      selectedWalletBalance = mainWalletBalance;
+                                      selectedWalletId = "";
+                                      selectedWalletIsShared = false;
                                     });
-
                                     _formKey.currentState?.validate();
                                     Get.back();
                                   },
-                                  titleWidget: Row(
-                                    children: [
-                                      LuvpayText(text: name),
-                                      if (isShared)
-                                        LuvpayText(
-                                          text: " (Shared)",
-                                          color: AppColorV2.correctState,
-                                        ),
-                                    ],
-                                  ),
-                                  subtitle: toCurrencyString(bal.toString()),
-                                  trailing: isSelected
+                                  title: "Main Wallet",
+                                  subtitle: toCurrencyString(
+                                      mainWalletBalance.toString()),
+                                  trailing: selectedWalletName == "Main Wallet"
                                       ? Icon(Icons.check,
                                           color: Theme.of(context)
                                               .colorScheme
                                               .primary)
-                                      : null,
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-        );
-      },
-      titleWidget: Row(
-        children: [
+                                      : null),
+                              const SizedBox(height: 10),
+                              if (subWallets.isNotEmpty)
+                                LuvpayText(
+                                    text: "Subwallets",
+                                    style: AppTextStyle.body1(context)
+                                        .copyWith(fontWeight: FontWeight.w800)),
+                              const SizedBox(height: 10),
+                              ...subWallets.map((wallet) {
+                                final name = wallet["name"] ?? "Subwallet";
+                                final bal = wallet["amount"] ?? 0;
+                                final isSelected = selectedWalletName == name;
+                                final isShared =
+                                    wallet["shared_to_user_id"] != null;
+
+                                return Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: InfoRowTile(
+                                        onTap: () {
+                                          final isShared =
+                                              wallet["shared_to_user_id"] !=
+                                                  null;
+
+                                          setState(() {
+                                            selectedWalletName = name;
+                                            selectedWalletBalance =
+                                                double.tryParse(
+                                                        bal.toString()) ??
+                                                    0.0;
+                                            selectedWalletId =
+                                                wallet["id"].toString();
+                                            selectedWalletIsShared = isShared;
+
+                                            sharedUserId = isShared
+                                                ? wallet["user_id"].toString()
+                                                : "";
+                                          });
+
+                                          _formKey.currentState?.validate();
+                                          Get.back();
+                                        },
+                                        titleWidget: Row(children: [
+                                          LuvpayText(text: name),
+                                          if (isShared)
+                                            LuvpayText(
+                                                text: " (Shared)",
+                                                color: AppColorV2.correctState),
+                                        ]),
+                                        subtitle:
+                                            toCurrencyString(bal.toString()),
+                                        trailing: isSelected
+                                            ? Icon(Icons.check,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary)
+                                            : null));
+                              }),
+                            ])),
+                          ]));
+                    });
+              });
+        },
+        titleWidget: Row(children: [
           LuvpayText(text: selectedWalletName),
           if (selectedWalletIsShared)
-            LuvpayText(
-              text: " (Shared)",
-              color: AppColorV2.correctState,
-            ),
-        ],
-      ),
-      subtitle: toCurrencyString(selectedWalletBalance.toString()),
-      trailing: Icon(Icons.keyboard_arrow_down),
-    );
+            LuvpayText(text: " (Shared)", color: AppColorV2.correctState),
+        ]),
+        subtitle: toCurrencyString(selectedWalletBalance.toString()),
+        trailing: Icon(Icons.keyboard_arrow_down));
   }
 
   Widget _headerCard(
@@ -666,48 +612,37 @@ class _BillerScreenState extends State<BillerScreen> {
     required String title,
   }) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-        boxShadow: [
-          BoxShadow(
-            color: cs.shadow.withOpacity(isDark ? 0.28 : 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        decoration: BoxDecoration(
+            color: cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
+            boxShadow: [
+              BoxShadow(
+                  color: cs.shadow.withOpacity(isDark ? 0.28 : 0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10)),
+            ]),
+        child: Row(children: [
           Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: cs.onSurface.withOpacity(borderOpacity),
-              ),
-            ),
-            child: Icon(Iconsax.receipt_text, color: cs.primary, size: 20),
-          ),
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                  color: cs.primary.withOpacity(isDark ? 0.18 : 0.10),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                      color: cs.onSurface.withOpacity(borderOpacity))),
+              child: Icon(Iconsax.receipt_text, color: cs.primary, size: 20)),
           const SizedBox(width: 12),
           Expanded(
-            child: LuvpayText(
-              text: title,
-              style: AppTextStyle.h3(
-                context,
-              ).copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.2),
-              color: cs.onSurface,
-              maxLines: 1,
-            ),
-          ),
-        ],
-      ),
-    );
+              child: LuvpayText(
+                  text: title,
+                  style: AppTextStyle.h3(context).copyWith(
+                      fontWeight: FontWeight.w900, letterSpacing: -0.2),
+                  color: cs.onSurface,
+                  maxLines: 1)),
+        ]));
   }
 
   Widget _balanceCard(
@@ -719,81 +654,60 @@ class _BillerScreenState extends State<BillerScreen> {
     required String balanceText,
   }) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        image: const DecorationImage(
-          fit: BoxFit.cover,
-          image: AssetImage("assets/images/booking_wallet_bg.png"),
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-        boxShadow: [
-          BoxShadow(
-            color: cs.shadow.withOpacity(isDark ? 0.22 : 0.10),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        decoration: BoxDecoration(
+            image: const DecorationImage(
+                fit: BoxFit.cover,
+                image: AssetImage("assets/images/booking_wallet_bg.png")),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
+            boxShadow: [
+              BoxShadow(
+                  color: cs.shadow.withOpacity(isDark ? 0.22 : 0.10),
+                  blurRadius: 18,
+                  offset: const Offset(0, 10)),
+            ]),
+        child: Row(children: [
           Icon(Symbols.wallet, color: cs.onPrimary),
           const SizedBox(width: 10),
           Expanded(
-            child: LuvpayText(
-              text: isLoading ? "Loading…" : balanceText,
-              style: AppTextStyle.body1(
-                context,
-              ).copyWith(fontWeight: FontWeight.w900),
-              color: cs.onPrimary,
-              maxLines: 1,
-            ),
-          ),
-        ],
-      ),
-    );
+              child: LuvpayText(
+                  text: isLoading ? "Loading…" : balanceText,
+                  style: AppTextStyle.body1(context)
+                      .copyWith(fontWeight: FontWeight.w900),
+                  color: cs.onPrimary,
+                  maxLines: 1)),
+        ]));
   }
 
   Widget _reviewHintCard(
-    BuildContext context,
-    ColorScheme cs,
-    double borderOpacity,
-  ) {
+      BuildContext context, ColorScheme cs, double borderOpacity) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-      ),
-      child: Row(
-        children: [
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+            color: cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity))),
+        child: Row(children: [
           Icon(Iconsax.info_circle, size: 18, color: cs.primary),
           const SizedBox(width: 10),
           Expanded(
-            child: LuvpayText(
-              text: "Please review your details before you proceed.",
-              style: AppTextStyle.body2(
-                context,
-              ).copyWith(fontWeight: FontWeight.w800),
-              color: cs.onSurface.withOpacity(0.70),
-              maxLines: 2,
-            ),
-          ),
-        ],
-      ),
-    );
+              child: LuvpayText(
+                  text: "Please review your details before you proceed.",
+                  style: AppTextStyle.body2(context)
+                      .copyWith(fontWeight: FontWeight.w800),
+                  color: cs.onSurface.withOpacity(0.70),
+                  maxLines: 2)),
+        ]));
   }
 }
 
 class AutoDecimalInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
+      TextEditingValue oldValue, TextEditingValue newValue) {
     if (newValue.text.isEmpty) return newValue;
 
     final numericValue = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
@@ -801,9 +715,8 @@ class AutoDecimalInputFormatter extends TextInputFormatter {
     final formattedValue = (value / 100).toStringAsFixed(2);
 
     return TextEditingValue(
-      text: formattedValue,
-      selection: TextSelection.collapsed(offset: formattedValue.length),
-    );
+        text: formattedValue,
+        selection: TextSelection.collapsed(offset: formattedValue.length));
   }
 }
 

@@ -43,9 +43,8 @@ class TransactionDetails extends StatelessWidget {
       CustomDialogStack.showLoading(Get.context!);
       final dir = (await getApplicationDocumentsDirectory()).path;
       final path = '$dir/$fname';
-      Uint8List bytes = await ScreenshotController().captureFromWidget(
-        ticket(Get.context!, img),
-      );
+      Uint8List bytes = await ScreenshotController()
+          .captureFromWidget(ticket(Get.context!, img));
       final imgFile = File(path);
       await imgFile.writeAsBytes(bytes.buffer.asUint8List());
 
@@ -56,21 +55,13 @@ class TransactionDetails extends StatelessWidget {
           XFile(imgFile.path, mimeType: 'image/png'),
         ], text: "luvpay share");
       } else {
-        CustomDialogStack.showError(
-          Get.context!,
-          "Unsupported",
-          "Sharing is not supported on this platform.",
-          () => Get.back(),
-        );
+        CustomDialogStack.showError(Get.context!, "Unsupported",
+            "Sharing is not supported on this platform.", () => Get.back());
       }
     } catch (e) {
       Get.back();
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Something went wrong while sharing the QR code.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Something went wrong while sharing the QR code.", () => Get.back());
       debugPrint("Error while sharing QR: $e");
     }
   }
@@ -92,25 +83,21 @@ class TransactionDetails extends StatelessWidget {
     }
 
     return CustomScaffoldV2(
-      bodyColor: cs.surface,
-      enableToolBar: true,
-      appBarTitle: "Transaction Details",
-      scaffoldBody: Column(
-        children: [
+        bodyColor: cs.surface,
+        enableToolBar: true,
+        appBarTitle: "Transaction Details",
+        scaffoldBody: Column(children: [
           const SizedBox(height: 20),
           ticket(context, img),
           const SizedBox(height: 10),
           CustomButton(
-            text: "Share",
-            onPressed: () => shareQR(img),
-            leading: Icon(LucideIcons.share2, color: cs.onPrimary),
-            btnColor: AppColorV2.lpBlueBrand,
-            textColor: cs.onPrimary,
-          ),
+              text: "Share",
+              onPressed: () => shareQR(img),
+              leading: Icon(LucideIcons.share2, color: cs.onPrimary),
+              btnColor: AppColorV2.lpBlueBrand,
+              textColor: cs.onPrimary),
           if (!isDark) const SizedBox(height: 8),
-        ],
-      ),
-    );
+        ]));
   }
 
   Widget ticket(BuildContext context, String img) {
@@ -123,129 +110,97 @@ class TransactionDetails extends StatelessWidget {
 
     final shadowOpacity = isDark ? 0.24 : 0.06;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
+    return Stack(clipBehavior: Clip.none, children: [
+      Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(20, 40, 20, 28),
           decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: cardBorder, width: 0.8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(shadowOpacity),
-                blurRadius: isDark ? 22 : 14,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              LuvpayText(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: cardBorder, width: 0.8),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(shadowOpacity),
+                    blurRadius: isDark ? 22 : 14,
+                    offset: const Offset(0, 8)),
+              ]),
+          child: Column(children: [
+            const SizedBox(height: 20),
+            LuvpayText(
                 textAlign: TextAlign.center,
                 text: data[index]["category"],
                 style: AppTextStyle.h3_semibold(context).copyWith(fontSize: 20),
                 color: cs.onSurface,
-                maxLines: 1,
-              ),
-              const SizedBox(height: 6),
-              LuvpayText(
+                maxLines: 1),
+            const SizedBox(height: 6),
+            LuvpayText(
                 textAlign: TextAlign.center,
                 text: data[index]["tran_desc"].toString(),
-                style: AppTextStyle.body1(
-                  context,
-                ).copyWith(color: cs.onSurface.withOpacity(0.75)),
-                maxFontSize: 14,
-              ),
-              const SizedBox(height: 22),
-              MySeparator(
-                color: cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75),
-              ),
-              const SizedBox(height: 22),
-              rowWidget(
-                context,
-                "Transaction Date",
-                Functions.formatSmartPHDateTime(data[index]["tran_date"]),
-              ),
-              const SizedBox(height: 12),
-              rowWidget(
+                style: AppTextStyle.body1(context)
+                    .copyWith(color: cs.onSurface.withOpacity(0.75)),
+                maxFontSize: 14),
+            const SizedBox(height: 22),
+            MySeparator(
+                color: cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75)),
+            const SizedBox(height: 22),
+            rowWidget(context, "Transaction Date",
+                Functions.formatSmartPHDateTime(data[index]["tran_date"])),
+            const SizedBox(height: 12),
+            rowWidget(
                 context,
                 "Amount",
                 toCurrencyString(
-                  data[index]["amount"] ?? "".replaceAll('-', '').toString(),
-                ),
-                isEmphasized: true,
-              ),
-              const SizedBox(height: 12),
-              rowWidget(
+                    data[index]["amount"] ?? "".replaceAll('-', '').toString()),
+                isEmphasized: true),
+            const SizedBox(height: 12),
+            rowWidget(
                 context,
                 isHistory ? "Balance Before" : "Previous Balance",
-                toCurrencyString(data[index]["bal_before"].toString()),
-              ),
-              const SizedBox(height: 12),
-              rowWidget(
-                context,
-                isHistory ? "Balance After" : "Current Balance",
-                toCurrencyString(data[index]["bal_after"].toString()),
-              ),
-              if (data[index]["ref_no"] != null) ...[
-                const SizedBox(height: 22),
-                MySeparator(
-                  color: cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75),
-                ),
-                const SizedBox(height: 18),
-                Column(
-                  children: [
-                    LuvpayText(
-                      text: "Reference Number",
-                      style: AppTextStyle.body1(context).copyWith(
+                toCurrencyString(data[index]["bal_before"].toString())),
+            const SizedBox(height: 12),
+            rowWidget(context, isHistory ? "Balance After" : "Current Balance",
+                toCurrencyString(data[index]["bal_after"].toString())),
+            if (data[index]["ref_no"] != null) ...[
+              const SizedBox(height: 22),
+              MySeparator(
+                  color: cs.outlineVariant.withOpacity(isDark ? 0.55 : 0.75)),
+              const SizedBox(height: 18),
+              Column(children: [
+                LuvpayText(
+                    text: "Reference Number",
+                    style: AppTextStyle.body1(context).copyWith(
                         color: cs.onSurface.withOpacity(0.6),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    SelectableText(
-                      data[index]["ref_no"].toString(),
-                      style: GoogleFonts.manrope(
+                        fontWeight: FontWeight.w500)),
+                const SizedBox(height: 6),
+                SelectableText(data[index]["ref_no"].toString(),
+                    style: GoogleFonts.manrope(
                         fontWeight: FontWeight.w600,
                         color: AppColorV2.lpBlueBrand,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                        letterSpacing: 0.4)),
+              ]),
             ],
-          ),
-        ),
-        Positioned(
+          ])),
+      Positioned(
           top: -28,
           left: 0,
           right: 0,
           child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: cardBg,
-                border: Border.all(color: cardBorder, width: 0.8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.22 : 0.06),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: SvgPicture.asset("assets/images/$img.svg", height: 48),
-            ),
-          ),
-        ),
-      ],
-    );
+              child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: cardBg,
+                      border: Border.all(color: cardBorder, width: 0.8),
+                      boxShadow: [
+                        BoxShadow(
+                            color:
+                                Colors.black.withOpacity(isDark ? 0.22 : 0.06),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4)),
+                      ]),
+                  child:
+                      SvgPicture.asset("assets/images/$img.svg", height: 48)))),
+    ]);
   }
 
   Row rowWidget(
@@ -256,30 +211,22 @@ class TransactionDetails extends StatelessWidget {
   }) {
     final cs = Theme.of(context).colorScheme;
 
-    return Row(
-      children: [
-        Expanded(
+    return Row(children: [
+      Expanded(
           child: LuvpayText(
-            text: label,
-            style: AppTextStyle.body1(context).copyWith(
-              color: cs.onSurface.withOpacity(0.65),
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-          ),
-        ),
-        SizedBox(
-          width: 10,
-        ),
-        LuvpayText(
+              text: label,
+              style: AppTextStyle.body1(context).copyWith(
+                  color: cs.onSurface.withOpacity(0.65),
+                  fontWeight: FontWeight.w500),
+              maxLines: 1)),
+      SizedBox(width: 10),
+      LuvpayText(
           text: value,
           style: AppTextStyle.body1(context).copyWith(
-            fontWeight: isEmphasized ? FontWeight.w700 : FontWeight.w600,
-            color: isEmphasized ? AppColorV2.lpBlueBrand : cs.onSurfaceVariant,
-          ),
-          maxLines: 1,
-        ),
-      ],
-    );
+              fontWeight: isEmphasized ? FontWeight.w700 : FontWeight.w600,
+              color:
+                  isEmphasized ? AppColorV2.lpBlueBrand : cs.onSurfaceVariant),
+          maxLines: 1),
+    ]);
   }
 }

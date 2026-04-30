@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/core/network/http/http_request.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -84,9 +85,11 @@ class QRController extends GetxController
     mobNum.value = userData['mobile_no'];
     isLoading.value = true;
 
-    HttpRequestApi(
-      api: "${ApiKeys.getPaymentKey}${userData["user_id"]}",
-    ).get().then((paymentKey) {
+    Functions()
+        .requestHandler(
+      apiKey: "${ApiKeys.getPaymentKey}${userData["user_id"]}",
+    )
+        .then((paymentKey) {
       if (paymentKey == "No Internet") {
         isInternetConn.value = false;
         isLoading.value = false;
@@ -120,9 +123,12 @@ class QRController extends GetxController
     CustomDialogStack.showLoading(Get.context!);
     int userId = await Authentication().getUserId();
 
-    HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userId").put2().then((
-      objKey,
-    ) {
+    Functions()
+        .requestHandler(
+            apiKey: "${ApiKeys.getPaymentKey}$userId",
+            method: "PUT",
+            includeDefaultHeaders: false)
+        .then((objKey) {
       if (objKey == "No Internet") {
         isInternetConn.value = false;
         isLoading.value = false;
@@ -147,29 +153,19 @@ class QRController extends GetxController
           payKey.value = objKey["payment_hk"];
           SharedPreferences.getInstance().then((prefs) {
             prefs.setInt(
-              'lastGeneratedTime',
-              DateTime.now().millisecondsSinceEpoch,
-            );
+                'lastGeneratedTime', DateTime.now().millisecondsSinceEpoch);
           });
           remainingTime.value = delayInMinutes * 60 * 1000;
           _startTimer();
           showTimerMsg.value = true;
           CustomDialogStack.showSuccess(
-            Get.context!,
-            "Success!",
-            "QR Code successfully generated",
-            () {
-              Get.back();
-              Get.back();
-            },
-          );
+              Get.context!, "Success!", "QR Code successfully generated", () {
+            Get.back();
+            Get.back();
+          });
         } else {
           CustomDialogStack.showError(
-            Get.context!,
-            "luvpay",
-            objKey['msg'],
-            () {},
-          );
+              Get.context!, "luvpay", objKey['msg'], () {});
         }
       }
       isButtonDisabled.value = false;
@@ -183,21 +179,17 @@ class QRController extends GetxController
     ScreenshotController()
         .captureFromWidget(myWidget(myQR), delay: const Duration(seconds: 2))
         .then((image) async {
-          final dir = await getApplicationDocumentsDirectory();
-          final imagePath = await File('${dir.path}/$fname').create();
-          await imagePath.writeAsBytes(image);
-          GallerySaver.saveImage(imagePath.path).then((result) {
-            CustomDialogStack.showSuccess(
-              Get.context!,
-              "Success",
-              "QR code has been saved. Please check your gallery.",
-              () {
-                Get.back();
-                Get.back();
-              },
-            );
-          });
+      final dir = await getApplicationDocumentsDirectory();
+      final imagePath = await File('${dir.path}/$fname').create();
+      await imagePath.writeAsBytes(image);
+      GallerySaver.saveImage(imagePath.path).then((result) {
+        CustomDialogStack.showSuccess(Get.context!, "Success",
+            "QR code has been saved. Please check your gallery.", () {
+          Get.back();
+          Get.back();
         });
+      });
+    });
   }
 
   Future<void> shareQr(String? myQR) async {
@@ -210,9 +202,8 @@ class QRController extends GetxController
       final directory = (await getApplicationDocumentsDirectory()).path;
       final filePath = '$directory/$fname';
 
-      Uint8List bytes = await ScreenshotController().captureFromWidget(
-        myWidget(myQR),
-      );
+      Uint8List bytes =
+          await ScreenshotController().captureFromWidget(myWidget(myQR));
       final imgFile = File(filePath);
       await imgFile.writeAsBytes(bytes.buffer.asUint8List());
 
@@ -223,65 +214,42 @@ class QRController extends GetxController
           XFile(imgFile.path, mimeType: 'image/png'),
         ], text: "Scan this QR to pay with luvpay!");
       } else {
-        CustomDialogStack.showError(
-          Get.context!,
-          "Unsupported",
-          "Sharing is not supported on this platform.",
-          () => Get.back(),
-        );
+        CustomDialogStack.showError(Get.context!, "Unsupported",
+            "Sharing is not supported on this platform.", () => Get.back());
       }
     } catch (e) {
       Get.back();
-      CustomDialogStack.showError(
-        Get.context!,
-        "Error",
-        "Something went wrong while sharing the QR code.",
-        () => Get.back(),
-      );
+      CustomDialogStack.showError(Get.context!, "Error",
+          "Something went wrong while sharing the QR code.", () => Get.back());
       debugPrint("Error while sharing QR: $e");
     }
   }
 
   Widget myWidget(String? myQR) => Container(
-    color: Colors.grey.shade300,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: LuvpayText(
-              text: "Align the QR code\nwithin the frame to proceed.",
-              textAlign: TextAlign.center,
-            ),
-          ),
-          spacing(height: 20),
-          Container(
-            margin: const EdgeInsets.all(40),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: PrettyQrView(
-              decoration: const PrettyQrDecoration(
-                background: Colors.white,
-                image: PrettyQrDecorationImage(
-                  image: AssetImage("assets/images/logo.png"),
-                ),
-              ),
-              qrImage: QrImage(
-                QrCode.fromData(
-                  data: myQR ?? payKey.value,
-                  errorCorrectLevel: QrErrorCorrectLevel.H,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+      color: Colors.grey.shade300,
+      child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Center(
+                child: LuvpayText(
+                    text: "Align the QR code\nwithin the frame to proceed.",
+                    textAlign: TextAlign.center)),
+            spacing(height: 20),
+            Container(
+                margin: const EdgeInsets.all(40),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10)),
+                child: PrettyQrView(
+                    decoration: const PrettyQrDecoration(
+                        background: Colors.white,
+                        image: PrettyQrDecorationImage(
+                            image: AssetImage("assets/images/logo.png"))),
+                    qrImage: QrImage(QrCode.fromData(
+                        data: myQR ?? payKey.value,
+                        errorCorrectLevel: QrErrorCorrectLevel.H)))),
+          ])));
 
   void _loadLastGeneratedTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

@@ -69,17 +69,15 @@ class SecuritySettingsController extends GetxController {
       }
 
       final bool authenticated = await auth.authenticate(
-        biometricOnly: true,
-        persistAcrossBackgrounding: true,
-        localizedReason: 'Please authenticate to continue',
-        authMessages: const <AuthMessages>[
-          AndroidAuthMessages(
-            signInTitle: 'Biometric authentication required!',
-            cancelButton: 'No thanks',
-          ),
-          IOSAuthMessages(cancelButton: 'No thanks'),
-        ],
-      );
+          biometricOnly: true,
+          persistAcrossBackgrounding: true,
+          localizedReason: 'Please authenticate to continue',
+          authMessages: const <AuthMessages>[
+            AndroidAuthMessages(
+                signInTitle: 'Biometric authentication required!',
+                cancelButton: 'No thanks'),
+            IOSAuthMessages(cancelButton: 'No thanks'),
+          ]);
 
       isAuth = authenticated;
       if (isAuth) {
@@ -110,10 +108,10 @@ class SecuritySettingsController extends GetxController {
       mobileNo.value = mydata["mobile_no"];
 
       Map<String, String> param = {"mobile_no": mobileNo.value};
-      var returnData = await HttpRequestApi(
-        api: ApiKeys.postDeleteUserAcct,
-        parameters: param,
-      ).deleteData();
+      var returnData = await Functions().requestHandler(
+          apiKey: ApiKeys.postDeleteUserAcct,
+          parameters: param,
+          method: "DELETE");
 
       Get.back();
 
@@ -143,47 +141,36 @@ class SecuritySettingsController extends GetxController {
   }
 
   void _showSuccessDialog() {
-    CustomDialogStack.showSuccess(
-      Get.context!,
-      "Success",
-      "You will be directed to delete account page. Wait for customer support",
-      leftText: "Okay",
-      () {
-        Get.back();
-        Get.to(
-          WebviewPage(
-            urlDirect: "https://luvpark.ph/account-deletion/",
-            label: "Account Deletion",
-            isBuyToken: false,
-            callback: () async {
+    CustomDialogStack.showSuccess(Get.context!, "Success",
+        "You will be directed to delete account page. Wait for customer support",
+        leftText: "Okay", () {
+      Get.back();
+      Get.to(WebviewPage(
+          urlDirect: "https://luvpark.ph/account-deletion/",
+          label: "Account Deletion",
+          isBuyToken: false,
+          callback: () async {
+            CustomDialogStack.showLoading(Get.context!);
+
+            CustomDialogStack.showInfo(Get.context!, "Account status",
+                "Your account might not be active.", () async {
+              Get.back();
               CustomDialogStack.showLoading(Get.context!);
+              await Future.delayed(const Duration(seconds: 3));
 
-              CustomDialogStack.showInfo(
-                Get.context!,
-                "Account status",
-                "Your account might not be active.",
-                () async {
-                  Get.back();
-                  CustomDialogStack.showLoading(Get.context!);
-                  await Future.delayed(const Duration(seconds: 3));
+              final userLogin = await Authentication().getUserLogin();
+              List userDataList = [userLogin].map((e) {
+                e["is_login"] = "N";
+                return e;
+              }).toList();
 
-                  final userLogin = await Authentication().getUserLogin();
-                  List userDataList = [userLogin].map((e) {
-                    e["is_login"] = "N";
-                    return e;
-                  }).toList();
+              await Authentication().setLogin(jsonEncode(userDataList[0]));
 
-                  await Authentication().setLogin(jsonEncode(userDataList[0]));
-
-                  Get.back();
-                  Get.offAllNamed(Routes.login);
-                },
-              );
-            },
-          ),
-        );
-      },
-    );
+              Get.back();
+              Get.offAllNamed(Routes.login);
+            });
+          }));
+    });
   }
 
   void verifyMobile() async {
@@ -194,10 +181,10 @@ class SecuritySettingsController extends GetxController {
           if (objData["data"]["is_verified"] == "Y") {
             Functions().getSecQdata(data["mobile_no"], (cbData) {
               if (cbData != null) {
-                Get.to(
-                  ChangePasswordVerified(),
-                  arguments: {"mobile_no": data["mobile_no"], "data": cbData},
-                );
+                Get.to(ChangePasswordVerified(), arguments: {
+                  "mobile_no": data["mobile_no"],
+                  "data": cbData
+                });
               }
             });
           } else {

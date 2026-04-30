@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/features/profile/profile_update/profile_update.dart';
 import 'package:luvpay/features/qr/view.dart';
 
@@ -71,9 +70,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         if (objData["created_on"] is String) {
           objData["created_on"] = DateTime.parse(objData["created_on"]);
         } else if (objData["created_on"] is int) {
-          objData["created_on"] = DateTime.fromMillisecondsSinceEpoch(
-            objData["created_on"],
-          );
+          objData["created_on"] =
+              DateTime.fromMillisecondsSinceEpoch(objData["created_on"]);
         }
       } catch (e) {
         debugPrint("Invalid date format for created_on: $e");
@@ -93,23 +91,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       _showMinimalLoading(context, "Preparing address data...");
 
       final success = await _addressController.executeAddressChain(
-        regionId: userData['region_id'].toString(),
-        provinceId: userData['province_id'].toString(),
-        cityId: userData['city_id'].toString(),
-        onProgress: (_) {},
-        onSuccess: (provinceData, cityData, brgyData) {
-          if (!mounted) return;
-          setState(() {
-            this.provinceData = provinceData;
-            this.cityData = cityData;
-            this.brgyData = brgyData;
+          regionId: userData['region_id'].toString(),
+          provinceId: userData['province_id'].toString(),
+          cityId: userData['city_id'].toString(),
+          onProgress: (_) {},
+          onSuccess: (provinceData, cityData, brgyData) {
+            if (!mounted) return;
+            setState(() {
+              this.provinceData = provinceData;
+              this.cityData = cityData;
+              this.brgyData = brgyData;
+            });
+            _showMinimalSuccess(context, "Address data loaded!");
+          },
+          onError: (error) {
+            if (mounted) _handleAddressError(error);
           });
-          _showMinimalSuccess(context, "Address data loaded!");
-        },
-        onError: (error) {
-          if (mounted) _handleAddressError(error);
-        },
-      );
 
       if (!success && mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -130,7 +127,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   void getRegions() async {
     CustomDialogStack.showLoading(Get.context!);
-    final returnData = await HttpRequestApi(api: ApiKeys.getRegion).get();
+    final returnData =
+        await Functions().requestHandler(apiKey: ApiKeys.getRegion);
     Get.back();
 
     if (returnData == "No Internet") {
@@ -144,15 +142,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
     if (returnData["items"].isNotEmpty) {
       SmoothRoute(
-        context: context,
-        child: ProfileUpdateScreen(
-          userData: userData,
-          regionData: returnData["items"],
-          provinceData: provinceData,
-          cityData: cityData,
-          brgyData: brgyData,
-        ),
-      ).route();
+              context: context,
+              child: ProfileUpdateScreen(
+                  userData: userData,
+                  regionData: returnData["items"],
+                  provinceData: provinceData,
+                  cityData: cityData,
+                  brgyData: brgyData))
+          .route();
       return;
     }
 
@@ -161,19 +158,17 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   void _showMinimalLoading(BuildContext context, String message) {
     showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => ModernMinimalLoading(message: message),
-    );
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => ModernMinimalLoading(message: message));
   }
 
   void _showMinimalSuccess(BuildContext context, String message) {
     Navigator.of(context, rootNavigator: true).pop();
     showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => ModernMinimalSuccess(message: message),
-    );
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => ModernMinimalSuccess(message: message));
 
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted && Navigator.of(Get.context!, rootNavigator: true).canPop()) {
@@ -188,81 +183,64 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final themeCtrl = Get.find<ThemeModeController>();
 
     return CustomScaffoldV2(
-      padding: EdgeInsets.zero,
-      showAppBar: widget.fromBuildHeader == true ? true : false,
-      scaffoldBody: isLoading
-          ? const LoadingCard()
-          : Padding(
-              padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  headerProfile(isVerified),
-                  !isVerified
-                      ? const SliverToBoxAdapter(child: SizedBox.shrink())
-                      : VerifiedWidget(isVerified: isVerified),
-                  SliverToBoxAdapter(
-                    child: Column(
-                      spacing: 14,
-                      children: [
+        padding: EdgeInsets.zero,
+        showAppBar: widget.fromBuildHeader == true ? true : false,
+        scaffoldBody: isLoading
+            ? const LoadingCard()
+            : Padding(
+                padding: const EdgeInsets.fromLTRB(10, 19, 10, 0),
+                child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      headerProfile(isVerified),
+                      !isVerified
+                          ? const SliverToBoxAdapter(child: SizedBox.shrink())
+                          : VerifiedWidget(isVerified: isVerified),
+                      SliverToBoxAdapter(
+                          child: Column(spacing: 14, children: [
                         const SizedBox(height: 16),
                         Container(
-                          margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                          child: _profile(themeCtrl),
-                        ),
+                            margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                            child: _profile(themeCtrl)),
                         Container(
-                          margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                          child: _helpAndSupport(),
-                        ),
+                            margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                            child: _helpAndSupport()),
                         Container(
-                          margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                          child: _legal(),
-                        ),
+                            margin: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                            child: _legal()),
                         Container(
-                          margin: const EdgeInsets.fromLTRB(19, 0, 19, 0),
-                          width: double.infinity,
-                          child: CustomButton(
-                            text: "Logout",
-                            onPressed: () {
-                              CustomDialogStack.showConfirmation(
-                                isAllBlueColor: false,
-                                context,
-                                "Logout",
-                                "Are you sure you want to logout?",
-                                leftText: "No",
-                                rightText: "Yes",
-                                () => Get.back(),
-                                () async {
-                                  Get.back();
-                                  final uData =
-                                      await Authentication().getUserData2();
+                            margin: const EdgeInsets.fromLTRB(19, 0, 19, 0),
+                            width: double.infinity,
+                            child: CustomButton(
+                                text: "Logout",
+                                onPressed: () {
+                                  CustomDialogStack.showConfirmation(
+                                      isAllBlueColor: false,
+                                      context,
+                                      "Logout",
+                                      "Are you sure you want to logout?",
+                                      leftText: "No",
+                                      rightText: "Yes",
+                                      () => Get.back(), () async {
+                                    Get.back();
+                                    final uData =
+                                        await Authentication().getUserData2();
 
-                                  Functions.logoutUser(
-                                    uData["session_id"].toString(),
-                                    (isSuccess) async {
+                                    Functions.logoutUser(
+                                        uData["session_id"].toString(),
+                                        (isSuccess) async {
                                       if (isSuccess["is_true"]) {
-                                        Authentication().setLogoutStatus(
-                                          true,
-                                        );
+                                        Authentication().setLogoutStatus(true);
                                         Get.offAllNamed(Routes.login);
                                       }
-                                    },
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
+                                    });
+                                  });
+                                })),
                         const SizedBox(height: 24),
                         SizedBox(
                             height: MediaQuery.of(context).size.height * 0.10),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-    );
+                      ])),
+                    ])));
   }
 
   SliverAppBar headerProfile(bool isVerified) {
@@ -271,16 +249,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return SliverAppBar(
-      leading: null,
-      automaticallyImplyLeading: false,
-      pinned: true,
-      floating: true,
-      snap: false,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      expandedHeight: 80,
-      flexibleSpace: LayoutBuilder(
-        builder: (context, constraints) {
+        leading: null,
+        automaticallyImplyLeading: false,
+        pinned: true,
+        floating: true,
+        snap: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        expandedHeight: 80,
+        flexibleSpace: LayoutBuilder(builder: (context, constraints) {
           const double maxHeight = 100;
           final double minHeight = kToolbarHeight;
           final double currentHeight = constraints.biggest.height;
@@ -297,107 +274,80 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           final double iconBox = 44 * t + 40 * (1 - t);
 
           return FlexibleSpaceBar(
-            background: Container(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-              child: InfoRowTile(
-                onTap: () {
-                  Get.to(() => const MyProfile())?.then((value) {
-                    if (value == "refresh") initialize();
-                  });
-                },
-                iconWidget: Container(
-                  width: iconBox,
-                  height: iconBox,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      width: 3,
-                      color: AppColorV2.lpBlueBrand.withOpacity(
-                        isDark ? 0.22 : 0.16,
-                      ),
-                    ),
-                  ),
-                  child: ClipOval(
-                    child: SizedBox(
-                      width: avatarSize,
-                      height: avatarSize,
-                      child: myprofile.isEmpty
-                          ? Image.asset(
-                              "assets/images/d_unverified_img.png",
-                              fit: BoxFit.cover,
-                            )
-                          : Image.memory(
-                              base64Decode(myprofile),
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                  ),
-                ),
-                title: Functions().getDisplayName(userData),
-                subtitle: (userData["email"] ?? "No email").toString(),
-                subtitleMaxlines: 1,
-                maxLines: 1,
-                trailing: Icon(
-                  LucideIcons.chevronRight,
-                  size: 18,
-                  color: cs.onSurfaceVariant.withOpacity(isDark ? 0.70 : 0.65),
-                ),
-                iconBoxSize: 44,
-                iconBoxRadius: BorderRadius.circular(999),
-              ),
-            ),
-          );
-        },
-      ),
-    );
+              background: Container(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: InfoRowTile(
+                      onTap: () {
+                        Get.to(() => const MyProfile())?.then((value) {
+                          if (value == "refresh") initialize();
+                        });
+                      },
+                      iconWidget: Container(
+                          width: iconBox,
+                          height: iconBox,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  width: 3,
+                                  color: AppColorV2.lpBlueBrand
+                                      .withOpacity(isDark ? 0.22 : 0.16))),
+                          child: ClipOval(
+                              child: SizedBox(
+                                  width: avatarSize,
+                                  height: avatarSize,
+                                  child: myprofile.isEmpty
+                                      ? Image.asset(
+                                          "assets/images/d_unverified_img.png",
+                                          fit: BoxFit.cover)
+                                      : Image.memory(base64Decode(myprofile),
+                                          fit: BoxFit.cover)))),
+                      title: Functions().getDisplayName(userData),
+                      subtitle: (userData["email"] ?? "No email").toString(),
+                      subtitleMaxlines: 1,
+                      maxLines: 1,
+                      trailing: Icon(LucideIcons.chevronRight,
+                          size: 18,
+                          color: cs.onSurfaceVariant
+                              .withOpacity(isDark ? 0.70 : 0.65)),
+                      iconBoxSize: 44,
+                      iconBoxRadius: BorderRadius.circular(999))));
+        }));
   }
 
   Widget _profile(ThemeModeController themeCtrl) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InfoRowTile(
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      InfoRowTile(
           icon: Icons.qr_code_rounded,
           title: 'Personal QR Code ',
           onTap: () {
             showDialog(
-              context: context,
-              builder: (context) => QR(qrCode: userData["mobile_no"]),
-            );
-          },
-        ),
-        InfoRowTile(
+                context: context,
+                builder: (context) => QR(qrCode: userData["mobile_no"]));
+          }),
+      InfoRowTile(
           icon: LucideIcons.ticket,
           title: 'Vouchers',
-          onTap: () => Get.toNamed(Routes.vouchers),
-        ),
-        InfoRowTile(
+          onTap: () => Get.toNamed(Routes.vouchers)),
+      InfoRowTile(
           icon: LucideIcons.bell,
           title: 'Notifications',
-          onTap: () => Get.to(WalletNotifications(fromTab: false)),
-        ),
-        InfoRowTile(
+          onTap: () => Get.to(WalletNotifications(fromTab: false))),
+      InfoRowTile(
           icon: LucideIcons.history,
           title: 'Transaction History',
-          onTap: () => Get.to(const TransactionHistory()),
-        ),
-        InfoRowTile(
+          onTap: () => Get.to(const TransactionHistory())),
+      InfoRowTile(
           icon: LucideIcons.lock,
           title: 'App Security',
-          onTap: () => Get.toNamed(Routes.securitySettings),
-        ),
-        const SizedBox(height: 10),
-        Obx(
-          () => InfoRowTile(
-            icon: themeCtrl.iconOf(themeCtrl.mode.value),
-            title: "Theme (${themeCtrl.labelOf(themeCtrl.mode.value)})",
-            subtitle: "Choose light, dark, or system.",
-            subtitleMaxlines: 2,
-            onTap: () => _showThemePopup(context),
-          ),
-        ),
-      ],
-    );
+          onTap: () => Get.toNamed(Routes.securitySettings)),
+      const SizedBox(height: 10),
+      Obx(() => InfoRowTile(
+          icon: themeCtrl.iconOf(themeCtrl.mode.value),
+          title: "Theme (${themeCtrl.labelOf(themeCtrl.mode.value)})",
+          subtitle: "Choose light, dark, or system.",
+          subtitleMaxlines: 2,
+          onTap: () => _showThemePopup(context))),
+    ]);
   }
 
   void _showThemePopup(BuildContext context) {
@@ -413,113 +363,92 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final titleColor = cs.onSurface;
 
     showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(isDark ? 0.55 : 0.35),
-      builder: (_) {
-        final radius = BorderRadius.circular(18);
+        context: context,
+        barrierColor: Colors.black.withOpacity(isDark ? 0.55 : 0.35),
+        builder: (_) {
+          final radius = BorderRadius.circular(18);
 
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Neumorphic(
-            style: LuvNeu.card(
-              radius: radius,
-              depth: isDark ? 1.2 : 2.0,
-              pressedDepth: -1.0,
-              color: cardColor,
-              borderColor: subtleBorder,
-              borderWidth: 0.8,
-            ),
-            child: ClipRRect(
-              borderRadius: radius,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                child: Obx(
-                  () => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            LucideIcons.palette,
-                            size: 18,
-                            color: AppColorV2.lpBlueBrand,
-                          ),
-                          const SizedBox(width: 10),
-                          LuvpayText(
-                            text: "Choose Theme",
-                            style: AppTextStyle.h3(context).copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: titleColor,
-                            ),
-                          ),
-                          const Spacer(),
-                          InkWell(
-                            onTap: () => Navigator.pop(context),
-                            child: Icon(
-                              LucideIcons.x,
-                              size: 18,
-                              color: closeColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _themeRadioTile(
-                        context: context,
-                        cs: cs,
-                        isDark: isDark,
-                        title: "System",
-                        subtitle: "Follow device settings",
-                        icon: LucideIcons.monitor,
-                        value: ThemeMode.system,
-                        groupValue: themeCtrl.mode.value,
-                        onChanged: (v) {
-                          themeCtrl.setMode(v);
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _themeRadioTile(
-                        context: context,
-                        cs: cs,
-                        isDark: isDark,
-                        title: "Light",
-                        subtitle: "Always light mode",
-                        icon: LucideIcons.sun,
-                        value: ThemeMode.light,
-                        groupValue: themeCtrl.mode.value,
-                        onChanged: (v) {
-                          themeCtrl.setMode(v);
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _themeRadioTile(
-                        context: context,
-                        cs: cs,
-                        isDark: isDark,
-                        title: "Dark",
-                        subtitle: "Always dark mode",
-                        icon: LucideIcons.moon,
-                        value: ThemeMode.dark,
-                        groupValue: themeCtrl.mode.value,
-                        onChanged: (v) {
-                          themeCtrl.setMode(v);
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
+          return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Neumorphic(
+                  style: LuvNeu.card(
+                      radius: radius,
+                      depth: isDark ? 1.2 : 2.0,
+                      pressedDepth: -1.0,
+                      color: cardColor,
+                      borderColor: subtleBorder,
+                      borderWidth: 0.8),
+                  child: ClipRRect(
+                      borderRadius: radius,
+                      child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                          child: Obx(() => Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(children: [
+                                      Icon(LucideIcons.palette,
+                                          size: 18,
+                                          color: AppColorV2.lpBlueBrand),
+                                      const SizedBox(width: 10),
+                                      LuvpayText(
+                                          text: "Choose Theme",
+                                          style: AppTextStyle.h3(context)
+                                              .copyWith(
+                                                  fontWeight: FontWeight.w900,
+                                                  color: titleColor)),
+                                      const Spacer(),
+                                      InkWell(
+                                          onTap: () => Navigator.pop(context),
+                                          child: Icon(LucideIcons.x,
+                                              size: 18, color: closeColor)),
+                                    ]),
+                                    const SizedBox(height: 12),
+                                    _themeRadioTile(
+                                        context: context,
+                                        cs: cs,
+                                        isDark: isDark,
+                                        title: "System",
+                                        subtitle: "Follow device settings",
+                                        icon: LucideIcons.monitor,
+                                        value: ThemeMode.system,
+                                        groupValue: themeCtrl.mode.value,
+                                        onChanged: (v) {
+                                          themeCtrl.setMode(v);
+                                          Navigator.pop(context);
+                                        }),
+                                    const SizedBox(height: 8),
+                                    _themeRadioTile(
+                                        context: context,
+                                        cs: cs,
+                                        isDark: isDark,
+                                        title: "Light",
+                                        subtitle: "Always light mode",
+                                        icon: LucideIcons.sun,
+                                        value: ThemeMode.light,
+                                        groupValue: themeCtrl.mode.value,
+                                        onChanged: (v) {
+                                          themeCtrl.setMode(v);
+                                          Navigator.pop(context);
+                                        }),
+                                    const SizedBox(height: 8),
+                                    _themeRadioTile(
+                                        context: context,
+                                        cs: cs,
+                                        isDark: isDark,
+                                        title: "Dark",
+                                        subtitle: "Always dark mode",
+                                        icon: LucideIcons.moon,
+                                        value: ThemeMode.dark,
+                                        groupValue: themeCtrl.mode.value,
+                                        onChanged: (v) {
+                                          themeCtrl.setMode(v);
+                                          Navigator.pop(context);
+                                        }),
+                                    const SizedBox(height: 8),
+                                  ]))))));
+        });
   }
 
   Widget _themeRadioTile({
@@ -546,181 +475,136 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final tileBorder = cs.outlineVariant.withOpacity(isDark ? 0.30 : 0.45);
 
     return LuvNeuPress(
-      onTap: () => onChanged(value),
-      radius: r,
-      depth: isDark ? 0.9 : 1.2,
-      pressedDepth: -0.6,
-      background: tileBg,
-      overlayOpacity: isDark ? 0.03 : 0.02,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        child: Row(
-          children: [
-            Neumorphic(
-              style: LuvNeu.icon(
-                radius: BorderRadius.circular(12),
-                color: base,
-                borderColor: tileBorder,
-                borderWidth: 0.8,
-              ),
-              child: SizedBox(
-                width: 44,
-                height: 44,
-                child: Center(
-                  child: Icon(
-                    icon,
-                    size: 18,
-                    color: selected
-                        ? AppColorV2.lpBlueBrand
-                        : sub.withOpacity(.95),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LuvpayText(
-                    text: title,
-                    style: AppTextStyle.body1(
-                      context,
-                    ).copyWith(fontWeight: FontWeight.w900, color: onBase),
-                  ),
-                  const SizedBox(height: 2),
-                  LuvpayText(
-                    text: subtitle,
-                    style: AppTextStyle.paragraph2(
-                      context,
-                    ).copyWith(color: sub),
-                    maxLines: 1,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Icon(
-              selected ? LucideIcons.checkCircle2 : LucideIcons.circle,
-              size: 18,
-              color: selected
-                  ? AppColorV2.lpBlueBrand
-                  : cs.onSurfaceVariant.withOpacity(isDark ? 0.40 : 0.35),
-            ),
-          ],
-        ),
-      ),
-    );
+        onTap: () => onChanged(value),
+        radius: r,
+        depth: isDark ? 0.9 : 1.2,
+        pressedDepth: -0.6,
+        background: tileBg,
+        overlayOpacity: isDark ? 0.03 : 0.02,
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(children: [
+              Neumorphic(
+                  style: LuvNeu.icon(
+                      radius: BorderRadius.circular(12),
+                      color: base,
+                      borderColor: tileBorder,
+                      borderWidth: 0.8),
+                  child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Center(
+                          child: Icon(icon,
+                              size: 18,
+                              color: selected
+                                  ? AppColorV2.lpBlueBrand
+                                  : sub.withOpacity(.95))))),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    LuvpayText(
+                        text: title,
+                        style: AppTextStyle.body1(context).copyWith(
+                            fontWeight: FontWeight.w900, color: onBase)),
+                    const SizedBox(height: 2),
+                    LuvpayText(
+                        text: subtitle,
+                        style: AppTextStyle.paragraph2(context)
+                            .copyWith(color: sub),
+                        maxLines: 1),
+                  ])),
+              const SizedBox(width: 10),
+              Icon(selected ? LucideIcons.checkCircle2 : LucideIcons.circle,
+                  size: 18,
+                  color: selected
+                      ? AppColorV2.lpBlueBrand
+                      : cs.onSurfaceVariant.withOpacity(isDark ? 0.40 : 0.35)),
+            ])));
   }
 
   Widget _helpAndSupport() {
     final cs = Theme.of(context).colorScheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        LuvpayText(
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      LuvpayText(
           text: 'Help & Support',
-          style: AppTextStyle.h3(context).copyWith(color: cs.onSurface),
-        ),
-        const SizedBox(height: 10),
-        InfoRowTile(
+          style: AppTextStyle.h3(context).copyWith(color: cs.onSurface)),
+      const SizedBox(height: 10),
+      InfoRowTile(
           icon: Icons.info_outline,
           title: 'About Us',
           onTap: () async {
             CustomDialogStack.showLoading(context);
-            final response = await HttpRequestApi(api: "").linkToPage();
+            final response = await Functions().linkToPage();
             Get.back();
 
             if (response == "Success") {
-              Get.to(
-                const WebviewPage(
+              Get.to(const WebviewPage(
                   urlDirect: "https://luvpark.ph/about-us/",
                   label: "About Us",
                   isBuyToken: false,
-                  bodyPadding: EdgeInsets.symmetric(
-                    horizontal: 19,
-                    vertical: 10,
-                  ),
-                ),
-              );
+                  bodyPadding:
+                      EdgeInsets.symmetric(horizontal: 19, vertical: 10)));
             } else {
               CustomDialogStack.showConnectionLost(context, () => Get.back());
             }
-          },
-        ),
-        InfoRowTile(
+          }),
+      InfoRowTile(
           icon: LucideIcons.messageCircle,
           title: 'Help Center',
-          onTap: () => Get.toNamed(Routes.helpcenter),
-        ),
-      ],
-    );
+          onTap: () => Get.toNamed(Routes.helpcenter)),
+    ]);
   }
 
   Widget _legal() {
     final cs = Theme.of(context).colorScheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        LuvpayText(
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      LuvpayText(
           text: 'Legal',
-          style: AppTextStyle.h3(context).copyWith(color: cs.onSurface),
-        ),
-        const SizedBox(height: 10),
-        InfoRowTile(
+          style: AppTextStyle.h3(context).copyWith(color: cs.onSurface)),
+      const SizedBox(height: 10),
+      InfoRowTile(
           icon: LucideIcons.bookmark,
           title: 'Terms of Use',
           onTap: () async {
             CustomDialogStack.showLoading(context);
-            final response = await HttpRequestApi(api: "").linkToPage();
+            final response = await Functions().linkToPage();
             Get.back();
 
             if (response == "Success") {
-              Get.to(
-                const WebviewPage(
+              Get.to(const WebviewPage(
                   urlDirect: "https://luvpark.ph/terms-of-use/",
                   label: "Terms of Use",
                   isBuyToken: false,
-                  bodyPadding: EdgeInsets.symmetric(
-                    horizontal: 19,
-                    vertical: 10,
-                  ),
-                ),
-              );
+                  bodyPadding:
+                      EdgeInsets.symmetric(horizontal: 19, vertical: 10)));
             } else {
               CustomDialogStack.showConnectionLost(context, () => Get.back());
             }
-          },
-        ),
-        InfoRowTile(
+          }),
+      InfoRowTile(
           icon: LucideIcons.shield,
           title: 'Privacy Policy',
           onTap: () async {
             CustomDialogStack.showLoading(context);
-            final response = await HttpRequestApi(api: "").linkToPage();
+            final response = await Functions().linkToPage();
             Get.back();
 
             if (response == "Success") {
-              Get.to(
-                const WebviewPage(
+              Get.to(const WebviewPage(
                   urlDirect: "https://luvpark.ph/privacy-policy/",
                   label: "Privacy Policy",
                   isBuyToken: false,
-                  bodyPadding: EdgeInsets.symmetric(
-                    horizontal: 19,
-                    vertical: 10,
-                  ),
-                ),
-              );
+                  bodyPadding:
+                      EdgeInsets.symmetric(horizontal: 19, vertical: 10)));
             } else {
               CustomDialogStack.showConnectionLost(context, () => Get.back());
             }
-          },
-        ),
-      ],
-    );
+          }),
+    ]);
   }
 }
 
@@ -737,48 +621,37 @@ class VerifiedWidget extends StatelessWidget {
     final bg = AppColorV2.lpBlueBrand.withOpacity(isDark ? 0.85 : 0.92);
 
     return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        child: Container(
-          height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: bg,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.25 : 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(19),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
+        child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Container(
+                height: 80,
                 decoration: BoxDecoration(
-                  color: cs.onPrimary.withOpacity(isDark ? 0.10 : 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(LucideIcons.crown, color: cs.onPrimary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: LuvpayText(
-                  text: !isVerified
-                      ? "Verified Account\nEnjoy all features available!"
-                      : "Verify your account\nto unlock more features!",
-                  style: AppTextStyle.body1(context),
-                  color: cs.onPrimary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+                    borderRadius: BorderRadius.circular(20),
+                    color: bg,
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(isDark ? 0.25 : 0.08),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8)),
+                    ]),
+                padding: const EdgeInsets.all(19),
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                  Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                          color: cs.onPrimary.withOpacity(isDark ? 0.10 : 0.12),
+                          shape: BoxShape.circle),
+                      child: Icon(LucideIcons.crown, color: cs.onPrimary)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                      child: LuvpayText(
+                          text: !isVerified
+                              ? "Verified Account\nEnjoy all features available!"
+                              : "Verify your account\nto unlock more features!",
+                          style: AppTextStyle.body1(context),
+                          color: cs.onPrimary)),
+                ]))));
   }
 }
 
@@ -809,9 +682,8 @@ class AddressExecutionController {
     try {
       onProgress(_executionSteps[0]);
 
-      final provinceResponse = await HttpRequestApi(
-        api: "${ApiKeys.getProvince}?p_region_id=$regionId",
-      ).get();
+      final provinceResponse = await Functions().requestHandler(
+          apiKey: "${ApiKeys.getProvince}?p_region_id=$regionId");
 
       if (!_handleResponse(provinceResponse, onError)) {
         _isExecuting = false;
@@ -820,9 +692,8 @@ class AddressExecutionController {
 
       onProgress(_executionSteps[1]);
 
-      final cityResponse = await HttpRequestApi(
-        api: "${ApiKeys.getCity}?p_province_id=$provinceId",
-      ).get();
+      final cityResponse = await Functions().requestHandler(
+          apiKey: "${ApiKeys.getCity}?p_province_id=$provinceId");
 
       if (!_handleResponse(cityResponse, onError)) {
         _isExecuting = false;
@@ -831,20 +702,16 @@ class AddressExecutionController {
 
       onProgress(_executionSteps[2]);
 
-      final brgyResponse = await HttpRequestApi(
-        api: "${ApiKeys.getBrgy}?p_city_id=$cityId",
-      ).get();
+      final brgyResponse = await Functions()
+          .requestHandler(apiKey: "${ApiKeys.getBrgy}?p_city_id=$cityId");
 
       if (!_handleResponse(brgyResponse, onError)) {
         _isExecuting = false;
         return false;
       }
 
-      onSuccess(
-        provinceResponse["items"],
-        cityResponse["items"],
-        brgyResponse["items"],
-      );
+      onSuccess(provinceResponse["items"], cityResponse["items"],
+          brgyResponse["items"]);
 
       _isExecuting = false;
       return true;
@@ -890,9 +757,8 @@ class _ModernMinimalLoadingState extends State<ModernMinimalLoading>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    )..repeat(reverse: true);
+        duration: const Duration(milliseconds: 1200), vsync: this)
+      ..repeat(reverse: true);
 
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
   }
@@ -910,58 +776,43 @@ class _ModernMinimalLoadingState extends State<ModernMinimalLoading>
     final isDark = theme.brightness == Brightness.dark;
 
     return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      child: Container(
-        padding: const EdgeInsets.all(25),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: cs.outlineVariant.withOpacity(isDark ? 0.45 : 0.70),
-            width: 0.8,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedBuilder(
-              animation: _animation,
-              builder: (context, child) {
-                return SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColorV2.lpBlueBrand.withOpacity(
-                        0.55 + _animation.value * 0.45,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 15),
-            LuvpayText(
-              text: widget.message,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: cs.onSurface,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+            padding: const EdgeInsets.all(25),
+            decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                    color: cs.outlineVariant.withOpacity(isDark ? 0.45 : 0.70),
+                    width: 0.8),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10)),
+                ]),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              AnimatedBuilder(
+                  animation: _animation,
+                  builder: (context, child) {
+                    return SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColorV2
+                                .lpBlueBrand
+                                .withOpacity(0.55 + _animation.value * 0.45))));
+                  }),
+              const SizedBox(width: 15),
+              LuvpayText(
+                  text: widget.message,
+                  style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: cs.onSurface)),
+            ])));
   }
 }
 
@@ -977,42 +828,32 @@ class ModernMinimalSuccess extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Dialog(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      child: Container(
-        padding: const EdgeInsets.all(25),
-        decoration: BoxDecoration(
-          color: cs.surface,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: cs.outlineVariant.withOpacity(isDark ? 0.45 : 0.70),
-            width: 0.8,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle, color: AppColorV2.success, size: 24),
-            const SizedBox(width: 15),
-            LuvpayText(
-              text: message,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: cs.onSurface,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+            padding: const EdgeInsets.all(25),
+            decoration: BoxDecoration(
+                color: cs.surface,
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                    color: cs.outlineVariant.withOpacity(isDark ? 0.45 : 0.70),
+                    width: 0.8),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.35 : 0.10),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10)),
+                ]),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.check_circle, color: AppColorV2.success, size: 24),
+              const SizedBox(width: 15),
+              LuvpayText(
+                  text: message,
+                  style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: cs.onSurface)),
+            ])));
   }
 }
 
@@ -1023,13 +864,11 @@ class SmoothRoute {
 
   Future<T?> route<T>() {
     return Navigator.push<T>(
-      context,
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 200),
-        reverseTransitionDuration: const Duration(milliseconds: 200),
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            FadeTransition(opacity: animation, child: child),
-      ),
-    );
+        context,
+        PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 200),
+            reverseTransitionDuration: const Duration(milliseconds: 200),
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                FadeTransition(opacity: animation, child: child)));
   }
 }

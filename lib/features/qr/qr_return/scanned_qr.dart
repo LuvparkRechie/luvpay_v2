@@ -34,59 +34,45 @@ class _ScannedQRState extends State<ScannedQR> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffoldV2(
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          _goBack();
-        }
-      },
-      canPop: false,
-      onPressedLeading: _goBack,
-      enableToolBar: true,
-      scaffoldBody: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const LuvpayText(
-              text: 'QR Code Details',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            if (qrData.isNotEmpty) ...[
-              _buildDetailRow(
-                'Merchant Name:',
-                qrData['merchant_name']?.toString() ?? 'N/A',
-              ),
-              const SizedBox(height: 12),
-              _buildDetailRow(
-                'Processing Fee:',
-                '\$${qrData['processing_fee']?.toStringAsFixed(2) ?? '0.00'}',
-              ),
-            ] else ...[
-              const LuvpayText(text: 'Failed to parse QR data'),
-              const SizedBox(height: 8),
-              LuvpayText(text: 'Raw data: ${widget.args}'),
-            ],
-          ],
-        ),
-      ),
-    );
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) {
+            _goBack();
+          }
+        },
+        canPop: false,
+        onPressedLeading: _goBack,
+        enableToolBar: true,
+        scaffoldBody: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const LuvpayText(
+                  text: 'QR Code Details',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              if (qrData.isNotEmpty) ...[
+                _buildDetailRow('Merchant Name:',
+                    qrData['merchant_name']?.toString() ?? 'N/A'),
+                const SizedBox(height: 12),
+                _buildDetailRow('Processing Fee:',
+                    '\$${qrData['processing_fee']?.toStringAsFixed(2) ?? '0.00'}'),
+              ] else ...[
+                const LuvpayText(text: 'Failed to parse QR data'),
+                const SizedBox(height: 8),
+                LuvpayText(text: 'Raw data: ${widget.args}'),
+              ],
+            ])));
   }
 
   Widget _buildDetailRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(
           flex: 2,
           child: LuvpayText(
-            text: label,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-        Expanded(flex: 3, child: LuvpayText(text: value)),
-      ],
-    );
+              text: label,
+              style: const TextStyle(fontWeight: FontWeight.w600))),
+      Expanded(flex: 3, child: LuvpayText(text: value)),
+    ]);
   }
 
   void _goBack() {

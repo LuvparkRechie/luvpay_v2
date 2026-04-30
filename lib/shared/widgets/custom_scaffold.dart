@@ -102,47 +102,37 @@ class CustomScaffoldV2 extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
 
     return PopScope(
-      onPopInvokedWithResult: onPopInvokedWithResult,
-      canPop: canPop,
-      child: Scaffold(
-        key: scaffKey,
-        extendBodyBehindAppBar: extendBodyBehindAppbar,
-        drawerEnableOpenDragGesture: false,
-        backgroundColor: backgroundColor ?? cs.surface,
-        drawer: drawer,
-        resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-        bottomNavigationBar: bottomNavigationBar,
-        floatingActionButton: floatingButton,
-        persistentFooterButtons: persistentFooterButtons,
-        appBar: showAppBar ? (appBar ?? _buildModernAppBar(context)) : null,
-        body: _buildBody(context),
-      ),
-    );
+        onPopInvokedWithResult: onPopInvokedWithResult,
+        canPop: canPop,
+        child: Scaffold(
+            key: scaffKey,
+            extendBodyBehindAppBar: extendBodyBehindAppbar,
+            drawerEnableOpenDragGesture: false,
+            backgroundColor: backgroundColor ?? cs.surface,
+            drawer: drawer,
+            resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+            bottomNavigationBar: bottomNavigationBar,
+            floatingActionButton: floatingButton,
+            persistentFooterButtons: persistentFooterButtons,
+            appBar: showAppBar ? (appBar ?? _buildModernAppBar(context)) : null,
+            body: _buildBody(context)));
   }
 
   Widget _buildBody(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
+    return Stack(children: [
+      Positioned.fill(
           top: 10,
           child: Container(
-            alignment: Alignment.topCenter,
-            child: Image.asset(
-              "assets/images/lp_faint2.png",
-              fit: BoxFit.contain,
-              color: Color(0xFF80B8FF).withAlpha(15),
-            ),
-          ),
-        ),
-        SafeArea(
+              alignment: Alignment.topCenter,
+              child: Image.asset("assets/images/lp_faint2.png",
+                  fit: BoxFit.contain,
+                  color: Color(0xFF80B8FF).withAlpha(15)))),
+      SafeArea(
           bottom: false,
           child: Padding(
-            padding: padding ?? const EdgeInsets.all(24),
-            child: scaffoldBody,
-          ),
-        ),
-      ],
-    );
+              padding: padding ?? const EdgeInsets.all(24),
+              child: scaffoldBody)),
+    ]);
   }
 
   AppBar _buildModernAppBar(BuildContext context) {
@@ -159,51 +149,45 @@ class CustomScaffoldV2 extends StatelessWidget {
             : Brightness.dark;
 
     return AppBar(
-      bottom: bottom,
-      backgroundColor: bg,
-      surfaceTintColor: Colors.transparent,
-      centerTitle: centerTitle ?? true,
-      title: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: LuvpayText(
-          key: ValueKey(appBarTitle ?? ""),
-          text: appBarTitle ?? "",
-          style: AppTextStyle.h3(context).copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.3,
-          ),
-          color: fg,
-          maxLines: 1,
-        ),
-      ),
-      iconTheme: IconThemeData(color: fg),
-      actionsIconTheme: IconThemeData(color: fg),
-      leading: leading ?? _buildModernLeading(context),
-      leadingWidth: appBarLeadingWidth ?? 80,
-      elevation: 0,
-      toolbarHeight: enableToolBar ? 64 : 0,
-      actions: appBarAction != null
-          ? [
-              Container(
-                margin: const EdgeInsets.only(right: 8),
-                child: Row(children: appBarAction!),
-              ),
-            ]
-          : null,
-      shape: null,
-      bottomOpacity: 1,
-      systemOverlayStyle: systemOverlayStyle ??
-          SystemUiOverlayStyle(
-            statusBarColor: bg,
-            statusBarBrightness: iconBrightness == Brightness.light
-                ? Brightness.dark
-                : Brightness.light,
-            statusBarIconBrightness: iconBrightness,
-            systemNavigationBarColor: null,
-            systemNavigationBarIconBrightness: null,
-          ),
-    );
+        bottom: bottom,
+        backgroundColor: bg,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: centerTitle ?? true,
+        title: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: LuvpayText(
+                key: ValueKey(appBarTitle ?? ""),
+                text: appBarTitle ?? "",
+                style: AppTextStyle.h3(context).copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3),
+                color: fg,
+                maxLines: 1)),
+        iconTheme: IconThemeData(color: fg),
+        actionsIconTheme: IconThemeData(color: fg),
+        leading: leading ?? _buildModernLeading(context),
+        leadingWidth: appBarLeadingWidth ?? 80,
+        elevation: 0,
+        toolbarHeight: enableToolBar ? 64 : 0,
+        actions: appBarAction != null
+            ? [
+                Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    child: Row(children: appBarAction!)),
+              ]
+            : null,
+        shape: null,
+        bottomOpacity: 1,
+        systemOverlayStyle: systemOverlayStyle ??
+            SystemUiOverlayStyle(
+                statusBarColor: bg,
+                statusBarBrightness: iconBrightness == Brightness.light
+                    ? Brightness.dark
+                    : Brightness.light,
+                statusBarIconBrightness: iconBrightness,
+                systemNavigationBarColor: null,
+                systemNavigationBarIconBrightness: null));
   }
 
   Widget _buildModernLeading(BuildContext context) {
@@ -217,33 +201,26 @@ class CustomScaffoldV2 extends StatelessWidget {
             Get.key.currentState?.canPop() == true));
 
     return Padding(
-      padding: const EdgeInsets.only(left: 10),
-      child: Row(
-        children: [
+        padding: const EdgeInsets.only(left: 10),
+        child: Row(children: [
           NeoNavIcon.icon(
-            size: 40,
-            iconColor: AppColorV2.lpBlueBrand,
-            padding: const EdgeInsets.all(8),
-            iconSize: 20,
-            iconData: Icons.arrow_back_ios_new_rounded,
-            onTap: onPressedLeading ??
-                () {
-                  if (canGoBack) Get.back();
-                },
-          ),
+              size: 40,
+              iconColor: AppColorV2.lpBlueBrand,
+              padding: const EdgeInsets.all(8),
+              iconSize: 20,
+              iconData: Icons.arrow_back_ios_new_rounded,
+              onTap: onPressedLeading ??
+                  () {
+                    if (canGoBack) Get.back();
+                  }),
           if (leadingText != null)
             Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: LuvpayText(
-                color: iconColor,
-                text: leadingText!,
-                style: AppTextStyle.h3_semibold(
-                  context,
-                ).copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-            ),
-        ],
-      ),
-    );
+                padding: const EdgeInsets.only(left: 10),
+                child: LuvpayText(
+                    color: iconColor,
+                    text: leadingText!,
+                    style: AppTextStyle.h3_semibold(context)
+                        .copyWith(fontSize: 16, fontWeight: FontWeight.w500))),
+        ]));
   }
 }

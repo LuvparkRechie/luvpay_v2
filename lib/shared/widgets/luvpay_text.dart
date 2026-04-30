@@ -20,102 +20,88 @@ class AppTextStyle {
       _isDark(context) ? AppColorV2.darkBackground : AppColorV2.background;
 
   static TextStyle h1(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 28,
-        fontWeight: FontWeight.w800,
-        height: 32 / 28,
-        color: _primaryText(context),
-      );
+      fontSize: 28,
+      fontWeight: FontWeight.w800,
+      height: 32 / 28,
+      color: _primaryText(context));
 
   static TextStyle h2_f26(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 26,
-        fontWeight: FontWeight.w800,
-        height: 32 / 26,
-        color: _primaryText(context),
-      );
+      fontSize: 26,
+      fontWeight: FontWeight.w800,
+      height: 32 / 26,
+      color: _primaryText(context));
 
   static TextStyle h2(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 24,
-        fontWeight: FontWeight.w800,
-        height: 28 / 24,
-        color: _primaryText(context),
-      );
+      fontSize: 24,
+      fontWeight: FontWeight.w800,
+      height: 28 / 24,
+      color: _primaryText(context));
 
   static TextStyle h3_f22(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        height: 26 / 22,
-        color: _primaryText(context),
-      );
+      fontSize: 22,
+      fontWeight: FontWeight.w700,
+      height: 26 / 22,
+      color: _primaryText(context));
 
   static TextStyle h3(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        height: 20 / 16,
-        color: _primaryText(context),
-      );
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      height: 20 / 16,
+      color: _primaryText(context));
 
   static TextStyle h3_semibold(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        height: 20 / 16,
-        color: _primaryText(context),
-      );
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      height: 20 / 16,
+      color: _primaryText(context));
 
   static TextStyle h4(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        height: 28 / 18,
-        color: _primaryText(context),
-      );
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      height: 28 / 18,
+      color: _primaryText(context));
 
   static TextStyle paragraph1(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        height: 20 / 16,
-        color: _bodyText(context),
-      );
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      height: 20 / 16,
+      color: _bodyText(context));
 
   static TextStyle paragraph2(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        height: 18 / 14,
-        color: _bodyText(context),
-      );
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      height: 18 / 14,
+      color: _bodyText(context));
 
   static TextStyle body2(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        height: 18 / 14,
-        color: _bodyText(context),
-      );
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      height: 18 / 14,
+      color: _bodyText(context));
 
   static TextStyle body1(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        height: 18 / 14,
-        color: _bodyText(context),
-      );
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      height: 18 / 14,
+      color: _bodyText(context));
 
   static TextStyle textbox(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        height: 18 / 14,
-        color: _bodyText(context),
-      );
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      height: 18 / 14,
+      color: _bodyText(context));
 
   static TextStyle textButton(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        height: 20 / 16,
-        color: _onBrand(context),
-      );
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      height: 20 / 16,
+      color: _onBrand(context));
 
   static TextStyle popup(BuildContext context) => GoogleFonts.manrope(
-        fontSize: 22,
-        fontWeight: FontWeight.w800,
-        height: 24 / 22,
-        color: _primaryText(context),
-      );
+      fontSize: 22,
+      fontWeight: FontWeight.w800,
+      height: 24 / 22,
+      color: _primaryText(context));
 }
 
 class LuvpayText extends StatefulWidget {
@@ -166,31 +152,26 @@ class _DefaultTextState extends State<LuvpayText> {
     final defaultStyle = widget.style ?? AppTextStyle.paragraph2(context);
 
     final textStyleValue = defaultStyle.copyWith(
-      fontSize: widget.fontSize ?? defaultStyle.fontSize,
-      fontWeight: widget.fontWeight ?? defaultStyle.fontWeight,
-      color: widget.color ?? defaultStyle.color,
-      letterSpacing: widget.letterSpacing ?? 0,
-      fontStyle: widget.fontStyle ?? defaultStyle.fontStyle,
-      height: widget.height ?? defaultStyle.height,
-      wordSpacing: widget.wordSpacing ?? defaultStyle.wordSpacing,
-    );
+        fontSize: widget.fontSize ?? defaultStyle.fontSize,
+        fontWeight: widget.fontWeight ?? defaultStyle.fontWeight,
+        color: widget.color ?? defaultStyle.color,
+        letterSpacing: widget.letterSpacing ?? 0,
+        fontStyle: widget.fontStyle ?? defaultStyle.fontStyle,
+        height: widget.height ?? defaultStyle.height,
+        wordSpacing: widget.wordSpacing ?? defaultStyle.wordSpacing);
 
     return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: (widget.horizontalPadding ?? 0) / 2,
-        vertical: (widget.verticalPadding ?? 0) / 2,
-      ),
-      child: AutoSizeText(
-        widget.text,
-        softWrap: true,
-        style: textStyleValue,
-        textAlign: widget.textAlign ?? TextAlign.left,
-        maxLines: widget.maxLines ?? 2,
-        overflow: widget.overflow ?? TextOverflow.ellipsis,
-        minFontSize: widget.minFontSize ?? 12,
-        maxFontSize: widget.maxFontSize ?? 28,
-      ),
-    );
+        padding: EdgeInsets.symmetric(
+            horizontal: (widget.horizontalPadding ?? 0) / 2,
+            vertical: (widget.verticalPadding ?? 0) / 2),
+        child: AutoSizeText(widget.text,
+            softWrap: true,
+            style: textStyleValue,
+            textAlign: widget.textAlign ?? TextAlign.left,
+            maxLines: widget.maxLines ?? 2,
+            overflow: widget.overflow ?? TextOverflow.ellipsis,
+            minFontSize: widget.minFontSize ?? 12,
+            maxFontSize: widget.maxFontSize ?? 28));
   }
 }
 
@@ -208,22 +189,18 @@ class _IsLoadingState extends State<IsLoading> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Shimmer(
-      gradient: LinearGradient(
-        colors: [
+        gradient: LinearGradient(colors: [
           AppColorV2.lpBlueBrand.withOpacity(isDark ? 0.25 : 0.35),
-          (isDark ? AppColorV2.darkSurface2 : Colors.grey[100]!).withOpacity(
-            isDark ? 0.65 : 1.0,
-          ),
-        ],
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppColorV2.darkSurface2 : AppColorV2.inactiveButton,
-          borderRadius: BorderRadius.circular(5),
-        ),
-        width: widget.width ?? 100,
-        height: 14,
-      ),
-    );
+          (isDark ? AppColorV2.darkSurface2 : Colors.grey[100]!)
+              .withOpacity(isDark ? 0.65 : 1.0),
+        ]),
+        child: Container(
+            decoration: BoxDecoration(
+                color: isDark
+                    ? AppColorV2.darkSurface2
+                    : AppColorV2.inactiveButton,
+                borderRadius: BorderRadius.circular(5)),
+            width: widget.width ?? 100,
+            height: 14));
   }
 }

@@ -102,9 +102,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
     double width = 2,
   }) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(radius)),
-      borderSide: BorderSide(width: width, color: color),
-    );
+        borderRadius: BorderRadius.all(Radius.circular(radius)),
+        borderSide: BorderSide(width: width, color: color));
   }
 
   @override
@@ -129,90 +128,80 @@ class _CustomTextFieldState extends State<CustomTextField> {
     final iconInactive = cs.onSurfaceVariant.withOpacity(0.70);
 
     return Padding(
-      padding: (widget.allowFieldPadding ?? true)
-          ? EdgeInsets.only(top: 6.0)
-          : EdgeInsets.zero,
-      child: TextFormField(
-        keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
-        minLines: widget.minLines,
-        maxLines: widget.maxLines,
-        maxLength: widget.maxLength,
-        textCapitalization: widget.textCapitalization,
-        obscureText: widget.isObscure,
-        autofocus: false,
-        inputFormatters: widget.inputFormatters,
-        controller: widget.controller,
-        textInputAction: widget.textInputAction ?? TextInputAction.done,
-        readOnly: widget.isReadOnly ?? false,
-        keyboardType: widget.keyboardType ?? TextInputType.text,
-        textAlign: widget.textAlign ?? TextAlign.left,
-        focusNode: focusNode,
-        decoration: InputDecoration(
-          errorText: widget.errorText,
-          filled: widget.isFilled,
-          fillColor: fill,
-          enabledBorder: _border(radius: radius, color: stroke),
-          focusedBorder: _border(radius: radius, color: focused),
-          border: _border(radius: radius, color: stroke),
-          errorBorder: _border(radius: radius, color: error),
-          focusedErrorBorder: _border(radius: radius, color: error),
-          errorStyle: TextStyle(
-            color: error,
-            fontWeight: FontWeight.normal,
-            fontSize: 11,
-          ),
-          contentPadding: EdgeInsets.only(top: 15, bottom: 12, left: 11),
-          suffixIcon: _buildSuffixIcon(
-            context: context,
-            activeColor: focused,
-            inactiveColor: iconInactive,
-          ),
-          prefixIcon: widget.prefixIcon != null
-              ? (widget.isPota == true
-                  ? widget.prefixIcon!
-                  : InkWell(
-                      onTap: () {
-                        if (widget.onIconTap != null) widget.onIconTap!();
-                      },
-                      child: widget.prefixIcon,
-                    ))
-              : null,
-          prefix: widget.prefix,
-          hintMaxLines: 1,
-          maintainHintSize: true,
-          hintText: widget.hintText,
-          hintStyle: GoogleFonts.workSans(
-            color: hintColor,
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-            height: 18 / 14,
-          ),
-        ),
-        buildCounter: (
-          BuildContext context, {
-          required int currentLength,
-          required bool isFocused,
-          required int? maxLength,
-        }) {
-          return null;
-        },
-        style: widget.style ??
-            GoogleFonts.workSans(
-              fontSize: widget.fontsize ?? 14,
-              fontWeight: widget.fontweight ?? FontWeight.w500,
-              color: textColor,
-              letterSpacing: 0.0,
-              height: 18 / 14,
-            ),
-        onChanged: (value) {
-          if (widget.onChange != null && mounted) widget.onChange!(value);
-        },
-        onTap: () {
-          if (widget.onTap != null && mounted) widget.onTap!();
-        },
-        validator: widget.validator,
-      ),
-    );
+        padding: (widget.allowFieldPadding ?? true)
+            ? EdgeInsets.only(top: 6.0)
+            : EdgeInsets.zero,
+        child: TextFormField(
+            keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
+            minLines: widget.minLines,
+            maxLines: widget.maxLines,
+            maxLength: widget.maxLength,
+            textCapitalization: widget.textCapitalization,
+            obscureText: widget.isObscure,
+            autofocus: false,
+            inputFormatters: widget.inputFormatters,
+            controller: widget.controller,
+            textInputAction: widget.textInputAction ?? TextInputAction.done,
+            readOnly: widget.isReadOnly ?? false,
+            keyboardType: widget.keyboardType ?? TextInputType.text,
+            textAlign: widget.textAlign ?? TextAlign.left,
+            focusNode: focusNode,
+            decoration: InputDecoration(
+                errorText: widget.errorText,
+                filled: widget.isFilled,
+                fillColor: fill,
+                enabledBorder: _border(radius: radius, color: stroke),
+                focusedBorder: _border(radius: radius, color: focused),
+                border: _border(radius: radius, color: stroke),
+                errorBorder: _border(radius: radius, color: error),
+                focusedErrorBorder: _border(radius: radius, color: error),
+                errorStyle: TextStyle(
+                    color: error, fontWeight: FontWeight.normal, fontSize: 11),
+                contentPadding: EdgeInsets.only(top: 15, bottom: 12, left: 11),
+                suffixIcon: _buildSuffixIcon(
+                    context: context,
+                    activeColor: focused,
+                    inactiveColor: iconInactive),
+                prefixIcon: widget.prefixIcon != null
+                    ? (widget.isPota == true
+                        ? widget.prefixIcon!
+                        : InkWell(
+                            onTap: () {
+                              if (widget.onIconTap != null) widget.onIconTap!();
+                            },
+                            child: widget.prefixIcon))
+                    : null,
+                prefix: widget.prefix,
+                hintMaxLines: 1,
+                maintainHintSize: true,
+                hintText: widget.hintText,
+                hintStyle: GoogleFonts.workSans(
+                    color: hintColor,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    height: 18 / 14)),
+            buildCounter: (
+              BuildContext context, {
+              required int currentLength,
+              required bool isFocused,
+              required int? maxLength,
+            }) {
+              return null;
+            },
+            style: widget.style ??
+                GoogleFonts.workSans(
+                    fontSize: widget.fontsize ?? 14,
+                    fontWeight: widget.fontweight ?? FontWeight.w500,
+                    color: textColor,
+                    letterSpacing: 0.0,
+                    height: 18 / 14),
+            onChanged: (value) {
+              if (widget.onChange != null && mounted) widget.onChange!(value);
+            },
+            onTap: () {
+              if (widget.onTap != null && mounted) widget.onTap!();
+            },
+            validator: widget.validator));
   }
 
   Widget? _buildSuffixIcon({
@@ -229,18 +218,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
           (isDark ? cs.surfaceContainerHighest : cs.surface);
 
       return Container(
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.only(
-            bottomRight: Radius.circular(widget.circularRadius ?? 7),
-            topRight: Radius.circular(widget.circularRadius ?? 7),
-          ),
-        ),
-        height: 24,
-        width: 60,
-        child: Center(child: widget.suffixWidget),
-      );
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.only(
+                  bottomRight: Radius.circular(widget.circularRadius ?? 7),
+                  topRight: Radius.circular(widget.circularRadius ?? 7))),
+          height: 24,
+          width: 60,
+          child: Center(child: widget.suffixWidget));
     }
 
     if (widget.suffixIcon != null) {
@@ -249,11 +235,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
       final iconColor = canHighlight ? activeColor : inactiveColor;
 
       return InkWell(
-        onTap: () {
-          if (widget.onIconTap != null) widget.onIconTap!();
-        },
-        child: Icon(widget.suffixIcon!, color: iconColor),
-      );
+          onTap: () {
+            if (widget.onIconTap != null) widget.onIconTap!();
+          },
+          child: Icon(widget.suffixIcon!, color: iconColor));
     }
 
     return null;
@@ -318,9 +303,8 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
     double width = 2,
   }) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.all(Radius.circular(radius)),
-      borderSide: BorderSide(width: width, color: color),
-    );
+        borderRadius: BorderRadius.all(Radius.circular(radius)),
+        borderSide: BorderSide(width: width, color: color));
   }
 
   @override
@@ -339,97 +323,83 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
     final radius = widget.circularRadius ?? 7;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 6.0),
-      child: TextFormField(
-        focusNode: focusNode,
-        keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
-        maxLines: 1,
-        autofocus: false,
-        inputFormatters: widget.inputFormatters ?? [Variables.maskFormatter],
-        controller: widget.controller,
-        textInputAction: widget.textInputAction ?? TextInputAction.done,
-        readOnly: !widget.isEnabled || (widget.isReadOnly ?? false),
-        textAlign: TextAlign.left,
-        enabled: widget.isEnabled,
-        keyboardType: Platform.isAndroid
-            ? TextInputType.phone
-            : const TextInputType.numberWithOptions(
-                signed: true,
-                decimal: false,
-              ),
-        decoration: InputDecoration(
-          errorStyle: TextStyle(color: error, fontSize: 11),
-          isDense: true,
-          contentPadding: const EdgeInsets.only(top: 15, bottom: 12),
-          enabledBorder: _border(radius: radius, color: stroke),
-          focusedBorder: _border(radius: radius, color: focused),
-          border: _border(radius: radius, color: focused),
-          errorBorder: _border(radius: radius, color: error),
-          focusedErrorBorder: _border(radius: radius, color: error),
-          suffixIconConstraints: const BoxConstraints(
-            minHeight: 0,
-            minWidth: 0,
-            maxHeight: 48,
-          ),
-          suffixIcon: _buildSuffix(context: context, radius: radius),
-          prefixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              spacing(height: 15),
-              LuvpayText(
-                height: 18 / 14,
-                letterSpacing: 0,
-                text: '+63',
-                style: Platform.isAndroid
-                    ? GoogleFonts.workSans(
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
-                        height: 20 / 14,
-                        fontSize: 14,
-                      )
-                    : TextStyle(
-                        fontFamily: "SFProTextReg",
-                        color: textColor,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          hintMaxLines: 1,
-          maintainHintSize: true,
-          hintText: widget.hintText,
-          hintStyle: GoogleFonts.workSans(
-            color: hintColor,
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-            height: 18 / 14,
-          ),
-        ),
-        style: GoogleFonts.workSans(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: textColor,
-          letterSpacing: 0.0,
-          height: 18 / 14,
-        ),
-        onTap: widget.isEnabled ? widget.onTap : null,
-        onChanged: (value) {
-          if (widget.onChange != null) widget.onChange!(value);
-        },
-        validator: widget.validator ??
-            (value) {
-              if (widget.hintText == "10 digit mobile number") {
-                if (value == null || value.isEmpty) return 'Field is required';
-                final v = value.replaceAll(" ", "");
-                if (v.length < 10) return 'Invalid mobile number';
-                if (v[0] == '0') return 'Invalid mobile number';
-              }
-              return null;
+        padding: const EdgeInsets.only(top: 6.0),
+        child: TextFormField(
+            focusNode: focusNode,
+            keyboardAppearance: isDark ? Brightness.dark : Brightness.light,
+            maxLines: 1,
+            autofocus: false,
+            inputFormatters:
+                widget.inputFormatters ?? [Variables.maskFormatter],
+            controller: widget.controller,
+            textInputAction: widget.textInputAction ?? TextInputAction.done,
+            readOnly: !widget.isEnabled || (widget.isReadOnly ?? false),
+            textAlign: TextAlign.left,
+            enabled: widget.isEnabled,
+            keyboardType: Platform.isAndroid
+                ? TextInputType.phone
+                : const TextInputType.numberWithOptions(
+                    signed: true, decimal: false),
+            decoration: InputDecoration(
+                errorStyle: TextStyle(color: error, fontSize: 11),
+                isDense: true,
+                contentPadding: const EdgeInsets.only(top: 15, bottom: 12),
+                enabledBorder: _border(radius: radius, color: stroke),
+                focusedBorder: _border(radius: radius, color: focused),
+                border: _border(radius: radius, color: focused),
+                errorBorder: _border(radius: radius, color: error),
+                focusedErrorBorder: _border(radius: radius, color: error),
+                suffixIconConstraints: const BoxConstraints(
+                    minHeight: 0, minWidth: 0, maxHeight: 48),
+                suffixIcon: _buildSuffix(context: context, radius: radius),
+                prefixIcon: Row(mainAxisSize: MainAxisSize.min, children: [
+                  spacing(height: 15),
+                  LuvpayText(
+                      height: 18 / 14,
+                      letterSpacing: 0,
+                      text: '+63',
+                      style: Platform.isAndroid
+                          ? GoogleFonts.workSans(
+                              color: textColor,
+                              fontWeight: FontWeight.w700,
+                              height: 20 / 14,
+                              fontSize: 14)
+                          : TextStyle(
+                              fontFamily: "SFProTextReg",
+                              color: textColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14)),
+                  const SizedBox(width: 8),
+                ]),
+                hintMaxLines: 1,
+                maintainHintSize: true,
+                hintText: widget.hintText,
+                hintStyle: GoogleFonts.workSans(
+                    color: hintColor,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    height: 18 / 14)),
+            style: GoogleFonts.workSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: textColor,
+                letterSpacing: 0.0,
+                height: 18 / 14),
+            onTap: widget.isEnabled ? widget.onTap : null,
+            onChanged: (value) {
+              if (widget.onChange != null) widget.onChange!(value);
             },
-      ),
-    );
+            validator: widget.validator ??
+                (value) {
+                  if (widget.hintText == "10 digit mobile number") {
+                    if (value == null || value.isEmpty)
+                      return 'Field is required';
+                    final v = value.replaceAll(" ", "");
+                    if (v.length < 10) return 'Invalid mobile number';
+                    if (v[0] == '0') return 'Invalid mobile number';
+                  }
+                  return null;
+                }));
   }
 
   Widget? _buildSuffix({
@@ -445,28 +415,23 @@ class _CustomMobileNumberState extends State<CustomMobileNumber> {
           (isDark ? cs.surfaceContainerHighest : cs.surface);
 
       return Container(
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(radius),
-            bottomRight: Radius.circular(radius),
-          ),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: FittedBox(fit: BoxFit.scaleDown, child: widget.suffixWidget!),
-      );
+          decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(radius),
+                  bottomRight: Radius.circular(radius))),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: FittedBox(fit: BoxFit.scaleDown, child: widget.suffixWidget!));
     }
 
     if (widget.suffixIcon != null) {
       return InkWell(
-        onTap: () {
-          if (widget.onIconTap != null) widget.onIconTap!();
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Icon(widget.suffixIcon!, color: cs.onSurfaceVariant),
-        ),
-      );
+          onTap: () {
+            if (widget.onIconTap != null) widget.onIconTap!();
+          },
+          child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Icon(widget.suffixIcon!, color: cs.onSurfaceVariant)));
     }
 
     return null;
@@ -493,18 +458,13 @@ class _CustomButtonCloseState extends State<CustomButtonClose> {
     final fg = Colors.white;
 
     return InkWell(
-      onTap: () => widget.onTap(),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: bg,
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(4.0),
-          child: Icon(Icons.close, size: 23, color: fg),
-        ),
-      ),
-    );
+        onTap: () => widget.onTap(),
+        child: Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10), color: bg),
+            child: Padding(
+                padding: EdgeInsets.all(4.0),
+                child: Icon(Icons.close, size: 23, color: fg))));
   }
 }
 
@@ -528,82 +488,63 @@ DropdownButtonFormField<String> customDropdown({
   final error = AppColorV2.incorrectState;
 
   return DropdownButtonFormField<String>(
-    decoration: InputDecoration(
-      prefixIcon: prefixIcon,
-      filled: isDisabled,
-      fillColor: isDisabled
-          ? (isDark ? cs.surfaceContainerHighest : cs.surface)
-          : null,
-      contentPadding: const EdgeInsets.only(top: 15, bottom: 12, left: 11),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(width: 2, color: stroke),
-        borderRadius: BorderRadius.all(Radius.circular(7)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(7)),
-        borderSide: BorderSide(width: 2, color: focused),
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(7)),
-        borderSide: BorderSide(width: 2, color: stroke),
-      ),
-      hintMaxLines: 1,
-      maintainHintSize: true,
-      hintText: labelText,
-      hintStyle: GoogleFonts.workSans(
-        color: cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80),
-        fontWeight: FontWeight.w500,
-        fontSize: 14,
-        height: 18 / 14,
-      ),
-      errorStyle: TextStyle(
-        color: error,
-        fontWeight: FontWeight.normal,
-        fontSize: 11,
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(7)),
-        borderSide: BorderSide(width: 2, color: error),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(7)),
-        borderSide: BorderSide(width: 2, color: error),
-      ),
-    ),
-    style: GoogleFonts.workSans(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      color: cs.onSurface,
-      letterSpacing: 0.0,
-      height: 18 / 14,
-    ),
-    items: items.map((item) {
-      return DropdownMenuItem(
-        value: item['value'].toString(),
-        child: AutoSizeText(
-          item['text'].toString(),
-          style: TextStyle(
-            color: cs.onSurface,
-            fontWeight: FontWeight.w500,
-          ),
-          overflow: TextOverflow.ellipsis,
-          maxFontSize: 16,
-          maxLines: 2,
-        ),
-      );
-    }).toList(),
-    value: selectedValue,
-    onChanged: isDisabled ? null : onChanged,
-    validator: validator,
-    isExpanded: true,
-    focusNode: FocusNode(),
-    icon: Icon(
-      Icons.arrow_drop_down,
-      color: (items.isEmpty || isDisabled)
-          ? cs.onSurfaceVariant.withOpacity(0.5)
-          : cs.onSurfaceVariant,
-    ),
-    dropdownColor: cs.surface,
-    autovalidateMode: AutovalidateMode.onUserInteraction,
-  );
+      decoration: InputDecoration(
+          prefixIcon: prefixIcon,
+          filled: isDisabled,
+          fillColor: isDisabled
+              ? (isDark ? cs.surfaceContainerHighest : cs.surface)
+              : null,
+          contentPadding: const EdgeInsets.only(top: 15, bottom: 12, left: 11),
+          enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(width: 2, color: stroke),
+              borderRadius: BorderRadius.all(Radius.circular(7))),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(7)),
+              borderSide: BorderSide(width: 2, color: focused)),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(7)),
+              borderSide: BorderSide(width: 2, color: stroke)),
+          hintMaxLines: 1,
+          maintainHintSize: true,
+          hintText: labelText,
+          hintStyle: GoogleFonts.workSans(
+              color: cs.onSurfaceVariant.withOpacity(isDark ? 0.75 : 0.80),
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              height: 18 / 14),
+          errorStyle: TextStyle(
+              color: error, fontWeight: FontWeight.normal, fontSize: 11),
+          errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(7)),
+              borderSide: BorderSide(width: 2, color: error)),
+          focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(7)),
+              borderSide: BorderSide(width: 2, color: error))),
+      style: GoogleFonts.workSans(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: cs.onSurface,
+          letterSpacing: 0.0,
+          height: 18 / 14),
+      items: items.map((item) {
+        return DropdownMenuItem(
+            value: item['value'].toString(),
+            child: AutoSizeText(item['text'].toString(),
+                style:
+                    TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500),
+                overflow: TextOverflow.ellipsis,
+                maxFontSize: 16,
+                maxLines: 2));
+      }).toList(),
+      value: selectedValue,
+      onChanged: isDisabled ? null : onChanged,
+      validator: validator,
+      isExpanded: true,
+      focusNode: FocusNode(),
+      icon: Icon(Icons.arrow_drop_down,
+          color: (items.isEmpty || isDisabled)
+              ? cs.onSurfaceVariant.withOpacity(0.5)
+              : cs.onSurfaceVariant),
+      dropdownColor: cs.surface,
+      autovalidateMode: AutovalidateMode.onUserInteraction);
 }

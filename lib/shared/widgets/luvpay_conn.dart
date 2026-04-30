@@ -15,30 +15,23 @@ class ConnectionInterruption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 10),
-        Container(
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      const SizedBox(height: 10),
+      Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(),
-          child: Column(
-            children: [
-              LuvpayText(
+          child: Column(children: [
+            LuvpayText(
                 text: msg ?? "Connection lost",
                 style: AppTextStyle.h4(context),
-                color: Colors.red,
-              ),
-              LuvpayText(
+                color: Colors.red),
+            LuvpayText(
                 text:
                     "We're unable to connect to the server. Please check your internet connection",
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 5),
-        SizedBox(
+                textAlign: TextAlign.center),
+          ])),
+      const SizedBox(height: 5),
+      SizedBox(
           width: MediaQuery.of(context).size.width / 3.5,
           child: LuvNeuPillButton(
               height: 30,
@@ -47,9 +40,7 @@ class ConnectionInterruption extends StatelessWidget {
               filled: false,
               onTap: () {
                 onPressed!();
-              }),
-        )
-      ],
-    );
+              }))
+    ]);
   }
 }
