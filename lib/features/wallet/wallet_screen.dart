@@ -379,7 +379,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
     final response = await HttpRequestApi(api: ApiKeys.getServiceFee).get();
     Get.back();
-
     if (response == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
         Get.back();
@@ -701,6 +700,7 @@ class _WalletScreenState extends State<WalletScreen> {
             SizedBox(height: 20),
             _buildMerchantBillsGrid(),
             favBiller(context, cs),
+            SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

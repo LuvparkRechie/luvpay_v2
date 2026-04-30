@@ -57,7 +57,15 @@ flutter build apk --debug --no-tree-shake-icons
 flutter build appbundle --release --no-tree-shake-icons
 flutter build apk --release
 
+FOR IOS TESTFLIGHT
+https://developer.apple.com/account
 
+flutter clean
+flutter pub get
+flutter build ios --release
+
+open ios/Runner.xcworkspace
+Product → Archive
 
 ------------------------------------------------------------------------------------------
 

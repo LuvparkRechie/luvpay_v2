@@ -874,8 +874,8 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                             CrossAxisAlignment.end,
                                         children: [
                                           LuvpayText(
-                                            text:
-                                                toCurrencyString(tx['amount']),
+                                            text: toCurrencyString(
+                                                tx['amount'] ?? ""),
                                             color: accent,
                                             style: AppTextStyle.body1(
                                               context,

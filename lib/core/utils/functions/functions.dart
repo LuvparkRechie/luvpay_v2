@@ -977,7 +977,6 @@ class Functions {
     final userID = await Authentication().getUserId();
     final paymentKey =
         await HttpRequestApi(api: "${ApiKeys.getPaymentKey}$userID").get();
-    longPrint("paymentHk $paymentKey ");
     if (paymentKey == "No Internet") {
       CustomDialogStack.showConnectionLost(Get.context!, () {
         Get.back();

@@ -66,26 +66,26 @@ class SplashController extends GetxController
   }
 
   void _verifyVersion() async {
-    // final packageInfo = await PackageInfo.fromPlatform();
+    //   final packageInfo = await PackageInfo.fromPlatform();
 
-    // try {
-    //   final result = await AppVersionUpdate.checkForUpdates(
-    //     appleId: '6473724622',
-    //     playStoreId: 'com.cmds.luvpay',
-    //   );
+    //   try {
+    //     final result = await AppVersionUpdate.checkForUpdates(
+    //       appleId: '6473724622',
+    //       playStoreId: 'com.cmds.luvpay',
+    //     );
 
-    //   final storeVersion = Version.parse(result.storeVersion.toString());
-    //   final localVersion = Version.parse(packageInfo.version);
+    //     final storeVersion = Version.parse(result.storeVersion.toString());
+    //     final localVersion = Version.parse(packageInfo.version);
 
-    //   if (storeVersion > localVersion) {
-    //     Get.offAll(() => const UpdateApp(), arguments: {
-    //       "data": result,
-    //     });
-    //     return;
+    //     if (storeVersion > localVersion) {
+    //       Get.offAll(() => const UpdateApp(), arguments: {
+    //         "data": result,
+    //       });
+    //       return;
+    //     }
+    //   } catch (e) {
+    //     debugPrint("Version check error: $e");
     //   }
-    // } catch (e) {
-    //   debugPrint("Version check error: $e");
-    // }
 
     basicStatusCheck();
   }

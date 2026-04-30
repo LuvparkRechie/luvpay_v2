@@ -23,26 +23,27 @@ class SubWallerCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isSingle = wallets.length == 1;
     const double walletCardRatio = 2.8;
 
     return CarouselSlider(
       options: CarouselOptions(
         initialPage: 0,
-        // initialPage: wallets.length > 1 ? 1 : 0,
         scrollPhysics: const BouncingScrollPhysics(),
         aspectRatio: walletCardRatio,
-        enableInfiniteScroll: false,
         viewportFraction: 0.48,
-        // padEnds: !isSingle,
         padEnds: false,
         disableCenter: true,
-        // disableCenter: isSingle,
-        enlargeCenterPage: false,
-        // enlargeCenterPage: !isSingle,
-        enlargeFactor: 0.12,
+        enlargeCenterPage: true,
+        enlargeFactor: 0.20,
         onPageChanged: onPageChanged,
-        enlargeStrategy: CenterPageEnlargeStrategy.scale,
+        enlargeStrategy: CenterPageEnlargeStrategy.zoom,
+        enableInfiniteScroll: wallets.length > 2,
+        autoPlay: wallets.length > 2,
+        autoPlayInterval: const Duration(seconds: 5),
+        autoPlayAnimationDuration: const Duration(milliseconds: 600),
+        autoPlayCurve: Curves.easeOutCubic,
+        pauseAutoPlayOnTouch: true,
+        pauseAutoPlayOnManualNavigate: true,
       ),
       items: wallets.map((w) {
         final iconBytes = (w.imageBase64?.isNotEmpty ?? false)
@@ -53,24 +54,27 @@ class SubWallerCarousel extends StatelessWidget {
             (w.categoryTitle.trim().isNotEmpty ? w.categoryTitle : w.category);
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
+          padding: EdgeInsets.only(
+            left: 14,
+          ),
           child: AspectRatio(
-              aspectRatio: walletCardRatio,
-              child: SubWalletCard(
-                wallet: w,
-                onTap: () => onTap(w),
-                iconBytes: iconBytes,
-                themeKey: w.colorTheme,
-                titleColor: cs.onSurface,
-                amountColor: cs.onSurface.withOpacity(0.72),
-                categoryLabel: categoryLabel,
-                mobileNo: w.mobileNo,
-                userName: w.userName,
-                isDeleting: false,
-                isPulsing: false,
-                deleteAnim: const AlwaysStoppedAnimation(0),
-                pulseAnim: const AlwaysStoppedAnimation(1),
-              )),
+            aspectRatio: walletCardRatio,
+            child: SubWalletCard(
+              wallet: w,
+              onTap: () => onTap(w),
+              iconBytes: iconBytes,
+              themeKey: w.colorTheme,
+              titleColor: cs.onSurface,
+              amountColor: cs.onSurface.withOpacity(0.72),
+              categoryLabel: categoryLabel,
+              mobileNo: w.mobileNo,
+              userName: w.userName,
+              isDeleting: false,
+              isPulsing: false,
+              deleteAnim: const AlwaysStoppedAnimation(0),
+              pulseAnim: const AlwaysStoppedAnimation(1),
+            ),
+          ),
         );
       }).toList(),
     );

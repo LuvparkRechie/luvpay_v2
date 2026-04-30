@@ -74,34 +74,7 @@ class SplashScreen extends GetView<SplashController> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: surface.withOpacity(isDark ? 0.62 : 0.92),
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(color: subtleBorder, width: 1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: shadow,
-                              blurRadius: 28,
-                              offset: const Offset(0, 12),
-                            ),
-                          ],
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Image.asset("assets/images/luvpay.png", height: 72),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 22),
-                      LuvpayText(
-                        text: "luvpay",
-                        style: AppTextStyle.h2_f26(context),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                      ),
+                      Image.asset("assets/images/luvpay.png", height: 72),
                       const SizedBox(height: 6),
                       LuvpayText(
                         text: "Initializing secure session…",

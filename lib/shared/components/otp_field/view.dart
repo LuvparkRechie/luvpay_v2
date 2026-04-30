@@ -292,9 +292,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       scaffoldBody: isLoading
           ? LoadingCard()
           : !isNetConn
-              ? ConnectionInterruption(
-                  onPressed: () => getOtpRequest(),
-                )
+              ? ConnectionInterruption(onPressed: () => getOtpRequest())
               : ScrollConfiguration(
                   behavior: ScrollBehavior().copyWith(overscroll: false),
                   child: StretchingOverscrollIndicator(
@@ -404,8 +402,10 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                     borderColor: brand,
                                     textColor: textColor,
                                   ).decoration!.copyWith(
-                                        border:
-                                            Border.all(color: brand, width: 2),
+                                        border: Border.all(
+                                          color: brand,
+                                          width: 2,
+                                        ),
                                       ),
                                 ),
                                 errorPinTheme: getDefaultPinTheme(

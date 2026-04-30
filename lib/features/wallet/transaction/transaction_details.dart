@@ -175,7 +175,7 @@ class TransactionDetails extends StatelessWidget {
                 context,
                 "Amount",
                 toCurrencyString(
-                  data[index]["amount"].replaceAll('-', '').toString(),
+                  data[index]["amount"] ?? "".replaceAll('-', '').toString(),
                 ),
                 isEmphasized: true,
               ),
