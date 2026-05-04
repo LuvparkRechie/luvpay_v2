@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
+import 'dart:io';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:app_version_update/data/models/app_version_result.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,11 @@ import 'util/update_app.dart';
 
 class SplashController extends GetxController
     with GetSingleTickerProviderStateMixin {
+  static const String _appleId = '6453687263'; //luvpayt ios apple id
+  // static const String _appleId =
+  //     '6473724622'; //mao ni pang test update force, luvpark ni sya
+  static const String _playStoreId = 'com.cmds.luvpay';
+
   late AnimationController _controller;
   late Animation<double> animation;
   RxBool isNetConn = true.obs;
@@ -58,35 +64,90 @@ class SplashController extends GetxController
   }
 
   Future<void> determineInitialRoute() async {
-    _verifyVersion();
+    await _verifyVersion();
   }
 
-  void _verifyVersion() async {
-    //   final packageInfo = await PackageInfo.fromPlatform();
+  Future<void> _verifyVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
 
-    //   try {
-    //     final result = await AppVersionUpdate.checkForUpdates(
-    //       appleId: '6473724622',
-    //       playStoreId: 'com.cmds.luvpay',
-    //     );
+    try {
+      final result = await _checkForStoreUpdate();
+      final bool shouldForceUpdate = (result.canUpdate ?? false) ||
+          _isStoreVersionNewer(
+            localVersion: packageInfo.version,
+            storeVersion: result.storeVersion,
+          );
 
-    //     final storeVersion = Version.parse(result.storeVersion.toString());
-    //     final localVersion = Version.parse(packageInfo.version);
+      if (shouldForceUpdate) {
+        Get.offAll(() => const UpdateApp(), arguments: {
+          "data": result,
+        });
+        return;
+      }
+    } catch (e) {
+      debugPrint("Version check error: $e");
+    }
 
-    //     if (storeVersion > localVersion) {
-    //       Get.offAll(() => const UpdateApp(), arguments: {
-    //         "data": result,
-    //       });
-    //       return;
-    //     }
-    //   } catch (e) {
-    //     debugPrint("Version check error: $e");
-    //   }
-
-    basicStatusCheck();
+    await basicStatusCheck();
   }
 
-  basicStatusCheck() async {
+  Future<AppVersionResult> _checkForStoreUpdate() async {
+    if (Platform.isIOS) {
+      try {
+        return await AppVersionUpdate.checkForUpdates(
+          appleId: _appleId,
+          playStoreId: _playStoreId,
+          country: 'ph',
+        );
+      } catch (_) {
+        return AppVersionUpdate.checkForUpdates(
+          appleId: _appleId,
+          playStoreId: _playStoreId,
+        );
+      }
+    }
+
+    return AppVersionUpdate.checkForUpdates(
+      appleId: _appleId,
+      playStoreId: _playStoreId,
+    );
+  }
+
+  bool _isStoreVersionNewer({
+    required String localVersion,
+    required String? storeVersion,
+  }) {
+    final parsedLocal = _parseVersion(localVersion);
+    final parsedStore = _parseVersion(storeVersion);
+
+    if (parsedLocal == null || parsedStore == null) {
+      return false;
+    }
+
+    return parsedStore > parsedLocal;
+  }
+
+  Version? _parseVersion(String? rawVersion) {
+    if (rawVersion == null || rawVersion.trim().isEmpty) {
+      return null;
+    }
+
+    final cleaned = rawVersion.trim().split('+').first;
+    final match = RegExp(r'^\d+(\.\d+){0,2}').firstMatch(cleaned);
+    final normalized = match?.group(0);
+
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+
+    try {
+      return Version.parse(normalized);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> basicStatusCheck() async {
     final isForcedLogout = await Authentication().getLogoutStatus();
     if (isForcedLogout == true) {
       Get.offAllNamed(Routes.login);
