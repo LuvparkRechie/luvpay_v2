@@ -4,30 +4,30 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:encrypt/encrypt.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:luvpay/core/security/encryption.dart';
 
-class AgentX_ {
+class AgentX {
   Future<String> agentBuffer(String json) async {
     final secretKey =
-        Encryption_().hexStringToArrayBuffer(dotenv.env['AGENT_X'] ?? '');
-    final nonce = Encryption_().generateRandomNonce();
+        EncryptionHelper().hexStringToArrayBuffer(dotenv.env['AGENT_X'] ?? '');
+    final nonce = EncryptionHelper().generateRandomNonce();
 
-    final encrypted = await Encryption_()
-        .encryptData(secretKey, nonce, AgentX_().compressString(json));
+    final encrypted = await EncryptionHelper()
+        .encryptData(secretKey, nonce, AgentX().compressString(json));
 
-    final concatenatedArray = Encryption_().concatBuffers(nonce, encrypted);
-    final output = Encryption_().arrayBufferToBase64(concatenatedArray);
+    final concatenatedArray =
+        EncryptionHelper().concatBuffers(nonce, encrypted);
+    final output = EncryptionHelper().arrayBufferToBase64(concatenatedArray);
 
     return output;
   }
 
   Future<dynamic> agentJson(String buffer) async {
-    final decryptedJson = await Encryption_()
+    final decryptedJson = await EncryptionHelper()
         .decryptUBUriPage(buffer, dotenv.env['AGENT_X'] ?? '');
 
-    return jsonDecode(decryptedJson);
+    return jsonDecode(decompressString(decryptedJson));
   }
 
   String compressString(String input) {
@@ -38,11 +38,10 @@ class AgentX_ {
     return base64Encode(compressedBytes);
   }
 
-  List<dynamic> decompressString(String compressedInput) {
-    //List<int> compressedBytes = base64Decode(compressedInput);
-    //List<int> decompressedBytes = GZipDecoder().decodeBytes(compressedBytes);
-    //return jsonDecode(utf8.decode(decompressedBytes));
-    return jsonDecode(compressedInput);
+  String decompressString(String compressedInput) {
+    final compressedBytes = base64Decode(compressedInput);
+    final decompressedBytes = GZipDecoder().decodeBytes(compressedBytes);
+    return utf8.decode(decompressedBytes);
   }
 
   Uint8List generateRandomIV(int length) {

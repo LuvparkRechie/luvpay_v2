@@ -27,7 +27,7 @@ class TamperGuard {
   // If you want strict offline policy:
   // 0 = allow offline forever (no forced tamper)
   // e.g. 120 = must have trusted time within 2 mins
-  static const int maxTrustedStaleSeconds = 0;
+  static const int maxTrustedStaleSeconds = 300;
 
   static Timer? _timer;
   static bool _running = false;
@@ -47,8 +47,11 @@ class TamperGuard {
     await setDialogActive(false);
 
     final prefs = await SharedPreferences.getInstance();
-    final currentOffset = DateTime.now().timeZoneOffset.inMinutes;
-    prefs.setInt(_kPrefLastUtcOffsetMinutes, currentOffset);
+    final savedOffset = prefs.getInt(_kPrefLastUtcOffsetMinutes);
+    if (savedOffset == null) {
+      final currentOffset = DateTime.now().timeZoneOffset.inMinutes;
+      await prefs.setInt(_kPrefLastUtcOffsetMinutes, currentOffset);
+    }
   }
 
   /// Start periodic checks (foreground).
@@ -145,7 +148,7 @@ class TamperGuard {
       }
 
       await prefs.setInt(_kPrefLastTrustedEpochMs, nowEpoch);
-    } catch (e, stack) {
+    } catch (e) {
       debugPrint("TamperGuard error: $e");
     } finally {
       _running = false;

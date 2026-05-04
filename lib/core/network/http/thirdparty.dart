@@ -95,6 +95,13 @@ class Http3rdPartyRequest {
   }
 
   Future<dynamic> fetchParkingSpots(mapApi) async {
+    List appSecurity = await AppSecurity.checkDeviceSecurity();
+    bool isAppSecured = appSecurity[0]["is_secured"];
+    if (!isAppSecured) {
+      Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+      return null;
+    }
+
     final urlapi = Uri.parse('$url&key=$mapApi');
     try {
       final response = await http.get(urlapi);

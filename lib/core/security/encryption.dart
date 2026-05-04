@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:pointycastle/export.dart' as crypto;
 
-class Encryption_ {
+class EncryptionHelper {
   Future<Uint8List> encryptData(
       Uint8List secretKey, Uint8List iv, String plainText) async {
     final cipher = crypto.GCMBlockCipher(crypto.AESEngine());

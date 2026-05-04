@@ -329,7 +329,7 @@ class HttpRequestApi {
   }
 
   Future<dynamic> linkToPage() async {
-    final appSecurity = await AppSecurity.checkDevMode();
+    final appSecurity = await AppSecurity.checkDeviceSecurity();
     final isAppSecured = appSecurity[0]["is_secured"];
 
     if (!isAppSecured) {
@@ -375,7 +375,7 @@ class HttpRequestApi {
       return true;
     }
 
-    final appSecurity = await AppSecurity.checkDevMode();
+    final appSecurity = await AppSecurity.checkDeviceSecurity();
     final isAppSecured = appSecurity[0]["is_secured"] == true;
 
     if (!isAppSecured) {

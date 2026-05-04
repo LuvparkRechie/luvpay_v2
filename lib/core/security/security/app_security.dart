@@ -9,6 +9,7 @@ import 'package:local_auth_android/local_auth_android.dart';
 // ignore: depend_on_referenced_packages
 import 'package:local_auth_darwin/local_auth_darwin.dart';
 import 'package:root_checker_plus/root_checker_plus.dart';
+import 'package:luvpay/core/network/http/api_keys.dart';
 
 class AppSecurity {
   static const platform = MethodChannel('com.cmds.luvpay/root');
@@ -18,74 +19,84 @@ class AppSecurity {
   static bool jailbreak = false;
   static bool isEmulator = false;
 
+  static bool get _shouldEnforce => ApiKeys.isProduction;
+
+  static void _resetFlags() {
+    message = '';
+    rootedCheck = false;
+    devMode = false;
+    jailbreak = false;
+    isEmulator = false;
+  }
+
+  static List<Map<String, dynamic>> _buildResult(List<String> issues) {
+    final hasIssue = issues.isNotEmpty;
+    final issueMessage = hasIssue ? _composeIssueMessage(issues) : "";
+    final isSecured = !hasIssue || !_shouldEnforce;
+
+    if (hasIssue) {
+      debugPrint(
+          "[AppSecurity] detected: $issueMessage | enforce=$_shouldEnforce");
+    }
+
+    message = issueMessage;
+    return [
+      {
+        'is_secured': isSecured,
+        'msg': hasIssue && _shouldEnforce ? issueMessage : "",
+      },
+    ];
+  }
+
+  static String _composeIssueMessage(List<String> issues) {
+    if (issues.isEmpty) return "";
+    if (issues.length == 1) return issues.first;
+    if (issues.length == 2) return '${issues.first} and ${issues.last}';
+    return '${issues.sublist(0, issues.length - 1).join(', ')}, and ${issues.last}';
+  }
+
   //work in background
 
   static Future<List> checkDevMode() async {
+    _resetFlags();
+
+    await developerMode();
+
     if (Platform.isIOS) {
       await checkIfIosEmulator();
-    } else {
-      await developerMode();
+    } else if (Platform.isAndroid) {
+      await checkIfAndroidEmulator();
     }
 
-    if (devMode || isEmulator) {
-      message = 'In developer mode';
-      return [
-        // {
-        //   'is_secured': !ApiKeys.isProduction,
-        //   'msg': !ApiKeys.isProduction ? "" : message,
-        // },
-        {'is_secured': true, 'msg': ""},
-      ];
-    } else {
-      return [
-        {'is_secured': true, 'msg': ""},
-      ];
-    }
+    final issues = <String>[
+      if (devMode) 'In developer mode',
+      if (isEmulator) 'Running on an emulator',
+    ];
+
+    return _buildResult(issues);
   }
 
   static Future<List> checkDeviceSecurity() async {
+    _resetFlags();
+
     if (Platform.isAndroid) {
       await androidRootChecker();
       await developerMode();
       await checkIfAndroidEmulator();
     } else if (Platform.isIOS) {
       await iosJailbreak();
+      await developerMode();
       await checkIfIosEmulator();
     }
 
-    if (rootedCheck || devMode || jailbreak || isEmulator) {
-      if (rootedCheck && jailbreak && devMode && isEmulator) {
-        message =
-            'Rooted, jailbroken, in developer mode, and running on an emulator';
-      } else if (rootedCheck && jailbreak && devMode) {
-        message = 'Rooted, jailbroken, and in developer mode';
-      } else if (rootedCheck && jailbreak) {
-        message = 'Rooted and jailbroken';
-      } else if (rootedCheck && devMode) {
-        message = 'Rooted and in developer mode';
-      } else if (jailbreak && devMode) {
-        message = 'Jailbroken and in developer mode';
-      } else if (rootedCheck) {
-        message = 'Rooted';
-      } else if (jailbreak) {
-        message = 'Jailbroken';
-      } else if (devMode) {
-        message = 'In developer mode';
-      } else if (isEmulator) {
-        message = 'Running on an emulator';
-      }
-      return [
-        // {
-        //   'is_secured': !ApiKeys.isProduction,
-        //   'msg': !ApiKeys.isProduction ? "" : message,
-        // },
-        {'is_secured': true, 'msg': ""},
-      ];
-    } else {
-      return [
-        {'is_secured': true, 'msg': ""},
-      ];
-    }
+    final issues = <String>[
+      if (rootedCheck) 'Rooted',
+      if (jailbreak) 'Jailbroken',
+      if (devMode) 'In developer mode',
+      if (isEmulator) 'Running on an emulator',
+    ];
+
+    return _buildResult(issues);
   }
 
   static Future<void> developerMode() async {

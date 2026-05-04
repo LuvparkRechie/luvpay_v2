@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'package:luvpay/core/security/encryption.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:luvpay/core/security/decryptor/decryptor.dart';
@@ -11,6 +12,9 @@ import '../shared/widgets/variables.dart';
 import '../core/utils/functions/functions.dart';
 
 class Authentication {
+  static const String _kEncryptedDataPref = 'encrypt_data';
+  static const String _kEncryptedDataSecretKey = 'encrypt_data_secret';
+
   static EncryptedSharedPreferences encryptedSharedPreferences =
       EncryptedSharedPreferences();
   final LocalAuthentication auth = LocalAuthentication();
@@ -20,6 +24,7 @@ class Authentication {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     encryptedSharedPreferences.clear();
     prefs.clear();
+    await storage.deleteAll();
   }
 
   Future<bool> checkBiometrics() async {
@@ -226,7 +231,7 @@ class Authentication {
   //encrypt data
   Future<void> encryptData(String plaintText, [String? secretKey]) async {
     final prefs = await SharedPreferences.getInstance();
-    String skey = secretKey ?? "luvpay";
+    final skey = await _resolveEncryptionSecret(secretKey);
 
     String inatayaaa = jsonEncode(skey);
     Uint8List aesKey = Functions.generateKey(inatayaaa, 16);
@@ -238,14 +243,21 @@ class Authentication {
     final concatenatedArray = Variables.concatBuffers(nonce, encrypted);
     final output = Variables.arrayBufferToBase64(concatenatedArray);
 
-    prefs.setString("encrypt_data", output);
+    await storage.write(key: _kEncryptedDataPref, value: output);
+    await prefs.remove(_kEncryptedDataPref);
   }
 
   Future<dynamic> getEncryptedKeys([String? secretKey]) async {
     String hash = "";
-    String skey = secretKey ?? "luvpay";
+    final skey = await _resolveEncryptionSecret(secretKey);
     final prefs = await SharedPreferences.getInstance();
-    final output = prefs.getString("encrypt_data");
+    String? output = await storage.read(key: _kEncryptedDataPref);
+    output ??= prefs.getString(_kEncryptedDataPref);
+
+    if (output != null) {
+      await storage.write(key: _kEncryptedDataPref, value: output);
+      await prefs.remove(_kEncryptedDataPref);
+    }
 
     if (output != null) {
       hash = Uri.encodeComponent(output);
@@ -267,6 +279,21 @@ class Authentication {
     } else {
       return null;
     }
+  }
+
+  Future<String> _resolveEncryptionSecret(String? overrideSecret) async {
+    if (overrideSecret != null && overrideSecret.isNotEmpty) {
+      return overrideSecret;
+    }
+
+    final existingSecret = await storage.read(key: _kEncryptedDataSecretKey);
+    if (existingSecret != null && existingSecret.isNotEmpty) {
+      return existingSecret;
+    }
+
+    final generatedSecret = EncryptionHelper().generateSecretKeyHex(32);
+    await storage.write(key: _kEncryptedDataSecretKey, value: generatedSecret);
+    return generatedSecret;
   }
 
   //SEt Transaction Biometric  status

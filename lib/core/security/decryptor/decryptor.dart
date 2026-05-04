@@ -5,30 +5,38 @@ import 'dart:typed_data';
 import 'package:pointycastle/export.dart' as crypto;
 
 class Encryption {
-  Future<Uint8List> encrypt(skey, plainText) async {
+  Future<Uint8List> encrypt(String skey, String plainText) async {
     final nonce = generateRandomNonce();
 
     final secretKey = hexStringToArrayBuffer(skey);
-    final data = await encryptData(secretKey, nonce, plainText);
+    final cipherText = await encryptData(secretKey, nonce, plainText);
 
-    return data;
+    return Uint8List.fromList(concatBuffers(nonce, cipherText).asUint8List());
   }
 
-  Future<String> decrypt(encData, skey) async {
-    final nonce = generateRandomNonce();
-    final concatenatedArray = concatBuffers(nonce, encData);
-    final output = arrayBufferToBase64(concatenatedArray);
-    final hashd = Uri.decodeComponent(output);
-    final decrypted = Encryption().decryptUBUriPage(hashd, skey);
-    final resPo = await decrypted;
+  Future<String> decrypt(dynamic encData, String skey) async {
+    late final Uint8List encryptedData;
 
-    return resPo;
+    if (encData is Uint8List) {
+      encryptedData = encData;
+    } else if (encData is String) {
+      encryptedData = base64Decode(Uri.decodeComponent(encData));
+    } else {
+      throw ArgumentError(
+          'Unsupported encrypted data type: ${encData.runtimeType}');
+    }
+
+    final nonce = encryptedData.sublist(0, 16);
+    final cipherText = encryptedData.sublist(16);
+    final secretKey = hexStringToArrayBuffer(skey);
+    final decryptedData = await decryptData(secretKey, nonce, cipherText);
+
+    return utf8.decode(decryptedData);
   }
 
   Future<Uint8List> encryptData(
       Uint8List secretKey, Uint8List iv, String plainText) async {
-    Uint8List iv = generateRandomNonce();
-    final cipher = crypto.GCMBlockCipher(crypto.AESFastEngine());
+    final cipher = crypto.GCMBlockCipher(crypto.AESEngine());
 
     final keyParams = crypto.KeyParameter(secretKey);
     final cipherParams = crypto.ParametersWithIV(keyParams, iv);
@@ -42,7 +50,7 @@ class Encryption {
 
   Future<Uint8List> decryptData(
       Uint8List secretKey, Uint8List nonce, Uint8List cipherText) async {
-    final cipher = crypto.GCMBlockCipher(crypto.AESFastEngine());
+    final cipher = crypto.GCMBlockCipher(crypto.AESEngine());
 
     final keyParams = crypto.KeyParameter(secretKey);
     final cipherParams = crypto.ParametersWithIV(keyParams, nonce);

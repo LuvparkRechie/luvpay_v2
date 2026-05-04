@@ -6,10 +6,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/no_data_found.dart';
 import 'package:luvpay/features/billers/index.dart';
@@ -60,7 +58,7 @@ class _WalletScreenState extends State<WalletScreen> {
   String myprofile = "";
   List<Map<String, dynamic>> userDetails = [];
   String firstName = "";
-  String _internetMsg = "Connection lost";
+  String internetMsg = "Connection lost";
   int _loadCtr = 0;
   bool _isActiveTmr = true;
   String serviceFee = "0.00";
@@ -252,7 +250,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
         if (!success && !net) {
           setState(() {
-            _internetMsg = "Connection lost";
+            internetMsg = "Connection lost";
             hasNet = net;
             userData = data;
             isLoading = false;
@@ -342,7 +340,7 @@ class _WalletScreenState extends State<WalletScreen> {
           setState(() {
             hasNet = false;
             isLoading = false;
-            _internetMsg = "Connection lost";
+            internetMsg = "Connection lost";
           });
         }
         _startAutoRefresh();
@@ -353,7 +351,7 @@ class _WalletScreenState extends State<WalletScreen> {
           setState(() {
             hasNet = true;
             isLoading = false;
-            _internetMsg = "Error fetching logs";
+            internetMsg = "Error fetching logs";
           });
         }
         return;
@@ -367,11 +365,11 @@ class _WalletScreenState extends State<WalletScreen> {
       });
 
       setState(() {
-        _internetMsg = "";
+        internetMsg = "";
         logs = itemData.take(5).toList();
       });
     } catch (e) {
-      _internetMsg = "Error";
+      internetMsg = "Error";
       CustomDialogStack.showSnackBar(
           context, "Error fetching logs: $e", Colors.red, () => Get.back());
       debugPrint("Error fetching logs: $e");

@@ -72,7 +72,7 @@ class Variables {
 
   static Future<Uint8List> encryptData(
       Uint8List secretKey, Uint8List iv, String plainText) async {
-    final cipher = crypto.GCMBlockCipher(crypto.AESFastEngine());
+    final cipher = crypto.GCMBlockCipher(crypto.AESEngine());
 
     final keyParams = crypto.KeyParameter(secretKey);
     final cipherParams = crypto.ParametersWithIV(keyParams, iv);
@@ -347,10 +347,11 @@ class Variables {
     // Convert to meters
 
     double dist = distanceValue * 1000;
-    if (distanceValue < 1)
+    if (distanceValue < 1) {
       return "$dist meters";
-    else
+    } else {
       return "$distanceValue km";
+    }
   }
 
   static double convertToMeters3(String distanceString) {
@@ -689,10 +690,16 @@ class Variables {
   }
 
   static showSecurityPopUp(String msg) {
-    ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
+    final context = Get.context;
+    if (context == null) {
+      FlutterExitApp.exitApp(iosForceExit: true);
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         margin: EdgeInsets.symmetric(
             horizontal: 20.0,
-            vertical: MediaQuery.of(Get.context!).size.width * 0.27),
+            vertical: MediaQuery.of(context).size.width * 0.27),
         elevation: 5.0,
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 4),
