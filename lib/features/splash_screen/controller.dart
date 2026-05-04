@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:version/version.dart';
 import '../../auth/authentication.dart';
+import '../../core/network/http/api_keys.dart';
 import '../../shared/widgets/variables.dart';
 import '../../core/security/security/app_security.dart';
 import '../routes/routes.dart';
@@ -59,7 +60,8 @@ class SplashController extends GetxController
     if (isAppSecured) {
       await determineInitialRoute();
     } else {
-      Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+      debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
+      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
     }
   }
 

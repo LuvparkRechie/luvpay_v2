@@ -48,7 +48,8 @@ Future<void> backgroundFunc(int id, Map<String, dynamic> params) async {
     await getMessNotif();
   } else {
     Variables.bgProcess?.cancel();
-    Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+    debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
+    Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
   }
 }
 
@@ -164,9 +165,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     TamperGuard.start(
         interval: const Duration(seconds: 10),
         onTamperUi: (msg) {
+          debugPrint("[Tamper Detected] $msg");
           final ctx = navigatorKey.currentContext;
           if (ctx != null) {
-            Variables.showSecurityPopUp(msg);
+            Variables.showSecurityPopUp(
+                "Security validation failed. App cannot continue.");
           } else {
             TamperGuard.exitApp();
           }
@@ -209,7 +212,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       });
     } else {
       Variables.bgProcess?.cancel();
-      Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+      debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
+      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
     }
   }
 

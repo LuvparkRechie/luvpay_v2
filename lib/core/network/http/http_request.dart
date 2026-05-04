@@ -333,7 +333,8 @@ class HttpRequestApi {
     final isAppSecured = appSecurity[0]["is_secured"];
 
     if (!isAppSecured) {
-      Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+      debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
+      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
     } else {
       try {
         final response = await http

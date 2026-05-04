@@ -1,6 +1,12 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiKeys {
+  // Security Messages
+  static const String securityCheckFailedMessage =
+      "Security check failed. App cannot open.";
+  static const String securityValidationFailedMessage =
+      "Security validation failed. App cannot continue.";
+
   static final bool isProduction = dotenv.env['IS_PRODUCTION'] == 'true';
   static final bool enforceSecurity =
       isProduction || dotenv.env['ENFORCE_SECURITY'] == 'true';

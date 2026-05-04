@@ -1,6 +1,7 @@
 import 'dart:convert';
-
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:luvpay/core/network/http/api_keys.dart';
 
 import '../../../shared/widgets/variables.dart';
 import '../../security/security/app_security.dart';
@@ -15,7 +16,8 @@ class Http3rdPartyRequest {
     List appSecurity = await AppSecurity.checkDeviceSecurity();
     bool isAppSecured = appSecurity[0]["is_secured"];
     if (!isAppSecured) {
-      Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+      debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
+      Variables.showSecurityPopUp("Security check failed. App cannot open.");
     } else {
       try {
         var response = await http
@@ -39,7 +41,8 @@ class Http3rdPartyRequest {
     List appSecurity = await AppSecurity.checkDeviceSecurity();
     bool isAppSecured = appSecurity[0]["is_secured"];
     if (!isAppSecured) {
-      Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+      debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
+      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
     } else {
       try {
         final Map<String, String> headers = {
@@ -69,7 +72,8 @@ class Http3rdPartyRequest {
     List appSecurity = await AppSecurity.checkDeviceSecurity();
     bool isAppSecured = appSecurity[0]["is_secured"];
     if (!isAppSecured) {
-      Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+      debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
+      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
     } else {
       try {
         final Map<String, String> headers = {
@@ -98,7 +102,8 @@ class Http3rdPartyRequest {
     List appSecurity = await AppSecurity.checkDeviceSecurity();
     bool isAppSecured = appSecurity[0]["is_secured"];
     if (!isAppSecured) {
-      Variables.showSecurityPopUp(appSecurity[0]["msg"]);
+      debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
+      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
       return null;
     }
 
