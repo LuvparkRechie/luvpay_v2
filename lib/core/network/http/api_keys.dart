@@ -2,6 +2,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiKeys {
   static final bool isProduction = dotenv.env['IS_PRODUCTION'] == 'true';
+  static final bool enforceSecurity =
+      isProduction || dotenv.env['ENFORCE_SECURITY'] == 'true';
+  static final bool showModeBanner = dotenv.env['SHOW_MODE_BANNER'] != 'false';
+
+  static String get environmentLabel => isProduction ? 'PROD' : 'DEV';
+  static String get securityLabel => enforceSecurity ? 'SEC ON' : 'SEC OFF';
+  static String get modeBannerLabel =>
+      isProduction ? 'PROD' : (enforceSecurity ? 'DEV SEC' : 'DEV');
+
   static final String luvApi =
       isProduction ? dotenv.env['LUV_API_PROD']! : dotenv.env['LUV_API_TEST']!;
   static final String parkSpaceApi = isProduction
