@@ -23,6 +23,7 @@ import 'package:permission_handler/permission_handler.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/security/auto_logout_guard.dart';
 import 'core/security/tamper_gaurd.dart';
+import 'shared/widgets/app_mode_overlay.dart';
 import 'shared/widgets/luvpay_theme.dart';
 import 'shared/widgets/theme_mode_controller.dart';
 import 'core/services/notification_controller.dart';
@@ -125,6 +126,8 @@ void main() async {
 
   final packageInfo = await PackageInfo.fromPlatform();
   Variables.version = packageInfo.version;
+  debugPrint(
+      "[AppConfig] mode=${ApiKeys.environmentLabel} security=${ApiKeys.securityLabel}");
 
   final status = await Permission.notification.status;
   if (status.isDenied) {
@@ -226,11 +229,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         child: Obx(() {
           return GetMaterialApp(
               navigatorKey: navigatorKey,
-              debugShowCheckedModeBanner: ApiKeys.isProduction,
+              debugShowCheckedModeBanner: false,
               title: 'MyApp',
               theme: AppThemeV2.light(),
               darkTheme: AppThemeV2.dark(),
               themeMode: themeCtrl.mode.value,
+              builder: (context, child) => AppModeOverlay(
+                  appVersion: Variables.version,
+                  themeModeLabel: themeCtrl.labelOf(themeCtrl.mode.value),
+                  child: child ?? const SizedBox.shrink()),
               navigatorObservers: [GetObserver()],
               initialRoute: Routes.splash,
               getPages: AppPages.pages);

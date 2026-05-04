@@ -19,7 +19,7 @@ class AppSecurity {
   static bool jailbreak = false;
   static bool isEmulator = false;
 
-  static bool get _shouldEnforce => ApiKeys.isProduction;
+  static bool get _shouldEnforce => ApiKeys.enforceSecurity;
 
   static void _resetFlags() {
     message = '';
@@ -100,8 +100,15 @@ class AppSecurity {
   }
 
   static Future<void> developerMode() async {
+    if (!Platform.isAndroid) {
+      devMode = false;
+      return;
+    }
+
     try {
-      devMode = (await RootCheckerPlus.isDeveloperMode())!;
+      devMode = (await RootCheckerPlus.isDeveloperMode()) ?? false;
+    } on MissingPluginException {
+      devMode = false;
     } on PlatformException {
       devMode = false;
     }
@@ -109,7 +116,9 @@ class AppSecurity {
 
   static Future<void> iosJailbreak() async {
     try {
-      jailbreak = (await RootCheckerPlus.isJailbreak())!;
+      jailbreak = (await RootCheckerPlus.isJailbreak()) ?? false;
+    } on MissingPluginException {
+      jailbreak = false;
     } on PlatformException {
       jailbreak = false;
     }
