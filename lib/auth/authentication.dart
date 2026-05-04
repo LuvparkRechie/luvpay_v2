@@ -14,6 +14,7 @@ import '../core/utils/functions/functions.dart';
 class Authentication {
   static const String _kEncryptedDataPref = 'encrypt_data';
   static const String _kEncryptedDataSecretKey = 'encrypt_data_secret';
+  static const String _kLegacyEncryptionSecret = 'luvpay';
 
   static EncryptedSharedPreferences encryptedSharedPreferences =
       EncryptedSharedPreferences();
@@ -248,37 +249,37 @@ class Authentication {
   }
 
   Future<dynamic> getEncryptedKeys([String? secretKey]) async {
-    String hash = "";
-    final skey = await _resolveEncryptionSecret(secretKey);
     final prefs = await SharedPreferences.getInstance();
-    String? output = await storage.read(key: _kEncryptedDataPref);
-    output ??= prefs.getString(_kEncryptedDataPref);
+    final existingSecret = await storage.read(key: _kEncryptedDataSecretKey);
+    final secureOutput = await storage.read(key: _kEncryptedDataPref);
+    final legacyOutput = prefs.getString(_kEncryptedDataPref);
 
-    if (output != null) {
-      await storage.write(key: _kEncryptedDataPref, value: output);
-      await prefs.remove(_kEncryptedDataPref);
-    }
+    final decrypted = await _readEncryptedPayload(
+      secureOutput: secureOutput,
+      legacyOutput: legacyOutput,
+      overrideSecret: secretKey,
+      existingSecret: existingSecret,
+    );
 
-    if (output != null) {
-      hash = Uri.encodeComponent(output);
-      String inatayaaa = jsonEncode(skey);
-      Uint8List aesKey = Functions.generateKey(inatayaaa, 16);
-
-      final encryptedData = base64Decode(Uri.decodeComponent(hash));
-
-      final nonces = encryptedData.sublist(0, 16);
-
-      final cipherText = encryptedData.sublist(16);
-
-      final decryptedData =
-          await Encryption().decryptData(aesKey, nonces, cipherText);
-      final data = utf8.decode(decryptedData);
-      final dataList = await jsonDecode(data);
-
-      return jsonDecode(dataList);
-    } else {
+    if (decrypted == null) {
       return null;
     }
+
+    final data = jsonDecode(decrypted.plainText);
+    final decodedData =
+        data is String ? jsonDecode(data) : Map<String, dynamic>.from(data);
+
+    if (secretKey == null) {
+      await _migrateEncryptedPayloadIfNeeded(
+        existingSecret: existingSecret,
+        secureOutput: secureOutput,
+        legacyOutput: legacyOutput,
+        decrypted: decrypted,
+        decodedData: decodedData,
+      );
+    }
+
+    return decodedData;
   }
 
   Future<String> _resolveEncryptionSecret(String? overrideSecret) async {
@@ -294,6 +295,83 @@ class Authentication {
     final generatedSecret = EncryptionHelper().generateSecretKeyHex(32);
     await storage.write(key: _kEncryptedDataSecretKey, value: generatedSecret);
     return generatedSecret;
+  }
+
+  Future<_DecryptedPayload?> _readEncryptedPayload({
+    required String? secureOutput,
+    required String? legacyOutput,
+    required String? overrideSecret,
+    required String? existingSecret,
+  }) async {
+    final candidates = <_EncryptedPayloadSource>[
+      if (secureOutput != null)
+        _EncryptedPayloadSource(
+            output: secureOutput, location: _PayloadLocation.secureStorage),
+      if (legacyOutput != null && legacyOutput != secureOutput)
+        _EncryptedPayloadSource(
+            output: legacyOutput, location: _PayloadLocation.sharedPrefs),
+    ];
+
+    final secrets = <String>[
+      if (overrideSecret != null && overrideSecret.isNotEmpty) overrideSecret,
+      if (existingSecret != null &&
+          existingSecret.isNotEmpty &&
+          existingSecret != overrideSecret)
+        existingSecret,
+      if (_kLegacyEncryptionSecret != overrideSecret &&
+          _kLegacyEncryptionSecret != existingSecret)
+        _kLegacyEncryptionSecret,
+    ];
+
+    for (final payload in candidates) {
+      for (final secret in secrets) {
+        try {
+          final plainText = await _decryptStoredPayload(payload.output, secret);
+          return _DecryptedPayload(
+            plainText: plainText,
+            usedSecret: secret,
+            location: payload.location,
+          );
+        } catch (_) {
+          continue;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  Future<String> _decryptStoredPayload(String output, String secret) async {
+    final hash = Uri.encodeComponent(output);
+    final encodedSecret = jsonEncode(secret);
+    final aesKey = Functions.generateKey(encodedSecret, 16);
+    final encryptedData = base64Decode(Uri.decodeComponent(hash));
+    final nonces = encryptedData.sublist(0, 16);
+    final cipherText = encryptedData.sublist(16);
+
+    final decryptedData =
+        await Encryption().decryptData(aesKey, nonces, cipherText);
+    return utf8.decode(decryptedData);
+  }
+
+  Future<void> _migrateEncryptedPayloadIfNeeded({
+    required String? existingSecret,
+    required String? secureOutput,
+    required String? legacyOutput,
+    required _DecryptedPayload decrypted,
+    required Map<String, dynamic> decodedData,
+  }) async {
+    final targetSecret = existingSecret ?? await _resolveEncryptionSecret(null);
+    final needsMigration = decrypted.usedSecret != targetSecret ||
+        decrypted.location == _PayloadLocation.sharedPrefs ||
+        secureOutput == null ||
+        legacyOutput != null;
+
+    if (!needsMigration) {
+      return;
+    }
+
+    await encryptData(jsonEncode(decodedData), targetSecret);
   }
 
   //SEt Transaction Biometric  status
@@ -340,4 +418,28 @@ class Authentication {
     final pref = await SharedPreferences.getInstance();
     return pref.getBool("in_app_otp");
   }
+}
+
+enum _PayloadLocation { secureStorage, sharedPrefs }
+
+class _EncryptedPayloadSource {
+  final String output;
+  final _PayloadLocation location;
+
+  const _EncryptedPayloadSource({
+    required this.output,
+    required this.location,
+  });
+}
+
+class _DecryptedPayload {
+  final String plainText;
+  final String usedSecret;
+  final _PayloadLocation location;
+
+  const _DecryptedPayload({
+    required this.plainText,
+    required this.usedSecret,
+    required this.location,
+  });
 }
