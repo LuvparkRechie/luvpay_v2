@@ -6,24 +6,12 @@
 	<array>
 		<string>com.luvpark.refresh</string>
 	</array>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-	<key>NSAllowsArbitraryLoads</key>
-	<true/>
-	</dict>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-	<string>fb-messenger</string>
-	<string>fb-messenger-api</string>
-	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>luvpark</string>
+	<string>luvpay</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -36,8 +24,6 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>GoogleMapsApiKey</key>
@@ -48,33 +34,45 @@
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>mailto</string>
+		<string>tel</string>
+		<string>sms</string>
+		<string>fb-messenger</string>
+		<string>fb-messenger-api</string>
 		<string>cydia</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>We would like to access the camera to scan QR codes and take photos and videos.</string>
+	<string>We need camera access to take photos for support attachments.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>This app needs access to files so you can attach documents for support.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Why is my app authenticating using face id?</string>
+	<string>Face ID is used for secure login authentication.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>luvpark needs Location access so that you can use the directions and map features in our app</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>luvpark needs Location access so that you can use the directions and map features in our app</string>
+	<string>luvpark needs location access for maps and directions.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We request access to your location so that you can use the directions and map features in our app. This enables us to provide you with accurate and real-time navigation, helping you find your way and discover places of interest more conveniently. Your location data is used solely within the app and is not shared with third parties. Granting this permission enhances your user experience and ensures a seamless journey with our app. Thank you for choosing us!</string>
+	<string>Location is used for navigation and nearby parking features.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>We need access to your microphone for voice search.</string>
+	<string>Microphone is used for voice search.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs permission to save photos to your gallery.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to your photo library in order to import and save images.</string>
+	<string>This app needs access to your photo library to attach images for support.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>We need access to speech recognition for voice search.</string>
+	<string>Speech recognition is used for voice search.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
 		<string>remote-notification</string>
-		<string>processing</string> 
+		<string>processing</string>
 	</array>
 	<key>UIDeviceFamily</key>
 	<array>
@@ -84,20 +82,22 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>UIStatusBarHidden</key>
+	<false/>
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
 </dict>
 </plist>
