@@ -2,7 +2,6 @@
 
 import 'dart:typed_data';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
@@ -152,7 +151,8 @@ class _SubWalletCardState extends State<SubWalletCard> {
                                   child: Container(
                                       padding: const EdgeInsets.all(1),
                                       decoration: BoxDecoration(
-                                          color: AppColorV2.background,
+                                          color: AppColorV2.background
+                                              .withAlpha(150),
                                           shape: BoxShape.circle),
                                       child:
                                           buildWalletIcon(widget.iconBytes))),

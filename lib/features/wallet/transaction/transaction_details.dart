@@ -6,7 +6,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -22,29 +21,32 @@ import 'package:luvpay/shared/widgets/neumorphism.dart';
 import '../../../shared/widgets/separator.dart';
 import '../../../shared/widgets/luvpay_text.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../../shared/widgets/variables.dart';
 
 class TransactionDetails extends StatelessWidget {
   final List data;
   final int index;
   final bool isHistory;
+  final IconData leadingIcon;
+  final Color leadingIconColor;
 
   const TransactionDetails({
     super.key,
     required this.data,
     required this.index,
     required this.isHistory,
+    required this.leadingIcon,
+    required this.leadingIconColor,
   });
 
-  Future<void> shareQR(String img) async {
+  Future<void> shareQR() async {
     try {
       String randomNumber = Random().nextInt(10000).toString();
       String fname = "shared_luvpay$randomNumber";
       CustomDialogStack.showLoading(Get.context!);
       final dir = (await getApplicationDocumentsDirectory()).path;
       final path = '$dir/$fname';
-      Uint8List bytes = await ScreenshotController()
-          .captureFromWidget(ticket(Get.context!, img));
+      Uint8List bytes =
+          await ScreenshotController().captureFromWidget(ticket(Get.context!));
       final imgFile = File(path);
       await imgFile.writeAsBytes(bytes.buffer.asUint8List());
 
@@ -72,27 +74,17 @@ class TransactionDetails extends StatelessWidget {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    final trans = data[index]["tran_desc"].toString().toLowerCase();
-    String img = "";
-    if (trans.contains("share")) {
-      img = "wallet_sharetoken";
-    } else if (trans.contains("received") || trans.contains("top-up")) {
-      img = "wallet_receivetoken";
-    } else {
-      img = "wallet_payparking";
-    }
-
     return CustomScaffoldV2(
         bodyColor: cs.surface,
         enableToolBar: true,
         appBarTitle: "Transaction Details",
         scaffoldBody: Column(children: [
           const SizedBox(height: 20),
-          ticket(context, img),
+          ticket(context),
           const SizedBox(height: 10),
           CustomButton(
               text: "Share",
-              onPressed: () => shareQR(img),
+              onPressed: shareQR,
               leading: Icon(LucideIcons.share2, color: cs.onPrimary),
               btnColor: AppColorV2.lpBlueBrand,
               textColor: cs.onPrimary),
@@ -100,7 +92,7 @@ class TransactionDetails extends StatelessWidget {
         ]));
   }
 
-  Widget ticket(BuildContext context, String img) {
+  Widget ticket(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -198,8 +190,11 @@ class TransactionDetails extends StatelessWidget {
                             blurRadius: 10,
                             offset: const Offset(0, 4)),
                       ]),
-                  child:
-                      SvgPicture.asset("assets/images/$img.svg", height: 48)))),
+                  child: Icon(
+                    leadingIcon,
+                    size: 48,
+                    color: leadingIconColor,
+                  )))),
     ]);
   }
 

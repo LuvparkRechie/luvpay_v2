@@ -1193,8 +1193,15 @@ class TransactionSectionListView extends StatelessWidget {
     return CustomRowTile(
         trailingUseNeumorphic: false,
         onTap: () {
+          final leadingIcon = !isPositive
+              ? Icons.arrow_upward_rounded
+              : Icons.arrow_downward_rounded;
           Get.to(TransactionDetails(
-              index: 0, data: [transaction], isHistory: true));
+              index: 0,
+              data: [transaction],
+              isHistory: true,
+              leadingIcon: leadingIcon,
+              leadingIconColor: accent));
         },
         leading: Icon(
             !isPositive

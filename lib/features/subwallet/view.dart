@@ -184,7 +184,10 @@ class Wallet {
 }
 
 Widget buildWalletIcon(Uint8List? bytes) {
-  if (bytes == null) return const Icon(Iconsax.wallet, size: 24);
+  if (bytes == null) {
+    return Icon(Iconsax.wallet,
+        color: AppColorV2.lpBlueBrand.withAlpha(190), size: 20);
+  }
   return Padding(
       padding: const EdgeInsets.all(5),
       child: Image(

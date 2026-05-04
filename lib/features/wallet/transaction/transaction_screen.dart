@@ -654,10 +654,19 @@ class _TransactionHistoryState extends State<TransactionHistory> {
                                               child: CustomRowTile(
                                                   trailingUseNeumorphic: false,
                                                   onTap: () {
+                                                    final leadingIcon = isDebit
+                                                        ? Icons
+                                                            .arrow_upward_rounded
+                                                        : Icons
+                                                            .arrow_downward_rounded;
                                                     Get.to(TransactionDetails(
                                                         index: 0,
                                                         data: [tx],
-                                                        isHistory: true));
+                                                        isHistory: true,
+                                                        leadingIcon:
+                                                            leadingIcon,
+                                                        leadingIconColor:
+                                                            accent));
                                                   },
                                                   background: cs.surface,
                                                   leadingBackground: cs.surface,

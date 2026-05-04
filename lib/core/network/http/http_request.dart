@@ -546,20 +546,20 @@ class HttpRequestApi {
       return;
     }
 
-    debugPrint("api: $uri");
-    debugPrint("method: $method");
+    //   debugPrint("api: $uri");
+    //   debugPrint("method: $method");
 
-    if (body != null) {
-      debugPrint("body: $body");
-    }
+    //   if (body != null) {
+    //     debugPrint("body: $body");
+    //   }
 
-    if (response != null) {
-      debugPrint("statusCode: ${response.statusCode}");
-      debugPrint("result: ${response.body}");
-    }
+    //   if (response != null) {
+    //     debugPrint("statusCode: ${response.statusCode}");
+    //     debugPrint("result: ${response.body}");
+    //   }
 
-    if (error != null) {
-      debugPrint("error: $error");
-    }
+    //   if (error != null) {
+    //     debugPrint("error: $error");
+    //   }
   }
 }
