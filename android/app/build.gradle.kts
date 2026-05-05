@@ -1,71 +1,77 @@
 import java.util.Properties
 import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("dev.flutter.flutter-gradle-plugin") 
+    id("dev.flutter.flutter-gradle-plugin")
 }
-val keyProperties = Properties().apply {
-    val keyFile = rootProject.file("key.properties")
-    if (keyFile.exists()) { 
-        load(FileInputStream(keyFile))
-    } else {
-        throw GradleException("key.properties file not found.")
-    }
+
+val keyProperties = Properties()
+val keyPropertiesFile = rootProject.file("key.properties")
+
+if (keyPropertiesFile.exists()) {
+    keyProperties.load(FileInputStream(keyPropertiesFile))
+} else {
+    throw GradleException("key.properties file not found.")
 }
+
 android {
-    namespace = "com.cmds.luvpark"
+    namespace = "com.cmds.luvpay"
     compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
+    }
+ 
+    signingConfigs {
+        create("release") {
+            keyAlias = keyProperties["keyAlias"] as String
+            keyPassword = keyProperties["keyPassword"] as String
+            storeFile = file(keyProperties["storeFile"] as String)
+            storePassword = keyProperties["storePassword"] as String
+        }
     }
 
     defaultConfig {
-        applicationId = "com.cmds.luvpark"
+        applicationId = "com.cmds.luvpay"
         minSdk = 24
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
-    signingConfigs {
-        create("release") {
-            keyAlias = keyProperties["keyAlias"] as String
-            keyPassword = keyProperties["keyPassword"] as String
-            storePassword = keyProperties["storePassword"] as String
-            storeFile = file(keyProperties["storeFile"] as String) 
-        }
-    }
-
     buildTypes {
-        release { 
+        release {
             isMinifyEnabled = false
             isShrinkResources = false
+
+            signingConfig = signingConfigs.getByName("release")
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
-            signingConfig = signingConfigs.getByName("release")
         }
     }
-    packagingOptions {
+
+    packaging {
         jniLibs {
+            excludes += listOf("**/armeabi-v7a/*.so")
             useLegacyPackaging = false
         }
     }
-
 }
 
-allprojects { 
+allprojects {
     repositories {
         google()
         mavenCentral()

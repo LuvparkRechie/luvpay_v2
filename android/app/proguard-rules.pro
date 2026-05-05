@@ -24,8 +24,8 @@
 -keep class io.flutter.plugin.common.MethodChannel$MethodCallHandler { *; }
 
 # 🔹 Keep MainActivity and prevent obfuscation of root detection logic
--keep class com.cmds.luvpark.MainActivity { *; }
--keepclassmembers class com.cmds.luvpark.MainActivity { 
+-keep class com.cmds.luvpay.MainActivity { *; }
+-keepclassmembers class com.cmds.luvpay.MainActivity { 
     public <methods>; 
 }
 

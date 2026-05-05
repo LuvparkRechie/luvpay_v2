@@ -1,15 +1,15 @@
 {
   "project_info": {
     "project_number": "384596927484",
-    "project_id": "luvpark-2c857",
-    "storage_bucket": "luvpark-2c857.appspot.com"
+    "project_id": "luvpay-2c857",
+    "storage_bucket": "luvpay-2c857.appspot.com"
   },
   "client": [
     {
       "client_info": {
         "mobilesdk_app_id": "1:384596927484:android:8a0e752179fe006c884879",
         "android_client_info": {
-          "package_name": "com.cmds.luvpark"
+          "package_name": "com.cmds.luvpay"
         }
       },
       "oauth_client": [],
