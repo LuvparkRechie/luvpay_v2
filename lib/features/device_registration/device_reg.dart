@@ -15,7 +15,6 @@ import 'package:luvpay/shared/widgets/neumorphism.dart';
 
 import '../../core/utils/functions/functions.dart';
 import '../../core/network/http/api_keys.dart';
-import '../../core/network/http/http_request.dart';
 import '../../shared/dialogs/dialogs.dart';
 import '../../shared/components/otp_field/view.dart';
 import '../routes/routes.dart';
@@ -58,6 +57,7 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
     final reqParam = {
       "mobile_no": widget.mobileNo.toString(),
       "pwd": widget.pwd,
+      "use_sms": "Y",
     };
 
     Functions().requestOtp(reqParam, (obj) async {
@@ -79,6 +79,7 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
         final navArgs = {
           "time_duration": difference,
           "mobile_no": widget.mobileNo,
+          "allow_in_app_otp": false,
           "req_otp_param": reqParam,
           "verify_param": putParam,
           "callback": (otp) async {
@@ -159,6 +160,7 @@ class _DeviceRegScreenState extends State<DeviceRegScreen> {
       if (response["success"] == 'Y') {
         final box = GetStorage();
         box.writeIfNull('isFirstLogin', true);
+        await Authentication().markDeviceAddedNow();
 
         Get.back(result: {"success": true});
 

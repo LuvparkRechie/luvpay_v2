@@ -1,5 +1,6 @@
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
+import 'package:otp/otp.dart';
+
+import '../../../auth/authentication.dart';
 
 class InAppOtpService {
   static final InAppOtpService _instance = InAppOtpService._internal();
@@ -7,42 +8,42 @@ class InAppOtpService {
 
   InAppOtpService._internal();
 
-  final String _secret = "luvpay_secret_key_123";
+  static const int _otpLength = 6;
+  static const int _intervalSeconds = 30;
 
-  ///change s a datyabase value later on
+  Future<String> getOtp({String? secret}) async {
+    final resolvedSecret =
+        (secret ?? await Authentication().getInAppOtpSecret())?.trim();
 
-  int _generateTOTP() {
-    final time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final timeStep = time ~/ 30;
+    if (resolvedSecret == null || resolvedSecret.isEmpty) {
+      throw StateError("In-app OTP secret is not available.");
+    }
 
-    final key = utf8.encode(_secret);
-    final message = utf8.encode(timeStep.toString());
-
-    final hmac = Hmac(sha1, key);
-    final digest = hmac.convert(message).bytes;
-
-    final offset = digest.last & 0x0f;
-    final binary = ((digest[offset] & 0x7f) << 24) |
-        ((digest[offset + 1] & 0xff) << 16) |
-        ((digest[offset + 2] & 0xff) << 8) |
-        (digest[offset + 3] & 0xff);
-
-    final otp = binary % 1000000;
-
-    return otp;
+    return _generateTOTP(resolvedSecret);
   }
 
-  int getOtp() {
-    return _generateTOTP();
+  String _generateTOTP(String secret) {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    try {
+      return OTP.generateTOTPCodeString(secret, timestamp,
+          interval: _intervalSeconds,
+          length: _otpLength,
+          algorithm: Algorithm.SHA1,
+          isGoogle: true);
+    } on FormatException {
+      return OTP.generateTOTPCodeString(secret, timestamp,
+          interval: _intervalSeconds,
+          length: _otpLength,
+          algorithm: Algorithm.SHA1);
+    }
   }
 
   Duration getRemainingTime() {
-    final seconds = DateTime.now().second;
-    final remaining = 30 - (seconds % 30);
+    final seconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final elapsed = seconds % _intervalSeconds;
+    final remaining =
+        elapsed == 0 ? _intervalSeconds : _intervalSeconds - elapsed;
     return Duration(seconds: remaining);
-  }
-
-  int generateOtp() {
-    return _generateTOTP();
   }
 }

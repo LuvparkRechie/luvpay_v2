@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 
 import '../../../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
@@ -102,6 +101,7 @@ class ForgotVerifiedAcctController extends GetxController {
       "secq_id": questionData[0]["secq_id"].toString(),
       "seca": answer.text,
       "new_pwd": newPass.text,
+      "use_sms": "Y",
     };
 
     Functions().requestOtp(reqParam, (obj) async {
@@ -122,6 +122,7 @@ class ForgotVerifiedAcctController extends GetxController {
         Object args = {
           "time_duration": difference,
           "mobile_no": mobileNoParam,
+          "allow_in_app_otp": false,
           "req_otp_param": reqParam,
           "verify_param": putParam,
           "callback": (otp) async {

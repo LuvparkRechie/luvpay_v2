@@ -1,10 +1,12 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../auth/authentication.dart';
 import '../../../shared/widgets/colors.dart';
+import '../../../shared/dialogs/dialogs.dart';
 import '../../../shared/widgets/custom_scaffold.dart';
 import '../../../shared/widgets/neumorphism.dart';
 import '../../../core/security/security/app_security.dart';
@@ -19,8 +21,10 @@ class OTPPreference extends StatefulWidget {
 
 class _OTPPreferenceState extends State<OTPPreference> {
   bool? isBioTrans = false;
-
   bool isInAppOtp = false;
+  bool isInAppPending = false;
+  bool hasInAppSecret = false;
+  DateTime? inAppActivationDate;
 
   @override
   void initState() {
@@ -30,11 +34,15 @@ class _OTPPreferenceState extends State<OTPPreference> {
 
   void initializeBioMetric() async {
     isBioTrans = await Authentication().getBiometricTrans();
-
-    ///this is for in-app otp
-    isInAppOtp = await Authentication().getInAppOtp() ?? false;
-
+    await _refreshInAppOtpState();
     setState(() {});
+  }
+
+  Future<void> _refreshInAppOtpState() async {
+    isInAppOtp = await Authentication().getInAppOtp() ?? false;
+    hasInAppSecret = await Authentication().hasInAppOtpSecret();
+    inAppActivationDate = await Authentication().getInAppOtpActivationDate();
+    isInAppPending = await Authentication().isInAppOtpPending();
   }
 
   void setBioTrans() async {
@@ -62,20 +70,81 @@ class _OTPPreferenceState extends State<OTPPreference> {
     bool isAuthenticated = await AppSecurity.authenticateBio();
 
     if (!isAuthenticated) {
-      AppSettings.openAppSettings();
+      CustomDialogStack.showError(
+          context, "Authentication required", "Unable to verify biometrics.",
+          () {
+        Get.back();
+      });
       return;
     }
 
-    setState(() {
-      isInAppOtp = !isInAppOtp;
-    });
+    final enable = !isInAppOtp;
 
-    await Authentication().setInAppOtp(isInAppOtp);
+    if (enable && !hasInAppSecret) {
+      CustomDialogStack.showInfo(context, "In-App OTP unavailable",
+          "This account does not have an active TOTP secret yet. Please wait for backend support or sync your account again.",
+          () {
+        Get.back();
+      });
+      return;
+    }
+
+    CustomDialogStack.showConfirmation(
+        context,
+        enable ? "Enable In-App OTP?" : "Disable In-App OTP?",
+        enable
+            ? "Supported transactions will use your registered device for in-app OTP. Login and password recovery will stay on SMS."
+            : "Supported transactions will go back to SMS OTP only.", () {
+      Get.back();
+    }, () async {
+      Get.back();
+      await Authentication().setInAppOtp(enable);
+      await _refreshInAppOtpState();
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {});
+
+      if (enable && isInAppPending && inAppActivationDate != null) {
+        CustomDialogStack.showInfo(context, "Activation pending",
+            "In-app OTP will activate 24 hours after device registration.\nAvailable on ${DateFormat('MMM d, yyyy hh:mm a').format(inAppActivationDate!)}.",
+            () {
+          Get.back();
+        });
+        return;
+      }
+
+      CustomDialogStack.showSuccess(
+          context,
+          "Updated",
+          enable
+              ? "In-app OTP is now enabled for supported transactions."
+              : "In-app OTP has been turned off.", () {
+        Get.back();
+      });
+    });
+  }
+
+  String _buildInAppOtpSubtitle() {
+    if (!hasInAppSecret) {
+      return "Unavailable until the backend returns a TOTP secret for this device.";
+    }
+
+    if (isInAppOtp && isInAppPending && inAppActivationDate != null) {
+      return "Pending activation until ${DateFormat('MMM d, yyyy hh:mm a').format(inAppActivationDate!)}. Login and password recovery stay on SMS.";
+    }
+
+    if (isInAppOtp) {
+      return "Enabled for supported transactions. Login and password recovery stay on SMS.";
+    }
+
+    return "Turn on to use in-app OTP for supported transactions. Login and password recovery stay on SMS.";
   }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final controller = Get.put(SecuritySettingsController());
 
     return CustomScaffoldV2(
@@ -89,9 +158,8 @@ class _OTPPreferenceState extends State<OTPPreference> {
                   InfoRowTile(
                       icon: LucideIcons.user,
                       title: 'In-app OTP Generator',
-                      subtitle:
-                          "Turn on to use in-app OTP authentication (default is SMS OTP).",
-                      subtitleMaxlines: 2,
+                      subtitle: _buildInAppOtpSubtitle(),
+                      subtitleMaxlines: 3,
                       onTap: toggleInAppOtp,
                       trailing: Container(
                           width: 50,

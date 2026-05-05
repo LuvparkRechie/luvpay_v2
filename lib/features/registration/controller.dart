@@ -8,7 +8,6 @@ import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/variables.dart';
 import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/shared/components/otp_field/view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -164,6 +163,7 @@ class RegistrationController extends GetxController
     Map<String, String> reqParam = {
       "mobile_no": mobileNo.toString(),
       "new_pwd": password.text,
+      "use_sms": "Y",
     };
     Functions().requestOtp(reqParam, (obj) async {
       DateTime timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
@@ -182,6 +182,7 @@ class RegistrationController extends GetxController
         Object args = {
           "time_duration": difference,
           "mobile_no": mobileNo.toString(),
+          "allow_in_app_otp": false,
           "req_otp_param": reqParam,
           "verify_param": putParam,
           "callback": (otp) {

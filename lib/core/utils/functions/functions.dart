@@ -550,11 +550,18 @@ class Functions {
 
   Future<void> requestOtp(Map<String, String> param, Function cb) async {
     CustomDialogStack.showLoading(Get.context!);
+    final requestParam = Map<String, String>.from(param);
+
+    if (!requestParam.containsKey("use_sms")) {
+      final shouldUseInAppOtp = await Authentication().canUseInAppOtp();
+      requestParam["use_sms"] = shouldUseInAppOtp ? "N" : "Y";
+    }
+
     final api = ApiKeys.postGenerateOtp;
     Functions()
         .requestHandler(
       apiKey: api,
-      parameters: param,
+      parameters: requestParam,
       method: "POST",
     )
         .then((returnData) async {
@@ -605,7 +612,7 @@ class Functions {
               List mapData = [returnData];
 
               mapData = mapData.map((e) {
-                e["mobile_no"] = param["mobile_no"];
+                e["mobile_no"] = requestParam["mobile_no"];
                 return e;
               }).toList();
 

@@ -10,8 +10,8 @@ import 'package:intl/intl.dart';
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/core/database/sqlite/pa_message_table.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../device_registration/device_reg.dart';
@@ -64,6 +64,8 @@ class LoginScreenController extends GetxController {
         .requestHandler(
             apiKey: ApiKeys.postLogin, parameters: param, method: "POST")
         .then((returnPost) async {
+      longPrint(
+          "ask for totp_secret, device_added_on, in_app_otp_enabled   $param $returnPost  ");
       if (returnPost == "No Internet") {
         CustomDialogStack.showConnectionLost(context, () {
           Get.back();
@@ -102,6 +104,7 @@ class LoginScreenController extends GetxController {
             Map<String, String> reqParam = {
               "mobile_no": mobileNo,
               "new_pwd": password.text,
+              "use_sms": "Y",
             };
             Functions().requestOtp(reqParam, (obj) async {
               DateTime timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
@@ -127,6 +130,7 @@ class LoginScreenController extends GetxController {
                 Object args = {
                   "time_duration": difference,
                   "mobile_no": mobileNo.toString(),
+                  "allow_in_app_otp": false,
                   "req_otp_param": reqParam,
                   "verify_param": putParam,
                   "callback": (otp) {
@@ -385,6 +389,8 @@ class LoginScreenController extends GetxController {
           var items = itemData[0];
 
           await initializeStoredData(items);
+          await Authentication()
+              .syncInAppOtpProfile(Map<String, dynamic>.from(items));
           //sms keys
           Map<String, dynamic> data = {
             "mobile_no": param["mobile_no"],
@@ -433,6 +439,7 @@ class LoginScreenController extends GetxController {
         int.parse(itemData['user_id'].toString()) != stMob["user_id"]) {
       await Authentication().remove("last_booking");
       await Authentication().remove("userData");
+      await Authentication().clearInAppOtpProfile();
       await PaMessageDatabase.instance.deleteAll();
       await NotificationDatabase.instance.deleteAll();
       await AwesomeNotifications().cancelAllSchedules();

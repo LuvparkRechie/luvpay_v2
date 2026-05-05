@@ -67,6 +67,7 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
       "seca": secAns.text,
       "new_pwd": newPass.text,
       "old_pwd": oldPass.text,
+      "use_sms": "Y",
     };
 
     Functions().requestOtp(reqParam, (obj) async {
@@ -87,6 +88,7 @@ class _ChangePasswordVerifiedState extends State<ChangePasswordVerified> {
         Object args = {
           "time_duration": difference,
           "mobile_no": paramMobile,
+          "allow_in_app_otp": false,
           "req_otp_param": reqParam,
           "verify_param": putParam,
           "callback": (otp) async {

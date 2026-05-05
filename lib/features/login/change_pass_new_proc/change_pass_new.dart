@@ -18,7 +18,6 @@ import 'package:luvpay/shared/widgets/variables.dart' show Variables;
 import 'package:luvpay/shared/widgets/vertical_height.dart';
 import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/shared/components/otp_field/view.dart';
 
 import '../../routes/routes.dart';
@@ -97,6 +96,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
     Map<String, String> reqParam = {
       "mobile_no": widget.mobileNo.toString(),
       "new_pwd": newPassword.text,
+      "use_sms": "Y",
     };
 
     Functions().requestOtp(reqParam, (obj) async {
@@ -117,6 +117,7 @@ class _ChangePassNewProtocolState extends State<ChangePassNewProtocol> {
         Object args = {
           "time_duration": difference,
           "mobile_no": widget.mobileNo,
+          "allow_in_app_otp": false,
           "req_otp_param": reqParam,
           "verify_param": putParam,
           "is_forget_vfd_pass": true,

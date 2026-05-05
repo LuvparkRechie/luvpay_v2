@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:luvpay/core/security/encryption.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
@@ -15,6 +16,9 @@ class Authentication {
   static const String _kEncryptedDataPref = 'encrypt_data';
   static const String _kEncryptedDataSecretKey = 'encrypt_data_secret';
   static const String _kLegacyEncryptionSecret = 'luvpay';
+  static const String _kInAppOtpSecretStorageKey = 'in_app_otp_secret';
+  static const String _kInAppOtpDeviceAddedOnPref =
+      'in_app_otp_device_added_on';
 
   static EncryptedSharedPreferences encryptedSharedPreferences =
       EncryptedSharedPreferences();
@@ -417,6 +421,217 @@ class Authentication {
   Future<bool?> getInAppOtp() async {
     final pref = await SharedPreferences.getInstance();
     return pref.getBool("in_app_otp");
+  }
+
+  Future<void> setInAppOtpSecret(String? value) async {
+    if (value == null || value.trim().isEmpty) {
+      await storage.delete(key: _kInAppOtpSecretStorageKey);
+      return;
+    }
+
+    await storage.write(key: _kInAppOtpSecretStorageKey, value: value.trim());
+  }
+
+  Future<String?> getInAppOtpSecret() async {
+    final value = await storage.read(key: _kInAppOtpSecretStorageKey);
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+
+    return value.trim();
+  }
+
+  Future<void> setOtpDeviceAddedOn(String? value) async {
+    final pref = await SharedPreferences.getInstance();
+    if (value == null || value.trim().isEmpty) {
+      await pref.remove(_kInAppOtpDeviceAddedOnPref);
+      return;
+    }
+
+    await pref.setString(_kInAppOtpDeviceAddedOnPref, value.trim());
+  }
+
+  Future<String?> getOtpDeviceAddedOnRaw() async {
+    final pref = await SharedPreferences.getInstance();
+    return pref.getString(_kInAppOtpDeviceAddedOnPref);
+  }
+
+  Future<DateTime?> getOtpDeviceAddedOn() async {
+    final rawValue = await getOtpDeviceAddedOnRaw();
+    if (rawValue == null || rawValue.trim().isEmpty) {
+      return null;
+    }
+
+    return _parseStoredDate(rawValue);
+  }
+
+  Future<DateTime?> getInAppOtpActivationDate() async {
+    final deviceAddedOn = await getOtpDeviceAddedOn();
+    if (deviceAddedOn == null) {
+      return null;
+    }
+
+    return deviceAddedOn.add(const Duration(hours: 24));
+  }
+
+  Future<bool> hasInAppOtpSecret() async {
+    final secret = await getInAppOtpSecret();
+    return secret != null && secret.isNotEmpty;
+  }
+
+  Future<bool> canUseInAppOtp({DateTime? now}) async {
+    final isEnabled = await getInAppOtp() ?? false;
+    if (!isEnabled) {
+      return false;
+    }
+
+    final hasSecret = await hasInAppOtpSecret();
+    if (!hasSecret) {
+      return false;
+    }
+
+    final activationDate = await getInAppOtpActivationDate();
+    if (activationDate == null) {
+      return false;
+    }
+
+    final referenceTime = now ?? await Functions.getTimeNow();
+    return !referenceTime.isBefore(activationDate);
+  }
+
+  Future<bool> isInAppOtpPending({DateTime? now}) async {
+    final isEnabled = await getInAppOtp() ?? false;
+    if (!isEnabled) {
+      return false;
+    }
+
+    final hasSecret = await hasInAppOtpSecret();
+    if (!hasSecret) {
+      return false;
+    }
+
+    final activationDate = await getInAppOtpActivationDate();
+    if (activationDate == null) {
+      return false;
+    }
+
+    final referenceTime = now ?? await Functions.getTimeNow();
+    return referenceTime.isBefore(activationDate);
+  }
+
+  Future<void> syncInAppOtpProfile(Map<String, dynamic> userData) async {
+    final secret = _readFirstString(userData, const [
+      "in_app_otp_secret",
+      "otp_secret",
+      "totp_secret",
+      "tfa_secret",
+      "IN_APP_OTP_SECRET",
+      "OTP_SECRET",
+      "TOTP_SECRET",
+      "TFA_SECRET",
+    ]);
+
+    if (secret != null) {
+      await setInAppOtpSecret(secret);
+    }
+
+    final deviceAddedOn = _readFirstString(userData, const [
+      "device_added_on",
+      "DEVICE_ADDED_ON",
+      "device_reg_dt",
+      "DEVICE_REG_DT",
+    ]);
+
+    if (deviceAddedOn != null) {
+      await setOtpDeviceAddedOn(deviceAddedOn);
+    }
+
+    final prefValue = _readFirstBool(userData, const [
+      "in_app_otp_enabled",
+      "IN_APP_OTP_ENABLED",
+      "enable_in_app_otp",
+      "ENABLE_IN_APP_OTP",
+    ]);
+
+    if (prefValue != null) {
+      await setInAppOtp(prefValue);
+    }
+  }
+
+  Future<void> markDeviceAddedNow() async {
+    final now = await Functions.getTimeNow();
+    await setOtpDeviceAddedOn(now.toIso8601String());
+  }
+
+  Future<void> clearInAppOtpProfile() async {
+    await setInAppOtp(false);
+    await setOtpDeviceAddedOn(null);
+    await setInAppOtpSecret(null);
+  }
+
+  String? _readFirstString(Map<String, dynamic> source, List<String> keys) {
+    for (final key in keys) {
+      if (!source.containsKey(key)) {
+        continue;
+      }
+
+      final value = source[key];
+      if (value == null) {
+        continue;
+      }
+
+      final parsed = value.toString().trim();
+      if (parsed.isNotEmpty && parsed.toLowerCase() != "null") {
+        return parsed;
+      }
+    }
+
+    return null;
+  }
+
+  bool? _readFirstBool(Map<String, dynamic> source, List<String> keys) {
+    final rawValue = _readFirstString(source, keys);
+    if (rawValue == null) {
+      return null;
+    }
+
+    switch (rawValue.toUpperCase()) {
+      case "Y":
+      case "YES":
+      case "TRUE":
+      case "1":
+        return true;
+      case "N":
+      case "NO":
+      case "FALSE":
+      case "0":
+        return false;
+      default:
+        return null;
+    }
+  }
+
+  DateTime? _parseStoredDate(String value) {
+    try {
+      return DateTime.parse(value).toLocal();
+    } catch (_) {}
+
+    const patterns = <String>[
+      "yyyy-MM-dd HH:mm:ss",
+      "yyyy-MM-dd hh:mm:ss a",
+      "yyyy-MM-dd'T'HH:mm:ss",
+      "yyyy-MM-dd'T'HH:mm:ss.SSS",
+    ];
+
+    for (final pattern in patterns) {
+      try {
+        return DateFormat(pattern).parse(value, true).toLocal();
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return null;
   }
 }
 
