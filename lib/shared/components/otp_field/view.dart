@@ -40,6 +40,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   bool isNetConn = true;
   bool _hasError = false;
   bool _isInitializing = true;
+  bool _isRequestingOtp = false;
   String inputPin = "";
   Duration paramOtpExp = Duration.zero;
   DateTime? _inAppExpiryAt;
@@ -201,56 +202,58 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     });
   }
 
-  Future<void> getOtpRequest({
-    bool showLoader = true,
-    bool useSms = true,
-  }) async {
-    if (!mounted) return;
+  Future<void> getOtpRequest(
+      {bool showLoader = true, bool useSms = true}) async {
+    if (_isRequestingOtp) {
+      return;
+    }
 
     if (showLoader) {
-      CustomDialogStack.showLoading(context);
+      CustomDialogStack.showLoading(Get.context!);
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    if (!mounted) {
+      return;
     }
 
     setState(() {
+      _isRequestingOtp = true;
       inputPin = "";
       _hasError = false;
       pinController.clear();
     });
 
     try {
-      final otpData = Map<String, dynamic>.from(
-        (widget.arguments["req_otp_param"] ?? {}) as Map,
-      );
-
+      final rawOtpData = widget.arguments["req_otp_param"];
+      final otpData = rawOtpData is Map
+          ? Map<String, dynamic>.from(rawOtpData)
+          : <String, dynamic>{};
       otpData["use_sms"] = useSms ? "Y" : "N";
 
       final returnData = await Functions().requestHandler(
-        apiKey: ApiKeys.postGenerateOtp,
-        parameters: otpData,
-        method: "POST",
-      );
+          apiKey: ApiKeys.postGenerateOtp, parameters: otpData, method: "POST");
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       if (returnData == "No Internet") {
         setState(() => isNetConn = false);
         return;
       }
 
-      if (returnData == null) {
+      if (returnData is! Map) {
         setState(() => _hasError = true);
-        CustomDialogStack.showError(
-          context,
-          "luvpay",
-          "Error while connecting to server. Please try again.",
-          () => Get.back(),
-        );
         return;
       }
 
       if (returnData["success"] == 'Y' || returnData["status"] == "PENDING") {
-        final timeExp = dt_time.DateFormat("yyyy-MM-dd hh:mm:ss a")
-            .parse(returnData["otp_exp_dt"].toString());
+        final timeExp = _parseOtpExpiry(returnData["otp_exp_dt"]?.toString());
+        if (timeExp == null) {
+          setState(() => _hasError = true);
+          return;
+        }
 
         final difference = timeExp.difference(DateTime.now());
 
@@ -264,22 +267,51 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       } else {
         setState(() => _hasError = true);
       }
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() => _hasError = true);
-
-      CustomDialogStack.showError(
-        context,
-        "luvpay",
-        "Unable to resend OTP. Please try again.",
-        () => Get.back(),
-      );
+    } catch (_) {
+      if (mounted) {
+        setState(() => _hasError = true);
+      }
     } finally {
-      if (showLoader && Get.isDialogOpen == true) {
-        Get.back();
+      if (showLoader) {
+        _closeLoadingDialog();
+      }
+
+      if (mounted) {
+        setState(() {
+          _isRequestingOtp = false;
+        });
       }
     }
+  }
+
+  DateTime? _parseOtpExpiry(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      return dt_time.DateFormat("yyyy-MM-dd hh:mm:ss a").parse(value);
+    } catch (_) {}
+
+    try {
+      return DateTime.parse(value);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _closeLoadingDialog() {
+    if (Get.isDialogOpen != true) {
+      return;
+    }
+
+    final context = Get.overlayContext ?? Get.context;
+    if (context == null) {
+      Get.back();
+      return;
+    }
+
+    Navigator.of(context, rootNavigator: true).pop();
   }
 
   Future<void> _switchOtpMethod(_OtpMethod method) async {
@@ -308,26 +340,13 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     setState(() {});
   }
 
-  bool _isResendingOtp = false;
-
-  Future<void> restartTimer() async {
-    if (_isResendingOtp) return;
+  void restartTimer() {
+    if (_isRequestingOtp) {
+      return;
+    }
 
     timer?.cancel();
-
-    setState(() {
-      _isResendingOtp = true;
-    });
-
-    try {
-      await getOtpRequest(useSms: true);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isResendingOtp = false;
-        });
-      }
-    }
+    getOtpRequest(useSms: true);
   }
 
   Future<void> verifyAccount() async {
@@ -662,21 +681,23 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                   child: InkWell(
                                       onTap: _isInAppMode
                                           ? null
-                                          : paramOtpExp.inSeconds <= 0 &&
-                                                  !_isResendingOtp
-                                              ? () {
-                                                  restartTimer();
-                                                }
-                                              : null,
+                                          : _isRequestingOtp
+                                              ? null
+                                              : paramOtpExp.inSeconds <= 0
+                                                  ? () {
+                                                      restartTimer();
+                                                      pinController.clear();
+                                                    }
+                                                  : null,
                                       child: Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
                                             LuvpayText(
-                                                text: _isResendingOtp
-                                                    ? "Resending OTP..."
-                                                    : _isInAppMode
-                                                        ? "Code expires in"
+                                                text: _isInAppMode
+                                                    ? "Code expires in"
+                                                    : _isRequestingOtp
+                                                        ? "Requesting OTP"
                                                         : paramOtpExp
                                                                     .inSeconds <=
                                                                 0
