@@ -163,11 +163,14 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         _selectedMethod = _OtpMethod.sms;
       });
 
-      CustomDialogStack.showInfo(context, "In-App OTP unavailable",
-          "This account does not have an active in-app OTP secret yet. SMS OTP will be used instead.",
-          () {
-        Get.back();
-      });
+      CustomDialogStack.showInfo(
+        context,
+        "In-App OTP unavailable",
+        "This account does not have an active in-app OTP secret yet. SMS OTP will be used instead.",
+        () {
+          Get.back();
+        },
+      );
 
       await getOtpRequest(useSms: true);
     }
@@ -202,15 +205,12 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     });
   }
 
-  Future<void> getOtpRequest(
-      {bool showLoader = true, bool useSms = true}) async {
+  Future<void> getOtpRequest({
+    bool showLoader = true,
+    bool useSms = true,
+  }) async {
     if (_isRequestingOtp) {
       return;
-    }
-
-    if (showLoader) {
-      CustomDialogStack.showLoading(Get.context!);
-      await Future<void>.delayed(Duration.zero);
     }
 
     if (!mounted) {
@@ -232,7 +232,10 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       otpData["use_sms"] = useSms ? "Y" : "N";
 
       final returnData = await Functions().requestHandler(
-          apiKey: ApiKeys.postGenerateOtp, parameters: otpData, method: "POST");
+        apiKey: ApiKeys.postGenerateOtp,
+        parameters: otpData,
+        method: "POST",
+      );
 
       if (!mounted) {
         return;
@@ -272,10 +275,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         setState(() => _hasError = true);
       }
     } finally {
-      if (showLoader) {
-        _closeLoadingDialog();
-      }
-
       if (mounted) {
         setState(() {
           _isRequestingOtp = false;
@@ -298,20 +297,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     } catch (_) {
       return null;
     }
-  }
-
-  void _closeLoadingDialog() {
-    if (Get.isDialogOpen != true) {
-      return;
-    }
-
-    final context = Get.overlayContext ?? Get.context;
-    if (context == null) {
-      Get.back();
-      return;
-    }
-
-    Navigator.of(context, rootNavigator: true).pop();
   }
 
   Future<void> _switchOtpMethod(_OtpMethod method) async {
@@ -352,13 +337,17 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   Future<void> verifyAccount() async {
     if (pinController.text.length != 6) {
       CustomDialogStack.showError(
-          Get.context!, "Invalid OTP", "Please complete the 6-digit OTP.", () {
-        setState(() {
-          isLoading = false;
-          _hasError = false;
-        });
-        Get.back();
-      });
+        Get.context!,
+        "Invalid OTP",
+        "Please complete the 6-digit OTP.",
+        () {
+          setState(() {
+            isLoading = false;
+            _hasError = false;
+          });
+          Get.back();
+        },
+      );
       return;
     }
 
@@ -370,7 +359,8 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     }
 
     final verifyPayload = Map<String, dynamic>.from(
-        (widget.arguments["verify_param"] ?? {}) as Map);
+      (widget.arguments["verify_param"] ?? {}) as Map,
+    );
     verifyPayload["otp"] = pinController.text;
     verifyPayload["use_sms"] = _isInAppMode ? "N" : "Y";
     verifyPayload["otp_method"] = _isInAppMode ? "IN_APP" : "SMS";
@@ -379,25 +369,34 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
 
     Functions()
         .requestHandler(
-            apiKey: ApiKeys.putVerifyOtp,
-            parameters: verifyPayload,
-            method: "PUT")
+      apiKey: ApiKeys.putVerifyOtp,
+      parameters: verifyPayload,
+      method: "PUT",
+    )
         .then((returnData) async {
       if (returnData == "No Internet") {
         Get.back();
-        CustomDialogStack.showError(Get.context!, "luvpay",
-            'Please check your internet connection and try again.', () {
-          Get.back();
-        });
+        CustomDialogStack.showError(
+          Get.context!,
+          "luvpay",
+          'Please check your internet connection and try again.',
+          () {
+            Get.back();
+          },
+        );
         return;
       }
 
       if (returnData == null) {
         Get.back();
-        CustomDialogStack.showError(Get.context!, "luvpay",
-            "Error while connecting to server, Please try again.", () {
-          Get.back();
-        });
+        CustomDialogStack.showError(
+          Get.context!,
+          "luvpay",
+          "Error while connecting to server, Please try again.",
+          () {
+            Get.back();
+          },
+        );
         return;
       }
 
@@ -411,8 +410,9 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         return;
       }
 
-      final isInvalid =
-          returnData["msg"].toString().toLowerCase().contains("invalid");
+      final isInvalid = returnData["msg"].toString().toLowerCase().contains(
+            "invalid",
+          );
       final subtitle = isInvalid
           ? "Hmm, that code doesn’t look right. Please try again."
           : "Your OTP has expired. Request a new one to continue.";
@@ -462,24 +462,28 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
 
     PinTheme getDefaultPinTheme({Color? borderColor, Color? textColor}) {
       return PinTheme(
-          width: 52,
-          height: 54,
-          textStyle: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              height: 22 / 18,
-              color: textColor ?? cs.onSurface),
-          decoration: BoxDecoration(
-              color: pinFill,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor ?? stroke, width: 1.8),
-              boxShadow: [
-                BoxShadow(
-                    blurRadius: 10,
-                    spreadRadius: 0,
-                    offset: Offset(0, 6),
-                    color: pinShadow),
-              ]));
+        width: 52,
+        height: 54,
+        textStyle: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          height: 22 / 18,
+          color: textColor ?? cs.onSurface,
+        ),
+        decoration: BoxDecoration(
+          color: pinFill,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor ?? stroke, width: 1.8),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 10,
+              spreadRadius: 0,
+              offset: Offset(0, 6),
+              color: pinShadow,
+            ),
+          ],
+        ),
+      );
     }
 
     Widget methodSwitcher() {
@@ -490,23 +494,28 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       Widget methodChip(_OtpMethod method, String label) {
         final isActive = _selectedMethod == method;
         return Expanded(
-            child: CustomButton(
-                btnColor: isActive ? brand : cs.surface,
-                textColor: isActive ? cs.onPrimary : cs.onSurface,
-                bordercolor:
-                    isActive ? brand : cs.outlineVariant.withOpacity(0.5),
-                text: label,
-                onPressed: () => _switchOtpMethod(method)));
+          child: CustomButton(
+            btnColor: isActive ? brand : cs.surface,
+            textColor: isActive ? cs.onPrimary : cs.onSurface,
+            bordercolor: isActive ? brand : cs.outlineVariant.withOpacity(0.5),
+            text: label,
+            onPressed: () => _switchOtpMethod(method),
+          ),
+        );
       }
 
-      return Column(children: [
-        Row(children: [
-          methodChip(_OtpMethod.inApp, "In-App OTP"),
-          SizedBox(width: 10),
-          methodChip(_OtpMethod.sms, "SMS OTP"),
-        ]),
-        spacing(height: 14),
-      ]);
+      return Column(
+        children: [
+          Row(
+            children: [
+              methodChip(_OtpMethod.inApp, "In-App OTP"),
+              SizedBox(width: 10),
+              methodChip(_OtpMethod.sms, "SMS OTP"),
+            ],
+          ),
+          spacing(height: 14),
+        ],
+      );
     }
 
     Widget topNotice() {
@@ -515,208 +524,247 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       }
 
       return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-              color: brand.withOpacity(isDark ? 0.18 : 0.10),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: brand.withOpacity(0.18))),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: brand.withOpacity(isDark ? 0.18 : 0.10),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: brand.withOpacity(0.18)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Icon(Icons.shield_rounded, color: brand, size: 20),
             SizedBox(width: 10),
             Expanded(
-                child: LuvpayText(
-                    text:
-                        "Confirm before the timer ends. For security, this screen closes when the in-app OTP expires.",
-                    style:
-                        AppTextStyle.paragraph2(context).copyWith(height: 1.35),
-                    color: cs.onSurface)),
-          ]));
+              child: LuvpayText(
+                text:
+                    "Confirm before the timer ends. For security, this screen closes when the in-app OTP expires.",
+                style: AppTextStyle.paragraph2(context).copyWith(height: 1.35),
+                color: cs.onSurface,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     Widget instructionText() {
       if (_isInAppMode) {
         return Center(
-            child: LuvpayText(
-                text:
-                    "Use the in-app OTP generated from this registered device to approve this request.",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.openSans(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                    height: 18 / 14,
-                    color: cs.onSurfaceVariant)));
+          child: LuvpayText(
+            text:
+                "Use the in-app OTP generated from this registered device to approve this request.",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.openSans(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              height: 18 / 14,
+              color: cs.onSurfaceVariant,
+            ),
+          ),
+        );
       }
 
       return RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(children: [
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          children: [
             TextSpan(
-                text: "We have sent an OTP to your registered\nmobile number",
-                style: GoogleFonts.openSans(
-                    fontWeight: FontWeight.w500,
+              text: "We have sent an OTP to your registered\nmobile number",
+              style: GoogleFonts.openSans(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                height: 18 / 14,
+                color: cs.onSurfaceVariant,
+              ),
+              children: <TextSpan>[
+                TextSpan(
+                  text: " +${widget.arguments["mobile_no"].toString()}",
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w800,
+                    color: brand,
                     fontSize: 14,
                     height: 18 / 14,
-                    color: cs.onSurfaceVariant),
-                children: <TextSpan>[
-                  TextSpan(
-                      text: " +${widget.arguments["mobile_no"].toString()}",
-                      style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w800,
-                          color: brand,
-                          fontSize: 14,
-                          height: 18 / 14)),
-                ]),
-          ]));
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
     }
 
     return CustomScaffoldV2(
-        backgroundColor: cs.surface,
-        useNormalBody: true,
-        enableToolBar: true,
-        scaffoldBody: _isInitializing || isLoading
-            ? LoadingCard()
-            : !isNetConn
-                ? ConnectionInterruption(
-                    onPressed: () => getOtpRequest(useSms: true))
-                : ScrollConfiguration(
-                    behavior: ScrollBehavior().copyWith(overscroll: false),
-                    child: StretchingOverscrollIndicator(
-                        axisDirection: AxisDirection.down,
-                        child: SingleChildScrollView(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: cs.surface,
+      useNormalBody: true,
+      enableToolBar: true,
+      scaffoldBody: _isInitializing || isLoading
+          ? LoadingCard()
+          : !isNetConn
+              ? ConnectionInterruption(
+                  onPressed: () => getOtpRequest(useSms: true))
+              : ScrollConfiguration(
+                  behavior: ScrollBehavior().copyWith(overscroll: false),
+                  child: StretchingOverscrollIndicator(
+                    axisDirection: AxisDirection.down,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          spacing(height: 18),
+                          topNotice(),
+                          if (_isInAppMode) spacing(height: 18),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Center(
+                                child: Container(
+                                  height: 92,
+                                  width: 92,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: cs.surface,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 18,
+                                        offset: Offset(0, 10),
+                                        color: cs.shadow.withOpacity(
+                                          isDark ? 0.35 : 0.10,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.verified_user_rounded,
+                                      size: 46,
+                                      color: brand,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              spacing(height: 14),
+                              Center(
+                                child: LuvpayText(
+                                  text: "OTP Verification",
+                                  style: AppTextStyle.h2(context),
+                                  height: 28 / 24,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              instructionText(),
+                            ],
+                          ),
+                          spacing(height: 26),
+                          methodSwitcher(),
+                          Center(
+                            child: Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: Pinput(
+                                length: 6,
+                                controller: pinController,
+                                autofocus: !_isInAppMode,
+                                readOnly: _isInAppMode,
+                                showCursor: !_isInAppMode,
+                                closeKeyboardWhenCompleted: false,
+                                smsRetriever: null,
+                                autofillHints: const [],
+                                keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.done,
+                                defaultPinTheme: getDefaultPinTheme(
+                                  borderColor: borderColor,
+                                  textColor: textColor,
+                                ),
+                                hapticFeedbackType:
+                                    HapticFeedbackType.lightImpact,
+                                onChanged: (value) => onInputChanged(value),
+                                onCompleted: (pin) => onInputChanged(pin),
+                                focusedPinTheme: getDefaultPinTheme(
+                                  borderColor: brand,
+                                  textColor: textColor,
+                                ).copyWith(
+                                  decoration: getDefaultPinTheme(
+                                    borderColor: brand,
+                                    textColor: textColor,
+                                  ).decoration!.copyWith(
+                                        border: Border.all(
+                                          color: brand,
+                                          width: 2,
+                                        ),
+                                      ),
+                                ),
+                                errorPinTheme: getDefaultPinTheme(
+                                  borderColor: danger,
+                                  textColor: danger,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const VerticalHeight(height: 26),
+                          CustomButton(
+                            isInactive: pinController.text.isEmpty ||
+                                pinController.text.length != 6,
+                            text: _isInAppMode ? "Confirm" : "Verify",
+                            onPressed: verifyAccount,
+                          ),
+                          spacing(height: 34),
+                          Center(
+                            child: LuvpayText(
+                              text: _isInAppMode
+                                  ? "This confirmation window ends in"
+                                  : "Didn’t receive any code?",
+                              style: AppTextStyle.paragraph2(context),
+                              color: cs.onSurface,
+                            ),
+                          ),
+                          spacing(height: 6),
+                          Center(
+                            child: InkWell(
+                              onTap: _isInAppMode
+                                  ? null
+                                  : _isRequestingOtp
+                                      ? null
+                                      : paramOtpExp.inSeconds <= 0
+                                          ? () {
+                                              restartTimer();
+                                              pinController.clear();
+                                            }
+                                          : null,
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                              spacing(height: 18),
-                              topNotice(),
-                              if (_isInAppMode) spacing(height: 18),
-                              Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Center(
-                                        child: Container(
-                                            height: 92,
-                                            width: 92,
-                                            decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: cs.surface,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                      blurRadius: 18,
-                                                      offset: Offset(0, 10),
-                                                      color: cs.shadow
-                                                          .withOpacity(isDark
-                                                              ? 0.35
-                                                              : 0.10)),
-                                                ]),
-                                            child: Center(
-                                                child: Icon(
-                                                    Icons.verified_user_rounded,
-                                                    size: 46,
-                                                    color: brand)))),
-                                    spacing(height: 14),
-                                    Center(
-                                        child: LuvpayText(
-                                            text: "OTP Verification",
-                                            style: AppTextStyle.h2(context),
-                                            height: 28 / 24)),
-                                    SizedBox(height: 8),
-                                    instructionText(),
-                                  ]),
-                              spacing(height: 26),
-                              methodSwitcher(),
-                              Center(
-                                  child: Directionality(
-                                      textDirection: TextDirection.ltr,
-                                      child: Pinput(
-                                          length: 6,
-                                          controller: pinController,
-                                          autofocus: !_isInAppMode,
-                                          readOnly: _isInAppMode,
-                                          showCursor: !_isInAppMode,
-                                          closeKeyboardWhenCompleted: false,
-                                          smsRetriever: null,
-                                          autofillHints: const [],
-                                          keyboardType: TextInputType.number,
-                                          textInputAction: TextInputAction.done,
-                                          defaultPinTheme: getDefaultPinTheme(
-                                              borderColor: borderColor,
-                                              textColor: textColor),
-                                          hapticFeedbackType:
-                                              HapticFeedbackType.lightImpact,
-                                          onChanged: (value) =>
-                                              onInputChanged(value),
-                                          onCompleted: (pin) =>
-                                              onInputChanged(pin),
-                                          focusedPinTheme:
-                                              getDefaultPinTheme(borderColor: brand, textColor: textColor).copyWith(
-                                                  decoration: getDefaultPinTheme(
-                                                          borderColor: brand,
-                                                          textColor: textColor)
-                                                      .decoration!
-                                                      .copyWith(
-                                                          border: Border.all(
-                                                              color: brand,
-                                                              width: 2))),
-                                          errorPinTheme: getDefaultPinTheme(
-                                              borderColor: danger,
-                                              textColor: danger)))),
-                              const VerticalHeight(height: 26),
-                              CustomButton(
-                                  isInactive: pinController.text.isEmpty ||
-                                      pinController.text.length != 6,
-                                  text: _isInAppMode ? "Confirm" : "Verify",
-                                  onPressed: verifyAccount),
-                              spacing(height: 34),
-                              Center(
-                                  child: LuvpayText(
-                                      text: _isInAppMode
-                                          ? "This confirmation window ends in"
-                                          : "Didn’t receive any code?",
-                                      style: AppTextStyle.paragraph2(context),
-                                      color: cs.onSurface)),
-                              spacing(height: 6),
-                              Center(
-                                  child: InkWell(
-                                      onTap: _isInAppMode
-                                          ? null
-                                          : _isRequestingOtp
-                                              ? null
-                                              : paramOtpExp.inSeconds <= 0
-                                                  ? () {
-                                                      restartTimer();
-                                                      pinController.clear();
-                                                    }
-                                                  : null,
-                                      child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            LuvpayText(
-                                                text: _isInAppMode
-                                                    ? "Code expires in"
-                                                    : _isRequestingOtp
-                                                        ? "Requesting OTP"
-                                                        : paramOtpExp
-                                                                    .inSeconds <=
-                                                                0
-                                                            ? "Resend OTP"
-                                                            : "Resend OTP in",
-                                                color: AppColorV2.lpBlueBrand,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700),
-                                            if (paramOtpExp.inSeconds > 0 ||
-                                                _isInAppMode)
-                                              LuvpayText(
-                                                  text:
-                                                      " (${formatDuration(paramOtpExp)})",
-                                                  color: AppColorV2.lpBlueBrand,
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 14),
-                                          ]))),
-                              spacing(height: 34),
-                            ])))));
+                                  LuvpayText(
+                                    text: _isInAppMode
+                                        ? "Code expires in"
+                                        : _isRequestingOtp
+                                            ? "Requesting OTP"
+                                            : paramOtpExp.inSeconds <= 0
+                                                ? "Resend OTP"
+                                                : "Resend OTP in",
+                                    color: AppColorV2.lpBlueBrand,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  if (paramOtpExp.inSeconds > 0 || _isInAppMode)
+                                    LuvpayText(
+                                      text: " (${formatDuration(paramOtpExp)})",
+                                      color: AppColorV2.lpBlueBrand,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          spacing(height: 34),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+    );
   }
 
   String formatDuration(Duration d) {
