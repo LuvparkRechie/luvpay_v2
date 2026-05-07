@@ -42,14 +42,17 @@ Future<void> backgroundFunc(int id, Map<String, dynamic> params) async {
   bool isAppSecured = appSecurity[0]["is_secured"];
 
   if (isAppSecured) {
-    await TamperGuard.checkOnce(onTamperUi: (_) {
-      TamperGuard.exitApp();
-    });
+    if (ApiKeys.enforceSecurity && ApiKeys.appSecurityTamperCheckEnabled) {
+      await TamperGuard.checkOnce(onTamperUi: (_) {
+        TamperGuard.exitApp();
+      });
+    }
     await getMessNotif();
   } else {
     Variables.bgProcess?.cancel();
     debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
-    Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
+    Variables.showSecurityPopUp(
+        ApiKeys.securityCheckFailedMessageWithReason(appSecurity[0]["msg"]));
   }
 }
 
@@ -162,18 +165,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    TamperGuard.start(
-        interval: const Duration(seconds: 10),
-        onTamperUi: (msg) {
-          debugPrint("[Tamper Detected] $msg");
-          final ctx = navigatorKey.currentContext;
-          if (ctx != null) {
-            Variables.showSecurityPopUp(
-                "Security validation failed. App cannot continue.");
-          } else {
-            TamperGuard.exitApp();
-          }
-        });
+    if (ApiKeys.enforceSecurity && ApiKeys.appSecurityTamperCheckEnabled) {
+      TamperGuard.start(
+          interval: const Duration(seconds: 10),
+          onTamperUi: (msg) {
+            debugPrint("[Tamper Detected] $msg");
+            final ctx = navigatorKey.currentContext;
+            if (ctx != null) {
+              Variables.showSecurityPopUp(
+                  ApiKeys.securityValidationFailedMessageWithReason(msg));
+            } else {
+              TamperGuard.exitApp();
+            }
+          });
+    }
     WidgetsBinding.instance.addObserver(this);
 
     NotificationController.startListeningNotificationEvents();
@@ -213,7 +218,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     } else {
       Variables.bgProcess?.cancel();
       debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
-      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
+      Variables.showSecurityPopUp(
+          ApiKeys.securityCheckFailedMessageWithReason(appSecurity[0]["msg"]));
     }
   }
 

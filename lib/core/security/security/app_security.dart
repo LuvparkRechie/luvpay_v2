@@ -20,6 +20,13 @@ class AppSecurity {
   static bool isEmulator = false;
 
   static bool get _shouldEnforce => ApiKeys.enforceSecurity;
+  static bool get _rootCheckEnabled => ApiKeys.appSecurityRootCheckEnabled;
+  static bool get _jailbreakCheckEnabled =>
+      ApiKeys.appSecurityJailbreakCheckEnabled;
+  static bool get _developerModeCheckEnabled =>
+      ApiKeys.appSecurityDeveloperModeCheckEnabled;
+  static bool get _emulatorCheckEnabled =>
+      ApiKeys.appSecurityEmulatorCheckEnabled;
 
   static void _resetFlags() {
     message = '';
@@ -54,8 +61,6 @@ class AppSecurity {
     if (issues.length == 2) return '${issues.first} and ${issues.last}';
     return '${issues.sublist(0, issues.length - 1).join(', ')}, and ${issues.last}';
   }
-
-  //work in background
 
   static Future<List> checkDevMode() async {
     _resetFlags();
@@ -100,6 +105,11 @@ class AppSecurity {
   }
 
   static Future<void> developerMode() async {
+    if (!_developerModeCheckEnabled) {
+      devMode = false;
+      return;
+    }
+
     if (!Platform.isAndroid) {
       devMode = false;
       return;
@@ -115,6 +125,11 @@ class AppSecurity {
   }
 
   static Future<void> iosJailbreak() async {
+    if (!_jailbreakCheckEnabled) {
+      jailbreak = false;
+      return;
+    }
+
     try {
       jailbreak = (await RootCheckerPlus.isJailbreak()) ?? false;
     } on MissingPluginException {
@@ -125,9 +140,16 @@ class AppSecurity {
   }
 
   static Future<void> androidRootChecker() async {
+    if (!_rootCheckEnabled) {
+      rootedCheck = false;
+      return;
+    }
+
     try {
       final bool isRooted = await platform.invokeMethod('isRooted');
       rootedCheck = isRooted;
+    } on MissingPluginException {
+      rootedCheck = false;
     } on PlatformException catch (e) {
       debugPrint("Failed to get root status: '${e.message}'.");
       rootedCheck = true;
@@ -135,6 +157,11 @@ class AppSecurity {
   }
 
   static Future<void> checkIfIosEmulator() async {
+    if (!_emulatorCheckEnabled) {
+      isEmulator = false;
+      return;
+    }
+
     final deviceInfo = DeviceInfoPlugin();
 
     if (Platform.isAndroid) {
@@ -150,10 +177,17 @@ class AppSecurity {
   }
 
   static Future<void> checkIfAndroidEmulator() async {
+    if (!_emulatorCheckEnabled) {
+      isEmulator = false;
+      return;
+    }
+
     try {
       final bool isEmulatorDevice = await platform.invokeMethod('isEmulator');
 
       isEmulator = isEmulatorDevice;
+    } on MissingPluginException {
+      isEmulator = false;
     } on PlatformException catch (e) {
       debugPrint("Failed to get emulator status: '${e.message}'.");
       isEmulator = true;

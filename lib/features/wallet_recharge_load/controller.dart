@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:get/get.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/core/utils/functions/functions.dart';
+import 'package:luvpay/shared/widgets/longprint.dart';
 import '../../auth/authentication.dart';
 import '../../auth/ub_auth.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
@@ -51,11 +51,10 @@ class WalletRechargeLoadController extends GetxController
   Rxn<int> selectedBankTracker = Rxn<int>(null);
   Rxn<int> selectedBankType = Rxn<int>(null);
   var denoInd = (-1).obs;
-  var userDataInfo;
+  dynamic userDataInfo;
   final TextEditingController userName = TextEditingController();
 
   Timer? _debounce;
-  Timer? _pollPrompt;
   //UB auth;
   final authService = UnionBankAuthService();
   @override
@@ -300,8 +299,11 @@ class WalletRechargeLoadController extends GetxController
       "to_mobile_no": "63${mobNum.text.replaceAll(" ", "")}",
     };
     CustomDialogStack.showLoading(Get.context!);
-    final returnPost = await Functions()
-        .requestHandler(apiKey: bankApi, parameters: dataParam, method: "POST");
+    final returnPost = await Functions().requestHandler(
+      apiKey: bankApi,
+      body: dataParam,
+      method: "POST",
+    );
 
     if (returnPost == "No Internet") {
       Get.back();
@@ -339,10 +341,18 @@ class WalletRechargeLoadController extends GetxController
     final response = await getUserTnx2();
     final bankType = arguments;
     if (response is String) {
-      cb({"type": bankType["bank_code"].toString().trim(), "key": response});
+      cb({"type": _paymentMethodCode(bankType["bank_code"]), "key": response});
     }
 
     //
+  }
+
+  String _paymentMethodCode(dynamic bankCode) {
+    final value = bankCode.toString().trim();
+    if (value.toLowerCase() == "instapay") {
+      return "instapay";
+    }
+    return value;
   }
 
   Future<void> uBankPay() async {
@@ -365,9 +375,14 @@ class WalletRechargeLoadController extends GetxController
       };
 
       final response = await Functions().requestHandler(
-          apiKey: ApiKeys.postUBTrans, parameters: param, method: "POST");
-
+        apiKey: ApiKeys.postUBTrans,
+        body: param,
+        method: "POST",
+      );
       Get.back();
+      final qrCode = response is Map ? response["qrCode"] : null;
+      longPrint(
+          "api luvpay: ${ApiKeys.postUBTrans} param: $param response: $response qrCode: $qrCode");
       if (response == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
           Get.back();
@@ -391,10 +406,19 @@ class WalletRechargeLoadController extends GetxController
           }
 
           if (payMethod['type'].toString().toLowerCase().contains("instapay")) {
+            final qrCodeValue = qrCode?.toString().trim() ?? "";
+            if (qrCodeValue.isEmpty || qrCodeValue.toLowerCase() == "null") {
+              CustomDialogStack.showError(Get.context!, "Error",
+                  "Unable to generate InstaPay QR. Please try again.", () {
+                Get.back();
+              });
+              return;
+            }
+
             Navigator.of(Get.context!).push(PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     InstapayPage(
-                        qr: response["qrCode"].toString(),
+                        qr: qrCodeValue,
                         amount: double.parse(amountController.text)),
                 transitionDuration: Duration(milliseconds: 200),
                 reverseTransitionDuration: Duration.zero));
@@ -417,8 +441,7 @@ class WalletRechargeLoadController extends GetxController
                 ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
                     backgroundColor: Colors.red,
                     content: LuvpayText(
-                        text:
-                            '${result['status'].toString().replaceAll("_", " ")}',
+                        text: result['status'].toString().replaceAll("_", " "),
                         fontWeight: FontWeight.w600,
                         color: Colors.white)));
               }
@@ -485,7 +508,7 @@ class WalletRechargeLoadController extends GetxController
           ScaffoldMessenger.of(Get.context!).showSnackBar(SnackBar(
               backgroundColor: Colors.red,
               content: LuvpayText(
-                  text: '${result['status'].toString().replaceAll("_", " ")}',
+                  text: result['status'].toString().replaceAll("_", " "),
                   fontWeight: FontWeight.w600,
                   color: Colors.white)));
         }

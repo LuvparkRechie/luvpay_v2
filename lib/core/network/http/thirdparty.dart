@@ -17,7 +17,8 @@ class Http3rdPartyRequest {
     bool isAppSecured = appSecurity[0]["is_secured"];
     if (!isAppSecured) {
       debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
-      Variables.showSecurityPopUp("Security check failed. App cannot open.");
+      Variables.showSecurityPopUp(
+          ApiKeys.securityCheckFailedMessageWithReason(appSecurity[0]["msg"]));
     } else {
       try {
         var response = await http
@@ -42,7 +43,8 @@ class Http3rdPartyRequest {
     bool isAppSecured = appSecurity[0]["is_secured"];
     if (!isAppSecured) {
       debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
-      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
+      Variables.showSecurityPopUp(
+          ApiKeys.securityCheckFailedMessageWithReason(appSecurity[0]["msg"]));
     } else {
       try {
         final Map<String, String> headers = {
@@ -73,7 +75,8 @@ class Http3rdPartyRequest {
     bool isAppSecured = appSecurity[0]["is_secured"];
     if (!isAppSecured) {
       debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
-      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
+      Variables.showSecurityPopUp(
+          ApiKeys.securityCheckFailedMessageWithReason(appSecurity[0]["msg"]));
     } else {
       try {
         final Map<String, String> headers = {
@@ -103,7 +106,8 @@ class Http3rdPartyRequest {
     bool isAppSecured = appSecurity[0]["is_secured"];
     if (!isAppSecured) {
       debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
-      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
+      Variables.showSecurityPopUp(
+          ApiKeys.securityCheckFailedMessageWithReason(appSecurity[0]["msg"]));
       return null;
     }
 

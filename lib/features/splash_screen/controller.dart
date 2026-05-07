@@ -61,7 +61,8 @@ class SplashController extends GetxController
       await determineInitialRoute();
     } else {
       debugPrint("[Security Violation] ${appSecurity[0]["msg"]}");
-      Variables.showSecurityPopUp(ApiKeys.securityCheckFailedMessage);
+      Variables.showSecurityPopUp(
+          ApiKeys.securityCheckFailedMessageWithReason(appSecurity[0]["msg"]));
     }
   }
 

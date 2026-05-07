@@ -7,10 +7,42 @@ class ApiKeys {
   static const String securityValidationFailedMessage =
       "Security validation failed. App cannot continue.";
 
-  static final bool isProduction = dotenv.env['IS_PRODUCTION'] == 'true';
-  static final bool enforceSecurity =
-      isProduction || dotenv.env['ENFORCE_SECURITY'] == 'true';
-  static final bool showModeBanner = dotenv.env['SHOW_MODE_BANNER'] != 'false';
+  static String securityCheckFailedMessageWithReason(Object? reason) {
+    final message = reason?.toString().trim();
+    if (message == null || message.isEmpty) {
+      return securityCheckFailedMessage;
+    }
+    return "Security check failed: $message. App cannot open.";
+  }
+
+  static String securityValidationFailedMessageWithReason(Object? reason) {
+    final message = reason?.toString().trim();
+    if (message == null || message.isEmpty) {
+      return securityValidationFailedMessage;
+    }
+    return "Security validation failed: $message. App cannot continue.";
+  }
+
+  static bool _envBool(String key, {bool defaultValue = false}) {
+    final value = dotenv.env[key]?.trim().toLowerCase();
+    if (value == null || value.isEmpty) return defaultValue;
+    return value == 'true' || value == '1' || value == 'yes' || value == 'on';
+  }
+
+  static final bool isProduction = _envBool('IS_PRODUCTION');
+  static final bool enforceSecurity = _envBool('ENFORCE_SECURITY');
+  static final bool showModeBanner =
+      _envBool('SHOW_MODE_BANNER', defaultValue: true);
+  static final bool appSecurityRootCheckEnabled = enforceSecurity &&
+      _envBool('APP_SECURITY_ROOT_CHECK', defaultValue: true);
+  static final bool appSecurityJailbreakCheckEnabled = enforceSecurity &&
+      _envBool('APP_SECURITY_JAILBREAK_CHECK', defaultValue: true);
+  static final bool appSecurityDeveloperModeCheckEnabled = enforceSecurity &&
+      _envBool('APP_SECURITY_DEVELOPER_MODE_CHECK', defaultValue: true);
+  static final bool appSecurityEmulatorCheckEnabled = enforceSecurity &&
+      _envBool('APP_SECURITY_EMULATOR_CHECK', defaultValue: true);
+  static final bool appSecurityTamperCheckEnabled = enforceSecurity &&
+      _envBool('APP_SECURITY_TAMPER_CHECK', defaultValue: true);
 
   static String get environmentLabel => isProduction ? 'PROD' : 'DEV';
   static String get securityLabel => enforceSecurity ? 'SEC ON' : 'SEC OFF';

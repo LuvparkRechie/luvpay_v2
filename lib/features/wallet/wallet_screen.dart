@@ -428,7 +428,7 @@ class _WalletScreenState extends State<WalletScreen> {
           Get.toNamed(Routes.walletrechargeload, arguments: {
             "bank_type": "UnionBank",
             "image": "assets/images/wt_instapay.png",
-            "bank_code": " InstaPay",
+            "bank_code": "instapay",
           });
         },
       },

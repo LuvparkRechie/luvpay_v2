@@ -707,8 +707,7 @@ class Variables {
         content: Wrap(children: [
           Center(
               child: LuvpayText(
-                  text: 'Your device is $msg. '
-                      'For security reasons, the app will now close.')),
+                  text: '$msg For security reasons, the app will now close.')),
         ])));
     Future.delayed(Duration(seconds: 4), () {
       FlutterExitApp.exitApp(iosForceExit: true);
