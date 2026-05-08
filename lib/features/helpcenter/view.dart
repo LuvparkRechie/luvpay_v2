@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
@@ -10,73 +10,21 @@ import '../../shared/widgets/tap_guard.dart';
 import '../routes/routes.dart';
 import 'controller.dart';
 import 'utils/call_us_screen.dart';
-import 'utils/chat/chat_screen.dart';
+import 'utils/email_support_screen.dart';
 
-class HelpActionItem {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const HelpActionItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-}
-
-class HelpCenter extends StatefulWidget {
+class HelpCenter extends StatelessWidget {
   const HelpCenter({super.key});
 
-  @override
-  State<HelpCenter> createState() => _HelpCenterState();
-}
-
-class _HelpCenterState extends State<HelpCenter> {
-  final HelpCenterController controller = Get.put(HelpCenterController());
-
-  static const String chatKey = "chat_support";
-  static const String callKey = "call_support";
-  static const String emailKey = "email_support";
-
-  List<HelpActionItem> get _merchantGridItems => [
-        HelpActionItem(
-            icon: Iconsax.message,
-            label: 'Chat with us',
-            onTap: () {
-              TapGuard.run(
-                  key: chatKey,
-                  action: () async {
-                    // Get.to(() => const ChatScreen());
-                    CustomDialogStack.showUnderDevelopment(Get.context!, () {
-                      Get.back();
-                    });
-                  });
-            }),
-        HelpActionItem(
-            icon: Iconsax.call,
-            label: 'Call us',
-            onTap: () {
-              TapGuard.run(
-                  key: callKey,
-                  action: () async {
-                    Get.to(() => const CallUsScreen());
-                  });
-            }),
-        HelpActionItem(
-            icon: Iconsax.direct_inbox,
-            label: 'Email us',
-            onTap: () {
-              TapGuard.run(
-                  key: emailKey,
-                  action: () async {
-                    await controller.sendEmail();
-                  });
-            }),
-      ];
+  HelpCenterController _resolveController() {
+    return Get.isRegistered<HelpCenterController>()
+        ? Get.find<HelpCenterController>()
+        : Get.put(HelpCenterController());
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final supportActions = HelpCenterController.supportActions;
 
     return CustomScaffoldV2(
         appBarTitle: "Help Center",
@@ -94,10 +42,10 @@ class _HelpCenterState extends State<HelpCenter> {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 3),
-                      itemCount: _merchantGridItems.length,
+                      itemCount: supportActions.length,
                       itemBuilder: (context, index) {
-                        final item = _merchantGridItems[index];
-                        return _buildMerchantGridItem(item);
+                        final item = supportActions[index];
+                        return _buildSupportActionItem(context, item);
                       }),
                   const SizedBox(height: 18),
                   CustomButton(
@@ -117,16 +65,14 @@ class _HelpCenterState extends State<HelpCenter> {
         ])));
   }
 
-  Widget _buildMerchantGridItem(HelpActionItem item) {
+  Widget _buildSupportActionItem(BuildContext context, HelpCenterAction item) {
     return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       NeoNavIcon.icon(
           iconData: item.icon,
           onTap: () {
             TapGuard.run(
-                key: item.label,
-                action: () async {
-                  item.onTap();
-                });
+                key: item.tapGuardKey,
+                action: () => _handleSupportAction(context, item));
           },
           borderRadius: BorderRadius.circular(14)),
       const SizedBox(height: 6),
@@ -138,5 +84,76 @@ class _HelpCenterState extends State<HelpCenter> {
           maxFontSize: 12,
           minFontSize: 8),
     ]);
+  }
+
+  Future<void> _handleSupportAction(
+      BuildContext context, HelpCenterAction item) async {
+    switch (item.type) {
+      case HelpActionType.chat:
+        CustomDialogStack.showUnderDevelopment(context, () {
+          Get.back();
+        });
+        return;
+      case HelpActionType.call:
+        await Get.to(() => const CallUsScreen());
+        return;
+      case HelpActionType.email:
+        await _openEmailSupport(context);
+        return;
+    }
+  }
+
+  Future<void> _openEmailSupport(BuildContext context) async {
+    CustomDialogStack.showLoading(context);
+
+    SupportUserProfile? profile;
+    try {
+      profile = await _resolveController().getEmailSupportProfile();
+    } finally {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+    }
+
+    if (!context.mounted) return;
+
+    final resolvedProfile = profile;
+    if (resolvedProfile == null) {
+      CustomDialogStack.showSnackBar(context,
+          "Unable to load your profile. Please try again.", null, null);
+      return;
+    }
+
+    if (!resolvedProfile.canUseEmailSupport) {
+      _showUpdateProfilePrompt(context, resolvedProfile);
+      return;
+    }
+
+    await Get.to(() => EmailSupportScreen(profile: resolvedProfile));
+  }
+
+  void _showUpdateProfilePrompt(
+      BuildContext context, SupportUserProfile profile) {
+    final missingFields =
+        _formatMissingFields(profile.missingEmailSupportFields);
+
+    CustomDialogStack.showConfirmation(context, "Update Profile",
+        "Please add your $missingFields before using email support.", () {
+      Get.back();
+    }, () async {
+      Get.back();
+
+      final regions = await Functions().fetchRegions(context);
+      if (regions.isEmpty) return;
+
+      Get.toNamed(Routes.updProfile, arguments: regions);
+    }, leftText: "Cancel", rightText: "Update");
+  }
+
+  String _formatMissingFields(List<String> fields) {
+    if (fields.isEmpty) return "profile details";
+    if (fields.length == 1) return fields.first;
+
+    return "${fields.sublist(0, fields.length - 1).join(", ")} and ${fields.last}";
   }
 }

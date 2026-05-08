@@ -6,7 +6,6 @@ import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:get/get.dart';
 import 'package:luvpay/core/utils/functions/functions.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import '../../auth/authentication.dart';
 import '../../auth/ub_auth.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
@@ -269,6 +268,19 @@ class WalletRechargeLoadController extends GetxController
       if (!isActiveBtn.value) {
         return;
       }
+
+      if (_requiresQrPaymentWarning()) {
+        final context = Get.context;
+        if (context == null) {
+          return;
+        }
+
+        final shouldProceed = await showQrPaymentWarningDialog(context);
+        if (!shouldProceed) {
+          return;
+        }
+      }
+
       if (arguments["bank_type"]
           .toString()
           .toLowerCase()
@@ -285,6 +297,47 @@ class WalletRechargeLoadController extends GetxController
         landbankPay();
       }
     }
+  }
+
+  bool _requiresQrPaymentWarning() {
+    final bankType = arguments["bank_type"].toString().trim().toLowerCase();
+    final bankCode =
+        _paymentMethodCode(arguments["bank_code"]).trim().toLowerCase();
+
+    return bankCode == "instapay" ||
+        bankCode == "landbank" ||
+        bankType == "landbank";
+  }
+
+  Future<bool> showQrPaymentWarningDialog(BuildContext context) {
+    final completer = Completer<bool>();
+
+    void complete(bool value) {
+      if (!completer.isCompleted) {
+        completer.complete(value);
+      }
+    }
+
+    CustomDialogStack.showConfirmation(
+      context,
+      "Review QR Payment",
+      "You are about to continue with a QR payment. Pay only the QR generated for this transaction.\n\n"
+          "Before approving in your banking or wallet app, confirm the merchant or recipient, amount, and reference details.\n\n"
+          "Do not pay a QR that is expired, already paid, reused, copied, or from a previous transaction. Completed payments cannot be cancelled or reversed in the app.",
+      leftText: "Back",
+      rightText: "Proceed",
+      textAlign: TextAlign.left,
+      () {
+        Get.back();
+        complete(false);
+      },
+      () {
+        Get.back();
+        complete(true);
+      },
+    );
+
+    return completer.future;
   }
 
   Future<dynamic> getUserTnx2() async {
@@ -381,8 +434,6 @@ class WalletRechargeLoadController extends GetxController
       );
       Get.back();
       final qrCode = response is Map ? response["qrCode"] : null;
-      longPrint(
-          "api luvpay: ${ApiKeys.postUBTrans} param: $param response: $response qrCode: $qrCode");
       if (response == "No Internet") {
         CustomDialogStack.showConnectionLost(Get.context!, () {
           Get.back();

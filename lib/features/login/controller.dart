@@ -64,8 +64,6 @@ class LoginScreenController extends GetxController {
         .requestHandler(
             apiKey: ApiKeys.postLogin, parameters: param, method: "POST")
         .then((returnPost) async {
-      longPrint(
-          "ask for totp_secret, device_added_on, in_app_otp_enabled   $param $returnPost  ");
       if (returnPost == "No Internet") {
         CustomDialogStack.showConnectionLost(context, () {
           Get.back();

@@ -160,7 +160,7 @@ class AppPages {
         preventDuplicates: true),
     GetPage(
         name: Routes.helpcenter,
-        page: () => HelpCenter(),
+        page: () => const HelpCenter(),
         binding: HelpCenterBinding(),
         transition: Transition.rightToLeftWithFade,
         transitionDuration: Duration(milliseconds: 300),
