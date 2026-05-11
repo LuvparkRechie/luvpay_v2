@@ -13,6 +13,7 @@ class Routes {
   static const parking = "/parking";
   static const parkingAreas = "/parking_areas";
   static const wallet = "/wallet";
+  static const notifications = "/notifications";
   static const qr = "/qr";
   static const booking = "/booking";
   static const bookingNotice = "/booking_notice";

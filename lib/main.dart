@@ -23,6 +23,7 @@ import 'package:permission_handler/permission_handler.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/security/auto_logout_guard.dart';
 import 'core/security/tamper_gaurd.dart';
+import 'core/services/wallet_notification_poller.dart';
 import 'shared/widgets/app_mode_overlay.dart';
 import 'shared/widgets/luvpay_theme.dart';
 import 'shared/widgets/theme_mode_controller.dart';
@@ -182,6 +183,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     NotificationController.startListeningNotificationEvents();
+    WalletNotificationPoller.start();
 
     initializedDeviceSecurity();
   }
@@ -190,6 +192,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     TamperGuard.stop();
+    WalletNotificationPoller.stop();
     _sessionTimer?.cancel();
     _tamperTimer?.cancel();
     super.dispose();
@@ -198,6 +201,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     await AutoLogoutGuard.handleLifecycle(state);
+    if (state == AppLifecycleState.resumed) {
+      WalletNotificationPoller.pollNow();
+    }
   }
 
   void initializedDeviceSecurity() async {

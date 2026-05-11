@@ -18,10 +18,10 @@ import '../../auth/authentication.dart';
 import '../database/sqlite/pa_message_model.dart';
 import '../database/sqlite/pa_message_table.dart';
 import '../network/http/api_keys.dart';
-import '../network/http/http_request.dart';
 import '../utils/functions/functions.dart';
 import '../../shared/widgets/variables.dart';
 import '../../features/routes/routes.dart';
+import 'in_app_notification_service.dart';
 
 class NotificationController {
   static ReceivedAction? initialAction;
@@ -65,6 +65,58 @@ class NotificationController {
         .setListeners(onActionReceivedMethod: onActionReceivedMethod);
   }
 
+  static Future<bool> _showInAppNotification({
+    required String? title,
+    required String? body,
+    required String? payload,
+    InAppNotificationType type = InAppNotificationType.info,
+  }) async {
+    return InAppNotificationService.show(
+        title: title ?? "Notification",
+        message: body ?? "",
+        type: type,
+        icon: _iconForPayload(payload),
+        onTap: _canOpenPayload(payload)
+            ? () => _openNotificationTarget(payload)
+            : null);
+  }
+
+  static bool _canOpenPayload(String? payload) {
+    final normalized = payload?.toLowerCase().trim();
+    return normalized == "parking" || normalized == "message";
+  }
+
+  static IconData _iconForPayload(String? payload) {
+    switch (payload?.toLowerCase().trim()) {
+      case "parking":
+        return Icons.local_parking_rounded;
+      case "message":
+        return Icons.mark_chat_unread_outlined;
+      case "walletscreen":
+      case "wallet":
+        return Icons.account_balance_wallet_outlined;
+      default:
+        return Icons.notifications_active_outlined;
+    }
+  }
+
+  static bool _openNotificationTarget(String? target) {
+    switch (target?.toLowerCase().trim()) {
+      case "parking":
+        if (Get.currentRoute == Routes.bookingReceipt) {
+          Get.back();
+        } else {
+          Get.toNamed(Routes.parking, arguments: "N");
+        }
+        return true;
+      case "message":
+        Get.toNamed(Routes.message);
+        return true;
+    }
+
+    return false;
+  }
+
   @pragma('vm:entry-point')
   static Future<void> onActionReceivedMethod(
       ReceivedAction receivedAction) async {
@@ -95,6 +147,10 @@ class NotificationController {
   //Parking notification
   static Future<void> parkingNotif(int id, int geoShareId, String? title,
       String? body, String? payload) async {
+    final shownInApp = await _showInAppNotification(
+        title: title, body: body, payload: payload);
+    if (shownInApp) return;
+
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) return;
 
@@ -116,6 +172,13 @@ class NotificationController {
 
   static Future<void> shareTokenNotification(int id, int geoShareId,
       String? title, String? body, String? payload) async {
+    final shownInApp = await _showInAppNotification(
+        title: title,
+        body: body,
+        payload: payload,
+        type: InAppNotificationType.success);
+    if (shownInApp) return;
+
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) return;
 
@@ -137,6 +200,10 @@ class NotificationController {
   //to notify users about  reported damage
   static Future<void> createInformationMessage(int id, int geoShareId,
       String? title, String? body, String? payload) async {
+    final shownInApp = await _showInAppNotification(
+        title: title, body: body, payload: payload);
+    if (shownInApp) return;
+
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
     if (!isAllowed) return;
 
@@ -158,6 +225,10 @@ class NotificationController {
   // MAKE A FOREGROUND NOTIFICATION
   static Future<void> createForegroundNotif(int id, int geoShareId,
       String? title, String? body, String? payload) async {
+    final shownInApp = await _showInAppNotification(
+        title: title, body: body, payload: payload);
+    if (shownInApp) return;
+
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
 
     if (!isAllowed) return;
@@ -200,7 +271,9 @@ class NotificationController {
           hoursFromNow: scheduledTime,
           repeatNotif: false,
           payLoad: payLoad);
-    } catch (e) {}
+    } catch (_) {
+      // Bad schedule data should not interrupt notification polling.
+    }
   }
 
   static Future<void> resetBadgeCounter() async {
@@ -217,22 +290,20 @@ class NotificationController {
 
   static Future<void> onActionReceivedImplementationMethod(
       ReceivedAction receivedAction) async {
-    if (receivedAction.payload!["notificationId"] == "parking") {
-      if (Get.currentRoute == Routes.bookingReceipt) {
-        Get.back();
-      } else {
-        Get.toNamed(Routes.parking, arguments: "N");
-      }
-    }
+    final payload = receivedAction.payload ?? {};
+    final notificationId = payload["notificationId"];
+
+    final openedPayload = _openNotificationTarget(notificationId);
 
     if ((Platform.isAndroid
-            ? receivedAction.buttonKeyPressed.toString().toLowerCase().trim()
-            : receivedAction.payload!["notificationId"]
-                .toString()
-                .toLowerCase()
-                .trim()) ==
-        "message") {
-      Get.toNamed(Routes.message);
+                ? receivedAction.buttonKeyPressed
+                    .toString()
+                    .toLowerCase()
+                    .trim()
+                : notificationId.toString().toLowerCase().trim()) ==
+            "message" &&
+        !openedPayload) {
+      _openNotificationTarget("message");
     }
   }
 

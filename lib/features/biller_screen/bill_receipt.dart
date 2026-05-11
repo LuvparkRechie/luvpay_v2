@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -75,7 +74,6 @@ class BillPaymentReceipt extends StatelessWidget {
                         CustomButton(
                             text: "Done",
                             onPressed: () {
-                              Get.back(result: true);
                               Get.back(result: true);
                             }),
                         const SizedBox(height: 10),
@@ -465,33 +463,6 @@ class BillPaymentReceipt extends StatelessWidget {
     final regex = RegExp(r'to ([^.]+)\.');
     final match = regex.firstMatch(message);
     return match?.group(1)?.trim() ?? '';
-  }
-
-  String _formatDate(dynamic dateTime) {
-    if (dateTime == null) return 'N/A';
-
-    try {
-      final parsed = DateTime.tryParse(dateTime.toString()) ??
-          DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateTime.toString());
-      final dt = parsed.add(const Duration(hours: 8));
-      return DateFormat('MMM dd, yyyy').format(dt);
-    } catch (_) {
-      return 'N/A';
-    }
-  }
-
-  String _formatTime(dynamic dateTime) {
-    if (dateTime == null) return 'N/A';
-
-    try {
-      final parsed = DateTime.tryParse(dateTime.toString()) ??
-          DateFormat('yyyy-MM-dd HH:mm:ss').parse(dateTime.toString());
-      final dt = parsed.add(const Duration(hours: 8));
-
-      return DateFormat('hh:mm a').format(dt);
-    } catch (_) {
-      return 'N/A';
-    }
   }
 
   String _formatCurrency(double amount) => '₱${amount.toStringAsFixed(2)}';

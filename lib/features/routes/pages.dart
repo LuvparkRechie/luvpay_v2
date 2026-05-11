@@ -19,6 +19,7 @@ import '../merchant/merchantreceipt/index.dart';
 import '../onboarding/index.dart';
 import '../registration/index.dart';
 import '../splash_screen/index.dart';
+import '../wallet/notifications.dart';
 import 'routes.dart';
 
 class AppPages {
@@ -141,6 +142,12 @@ class AppPages {
         name: Routes.walletrechargeload,
         page: () => const WalletRechargeLoadScreen(),
         binding: WalletRechargeLoadBinding(),
+        transition: Transition.rightToLeftWithFade,
+        transitionDuration: Duration(milliseconds: 300),
+        preventDuplicates: true),
+    GetPage(
+        name: Routes.notifications,
+        page: () => const WalletNotifications(fromTab: false),
         transition: Transition.rightToLeftWithFade,
         transitionDuration: Duration(milliseconds: 300),
         preventDuplicates: true),

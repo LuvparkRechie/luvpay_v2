@@ -15,7 +15,6 @@ import 'package:luvpay/shared/widgets/custom_scaffold.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/spacing.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
-import 'package:luvpay/core/network/http/http_request.dart';
 import 'package:luvpay/features/routes/routes.dart';
 
 import '../../auth/authentication.dart';
@@ -26,6 +25,7 @@ import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/luvpay_text.dart';
 
 import '../../core/utils/functions/functions.dart';
+import '../../shared/components/otp_field/otp_delivery_policy.dart';
 import '../../shared/components/otp_field/view.dart';
 import '../subwallet/controller.dart';
 import '../wallet/refresh_wallet.dart';
@@ -47,7 +47,6 @@ class _PayMerchantState extends State<PayMerchant> {
   List userData = [];
   bool isLoadingMerch = true;
   bool hasNet = true;
-  String _msg = "";
   String selectedWalletName = "Main Wallet";
   double selectedWalletBalance = 0.0;
   double mainWalletBalance = 0.0;
@@ -123,12 +122,10 @@ class _PayMerchantState extends State<PayMerchant> {
       final response = await Functions().requestHandler(apiKey: subApi);
 
       if (response == "No Internet") {
-        if (mounted) setState(() => _msg = "No Internet");
         return;
       }
 
       if (response == null) {
-        if (mounted) setState(() => _msg = "null");
         return;
       }
 
@@ -155,7 +152,6 @@ class _PayMerchantState extends State<PayMerchant> {
           subWallets = subWalletController.userSubWallets;
 
           isLoadingMerch = false;
-          _msg = "";
         });
       }
     } catch (e) {
@@ -190,7 +186,7 @@ class _PayMerchantState extends State<PayMerchant> {
     CustomDialogStack.showLoading(Get.context!);
     final mainUserId = await Authentication().getUserId();
 
-    String finalUserId = mainUserId?.toString() ?? "";
+    String finalUserId = mainUserId.toString();
     String finalPaymentHk = widget.data[0]["payment_key"] ?? "";
 
     if (selectedWalletIsShared && sharedUserId.isNotEmpty) {
@@ -265,18 +261,40 @@ class _PayMerchantState extends State<PayMerchant> {
     final data = await Authentication().getEncryptedKeys();
     final uData = await Authentication().getUserData2();
 
-    CustomDialogStack.showLoading(Get.context!);
-    final timeNow = await Functions.getTimeNow();
-
     final requestParam = <String, String>{
       "mobile_no": data["mobile_no"],
       "pwd": data["pwd"],
     };
 
-    Get.back();
+    requestParam["use_sms"] =
+        await OtpDeliveryPolicy().resolveUseSmsFlag(allowInAppOtp: true);
+
+    DateTime timeNow = DateTime.now();
+    if (!OtpDeliveryPolicy.isInAppFlag(requestParam["use_sms"])) {
+      var timeFetchFailed = false;
+      CustomDialogStack.showLoading(Get.context!);
+      try {
+        timeNow = await Functions.getTimeNow();
+      } catch (_) {
+        timeFetchFailed = true;
+      } finally {
+        CustomDialogStack.closeLoading();
+      }
+
+      if (timeFetchFailed) {
+        CustomDialogStack.showError(Get.context!, "Error",
+            "Unable to get server time. Please try again.", () => Get.back());
+        return;
+      }
+    }
 
     Functions().requestOtp(requestParam, (objData) async {
       setState(() => isProcessing = false);
+
+      if (objData == null || objData is! Map) {
+        CustomDialogStack.closeLoading();
+        return;
+      }
 
       final timeExp = DateFormat("yyyy-MM-dd hh:mm:ss a")
           .parse(objData["otp_exp_dt"].toString());
@@ -296,6 +314,7 @@ class _PayMerchantState extends State<PayMerchant> {
         final args = {
           "time_duration": difference,
           "mobile_no": uData["mobile_no"].toString(),
+          "allow_in_app_otp": true,
           "req_otp_param": requestParam,
           "verify_param": putParam,
           "callback": (otp) async {
@@ -310,10 +329,6 @@ class _PayMerchantState extends State<PayMerchant> {
             duration: const Duration(milliseconds: 400));
       }
     });
-  }
-
-  VoidCallback? _payHandler() {
-    return isAmountValid ? () => onPayPressed() : null;
   }
 
   @override

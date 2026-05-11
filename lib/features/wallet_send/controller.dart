@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:characters/characters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
@@ -13,14 +11,12 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../auth/authentication.dart';
 import '../../core/network/http/api_keys.dart';
-import '../../core/network/http/http_request.dart';
-import '../../core/security/agent_x.dart';
-import '../../core/services/notification_controller.dart';
+import '../../core/services/wallet_notification_poller.dart';
 import '../../core/utils/functions/functions.dart';
+import '../../shared/components/otp_field/otp_delivery_policy.dart';
 import '../../shared/components/otp_field/view.dart';
 import '../../shared/dialogs/dialogs.dart';
 import '../../shared/widgets/variables.dart';
-import '../scanner_screen.dart';
 
 class WalletSendController extends GetxController {
   WalletSendController();
@@ -80,12 +76,6 @@ class WalletSendController extends GetxController {
     final nav = Navigator.of(ctx, rootNavigator: true);
     if (nav.canPop()) {
       nav.pop();
-    }
-  }
-
-  void _closeDialogIfOpen() {
-    if (Get.isDialogOpen == true) {
-      Get.back();
     }
   }
 
@@ -254,22 +244,26 @@ class WalletSendController extends GetxController {
       "pwd": pwd,
     };
 
-    DateTime timeNow;
-    try {
-      timeNow = await Functions.getTimeNow();
-    } catch (_) {
-      _closeLoadingOnly();
-      CustomDialogStack.showError(Get.context!, "Error",
-          "Unable to get server time. Please try again.", () => Get.back());
-      return;
+    requestParam["use_sms"] =
+        await OtpDeliveryPolicy().resolveUseSmsFlag(allowInAppOtp: true);
+
+    DateTime timeNow = DateTime.now();
+    if (!OtpDeliveryPolicy.isInAppFlag(requestParam["use_sms"])) {
+      try {
+        timeNow = await Functions.getTimeNow();
+      } catch (_) {
+        _closeLoadingOnly();
+        CustomDialogStack.showError(Get.context!, "Error",
+            "Unable to get server time. Please try again.", () => Get.back());
+        return;
+      }
     }
 
     final completer = Completer<void>();
 
     Functions().requestOtp(requestParam, (objData) async {
-      if (objData == null) {
+      if (objData == null || objData is! Map) {
         _closeLoadingOnly();
-        CustomDialogStack.showServerError(Get.context!, () => Get.back());
         if (!completer.isCompleted) completer.complete();
         return;
       }
@@ -292,6 +286,7 @@ class WalletSendController extends GetxController {
         final args = {
           "time_duration": difference,
           "mobile_no": uData["mobile_no"].toString(),
+          "allow_in_app_otp": true,
           "req_otp_param": requestParam,
           "verify_param": putParam,
           "callback": (otp) async {
@@ -394,9 +389,6 @@ class WalletSendController extends GetxController {
     if (retvalue["success"] == "Y") {
       await addRecentFromCurrentRecipient();
 
-      NotificationController.shareTokenNotification(
-          0, 0, 'Transfer Token', "${retvalue["msg"]}.", "walletScreen");
-
       _closeLoadingOnly();
 
       CustomDialogStack.showSuccess(
@@ -405,6 +397,7 @@ class WalletSendController extends GetxController {
         Get.back();
         Get.back();
         refreshUserData();
+        WalletNotificationPoller.pollNow();
       });
       return;
     }

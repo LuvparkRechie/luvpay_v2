@@ -7,7 +7,6 @@ import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:luvpay/shared/widgets/upper_case_formatter.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
 import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
@@ -20,7 +19,9 @@ import 'package:luvpay/core/network/http/api_keys.dart';
 import 'package:luvpay/features/biller_screen/bill_receipt.dart';
 
 import '../../shared/widgets/neumorphism.dart';
+import '../../shared/components/otp_field/otp_delivery_policy.dart';
 import '../../shared/components/otp_field/view.dart';
+import '../routes/routes.dart';
 import '../subwallet/controller.dart';
 import '../wallet/refresh_wallet.dart';
 
@@ -163,16 +164,29 @@ class _BillerScreenState extends State<BillerScreen> {
         "pwd": data["pwd"],
       };
 
-      CustomDialogStack.showLoading(Get.context!);
-      final timeNow = await Functions.getTimeNow();
-      Get.back();
+      requestParam["use_sms"] =
+          await OtpDeliveryPolicy().resolveUseSmsFlag(allowInAppOtp: true);
+
+      DateTime timeNow = DateTime.now();
+      if (!OtpDeliveryPolicy.isInAppFlag(requestParam["use_sms"])) {
+        CustomDialogStack.showLoading(Get.context!);
+        try {
+          timeNow = await Functions.getTimeNow();
+        } finally {
+          CustomDialogStack.closeLoading();
+        }
+      }
 
       Functions().requestOtp(requestParam, (objData) async {
-        if (objData == null) return;
+        if (objData == null || objData is! Map) {
+          CustomDialogStack.closeLoading();
+          return;
+        }
 
         final isOk =
             (objData["success"] == "Y" || objData["status"] == "PENDING");
         if (!isOk) {
+          CustomDialogStack.closeLoading();
           CustomDialogStack.showError(
               Get.context!,
               "Error",
@@ -191,27 +205,35 @@ class _BillerScreenState extends State<BillerScreen> {
         final putParam = <String, String>{
           "mobile_no": uData["mobile_no"].toString(),
           "otp": objData["otp"].toString(),
+          "req_type": "SR",
         };
+
+        var otpVerified = false;
 
         final args = {
           "time_duration": difference,
           "mobile_no": uData["mobile_no"].toString(),
+          "allow_in_app_otp": true,
           "req_otp_param": requestParam,
           "verify_param": putParam,
           "callback": (otp) async {
-            if (otp != null) onVerified();
+            if (otp != null) {
+              otpVerified = true;
+              onVerified();
+            }
           },
         };
 
-        final resOtp = await Get.to(OtpFieldScreen(arguments: args),
+        await Get.to(OtpFieldScreen(arguments: args),
             transition: Transition.rightToLeftWithFade,
             duration: const Duration(milliseconds: 400));
-        if (resOtp == null) {
-          Get.back(result: true);
-          return;
+
+        if (!otpVerified) {
+          CustomDialogStack.closeLoading();
         }
       });
     } catch (e) {
+      CustomDialogStack.closeLoading();
       CustomDialogStack.showServerError(Get.context!, () => Get.back());
     }
   }
@@ -290,7 +312,6 @@ class _BillerScreenState extends State<BillerScreen> {
         onError: (message) {
           _showRequestError(message);
         });
-
     Get.back();
 
     if (returnPost == null || returnPost is String) {
@@ -313,8 +334,10 @@ class _BillerScreenState extends State<BillerScreen> {
       final result = await Get.to(BillPaymentReceipt(
           apiResponse: returnPostMap, paymentParams: parameter));
 
-      if (result != null) Get.back(result: true);
       WalletRefreshBus.refresher();
+      if (result != null) {
+        Get.offAllNamed(Routes.dashboard);
+      }
       return;
     }
 
@@ -467,8 +490,10 @@ class _BillerScreenState extends State<BillerScreen> {
                             text: "Pay now",
                             onPressed: () async {
                               FocusManager.instance.primaryFocus?.unfocus();
-                              if (!(_formKey.currentState?.validate() ?? false))
+                              if (!(_formKey.currentState?.validate() ??
+                                  false)) {
                                 return;
+                              }
 
                               await _requestOtpThenPay(() {
                                 _submitForm();
@@ -641,42 +666,6 @@ class _BillerScreenState extends State<BillerScreen> {
                   style: AppTextStyle.h3(context).copyWith(
                       fontWeight: FontWeight.w900, letterSpacing: -0.2),
                   color: cs.onSurface,
-                  maxLines: 1)),
-        ]));
-  }
-
-  Widget _balanceCard(
-    BuildContext context, {
-    required ColorScheme cs,
-    required bool isDark,
-    required double borderOpacity,
-    required bool isLoading,
-    required String balanceText,
-  }) {
-    return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-        decoration: BoxDecoration(
-            image: const DecorationImage(
-                fit: BoxFit.cover,
-                image: AssetImage("assets/images/booking_wallet_bg.png")),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: cs.onSurface.withOpacity(borderOpacity)),
-            boxShadow: [
-              BoxShadow(
-                  color: cs.shadow.withOpacity(isDark ? 0.22 : 0.10),
-                  blurRadius: 18,
-                  offset: const Offset(0, 10)),
-            ]),
-        child: Row(children: [
-          Icon(Symbols.wallet, color: cs.onPrimary),
-          const SizedBox(width: 10),
-          Expanded(
-              child: LuvpayText(
-                  text: isLoading ? "Loading…" : balanceText,
-                  style: AppTextStyle.body1(context)
-                      .copyWith(fontWeight: FontWeight.w900),
-                  color: cs.onPrimary,
                   maxLines: 1)),
         ]));
   }

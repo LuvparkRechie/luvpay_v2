@@ -41,10 +41,10 @@ class Security extends GetView<SecuritySettingsController> {
                                 onTap: controller.verifyMobile),
                             InfoRowTile(
                                 icon: LucideIcons.fingerprint,
-                                title: "Security Preference",
+                                title: "Sign-in & OTP",
                                 subtitleMaxlines: 2,
                                 subtitle:
-                                    "Use biometrics for secure transactions.",
+                                    "Manage biometrics and OTP Generator.",
                                 onTap: () async {
                                   CustomDialogStack.showLoading(context);
                                   await Future.delayed(

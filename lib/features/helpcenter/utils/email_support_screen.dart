@@ -234,6 +234,33 @@ class _EmailSupportScreenState extends State<EmailSupportScreen> {
     });
   }
 
+  bool get _hasDraft =>
+      messageController.text.trim().isNotEmpty || selectedFile != null;
+
+  void _handleBack() {
+    FocusScope.of(context).unfocus();
+
+    if (_isSubmitting) {
+      CustomDialogStack.showSnackBar(
+          context, "Please wait while your request is being sent.", null, null);
+      return;
+    }
+
+    if (!_hasDraft) {
+      Get.back();
+      return;
+    }
+
+    CustomDialogStack.showConfirmation(
+        context,
+        "Discard Support Request?",
+        "Your message and attachment will be removed if you leave this page.",
+        () => Get.back(), () {
+      Get.back();
+      Get.back();
+    }, leftText: "Stay", rightText: "Discard", textAlign: TextAlign.center);
+  }
+
   @override
   Widget build(BuildContext context) {
     final locked = _isSubmitting || TapGuard.isLocked(submitKey);
@@ -241,6 +268,7 @@ class _EmailSupportScreenState extends State<EmailSupportScreen> {
     return CustomScaffoldV2(
         padding: EdgeInsets.zero,
         appBarTitle: "Email Support",
+        onPressedLeading: _handleBack,
         scaffoldBody: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(children: [

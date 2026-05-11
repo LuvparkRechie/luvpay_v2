@@ -10,6 +10,7 @@ import '../../shared/widgets/tap_guard.dart';
 import '../routes/routes.dart';
 import 'controller.dart';
 import 'utils/call_us_screen.dart';
+import 'utils/chat/chat_screen.dart';
 import 'utils/email_support_screen.dart';
 
 class HelpCenter extends StatelessWidget {
@@ -90,9 +91,7 @@ class HelpCenter extends StatelessWidget {
       BuildContext context, HelpCenterAction item) async {
     switch (item.type) {
       case HelpActionType.chat:
-        CustomDialogStack.showUnderDevelopment(context, () {
-          Get.back();
-        });
+        await Get.to(() => const ChatScreen());
         return;
       case HelpActionType.call:
         await Get.to(() => const CallUsScreen());

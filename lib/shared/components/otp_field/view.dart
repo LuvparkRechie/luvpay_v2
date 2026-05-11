@@ -8,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' as dt_time;
 import 'package:pinput/pinput.dart';
 
-import '../../../../auth/authentication.dart';
 import '../../../core/network/http/api_keys.dart';
 import '../../../core/utils/functions/functions.dart';
 import '../../../features/security_settings/utils/in_app_otp_service.dart';
@@ -21,8 +20,7 @@ import '../../widgets/luvpay_text.dart';
 import '../../widgets/neumorphism.dart';
 import '../../widgets/spacing.dart' show spacing;
 import '../../widgets/vertical_height.dart';
-
-enum _OtpMethod { sms, inApp }
+import 'otp_delivery_policy.dart';
 
 class OtpFieldScreen extends StatefulWidget {
   final dynamic arguments;
@@ -41,13 +39,17 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   bool _hasError = false;
   bool _isInitializing = true;
   bool _isRequestingOtp = false;
+  bool _isGeneratorSheetOpen = false;
+  bool _isRefreshingInAppOtp = false;
   String inputPin = "";
+  String? _generatedInAppOtp;
   Duration paramOtpExp = Duration.zero;
   DateTime? _inAppExpiryAt;
-  bool _allowInAppOtp = false;
-  _OtpMethod _selectedMethod = _OtpMethod.sms;
+  StateSetter? _generatorSheetSetState;
+  OtpDeliveryMethod _deliveryMethod = OtpDeliveryMethod.sms;
+  bool _inAppOtpAvailable = false;
 
-  bool get _isInAppMode => _selectedMethod == _OtpMethod.inApp;
+  bool get _isInAppMode => _deliveryMethod == OtpDeliveryMethod.inApp;
 
   bool get _forceSmsOnly {
     if (widget.arguments["allow_in_app_otp"] == false) {
@@ -56,7 +58,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
 
     final reqOtpParam = widget.arguments["req_otp_param"];
     if (reqOtpParam is Map && reqOtpParam["use_sms"] != null) {
-      return reqOtpParam["use_sms"].toString().toUpperCase() == "Y";
+      return OtpDeliveryPolicy.isSmsFlag(reqOtpParam["use_sms"].toString());
     }
 
     return false;
@@ -71,6 +73,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   @override
   void dispose() {
     timer?.cancel();
+    _generatorSheetSetState = null;
     pinController.dispose();
     super.dispose();
   }
@@ -83,16 +86,16 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
           initialDuration.isNegative ? Duration.zero : initialDuration;
     }
 
-    final canUseInAppOtp =
-        !_forceSmsOnly && await Authentication().canUseInAppOtp();
+    final deliveryMethod =
+        await OtpDeliveryPolicy().resolve(allowInAppOtp: !_forceSmsOnly);
 
     if (!mounted) {
       return;
     }
 
     setState(() {
-      _allowInAppOtp = canUseInAppOtp;
-      _selectedMethod = canUseInAppOtp ? _OtpMethod.inApp : _OtpMethod.sms;
+      _deliveryMethod = deliveryMethod;
+      _inAppOtpAvailable = deliveryMethod == OtpDeliveryMethod.inApp;
       _isInitializing = false;
     });
 
@@ -107,6 +110,16 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     }
 
     await getOtpRequest(showLoader: false, useSms: true);
+  }
+
+  void _closeOtpScreen() {
+    _cleanupOtpOverlays();
+    Get.back(result: null);
+  }
+
+  void _cleanupOtpOverlays() {
+    timer?.cancel();
+    _generatorSheetSetState = null;
   }
 
   void _startSmsCountdown() {
@@ -132,10 +145,15 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     });
   }
 
-  Future<void> _activateInAppOtp() async {
+  Future<void> _activateInAppOtp({bool showGenerator = true}) async {
+    if (_isRefreshingInAppOtp) {
+      return;
+    }
+
     timer?.cancel();
 
     try {
+      _isRefreshingInAppOtp = true;
       final code = await InAppOtpService().getOtp();
       final remaining = InAppOtpService().getRemainingTime();
 
@@ -143,36 +161,45 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
         return;
       }
 
-      pinController.text = code;
-
       setState(() {
-        inputPin = code;
+        _generatedInAppOtp = code;
+        inputPin = "";
+        pinController.clear();
         _hasError = false;
         paramOtpExp = remaining;
         _inAppExpiryAt = DateTime.now().add(remaining);
       });
+      _generatorSheetSetState?.call(() {});
 
       _startInAppCountdown();
+
+      if (showGenerator) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _showInAppOtpGenerator();
+          }
+        });
+      }
     } catch (_) {
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _allowInAppOtp = false;
-        _selectedMethod = _OtpMethod.sms;
+        _generatedInAppOtp = null;
+        _hasError = true;
       });
 
-      CustomDialogStack.showInfo(
+      CustomDialogStack.showError(
         context,
-        "In-App OTP unavailable",
-        "This account does not have an active in-app OTP secret yet. SMS OTP will be used instead.",
+        "OTP Generator unavailable",
+        "Unable to generate a code on this device. Please refresh your account or turn off OTP Generator.",
         () {
           Get.back();
         },
       );
-
-      await getOtpRequest(useSms: true);
+    } finally {
+      _isRefreshingInAppOtp = false;
     }
   }
 
@@ -194,7 +221,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       if (remaining.inMilliseconds <= 0) {
         t.cancel();
         if (mounted) {
-          Get.back(result: null);
+          _activateInAppOtp(showGenerator: false);
         }
         return;
       }
@@ -202,7 +229,202 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       setState(() {
         paramOtpExp = remaining;
       });
+      _generatorSheetSetState?.call(() {});
     });
+  }
+
+  Future<void> _showInAppOtpGenerator() async {
+    if (!_isInAppMode || _isGeneratorSheetOpen || !mounted) {
+      return;
+    }
+
+    if (_generatedInAppOtp == null || paramOtpExp.inMilliseconds <= 0) {
+      await _activateInAppOtp(showGenerator: false);
+    }
+
+    if (!mounted || _generatedInAppOtp == null) {
+      return;
+    }
+
+    _isGeneratorSheetOpen = true;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.55),
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            _generatorSheetSetState = setSheetState;
+            return _buildInAppGeneratorSheet(sheetContext);
+          },
+        );
+      },
+    );
+
+    _isGeneratorSheetOpen = false;
+    _generatorSheetSetState = null;
+  }
+
+  Widget _buildInAppGeneratorSheet(BuildContext sheetContext) {
+    final theme = Theme.of(sheetContext);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final accent = cs.primary;
+    final remainingSeconds =
+        _displayRemainingSeconds(paramOtpExp, maxSeconds: 30);
+    final progress = (remainingSeconds / 30).clamp(0.0, 1.0).toDouble();
+    final bottomPadding = MediaQuery.of(sheetContext).padding.bottom;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 20 + bottomPadding),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [
+          BoxShadow(
+            color: cs.shadow.withOpacity(isDark ? 0.50 : 0.16),
+            blurRadius: 24,
+            offset: const Offset(0, -10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Transform.translate(
+            offset: const Offset(0, -30),
+            child: Container(
+              width: 62,
+              height: 62,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: cs.primaryContainer,
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withOpacity(0.30),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.phone_android_rounded,
+                color: cs.onPrimaryContainer,
+                size: 30,
+              ),
+            ),
+          ),
+          Transform.translate(
+            offset: const Offset(0, -12),
+            child: Column(
+              children: [
+                LuvpayText(
+                  text: "One-Time Password",
+                  style: AppTextStyle.h3(sheetContext).copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  color: cs.onSurface.withOpacity(0.72),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _formatGeneratedOtp(_generatedInAppOtp),
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 7,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: 58,
+                  height: 58,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 4,
+                        backgroundColor: accent.withOpacity(0.12),
+                        valueColor: AlwaysStoppedAnimation<Color>(accent),
+                      ),
+                      LuvpayText(
+                        text: remainingSeconds.toString(),
+                        style: AppTextStyle.paragraph2(sheetContext).copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        color: cs.onSurface.withOpacity(0.54),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 26),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomButton(
+                        text: "Cancel",
+                        filled: false,
+                        borderRadius: 28,
+                        textColor: cs.onSurface.withOpacity(0.70),
+                        bordercolor: cs.outlineVariant.withOpacity(0.35),
+                        onPressed: () => Navigator.of(sheetContext).pop(),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: CustomButton(
+                        text: "Continue",
+                        borderRadius: 28,
+                        btnColor: accent,
+                        textColor: cs.onPrimary,
+                        onPressed: () =>
+                            _continueWithGeneratedOtp(sheetContext),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatGeneratedOtp(String? value) {
+    final code = value ?? "";
+    if (code.length != 6) {
+      return code;
+    }
+
+    return code.split("").join(" ");
+  }
+
+  void _continueWithGeneratedOtp(BuildContext sheetContext) {
+    final code = _generatedInAppOtp;
+    if (code == null || code.length != 6 || paramOtpExp.inMilliseconds <= 0) {
+      _activateInAppOtp(showGenerator: false);
+      return;
+    }
+
+    Navigator.of(sheetContext).pop();
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      pinController.text = code;
+      inputPin = code;
+      _hasError = false;
+    });
+
+    verifyAccount();
   }
 
   Future<void> getOtpRequest({
@@ -229,11 +451,15 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       final otpData = rawOtpData is Map
           ? Map<String, dynamic>.from(rawOtpData)
           : <String, dynamic>{};
-      otpData["use_sms"] = useSms ? "Y" : "N";
+      otpData["use_sms"] =
+          useSms ? OtpDeliveryPolicy.smsFlag : OtpDeliveryPolicy.inAppFlag;
+      final backendOtpData = Map<String, dynamic>.from(otpData)
+        ..remove("use_sms")
+        ..remove("otp_method");
 
       final returnData = await Functions().requestHandler(
         apiKey: ApiKeys.postGenerateOtp,
-        parameters: otpData,
+        parameters: backendOtpData,
         method: "POST",
       );
 
@@ -299,26 +525,6 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     }
   }
 
-  Future<void> _switchOtpMethod(_OtpMethod method) async {
-    if (_selectedMethod == method) {
-      return;
-    }
-
-    setState(() {
-      _selectedMethod = method;
-      _hasError = false;
-      inputPin = "";
-      pinController.clear();
-    });
-
-    if (_isInAppMode) {
-      await _activateInAppOtp();
-      return;
-    }
-
-    await getOtpRequest(useSms: true);
-  }
-
   void onInputChanged(String value) {
     inputPin = value;
     _hasError = false;
@@ -332,6 +538,34 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
 
     timer?.cancel();
     getOtpRequest(useSms: true);
+  }
+
+  Future<void> _switchOtpMethod(OtpDeliveryMethod method) async {
+    if (_deliveryMethod == method || _isRequestingOtp) {
+      return;
+    }
+
+    if (method == OtpDeliveryMethod.inApp && !_inAppOtpAvailable) {
+      return;
+    }
+
+    timer?.cancel();
+
+    setState(() {
+      _deliveryMethod = method;
+      _hasError = false;
+      inputPin = "";
+      pinController.clear();
+      paramOtpExp = Duration.zero;
+      _inAppExpiryAt = null;
+    });
+
+    if (method == OtpDeliveryMethod.inApp) {
+      await _activateInAppOtp();
+      return;
+    }
+
+    await getOtpRequest(useSms: true);
   }
 
   Future<void> verifyAccount() async {
@@ -358,12 +592,15 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       return;
     }
 
+    if (_isInAppMode) {
+      await _verifyLocalInAppOtp();
+      return;
+    }
+
     final verifyPayload = Map<String, dynamic>.from(
       (widget.arguments["verify_param"] ?? {}) as Map,
     );
     verifyPayload["otp"] = pinController.text;
-    verifyPayload["use_sms"] = _isInAppMode ? "N" : "Y";
-    verifyPayload["otp_method"] = _isInAppMode ? "IN_APP" : "SMS";
 
     CustomDialogStack.showLoading(Get.context!);
 
@@ -432,6 +669,37 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
     });
   }
 
+  Future<void> _verifyLocalInAppOtp() async {
+    final submittedOtp = pinController.text;
+    final generatedOtp = _generatedInAppOtp;
+    final isExpired = paramOtpExp.inMilliseconds <= 0;
+
+    if (generatedOtp == null || submittedOtp != generatedOtp || isExpired) {
+      setState(() {
+        _hasError = true;
+      });
+
+      CustomDialogStack.showError(
+        Get.context!,
+        isExpired ? "Code expired" : "Invalid OTP",
+        isExpired
+            ? "The generated code expired. Open OTP Generator to get a new code."
+            : "Hmm, that code doesn’t look right. Please try again.",
+        () {
+          Get.back();
+        },
+      );
+      return;
+    }
+
+    setState(() {
+      _hasError = false;
+    });
+
+    Get.back();
+    widget.arguments["callback"](int.parse(submittedOtp));
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -486,42 +754,14 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       );
     }
 
-    Widget methodSwitcher() {
-      if (!_allowInAppOtp) {
-        return SizedBox.shrink();
-      }
-
-      Widget methodChip(_OtpMethod method, String label) {
-        final isActive = _selectedMethod == method;
-        return Expanded(
-          child: CustomButton(
-            btnColor: isActive ? brand : cs.surface,
-            textColor: isActive ? cs.onPrimary : cs.onSurface,
-            bordercolor: isActive ? brand : cs.outlineVariant.withOpacity(0.5),
-            text: label,
-            onPressed: () => _switchOtpMethod(method),
-          ),
-        );
-      }
-
-      return Column(
-        children: [
-          Row(
-            children: [
-              methodChip(_OtpMethod.inApp, "In-App OTP"),
-              SizedBox(width: 10),
-              methodChip(_OtpMethod.sms, "SMS OTP"),
-            ],
-          ),
-          spacing(height: 14),
-        ],
-      );
-    }
-
     Widget topNotice() {
-      if (!_isInAppMode) {
+      if (!_inAppOtpAvailable) {
         return SizedBox.shrink();
       }
+
+      final noticeText = _isInAppMode
+          ? "OTP Generator is active for this request. You can switch to SMS if needed."
+          : "SMS OTP is selected for this request.";
 
       return Container(
         width: double.infinity,
@@ -538,8 +778,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
             SizedBox(width: 10),
             Expanded(
               child: LuvpayText(
-                text:
-                    "Confirm before the timer ends. For security, this screen closes when the in-app OTP expires.",
+                text: noticeText,
                 style: AppTextStyle.paragraph2(context).copyWith(height: 1.35),
                 color: cs.onSurface,
               ),
@@ -549,12 +788,40 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       );
     }
 
+    Widget methodSwitcher() {
+      if (!_inAppOtpAvailable) {
+        return SizedBox.shrink();
+      }
+
+      Widget option(OtpDeliveryMethod method, String label) {
+        final isActive = _deliveryMethod == method;
+        return Expanded(
+          child: CustomButton(
+            text: label,
+            btnHeight: 46,
+            btnColor: isActive ? brand : cs.surface,
+            textColor: isActive ? cs.onPrimary : cs.onSurface,
+            bordercolor: isActive ? brand : cs.outlineVariant.withOpacity(0.45),
+            onPressed: () => _switchOtpMethod(method),
+          ),
+        );
+      }
+
+      return Row(
+        children: [
+          option(OtpDeliveryMethod.inApp, "OTP Generator"),
+          SizedBox(width: 10),
+          option(OtpDeliveryMethod.sms, "SMS"),
+        ],
+      );
+    }
+
     Widget instructionText() {
       if (_isInAppMode) {
         return Center(
           child: LuvpayText(
             text:
-                "Use the in-app OTP generated from this registered device to approve this request.",
+                "Use the code generated on this device to approve this request.",
             textAlign: TextAlign.center,
             style: GoogleFonts.openSans(
               fontWeight: FontWeight.w500,
@@ -599,6 +866,12 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
       backgroundColor: cs.surface,
       useNormalBody: true,
       enableToolBar: true,
+      onPressedLeading: _closeOtpScreen,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _cleanupOtpOverlays();
+        }
+      },
       scaffoldBody: _isInitializing || isLoading
           ? LoadingCard()
           : !isNetConn
@@ -659,6 +932,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                           ),
                           spacing(height: 26),
                           methodSwitcher(),
+                          if (_inAppOtpAvailable) spacing(height: 18),
                           Center(
                             child: Directionality(
                               textDirection: TextDirection.ltr,
@@ -704,16 +978,21 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                           ),
                           const VerticalHeight(height: 26),
                           CustomButton(
-                            isInactive: pinController.text.isEmpty ||
-                                pinController.text.length != 6,
-                            text: _isInAppMode ? "Confirm" : "Verify",
-                            onPressed: verifyAccount,
+                            isInactive: _isInAppMode
+                                ? _isRequestingOtp
+                                : pinController.text.isEmpty ||
+                                    pinController.text.length != 6,
+                            text:
+                                _isInAppMode ? "Open OTP Generator" : "Verify",
+                            onPressed: _isInAppMode
+                                ? _showInAppOtpGenerator
+                                : verifyAccount,
                           ),
                           spacing(height: 34),
                           Center(
                             child: LuvpayText(
                               text: _isInAppMode
-                                  ? "This confirmation window ends in"
+                                  ? "Generator code refreshes in"
                                   : "Didn’t receive any code?",
                               style: AppTextStyle.paragraph2(context),
                               color: cs.onSurface,
@@ -723,7 +1002,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                           Center(
                             child: InkWell(
                               onTap: _isInAppMode
-                                  ? null
+                                  ? _showInAppOtpGenerator
                                   : _isRequestingOtp
                                       ? null
                                       : paramOtpExp.inSeconds <= 0
@@ -737,7 +1016,7 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
                                 children: [
                                   LuvpayText(
                                     text: _isInAppMode
-                                        ? "Code expires in"
+                                        ? "Open OTP Generator"
                                         : _isRequestingOtp
                                             ? "Requesting OTP"
                                             : paramOtpExp.inSeconds <= 0
@@ -768,13 +1047,27 @@ class _OtpFieldScreenState extends State<OtpFieldScreen> {
   }
 
   String formatDuration(Duration d) {
-    final safeDuration =
-        d.isNegative ? Duration.zero : Duration(seconds: d.inSeconds);
+    final safeDuration = d.isNegative
+        ? Duration.zero
+        : Duration(seconds: _displayRemainingSeconds(d));
     final minutes =
         safeDuration.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds =
         safeDuration.inSeconds.remainder(60).toString().padLeft(2, '0');
 
     return "$minutes:$seconds";
+  }
+
+  int _displayRemainingSeconds(Duration duration, {int? maxSeconds}) {
+    if (duration.inMilliseconds <= 0) {
+      return 0;
+    }
+
+    final seconds = (duration.inMilliseconds + 999) ~/ 1000;
+    if (maxSeconds == null) {
+      return seconds;
+    }
+
+    return seconds.clamp(1, maxSeconds).toInt();
   }
 }

@@ -13,6 +13,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice2/places.dart';
 import 'package:intl/intl.dart';
 import 'package:luvpay/auth/authentication.dart';
+import 'package:luvpay/shared/components/otp_field/otp_delivery_policy.dart';
 import 'package:luvpay/shared/widgets/variables.dart';
 import 'package:luvpay/core/utils/functions/eta_calculator.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
@@ -549,23 +550,42 @@ class Functions {
   }
 
   Future<void> requestOtp(Map<String, String> param, Function cb) async {
-    CustomDialogStack.showLoading(Get.context!);
     final requestParam = Map<String, String>.from(param);
 
     if (!requestParam.containsKey("use_sms")) {
-      final shouldUseInAppOtp = await Authentication().canUseInAppOtp();
-      requestParam["use_sms"] = shouldUseInAppOtp ? "N" : "Y";
+      requestParam["use_sms"] = OtpDeliveryPolicy.smsFlag;
+    }
+
+    param["use_sms"] = requestParam["use_sms"].toString();
+
+    if (OtpDeliveryPolicy.isInAppFlag(requestParam["use_sms"])) {
+      cb({
+        "success": "Y",
+        "status": "PENDING",
+        "otp": "",
+        "otp_exp_dt": DateFormat("yyyy-MM-dd hh:mm:ss a")
+            .format(DateTime.now().add(const Duration(seconds: 30))),
+        "use_sms": OtpDeliveryPolicy.inAppFlag,
+        "otp_method": OtpDeliveryPolicy.inAppMethod,
+      });
+      return;
     }
 
     final api = ApiKeys.postGenerateOtp;
+    final backendOtpParam = Map<String, String>.from(requestParam)
+      ..remove("use_sms")
+      ..remove("otp_method");
+
+    CustomDialogStack.showLoading(Get.context!);
+
     Functions()
         .requestHandler(
       apiKey: api,
-      parameters: requestParam,
+      parameters: backendOtpParam,
       method: "POST",
     )
         .then((returnData) async {
-      Get.back();
+      CustomDialogStack.closeLoading();
 
       if (returnData == "No Internet") {
         cb(returnData);
@@ -592,6 +612,18 @@ class Functions {
         );
 
         return;
+      }
+
+      if (returnData is Map) {
+        returnData["use_sms"] = requestParam["use_sms"];
+        returnData["otp_method"] =
+            OtpDeliveryPolicy.verifyMethodForFlag(requestParam["use_sms"]);
+
+        if (OtpDeliveryPolicy.isInAppFlag(requestParam["use_sms"])) {
+          returnData["otp"] ??= "";
+          returnData["otp_exp_dt"] ??= DateFormat("yyyy-MM-dd hh:mm:ss a")
+              .format(DateTime.now().add(const Duration(seconds: 30)));
+        }
       }
 
       if (returnData["success"] == 'Y') {
@@ -1078,6 +1110,10 @@ class Functions {
 
     final returnData =
         await Functions().requestHandler(apiKey: ApiKeys.getRegion);
+
+    if (!ctx.mounted) {
+      return [];
+    }
 
     Get.back();
 

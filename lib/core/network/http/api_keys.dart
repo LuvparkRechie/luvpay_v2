@@ -29,6 +29,22 @@ class ApiKeys {
     return value == 'true' || value == '1' || value == 'yes' || value == 'on';
   }
 
+  static String _optionalEndpoint(
+    List<String> keys, {
+    required String fallback,
+  }) {
+    for (final key in keys) {
+      final value = dotenv.env[key]?.trim();
+      if (value != null && value.isNotEmpty) {
+        return value
+            .replaceAll('{LUV_API}', luvApi)
+            .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
+      }
+    }
+
+    return fallback;
+  }
+
   static final bool isProduction = _envBool('IS_PRODUCTION');
   static final bool enforceSecurity = _envBool('ENFORCE_SECURITY');
   static final bool showModeBanner =
@@ -138,6 +154,10 @@ class ApiKeys {
       dotenv.env['PUT_LOGOUT']!.replaceAll('{LUV_API}', luvApi);
   static final String getParkingNotice = dotenv.env['GET_PARKING_NOTICE']!
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
+  static final String getSplashAdvisories = _optionalEndpoint(
+    ['GET_SPLASH_ADVISORIES', 'GET_SPLASH_ADVISORY'],
+    fallback: getParkingNotice,
+  );
   static final String getComputeDistance = dotenv.env['GET_COMPUTE_DISTANCE']!
       .replaceAll('{PARK_SPACE_API}', parkSpaceApi);
   static final String getAcctStatus =

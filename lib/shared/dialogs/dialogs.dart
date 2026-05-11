@@ -3,6 +3,7 @@
 import 'package:flutter_auto_size_text/flutter_auto_size_text.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:luvpay/shared/widgets/colors.dart';
 import 'package:luvpay/shared/widgets/luvpay_text.dart';
@@ -11,6 +12,7 @@ class CustomDialogStack {
   static bool _isSnackBarActive = false;
 
   static bool _trackedDialogLock = false;
+  static int _loadingDialogCount = 0;
 
   static Future<T?> _trackedShowDialog<T>({
     required BuildContext context,
@@ -321,6 +323,8 @@ class CustomDialogStack {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
+    _loadingDialogCount++;
+
     _plainShowDialog<void>(
         context: context,
         barrierDismissible: false,
@@ -362,7 +366,27 @@ class CustomDialogStack {
                                     fontSize: 13, fontWeight: FontWeight.w800),
                                 color: cs.onSurface.withOpacity(0.75)),
                           ])))));
-        });
+        }).whenComplete(_loadingDialogClosed);
+  }
+
+  static void closeLoading() {
+    if (_loadingDialogCount <= 0) {
+      return;
+    }
+
+    final context = Get.overlayContext ?? Get.context;
+    if (context == null) {
+      return;
+    }
+
+    _loadingDialogCount--;
+    Navigator.of(context, rootNavigator: true).pop();
+  }
+
+  static void _loadingDialogClosed() {
+    if (_loadingDialogCount > 0) {
+      _loadingDialogCount--;
+    }
   }
 
   static Widget _dialogNeumorphicButton({
