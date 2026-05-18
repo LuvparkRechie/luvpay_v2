@@ -114,15 +114,15 @@ class _WalletScreenState extends State<WalletScreen> {
                 },
         },
 
-        // /do not remove. needed in the future....
-        {
-          'icon': "wallet_send",
-          'label': 'Send',
-          'color': AppColorV2.lpBlueBrand,
-          'onTap': () {
-            Get.toNamed(Routes.send);
-          },
-        },
+        ///do not remove. needed in the future....
+        // {
+        //   'icon': "wallet_send",
+        //   'label': 'Send',
+        //   'color': AppColorV2.lpBlueBrand,
+        //   'onTap': () {
+        //     Get.toNamed(Routes.send);
+        //   },
+        // },
       ];
   int _currentIndex = 0;
   @override

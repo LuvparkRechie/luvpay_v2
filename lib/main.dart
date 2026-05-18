@@ -23,7 +23,6 @@ import 'package:permission_handler/permission_handler.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/security/auto_logout_guard.dart';
 import 'core/security/tamper_gaurd.dart';
-import 'core/services/fcm_notification_service.dart';
 import 'core/services/wallet_notification_poller.dart';
 import 'shared/widgets/app_mode_overlay.dart';
 import 'shared/widgets/luvpay_theme.dart';
@@ -135,21 +134,19 @@ void main() async {
   debugPrint(
       "[AppConfig] mode=${ApiKeys.environmentLabel} security=${ApiKeys.securityLabel}");
 
-  // final status = await Permission.notification.status;
-  // if (status.isDenied) {
-  //   await Permission.notification.request();
-  // }
+  final status = await Permission.notification.status;
+  if (status.isDenied) {
+    await Permission.notification.request();
+  }
 
-  // final isAllowed = await AwesomeNotifications().isNotificationAllowed();
-  // if (!isAllowed) {
-  //   await AwesomeNotifications().requestPermissionToSendNotifications();
-  // }
-  await NotificationController.initializeLocalNotifications();
-  await NotificationController.initializeIsolateReceivePort();
+  final isAllowed = await AwesomeNotifications().isNotificationAllowed();
+  if (!isAllowed) {
+    AwesomeNotifications().requestPermissionToSendNotifications();
+  }
 
-  debugPrint("[FCM] About to initialize");
-  await FcmNotificationService.initialize();
-  debugPrint("[FCM] Initialize call finished");
+  NotificationController.initializeLocalNotifications();
+  NotificationController.initializeIsolateReceivePort();
+
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) {
     runApp(const MyApp());
@@ -196,7 +193,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     TamperGuard.stop();
     WalletNotificationPoller.stop();
-    unawaited(FcmNotificationService.dispose());
     _sessionTimer?.cancel();
     _tamperTimer?.cancel();
     super.dispose();
@@ -205,12 +201,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     await AutoLogoutGuard.handleLifecycle(state);
-
     if (state == AppLifecycleState.resumed) {
-      await AwesomeNotifications().dismissAllNotifications();
-      await AwesomeNotifications().cancelAll();
-      await AwesomeNotifications().resetGlobalBadge();
-
       WalletNotificationPoller.pollNow();
     }
   }

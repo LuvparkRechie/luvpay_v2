@@ -278,7 +278,4 @@ class ApiKeys {
   ///landbank service fee
   static final String getServiceFee =
       dotenv.env['SERVICE_FEE']!.replaceAll('{LUV_API}', luvApi);
-
-  static final String saveFcmTokenApi =
-      dotenv.env['SAVE_FCM_TOKEN']!.replaceAll('{LUV_API}', luvApi);
 }

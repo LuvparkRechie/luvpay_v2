@@ -25,7 +25,7 @@ class DashboardController extends GetxController {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await WalletNotificationPoller.pollNow();
       await _checkFirstLogin();
-      // await _showAdvisoriesIfAvailable();
+      await _showAdvisoriesIfAvailable();
     });
   }
 

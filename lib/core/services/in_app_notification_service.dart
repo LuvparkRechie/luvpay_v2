@@ -8,14 +8,29 @@ import 'package:luvpay/shared/widgets/luvpay_text.dart';
 
 enum InAppNotificationType { info, success, warning, error }
 
+/// A scalable, queue-driven in-app notification service.
+///
+/// Notifications are enqueued and displayed one at a time in FIFO order.
+/// Each notification auto-dismisses after its [duration] using
+/// [Completer]-based async flow instead of [Timer].
 class InAppNotificationService {
+  // ── private state ──────────────────────────────────────────────────────
   static OverlayEntry? _currentEntry;
   static Completer<void>? _dismissCompleter;
   static bool _isShowing = false;
   static final Queue<_NotificationRequest> _queue = Queue();
 
+  /// Maximum number of pending notifications in the queue.
+  /// Oldest entries are dropped when the limit is exceeded.
   static const int maxQueueSize = 10;
 
+  // ── public API ─────────────────────────────────────────────────────────
+
+  /// Enqueue a notification for display.
+  ///
+  /// Returns `true` if the notification was successfully enqueued (or shown
+  /// immediately). Returns `false` when the app is not in the foreground or
+  /// no overlay context is available.
   static Future<bool> show({
     required String title,
     required String message,
@@ -24,14 +39,17 @@ class InAppNotificationService {
     VoidCallback? onTap,
     Duration duration = const Duration(seconds: 4),
   }) async {
+    // Guard: only show while the app is in the foreground.
     final lifecycleState = WidgetsBinding.instance.lifecycleState;
     if (lifecycleState != null && lifecycleState != AppLifecycleState.resumed) {
       return false;
     }
 
+    // Guard: we need a valid overlay context.
     final context = Get.overlayContext ?? Get.context;
     if (context == null) return false;
 
+    // Enqueue the request.
     _queue.add(_NotificationRequest(
       title: title,
       message: message,
@@ -41,10 +59,12 @@ class InAppNotificationService {
       duration: duration,
     ));
 
+    // Evict oldest entries when the queue overflows.
     while (_queue.length > maxQueueSize) {
       _queue.removeFirst();
     }
 
+    // Kick off the display loop if it is not already running.
     if (!_isShowing) {
       _processQueue();
     }
@@ -52,14 +72,19 @@ class InAppNotificationService {
     return true;
   }
 
+  /// Immediately dismiss the current notification and advance to the next
+  /// one in the queue (if any).
   static void dismiss() {
     _dismissCompleter?.complete();
   }
 
+  /// Dismiss the current notification **and** clear any pending ones.
   static void dismissAll() {
     _queue.clear();
     dismiss();
   }
+
+  // ── private helpers ────────────────────────────────────────────────────
 
   static Future<void> _processQueue() async {
     if (_isShowing) return;
@@ -84,8 +109,10 @@ class InAppNotificationService {
       return;
     }
 
+    // Remove any lingering entry (safety net).
     _removeCurrentEntry();
 
+    // Prepare a completer that resolves either by auto-dismiss or user action.
     _dismissCompleter = Completer<void>();
 
     _currentEntry = OverlayEntry(
@@ -101,6 +128,7 @@ class InAppNotificationService {
 
     overlay.insert(_currentEntry!);
 
+    // Race: auto-dismiss after [duration] OR manual dismiss (whichever first).
     await Future.any([
       Future.delayed(request.duration),
       _dismissCompleter!.future,
@@ -112,11 +140,15 @@ class InAppNotificationService {
   static void _removeCurrentEntry() {
     try {
       _currentEntry?.remove();
-    } catch (_) {}
+    } catch (_) {
+      // Entry may have already been removed (e.g. route change).
+    }
     _currentEntry = null;
     _dismissCompleter = null;
   }
 }
+
+// ── request model (private) ──────────────────────────────────────────────
 
 class _NotificationRequest {
   const _NotificationRequest({
@@ -135,6 +167,8 @@ class _NotificationRequest {
   final VoidCallback? onTap;
   final Duration duration;
 }
+
+// ── banner widget (unchanged visuals) ────────────────────────────────────
 
 class _InAppNotificationBanner extends StatelessWidget {
   const _InAppNotificationBanner({
