@@ -11,9 +11,8 @@ import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
 import 'package:luvpay/core/database/sqlite/pa_message_table.dart';
-import 'package:luvpay/shared/widgets/longprint.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:luvpay/core/services/fcm_notification_service.dart';
 import '../device_registration/device_reg.dart';
 import '../../core/utils/functions/functions.dart';
 import '../../shared/components/otp_field/view.dart';
@@ -408,6 +407,8 @@ class LoginScreenController extends GetxController {
           Authentication().setLogoutStatus(false);
           Authentication().encryptData(plainText);
 
+          await Future.delayed(const Duration(milliseconds: 300));
+          await FcmNotificationService.saveCurrentTokenAfterLogin();
           if (items["image_base64"] != null) {
             Authentication().setProfilePic(jsonEncode(items["image_base64"]));
           } else {
