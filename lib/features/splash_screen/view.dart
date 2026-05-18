@@ -77,23 +77,26 @@ class SplashScreen extends GetView<SplashController> {
                                     color: cs.onSurface.withOpacity(0.70)),
                                 const SizedBox(height: 22),
                                 RepaintBoundary(
-                                    child: Shimmer.fromColors(
-                                        baseColor: AppColorV2.lpBlueBrand
-                                            .withOpacity(isDark ? 0.22 : 0.28),
-                                        highlightColor: (isDark
-                                                ? AppColorV2.darkSurface2
-                                                : Colors.grey[100]!)
-                                            .withOpacity(isDark ? 0.75 : 1.0),
-                                        child: Container(
-                                            width: 120,
-                                            height: 8,
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(999),
-                                                color: isDark
-                                                    ? AppColorV2.darkSurface2
-                                                    : AppColorV2
-                                                        .inactiveButton)))),
+                                  child: Shimmer.fromColors(
+                                    baseColor: AppColorV2.lpBlueBrand
+                                        .withOpacity(isDark ? 0.22 : 0.28),
+                                    highlightColor: (isDark
+                                            ? AppColorV2.darkSurface2
+                                            : Colors.grey[100]!)
+                                        .withOpacity(isDark ? 0.75 : 1.0),
+                                    child: Container(
+                                      width: 120,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(999),
+                                        color: isDark
+                                            ? AppColorV2.darkSurface2
+                                            : AppColorV2.inactiveButton,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                                 const SizedBox(height: 14),
                                 LuvpayText(
                                     text: "Please wait",

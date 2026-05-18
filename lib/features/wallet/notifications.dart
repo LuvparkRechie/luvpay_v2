@@ -1,25 +1,21 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings, use_build_context_synchronously, control_flow_in_finally, deprecated_member_use
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:luvpay/core/services/wallet_notification_poller.dart';
 import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:luvpay/shared/widgets/luvpay_conn.dart';
 import 'package:luvpay/shared/widgets/luvpay_loading.dart';
 import 'package:luvpay/shared/widgets/neumorphism.dart';
 
-import '../../auth/authentication.dart';
 import 'package:luvpay/shared/dialogs/dialogs.dart';
 import '../../shared/widgets/colors.dart';
 import '../../shared/widgets/custom_scaffold.dart';
 import '../../shared/widgets/luvpay_text.dart';
-
-import '../../core/network/http/api_keys.dart';
-import '../../core/network/http/http_request.dart';
 
 class WalletNotifications extends StatefulWidget {
   final bool? fromTab;
@@ -36,25 +32,20 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   bool isNetConn = true;
   bool isSelectionMode = false;
   List<int> selectedIndex = [];
-  Timer? _timer;
+  StreamSubscription<WalletNotificationSyncResult>? _notificationSubscription;
 
   @override
   void initState() {
     super.initState();
+    _notificationSubscription =
+        WalletNotificationPoller.syncStream.listen(_applyNotificationState);
     getNotification(showLoading: true);
-    _startTimer();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _notificationSubscription?.cancel();
     super.dispose();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      getNotification(showLoading: false);
-    });
   }
 
   Future<void> getNotification({required bool showLoading}) async {
@@ -63,53 +54,52 @@ class _WalletNotificationsState extends State<WalletNotifications> {
         setState(() => isLoading = true);
       }
 
-      final item = await Authentication().getUserData();
-      String userId = jsonDecode(item!)['user_id'].toString();
-
-      String subApi = "${ApiKeys.notificationApi}$userId";
-      final response = await Functions().requestHandler(apiKey: subApi);
+      final result = await WalletNotificationPoller.pollNow(
+        showBanner: false,
+        force: true,
+      );
 
       if (!mounted) return;
 
-      if (response == "No Internet") {
-        setState(() {
-          isLoading = false;
-          isNetConn = false;
-        });
+      if (result == null) {
+        setState(() => isLoading = false);
         return;
       }
 
-      if (response == null) {
-        setState(() {
-          isLoading = false;
-          isNetConn = true;
-        });
-        return;
-      }
-
-      if (response["items"] != null && response["items"].isNotEmpty) {
-        setState(() {
-          notifications = response["items"].map<Map<String, dynamic>>((n) {
-            return {
-              "notification_id": n["sms_id"],
-              "notification": n["sms_msg"],
-              "created_on": n["created_on"],
-            };
-          }).toList();
-          isLoading = false;
-          isNetConn = true;
-        });
-      } else {
-        setState(() {
-          notifications = [];
-          isLoading = false;
-          isNetConn = true;
-        });
-      }
+      _applyNotificationState(result);
     } catch (_) {
       if (!mounted) return;
       setState(() => isLoading = false);
     }
+  }
+
+  void _applyNotificationState(WalletNotificationSyncResult result) {
+    if (!mounted) return;
+
+    setState(() {
+      notifications = result.notifications
+          .map((notification) => Map<String, dynamic>.from(notification))
+          .toList();
+      isLoading = false;
+      isNetConn = result.hasNetwork;
+      _syncSelectionWithNotifications();
+    });
+  }
+
+  void _syncSelectionWithNotifications() {
+    final notificationIds = notifications
+        .map((e) => int.tryParse(e["notification_id"].toString()))
+        .whereType<int>()
+        .toSet();
+
+    selectedIndex.removeWhere((id) => !notificationIds.contains(id));
+    if (selectedIndex.isEmpty) {
+      allMarked = false;
+      if (notifications.isEmpty) isSelectionMode = false;
+      return;
+    }
+
+    allMarked = selectedIndex.length == notificationIds.length;
   }
 
   Future<void> deleteSelectedNotifications() async {
@@ -161,19 +151,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
   }
 
   Future<void> deleteSingleNotification(String smsId) async {
-    final item = await Authentication().getUserData();
-    String userId = jsonDecode(item!)['user_id'].toString();
-    String subApi = "${ApiKeys.notificationApi}$userId";
-    final params = {"sms_id": smsId};
-
-    final response = await Functions()
-        .requestHandler(apiKey: subApi, parameters: params, method: "DELETE");
-
-    if (response == "No Internet") {
-      throw Exception("No internet connection");
-    } else if (response == null || response["success"] != "Y") {
-      throw Exception("Failed to delete notification");
-    }
+    await WalletNotificationPoller.deleteNotification(smsId);
   }
 
   void enterSelectionMode(int index) {
@@ -314,9 +292,7 @@ class _WalletNotificationsState extends State<WalletNotifications> {
         itemBuilder: (context, index) {
           String img = "";
           final message = notifications[index]["notification"].toString();
-          final createdOn = DateTime.parse(notifications[index]["created_on"])
-              .toUtc()
-              .add(const Duration(hours: 8));
+          final createdOn = _parseCreatedOn(notifications[index]["created_on"]);
 
           final lower = message.toLowerCase();
           if (lower.contains("share")) {
@@ -378,6 +354,12 @@ class _WalletNotificationsState extends State<WalletNotifications> {
                                 ])),
                               ])))));
         });
+  }
+
+  DateTime _parseCreatedOn(dynamic value) {
+    final parsed = DateTime.tryParse(value?.toString() ?? "");
+    if (parsed == null) return DateTime.now();
+    return parsed.toUtc().add(const Duration(hours: 8));
   }
 
   Widget _buildNotificationText(String text, ColorScheme cs) {

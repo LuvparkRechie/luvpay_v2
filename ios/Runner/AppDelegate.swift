@@ -29,16 +29,28 @@ import UserNotifications
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
+        super.application(
+            application,
+            didRegisterForRemoteNotificationsWithDeviceToken: deviceToken
+        )
+
         let tokenParts = deviceToken.map { data in
             String(format: "%02.2hhx", data)
         }
         self.deviceToken = tokenParts.joined()
+
+        print("APNs device token: \(self.deviceToken)")
     }
 
     override func application(
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
+        super.application(
+            application,
+            didFailToRegisterForRemoteNotificationsWithError: error
+        )
+
         print("Failed to register: \(error.localizedDescription)")
     }
 
