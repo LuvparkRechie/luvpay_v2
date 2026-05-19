@@ -82,7 +82,12 @@ class NotificationController {
 
   static bool _canOpenPayload(String? payload) {
     final normalized = payload?.toLowerCase().trim();
-    return normalized == "parking" || normalized == "message";
+
+    return normalized == "parking" ||
+        normalized == "message" ||
+        normalized == "wallet" ||
+        normalized == "walletscreen" ||
+        normalized == "wallet_notification";
   }
 
   static IconData _iconForPayload(String? payload) {
@@ -108,8 +113,17 @@ class NotificationController {
           Get.toNamed(Routes.parking, arguments: "N");
         }
         return true;
+
       case "message":
         Get.toNamed(Routes.message);
+        return true;
+
+      case "wallet":
+      case "walletscreen":
+      case "wallet_notification":
+        if (Get.currentRoute != Routes.notifications) {
+          Get.toNamed(Routes.notifications);
+        }
         return true;
     }
 

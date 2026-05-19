@@ -407,8 +407,8 @@ class LoginScreenController extends GetxController {
           Authentication().setLogoutStatus(false);
           Authentication().encryptData(plainText);
 
-          await Future.delayed(const Duration(milliseconds: 300));
           await FcmNotificationService.saveCurrentTokenAfterLogin();
+
           if (items["image_base64"] != null) {
             Authentication().setProfilePic(jsonEncode(items["image_base64"]));
           } else {
@@ -426,6 +426,10 @@ class LoginScreenController extends GetxController {
           cb([
             {"has_net": true, "items": dataCb},
           ]);
+
+          Future.delayed(const Duration(seconds: 2), () {
+            FcmNotificationService.openPendingWalletNotificationAfterLogin();
+          });
         }
       }
     });

@@ -11,6 +11,7 @@ import 'package:luvpay/auth/authentication.dart';
 import 'package:luvpay/core/network/http/api_keys.dart';
 import 'package:luvpay/core/utils/functions/functions.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/routes/routes.dart';
 import 'wallet_notification_poller.dart';
@@ -29,10 +30,56 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class FcmNotificationService {
+  static RemoteMessage? _pendingInitialMessage;
+  static bool _initialMessageHandled = false;
   static StreamSubscription<RemoteMessage>? _foregroundSubscription;
   static StreamSubscription<RemoteMessage>? _openedSubscription;
   static StreamSubscription<String>? _tokenSubscription;
   static bool _isInitialized = false;
+  static const String _pendingWalletNotificationOpenKey =
+      "pending_wallet_notification_open";
+
+  static Future<bool> _isUserLoggedIn() async {
+    try {
+      final userId = await Authentication().getUserId();
+      final loginData = await Authentication().getUserLogin();
+
+      if (userId <= 0) return false;
+      if (loginData == null) return false;
+
+      return loginData["is_login"]?.toString() == "Y";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<void> _savePendingWalletNotificationOpen() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_pendingWalletNotificationOpenKey, true);
+  }
+
+  static Future<void> openPendingWalletNotificationAfterLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final shouldOpen =
+        prefs.getBool(_pendingWalletNotificationOpenKey) ?? false;
+
+    if (!shouldOpen) return;
+
+    final isLoggedIn = await _isUserLoggedIn();
+    if (!isLoggedIn) return;
+
+    await prefs.remove(_pendingWalletNotificationOpenKey);
+
+    await WalletNotificationPoller.pollNow(
+      showBanner: false,
+      force: true,
+    );
+
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (Get.currentRoute == Routes.notifications) return;
+      Get.toNamed(Routes.notifications);
+    });
+  }
 
   static Future<void> initialize() async {
     if (_isInitialized) return;
@@ -75,11 +122,7 @@ class FcmNotificationService {
         _handleOpenedMessage,
       );
 
-      final initialMessage = await messaging.getInitialMessage();
-      if (initialMessage != null) {
-        unawaited(_handleOpenedMessage(initialMessage));
-      }
-
+      _pendingInitialMessage = await messaging.getInitialMessage();
       _isInitialized = true;
     } catch (error) {
       debugPrint("[FCM] Disabled: $error");
@@ -99,6 +142,22 @@ class FcmNotificationService {
     } catch (error) {
       debugPrint("[FCM] Token save after login failed: $error");
     }
+  }
+
+  static Future<void> handlePendingInitialMessage() async {
+    if (_initialMessageHandled) return;
+
+    final message = _pendingInitialMessage;
+    if (message == null) return;
+
+    _initialMessageHandled = true;
+    _pendingInitialMessage = null;
+
+    debugPrint("[FCM] Handling pending initial message: ${message.data}");
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    await _handleOpenedMessage(message);
   }
 
   static Future<void> saveFcmTokenToBackend(String token) async {
@@ -168,17 +227,39 @@ class FcmNotificationService {
   }
 
   static Future<void> _handleOpenedMessage(RemoteMessage message) async {
+    debugPrint("[FCM] Opened message data: ${message.data}");
+    debugPrint("[FCM] Current route before open: ${Get.currentRoute}");
+
     await AwesomeNotifications().dismissAllNotifications();
     await AwesomeNotifications().cancelAll();
     await AwesomeNotifications().resetGlobalBadge();
+
+    final type = message.data["type"]?.toString();
+
+    if (type != "wallet_notification") return;
+
+    final isLoggedIn = await _isUserLoggedIn();
+
+    if (!isLoggedIn) {
+      debugPrint("[FCM] User logged out. Saving pending notification open.");
+      await _savePendingWalletNotificationOpen();
+
+      if (Get.currentRoute != Routes.login) {
+        Get.offAllNamed(Routes.login);
+      }
+
+      return;
+    }
 
     await WalletNotificationPoller.pollNow(
       showBanner: false,
       force: true,
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.delayed(const Duration(milliseconds: 700), () {
       if (Get.currentRoute == Routes.notifications) return;
+
+      debugPrint("[FCM] Navigating to wallet notifications");
       Get.toNamed(Routes.notifications);
     });
   }

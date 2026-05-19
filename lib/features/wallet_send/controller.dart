@@ -347,7 +347,6 @@ class WalletSendController extends GetxController {
     final userId = await Authentication().getUserId();
 
     _showLoadingOnce();
-
     Map<String, dynamic> parameters = {
       "user_id": userId.toString(),
       "to_mobile_no": recipientData[0]["mobile_no"],
@@ -356,17 +355,19 @@ class WalletSendController extends GetxController {
       "session_id": uData["session_id"].toString(),
       "pwd": pwd,
     };
-
     dynamic retvalue;
     try {
       retvalue = await Functions().requestHandler(
           apiKey: ApiKeys.postShareToken,
           parameters: parameters,
           method: "POST");
-    } catch (_) {
+      debugPrint("[WalletSend] endpoint: ${ApiKeys.postShareToken}");
+      debugPrint("[WalletSend] params: $parameters");
+      debugPrint("[WalletSend] response: $retvalue");
+    } catch (error) {
+      debugPrint("[WalletSend] error: $error");
       retvalue = null;
     }
-
     if (retvalue == "No Internet") {
       _closeLoadingOnly();
       CustomDialogStack.showError(
@@ -389,19 +390,33 @@ class WalletSendController extends GetxController {
     if (retvalue["success"] == "Y") {
       await addRecentFromCurrentRecipient();
 
+      try {
+        await Functions().requestHandler(
+          apiKey: "https://luvpark.ph/luvpay-fcm/trigger_pending.php",
+          method: "POST",
+          parameters: {},
+        );
+        debugPrint("[FCM Queue] Triggered send-pending");
+      } catch (error) {
+        debugPrint("[FCM Queue] Trigger failed: $error");
+      }
+
       _closeLoadingOnly();
 
       CustomDialogStack.showSuccess(
-          Get.context!, "Success!", "Transaction is complete", leftText: "Okay",
-          () {
-        Get.back();
-        Get.back();
-        refreshUserData();
-        WalletNotificationPoller.pollNow();
-      });
+        Get.context!,
+        "Success!",
+        "Transaction is complete",
+        leftText: "Okay",
+        () {
+          Get.back();
+          Get.back();
+          refreshUserData();
+          WalletNotificationPoller.pollNow();
+        },
+      );
       return;
     }
-
     _closeLoadingOnly();
     CustomDialogStack.showError(
         Get.context!, "luvpay", retvalue["msg"], () => Get.back());

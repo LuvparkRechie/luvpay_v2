@@ -185,7 +185,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     NotificationController.startListeningNotificationEvents();
     WalletNotificationPoller.start();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 2), () {
+        FcmNotificationService.handlePendingInitialMessage();
+      });
+    });
     initializedDeviceSecurity();
   }
 
