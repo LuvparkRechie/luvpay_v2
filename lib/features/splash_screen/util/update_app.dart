@@ -70,7 +70,7 @@ class UpdateApp extends StatelessWidget {
                   const SizedBox(height: 10),
                   LuvpayText(
                       text:
-                          "You must update to version $latestVersion to continue using luvpay.",
+                          "You must update to version $latestVersion to continue using Luvpay.",
                       textAlign: TextAlign.center,
                       style: AppTextStyle.paragraph1(context),
                       color: AppColorV2.onSurfaceVariant,
@@ -138,7 +138,7 @@ class UpdateApp extends StatelessWidget {
     if (Get.context != null) {
       CustomDialogStack.showError(
         Get.context!,
-        "luvpay",
+        "Luvpay",
         "Unable to open the app store right now. Please try again in a moment.",
         () => Get.back(),
       );

@@ -410,7 +410,7 @@ class AddWalletModalState extends State<AddWalletModal> {
           _selectedCategoryId == null) {
         if (Get.isDialogOpen == true) Get.back();
         CustomDialogStack.showError(
-            ctx, "luvpay", "Please select a category", () => Get.back());
+            ctx, "Luvpay", "Please select a category", () => Get.back());
         return;
       }
 
@@ -454,14 +454,14 @@ class AddWalletModalState extends State<AddWalletModal> {
           Navigator.of(context).pop(true);
         });
       } else {
-        CustomDialogStack.showError(ctx, "luvpay", msg, () {
+        CustomDialogStack.showError(ctx, "Luvpay", msg, () {
           Get.back();
           Get.back();
         });
       }
     } catch (_) {
       if (Get.isDialogOpen == true) Get.back();
-      CustomDialogStack.showError(ctx, "luvpay",
+      CustomDialogStack.showError(ctx, "Luvpay",
           "Something went wrong. Please try again.", () => Get.back());
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

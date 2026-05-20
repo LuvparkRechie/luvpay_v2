@@ -357,7 +357,7 @@ class LoginScreenController extends GetxController {
         return;
       }
       if (objData == null) {
-        CustomDialogStack.showError(Get.context!, "luvpay",
+        CustomDialogStack.showError(Get.context!, "Luvpay",
             "Error while connecting to server, Please try again.", () {
           Get.back();
           cb([

@@ -503,7 +503,7 @@ class DashboardController extends GetxController {
 
     Get.to(
         () => CelebrationScreen(
-            title: "Welcome to luvpay!",
+            title: "Welcome to Luvpay!",
             message:
                 "This looks like your first time logging in on this device.\nStart exploring now.",
             buttonText: "Let's Go!",

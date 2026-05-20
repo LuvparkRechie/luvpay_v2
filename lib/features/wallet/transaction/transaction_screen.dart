@@ -113,7 +113,7 @@ class _TransactionHistoryState extends State<TransactionHistory> {
       });
       CustomDialogStack.showError(
           context,
-          "luvpay",
+          "Luvpay",
           "Error while connecting to server, Please contact support.",
           () => Get.back());
       return;

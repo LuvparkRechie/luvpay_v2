@@ -81,7 +81,7 @@ class RegistrationController extends GetxController
 
       final ok = res["success"] == "Y";
       if (!ok) {
-        CustomDialogStack.showError(Get.context!, "luvpay",
+        CustomDialogStack.showError(Get.context!, "Luvpay",
             res["msg"] ?? "Invalid code.", () => Get.back());
         return false;
       }
@@ -144,7 +144,7 @@ class RegistrationController extends GetxController
           CustomDialogStack.showError(
               // maxLines: 3,
               Get.context!,
-              "luvpay",
+              "Luvpay",
               returnPost["msg"], () {
             Get.back();
           });

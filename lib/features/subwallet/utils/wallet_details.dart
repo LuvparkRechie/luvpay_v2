@@ -209,7 +209,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
           Get.back();
         });
       } else {
-        CustomDialogStack.showError(ctx, "luvpay", err, () {
+        CustomDialogStack.showError(ctx, "Luvpay", err, () {
           Get.back();
           Get.back();
         });
@@ -221,7 +221,7 @@ class _WalletDetailsModalState extends State<WalletDetailsModal> {
 
   void _showSnack(String msg) {
     if (!mounted) return;
-    CustomDialogStack.showInfo(context, "luvpay", msg, () {
+    CustomDialogStack.showInfo(context, "Luvpay", msg, () {
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
       }

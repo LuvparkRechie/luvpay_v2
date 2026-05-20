@@ -55,7 +55,7 @@ class TransactionDetails extends StatelessWidget {
       if (Platform.isAndroid || Platform.isIOS) {
         await Share.shareXFiles([
           XFile(imgFile.path, mimeType: 'image/png'),
-        ], text: "luvpay share");
+        ], text: "Luvpay share");
       } else {
         CustomDialogStack.showError(Get.context!, "Unsupported",
             "Sharing is not supported on this platform.", () => Get.back());

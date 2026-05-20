@@ -12,19 +12,19 @@ class OnboardingController extends GetxController {
     {
       "title": "Need parking?",
       "subTitle":
-          "luvpay finds nearby spots in real-time based on your destination and location.",
+          "Luvpay finds nearby spots in real-time based on your destination and location.",
       "icon": "onboard1",
     },
     {
       "title": "Easy booking",
       "subTitle":
-          "Book your parking spot with ease using luvpay's state-of-the-art parking system.",
+          "Book your parking spot with ease using Luvpay's state-of-the-art parking system.",
       "icon": "onboard2",
     },
     {
       "title": "Pick & Park",
       "subTitle":
-          "Discover the perfect parking spot with luvpay—tailored just for you!",
+          "Discover the perfect parking spot with Luvpay—tailored just for you!",
       "icon": "onboard3",
     },
   ]);

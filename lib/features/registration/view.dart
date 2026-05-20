@@ -85,7 +85,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                                               cs.onBackground.withAlpha(250)),
                                       LuvpayText(
                                           text:
-                                              "Join luvpay and experience seamless transactions and financial freedom.",
+                                              "Join Luvpay and experience seamless transactions and financial freedom.",
                                           color:
                                               cs.onBackground.withAlpha(120)),
                                     ]),
@@ -218,7 +218,7 @@ class RegistrationPage extends GetView<RegistrationController> {
                                                     context),
                                                 color: cs.onSurfaceVariant,
                                                 text:
-                                                    "Already have a luvpay Wallet account? ",
+                                                    "Already have a Luvpay Wallet account? ",
                                                 height: 18 / 14,
                                                 maxLines: 1),
                                             InkWell(

@@ -227,7 +227,7 @@ class WalletSendController extends GetxController {
       }
 
       _closeLoadingOnly();
-      CustomDialogStack.showError(Get.context!, "luvpay",
+      CustomDialogStack.showError(Get.context!, "Luvpay",
           returnData["items"][0]["msg"], () => Get.back());
     } catch (_) {
       _closeLoadingOnly();
@@ -311,7 +311,7 @@ class WalletSendController extends GetxController {
       _closeLoadingOnly();
       CustomDialogStack.showError(
           Get.context!,
-          "luvpay",
+          "Luvpay",
           objData["msg"]?.toString() ?? "Unable to request OTP.",
           () => Get.back());
       if (!completer.isCompleted) completer.complete();
@@ -419,7 +419,7 @@ class WalletSendController extends GetxController {
     }
     _closeLoadingOnly();
     CustomDialogStack.showError(
-        Get.context!, "luvpay", retvalue["msg"], () => Get.back());
+        Get.context!, "Luvpay", retvalue["msg"], () => Get.back());
   }
 
   Future<void> getRecipient(String mobileNo, {String? isFromQR}) async {

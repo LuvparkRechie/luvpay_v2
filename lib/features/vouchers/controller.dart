@@ -100,7 +100,7 @@ class VouchersController extends GetxController {
     } catch (e) {
       Get.back(closeOverlays: true);
 
-      CustomDialogStack.showError(context, "luvpay",
+      CustomDialogStack.showError(context, "Luvpay",
           "An unexpected error occurred. Please try again.", () {});
     }
   }

@@ -165,7 +165,7 @@ class QRController extends GetxController
           });
         } else {
           CustomDialogStack.showError(
-              Get.context!, "luvpay", objKey['msg'], () {});
+              Get.context!, "Luvpay", objKey['msg'], () {});
         }
       }
       isButtonDisabled.value = false;

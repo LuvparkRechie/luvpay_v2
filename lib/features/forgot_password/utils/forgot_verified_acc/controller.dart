@@ -81,7 +81,7 @@ class ForgotVerifiedAcctController extends GetxController {
         if (returnData["items"].isNotEmpty) {
           questionData.value = returnData["items"];
         } else {
-          CustomDialogStack.showError(Get.context!, "luvpay",
+          CustomDialogStack.showError(Get.context!, "Luvpay",
               "Make sure that you've entered the correct phone number.", () {
             Get.back();
           });

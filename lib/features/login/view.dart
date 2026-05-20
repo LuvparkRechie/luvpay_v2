@@ -28,7 +28,7 @@ Widget _loginHeader(BuildContext context, {String? customTitle}) {
     const SizedBox(height: 30),
     LuvpayText(
         textAlign: TextAlign.center,
-        text: customTitle ?? "Login to luvpay",
+        text: customTitle ?? "Login to Luvpay",
         style: AppTextStyle.h2(context),
         maxLines: 1,
         color: cs.onSurface.withAlpha(250)),
